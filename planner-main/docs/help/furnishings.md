@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-![**Furnish tab**](images\icons\furnish.png) | Furnish tab |
+![**Furnish tab**](images/icons/furnish.png) | Furnish tab |
 
 ## Adding a furnishing
 

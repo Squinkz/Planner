@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-![**Export tab**](images\icons\export.png) | Export tab |
+![**Export tab**](images/icons/export.png) | Export tab |
 
 To export your plan as a bitmap image or vector file, open the **Export** tab.
 

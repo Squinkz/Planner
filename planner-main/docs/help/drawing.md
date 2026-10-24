@@ -2,13 +2,13 @@
 
 | | |
 |---|---|
-![**Build tab**](images\icons\build.png) | Build tab |
+![**Build tab**](images/icons/build.png) | Build tab |
 
 ## Walls
 
 ### Placing a wall
 
-![Drawing a Wall](images\draw_wall.gif)
+![Drawing a Wall](images/draw_wall.gif)
 
 Hold `Right-mouse` and drag anywhere on the canvas to draw a wall. Start a new wall at the control point of an
 existing wall to keep walls connected.
@@ -18,7 +18,7 @@ out from that point. The new wall will inherit the thickness and material of the
 
 ### Wall tool
 
-![Wall Tool Settings](images\wall_tool.gif)
+![Wall Tool Settings](images/wall_tool.gif)
 
 At the top of the **Build** tab, you can set the wall thickness and wall material
 for the wall tool. The buttons on the left hand side control the shape of the wall
@@ -32,9 +32,9 @@ been placed. Holding `Ctrl` while doing so will snap the point to 15 degree incr
 
 | | | |
 |:---:|:---|:---|
-| ![Line Button](images\icons\line.png) | **Line** | Wall tool draws a line. |
-| ![Rectangle Button](images\icons\square.png) | **Rectangle** | Wall tool draws a rectangle. |
-| ![Polygon Button](images\icons\polygon.png) | **Polygon** | Wall tool draws a polygon. |
+| ![Line Button](images/icons/line.png) | **Line** | Wall tool draws a line. |
+| ![Rectangle Button](images/icons/square.png) | **Rectangle** | Wall tool draws a rectangle. |
+| ![Polygon Button](images/icons/polygon.png) | **Polygon** | Wall tool draws a polygon. |
 
 The rectangle tool draws four joined walls in one operation. Holding `Shift`
 expands the shape out from the starting point, holding `Ctrl` constrains it to a square,
@@ -42,12 +42,12 @@ holding both draws a centered square. The polygon tool uses the same controls to
 
 ## Doors and windows
 
-![Place Door](images\place_door.gif)
+![Place Door](images/place_door.gif)
 
 Drag a door or window from the **Objects** menu onto a wall. Drop it onto a wall to
 place it. Its length can then be adjusted using its control points.
 
-![Size Door](images\lengthen.gif)
+![Size Door](images/lengthen.gif)
 
 Additional properties related to the fixture can be set in the
 **Object Properties** panel, or alternatively via the `Right-click` context menu.
@@ -65,17 +65,17 @@ the mouse. The object will attempt to face the direction of the cursor.
 
 ## Corners and chamfer
 
-![Walls Joining](images\wall_join.gif)
+![Walls Joining](images/wall_join.gif)
 
 Walls join when their control points snap together. When walls join, a miter
 joint is formed.
 
-![Chamfer](images\chamfer.gif)
+![Chamfer](images/chamfer.gif)
 
 Select the control point of two joined walls, and the **Chamfer** property in the **Object Properties**
 panel will allow you to control the sharpness of that joint.
 
-![Subdivide](images\subdivide.gif)
+![Subdivide](images/subdivide.gif)
 
 Use **Subdivide Wall** in a wall's context menu to split it without moving its
 control points. The split uses a nearby clear position if the midpoint is occupied.

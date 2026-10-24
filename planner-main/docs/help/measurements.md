@@ -39,7 +39,7 @@ choosing **Show measurement**.
 
 | | |
 |---|---|
-![**World tab**](images\icons\world.png) | World tab |
+![**World tab**](images/icons/world.png) | World tab |
 
 The **World** tab toggles visibility for entire object categories. Objects can also be hidden on a per object basis,
 and then unhidden at a later point.
