@@ -86,7 +86,8 @@ def Main():
             images = []
             for project in (saved, counterOnly):
                 result = RenderPlan("counter-layer.plan", 250, bounds = (-1500, -1000, 3000, 2000),
-                                    projectData = project, outputFormat = outputFormat, solidObjects = solid)
+                                    projectData = project, outputFormat = outputFormat, solidObjects = solid,
+                                    applyTheme = False)
                 if outputFormat == "svg":
                     renderer = SvgPreviewRenderer(result)
                     assert renderer.isValid()

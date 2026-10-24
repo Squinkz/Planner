@@ -111,13 +111,14 @@ enabled checkbox hit area gets a hand cursor; ordinary row text retains arrow.
 Reference Image is a separate top-level branch, independent of World, off until
 an image is chosen. Checking it initially opens the image file picker; cancel or
 failure leaves it unchecked. Subsequent toggles reuse the embedded image. While
-enabled, toggling it on or clicking its row in Visibility opens reference controls
+enabled, clicking its row text in Visibility opens reference controls
 in the properties area, expanding that area if collapsed. Returning to Visibility
 alone does not reopen them. Leaving that tab, disabling the image, pressing Esc
 outside a gesture or clicking canvas void closes the controls. Restore the
 previous selection, splitter sizes, expanded/collapsed state and scroll position.
-`B` toggles reference visibility. Enabling through View or `B` opens the visibility
-tab and reference controls. `Alt+B` opens those controls only if the image is
+`B`, View and the tree checkbox only toggle reference visibility. Enabling does
+not change the active tab or open reference controls, including after the initial
+file selection. `Alt+B` opens those controls only if the image is
 already visible. While active,
 the image is the sole transform target; scene picking, hover handles, selection
 and building shortcuts are blocked. A click over a scene object within the image
@@ -143,7 +144,18 @@ reference image and its handles stay undimmed. Hide idle canvas hints in this
 mode, retaining active transform hints. Camera panning remains available; arrow
 keys nudge the image by a visible grid
 unit. Reference data is project settings, outside scene objects, groups,
-collision, measurements and scene undo. Painting places the image above the
+collision and measurements. Ctrl+Z/Ctrl+Shift+Z and the Edit menu use the normal
+shared undo history, even after reference controls close. Reference edits and
+scene edits undo and redo in chronological order. Moves, resizes, rotations,
+pivot edits, property fields, opacity, image replacement and calibration can be
+undone. Each canvas/property/opacity drag is one edit; cancellation adds none.
+New edits clear redo. Visibility and entering/leaving editing are not edits.
+Reference edits use the same history count and payload limits as scene edits.
+Changed properties are stored as deltas, so transforms do not repeat embedded
+image data. The mixed journal is saved in project/session files and validated
+on load. Restoring image edits does not enter image editing or alter visibility.
+Coverage: `check_reference_history.py`.
+Painting places the image above the
 canvas background and below grid/geometry, including cached pan strips; editor
 handles are painted separately. The current export visibility tree and exported
 artwork remain scene-only; no reference-image export option is implemented.
@@ -401,6 +413,18 @@ template selections retain their stored widths.
 
 ## MEASURE-01: displayed dimensions
 
+In the editor, M and the top-level measurement controls toggle the
+master visibility flag without changing category choices. Hiding and showing a
+walls-only configuration restores walls only. Category checkmarks retain the
+remembered choices while the master is off; Settings dims their labels. The
+editor master is checked/unchecked independently of the number of enabled
+categories. Enabling a category shows measurements without clearing other
+choices; disabling the last category also turns the master off. Save the master
+and category choices separately. Export retains its Show all measurements action,
+which explicitly enables or disables all categories. The View menu wording and
+partial-state indicator follow that distinction.
+Coverage: `check_measurement_master_toggle.py`, `check_header_menus.py`.
+
 Geometry remains millimeters. Display precision affects canvas dimensions/guides,
 not stored coordinates or property values. Medium is default. Metric High/Medium/
 Low round to 1/5/20 mm; imperial to 1/16, 1/4, 1 inch. Adaptive Metric follows
@@ -455,15 +479,60 @@ reordering or deleting a member updates the other member's warning, including
 dirty-region redraw, pan caching and undo/redo. Do not delete or reject copies,
 change their saved records, or block clipboard/duplication merely for coincidence.
 
+Stationary architectural objects that fail the checker's placement rules use
+`warningOutline` on the editing canvas, including when selected. Optional
+collision switches retain their existing effects; overlapping openings remain
+intrinsically invalid. Cache validation across unchanged hover/pan frames and
+refresh it after geometry or collision-setting changes. Export previews and
+PNG/SVG file rendering suppress these editor-only colors. Existing muted invalid
+drag previews keep their behavior. Coverage: `check_architectural_error_highlights.py`.
+One shared duplicate check covers every architectural type, including stairs,
+railings and wall attachments, independently of collision switches. Compare
+serialized geometry and visual settings while ignoring object IDs, measurement
+visibility/flipping and recovery acknowledgements. Keep the rear equal object
+normal, highlight front copies and exclude redundant copies from PNG/SVG exports.
+Connected end-to-end segments are not duplicates. The problem dialog names the
+actual type, such as Coincident stair or Elevator contained in another object,
+rather than labeling every structural object as a wall.
+Coverage: `check_architectural_duplicates.py`, `check_elevator_duplicate_warning.py`.
+
+Check for Problems offers Auto-Repair for exact coincident copies of every scene
+object type, including annotations. Repairing a duplicate category handles all
+its coincident groups in one undoable edit. Keep one existing copy, preferring a
+visible copy, and preserve unique attachments when merging duplicate walls.
+Remove matching child copies after reparenting without deleting unrelated grouped
+or connected objects. A minimum-length (1 mm) opening is a potential issue, not
+invalid geometry. Tiny and collapsed openings retain a minimum screen-space hit
+area so they can be selected through their parent wall; selected openings keep
+their normal endpoint handles. Coverage: `check_problem_duplicate_repair.py`.
+Counter and railing highlight clips include the complete outline stroke, rather
+than exposing a normal half-stroke outside the surface. Coincident counters keep
+a warning footprint even when merged geometry assigns their surface to another
+owner. Fully covered rear furnishing copies do not contribute dark antialias
+fringes beneath the front warning, in solid or transparent object mode.
+
 ## EXPORT-01: layout and enabled states
 
-Order: Export heading; path/browse; Type; separator; Digital/Architectural tabs;
+Order: Export heading; folder/browse; filename; Type; separator; Digital/Architectural tabs;
 scrolling sections Canvas, Border, Grid, Line Weight, Measurements, Composite,
 Visibility; pinned Export action. Sections start collapsed unless restored.
 Section gap 20, heading/content gap 12, ordinary export controls 32 high,
 section buttons 40. Scroll content margins 14. Canvas labels are content-sized,
 right aligned, with 8 px gap; fields take remaining width. Avoid a stretched
 label column that wastes half the row. Reference captures contain exact bounds.
+
+The folder and filename are separate 32-pixel-high text entries, pinned above
+the scrolling sections. Keep the original full-width folder/browse row with
+14-pixel side margins, 6-pixel field/button gap and 44-pixel browse button. Do not
+add a label column. Filename sits 8 pixels below and spans the full row, aligned
+with the folder field's left edge and browse button's right edge. Use placeholders
+and accessible names to identify the entries. Browse opens the native folder-only
+picker and remembers that folder without changing the selected file type or a
+custom filename. Type changes update only the filename extension. Automatic
+project-based filenames keep their existing collision suffixes; custom names
+retain overwrite confirmation. Export joins the two entries and rejects folder
+components or reserved characters in Filename. Both entries participate in export
+undo/redo. Coverage: `check_export_destination.py`, `check_parity_panel_layouts.py`.
 
 | Format/mode | Scale controls | Resolution | Composite |
 | --- | --- | --- | --- |
@@ -506,6 +575,17 @@ top edge below it or bottom edge above it. Strict comparisons; an edge exactly
 at the midpoint does not trigger recenter. Otherwise retain pan. Exit restores
 the editing camera and presentation settings.
 
+While Export is active, G and the View menu's grid toggle update the export grid
+override. M and the View menu's measurement toggles update export
+measurement-visibility overrides, including before any export GUI control has
+been changed. The View menu reflects the resolved export grid and measurements.
+These changes use export undo/redo and are saved under export settings. They do
+not modify the editor's grid or measurement visibility; leaving Export restores it.
+Outside Export, the same actions retain their normal editor behavior.
+Tips and FPS remain app preferences. Maximize remains a window layout action,
+and reference-image visibility remains project metadata outside export artwork.
+Coverage: `check_export_measurement_shortcuts.py`.
+
 Double-click a crop guide resets that edge to its automatic-bounds position.
 Otherwise double-click inside the drawing region returns to 1:1 output pixels
 (SVG units for SVG), accounting for device pixel ratio and preserving the world
@@ -522,6 +602,9 @@ Crop edges snap only to the grid visible in the exported output:
 master snap enables it, Alt inverts it; individual snap target toggles are ignored.
 Automatic bounds retain their geometric behavior without this manual snapping.
 Dragging export rulers offsets the export grid origin under the same snap policy.
+Double-clicking a horizontal ruler resets only the X origin to zero; a vertical
+ruler resets only Y. This bypasses grid snapping, clears pending ruler drags and
+records one export undo step when the value changes. It leaves crop and camera unchanged.
 This setting does not move project geometry or its editing grid origin.
 
 Build/manipulation commands and controls are unavailable in Export. Undo/redo

@@ -3,6 +3,7 @@ import copy
 import os
 from pathlib import Path
 import sys
+from unittest.mock import patch
 
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "planner-main"))
@@ -16,7 +17,8 @@ from check_pan_dpi import CompareDirect
 
 
 def ImageBytes(image):
-    return bytes(image.convertToFormat(QtGui.QImage.Format.Format_ARGB32).constBits())
+    image = image.convertToFormat(QtGui.QImage.Format.Format_ARGB32)
+    return bytes(image.constBits())
 
 
 def Main():
@@ -65,6 +67,24 @@ def Main():
     image = v.grab().toImage()
     warning = QtGui.QColor(themeColors["warningOutline"])
     assert any(image.pixelColor(x, y) == warning for x in range(image.width()) for y in range(image.height()))
+    # Rear normal strokes must not leave dark fringes under the front warning.
+    # Compare with the same warning artwork rendered without its hidden rear copy.
+    oldSolid = v.solidObjects
+    for solid in (True, False):
+        v.solidObjects = solid
+        v.sceneChanged.emit()
+        duplicateImage = v.grab().toImage()
+        v.hiddenObjects, v.hiddenObjectIds = [first], {id(first)}
+        with patch.object(v, "DuplicateFurnishings", return_value = [second]):
+            v.sceneChanged.emit()
+            actual = v.grab().toImage()
+            bounds = v.ObjectFootprint(second)[0]
+            bounds = QtCore.QRectF(v.WorldToViewport(bounds.topLeft()), v.WorldToViewport(bounds.bottomRight())).normalized()
+            bounds = bounds.adjusted(-10, -10, 10, 10).toAlignedRect()
+            assert ImageBytes(actual.copy(bounds)) == ImageBytes(duplicateImage.copy(bounds)), (solid, "Rear stroke leaked through furnishing warning")
+        v.hiddenObjects, v.hiddenObjectIds = [], set()
+    v.solidObjects = oldSolid
+    v.sceneChanged.emit()
     # Moving the rear member clears the stationary front member's warning in
     # dirty-region rendering as well as a full redraw; undo restores it.
     before = v.CaptureState()

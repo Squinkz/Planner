@@ -14,7 +14,8 @@ canvas use fractions; other UI controls use decimal inches.
 
 Changing units does not resize your drawing.
 
-The **Precision** option in the **Settings** menu affects displayed canvas measurements, not the underlying dimensions or the precision of property controls:
+The **Precision** option in the **Settings** menu affects displayed canvas measurements,
+not the underlying dimensions or the precision of property controls:
 
 - **High:** nearest 1 mm, or nearest 1/16 inch.
 - **Medium:** nearest 5 mm, or nearest 1/4 inch.
@@ -24,11 +25,11 @@ Medium is the default.
 
 ## Shown measurements
 
-Use the **View** menu to control the display of measurements. `Ctrl + M`
-toggles the display of all measurements on the canvas. Walls, stairs, counters, railings and elevators have independent
-visibility controls.
+Use the **View** menu to control the display of measurements, or hit `M` on the keyboard.
+Walls, stairs, counters, railings and elevators have independent visibility controls.
 
-Doors, windows, stairs and counters can optionally split wall measurements when they touch or intersect. These options can be configured in the **Settings** menu.
+Doors, windows, stairs and counters can optionally split wall measurements when they touch
+or intersect. These options can be configured in the **Settings** menu.
 
 The measurement display options are overrides for entire classes of objects. If you need to
 disable the display of measurements for a single object or group of objects only, use the
@@ -41,7 +42,8 @@ choosing **Show measurement**.
 |---|---|
 ![**World tab**](images/icons/world.png) | World tab |
 
-The **World** tab toggles visibility for entire object categories. Objects can also be hidden on a per object basis,
+The **World** tab toggles visibility for entire object categories. Objects can also be
+hidden on a per object basis,
 and then unhidden at a later point.
 
 | | | | |

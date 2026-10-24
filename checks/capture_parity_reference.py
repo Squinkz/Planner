@@ -122,7 +122,7 @@ def Main():
         Capture("visibility", main, "Visibility hierarchy and properties layout")
         panel = main.exportPanel
         main.sidebarTabs.setCurrentWidget(panel)
-        panel.pathField.setText("example.png")
+        panel.fileNameField.setText("example.png")
         for name in ("Canvas", "Border", "Grid"):
             panel.sectionButtons[name].setChecked(True)
         for formatName, mode, name in (("PNG", 0, "export-png-digital"),

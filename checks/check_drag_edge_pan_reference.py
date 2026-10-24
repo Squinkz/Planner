@@ -28,6 +28,7 @@ def Main():
         image = QtGui.QImage(100, 80, QtGui.QImage.Format.Format_RGB32)
         image.fill(QtCore.Qt.GlobalColor.white)
         assert image.save(str(path)) and reference.Load(path)
+        reference.Show()
         start = v.WorldToViewport(point(*reference.state["center"]))
         edge = point(v.width() + 20, start.y())
         Mouse(v, types.MouseButtonPress, start)

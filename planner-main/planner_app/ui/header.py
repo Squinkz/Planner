@@ -145,7 +145,7 @@ class HeaderMixin:
         self.viewOptions = {}
         for item in (("showGrid", "Show grid", "G"), None,
                      ("referenceImage", "Reference Image", "B"), None,
-                     ("showMeasurements", "Show all measurements", "Ctrl+M"),
+                     ("showMeasurements", "Toggle measurements", "M"),
                      ("walls", "Show wall measurements", ""),
                      ("stairs", "Show stair measurements", ""),
                      ("counters", "Show counter measurements", ""),
@@ -189,6 +189,7 @@ class HeaderMixin:
             shortcutLabel.setMinimumWidth(24)
             row.addWidget(shortcutLabel)
             button.iconLabel = iconLabel
+            button.textLabel = textLabel
             button.shortcutLabel = shortcutLabel
             button.clicked.connect(lambda checked = False, option = option: self.SetViewOption(option))
             action.setDefaultWidget(button)
@@ -280,14 +281,19 @@ class HeaderMixin:
         self.settingsWindow.activateWindow()
 
     def ShowViewMenu(self):
-        view = self.exportPanel.projectView
+        view = self.exportPanel.ResolvedView() if self.exportPanel.projectView is not None else None
         for option, button in self.viewOptions.items():
             showMeasurements = view["showMeasurements"] if view is not None else self.viewport.showMeasurements
             measurements = view["measurementVisibility"] if view is not None else self.viewport.measurementVisibility
             enabled = (bool(self.referenceImage.state and self.referenceImage.state["visible"]) if option == "referenceImage" else
-                       showMeasurements and measurements[option] if option in measurements
+                       showMeasurements if option == "showMeasurements" else
+                       (showMeasurements and measurements[option] if view is not None else measurements[option]) if option in measurements
                        else view[option] if view is not None and option in view else getattr(self.viewport, option))
-            if (option == "showMeasurements" and enabled
+            if option == "showMeasurements":
+                label = "Show all measurements" if view is not None else "Toggle measurements"
+                button.textLabel.setText(label)
+                button.setAccessibleName(label)
+            if (view is not None and option == "showMeasurements" and enabled
                     and not all(measurements.values())):
                 pixmap = QtGui.QPixmap(18, 18)
                 pixmap.fill(QtCore.Qt.GlobalColor.transparent)
@@ -310,29 +316,35 @@ class HeaderMixin:
             if option == "referenceImage":
                 enabled = not bool(self.referenceImage.state and self.referenceImage.state["visible"])
                 self.referenceImage.ToggleVisibility(enabled)
-            if self.referenceImage.state and self.referenceImage.state["visible"]:
+            if option == "editReferenceImage":
                 self.sidebarTabs.setCurrentWidget(self.visibilityPage)
                 self.referenceImage.Show()
             return
         panel = self.exportPanel
         if (option in ("showGrid", "showMeasurements") or option in self.viewport.measurementVisibility) and panel.projectView is not None and not panel.applying:
-            panel.EditProjectSettings(lambda: self.SetViewOption(option))
+            view = panel.ResolvedView()
+            if option == "showGrid":
+                panel.SetOverride("showGrid", not view["showGrid"])
+            elif option == "showMeasurements":
+                panel.SetOverride("measurementVisibility", dict.fromkeys(self.viewport.measurementVisibility, not view["showMeasurements"]))
+            else:
+                panel.SetOverride("measurementVisibility", not (view["showMeasurements"] and view["measurementVisibility"][option]), key = option)
+            self.viewMenu.hide()
             return
         if option == "viewportOnlyMode":
             self.viewMenu.hide()
             self.ToggleViewportOnlyMode()
             return
         if option in self.viewport.measurementVisibility:
-            if not self.viewport.showMeasurements:
-                self.viewport.measurementVisibility = dict.fromkeys(self.viewport.measurementVisibility, False)
             self.viewport.measurementVisibility[option] = not self.viewport.measurementVisibility[option]
-            self.viewport.showMeasurements = any(self.viewport.measurementVisibility.values())
+            if self.viewport.measurementVisibility[option]:
+                self.viewport.showMeasurements = True
+            elif not any(self.viewport.measurementVisibility.values()):
+                self.viewport.showMeasurements = False
         elif option == "showFpsCounter":
             self.viewport.SetFpsCounterVisible(not self.viewport.showFpsCounter)
         else:
             setattr(self.viewport, option, not getattr(self.viewport, option))
-        if option == "showMeasurements":
-            self.viewport.measurementVisibility = dict.fromkeys(self.viewport.measurementVisibility, self.viewport.showMeasurements)
         if option == "showMeasurements" or option in self.viewport.measurementVisibility:
             self.RefreshProperties()
         self.viewMenu.hide()

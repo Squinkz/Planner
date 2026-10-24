@@ -30,7 +30,7 @@ def Main():
 
     with tempfile.TemporaryDirectory() as directory, \
          patch.object(MainWindow, "ShowAppMessage", side_effect = AnswerMessage):
-        folder = Path(directory)
+        folder = Path(directory).resolve()
         path = folder / "Summer House.plan"
         main = MainWindow()
         main.show()

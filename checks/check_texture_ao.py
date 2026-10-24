@@ -28,7 +28,7 @@ def Main():
         ao.fill(QtGui.QColor(128, 128, 128, 0))
         for name in ("leather_1", "paper", "plain"):
             ao.save(str(textures / (name + "_ao.png")))
-        with patch.object(compositing, "appDirectory", directory), patch.object(export_panel, "appDirectory", directory):
+        with patch.object(compositing, "texturesDirectory", directory / "textures"), patch.object(export_panel, "texturesDirectory", directory / "textures"):
             for name in names:
                 for strength in (0, .5, 1):
                     image = QtGui.QImage(12, 12, QtGui.QImage.Format.Format_RGB32)

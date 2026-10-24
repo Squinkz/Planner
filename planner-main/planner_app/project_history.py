@@ -1,9 +1,12 @@
 """Versioned sparse history, validated against the current scene before loading."""
 import json
+import math
 from types import SimpleNamespace
 from .models import MeasurementGuide, AngleGuide, Arrow, Railing, Stair, Fireplace, NorthArrow
 from .object_schema import openingFields, openingClasses
 from .project_codec import EncodeObjectRecord, DecodeProject
+from .history_edits import ReferenceImageEdit
+from .reference_image import ValidateReferenceImage
 
 
 
@@ -82,11 +85,15 @@ def EncodeEdit(edit):
             record = EncodeEntry(category, entry, entry[1].objectId if category == 3 else None)
             sides.append([position, record])
         changes.append({"category": category, "before": sides[0], "after": sides[1]})
-    return {"changes": changes,
+    result = {"changes": changes,
             "groups": [[[position, [obj.objectId for obj in group]] for position, group in side] for side in edit.groups],
             "hidden": [[[position, obj.objectId] for position, obj in side] for side in edit.hidden],
             "orders": {str(category): [[obj.objectId for obj in side] for side in orders]
                        for category, orders in edit.orders.items()}}
+    if isinstance(edit, ReferenceImageEdit):
+        result["referenceImage"] = {"changes": {name: list(pair) for name, pair in edit.referenceChanges.items()},
+                                    "pivots": [list(pivot) if pivot is not None else None for pivot in edit.pivots]}
+    return result
 
 
 def DecodeHistory(history, settings, definitions, current):
@@ -112,7 +119,8 @@ def DecodeHistory(history, settings, definitions, current):
     currentObjects = {entry[0].objectId: entry[0] for category in stateCategories for entry in currentState[category]}
     seeds, variants = {}, {}
     for edit in history["undo"] + history["redo"]:
-        if not isinstance(edit, dict) or set(edit) != {"changes", "groups", "hidden", "orders"}:
+        if not isinstance(edit, dict) or set(edit) not in ({"changes", "groups", "hidden", "orders"},
+                                                       {"changes", "groups", "hidden", "orders", "referenceImage"}):
             raise ValueError("Invalid history edit.")
         if not isinstance(edit["changes"], list) or len(edit["changes"]) > 100000:
             raise ValueError("Invalid history changes.")
@@ -157,7 +165,11 @@ def DecodeHistory(history, settings, definitions, current):
         if record["type"] in openingClasses:
             value["parent"] = indices[json.dumps(seeds[record["parent"]], sort_keys = True)]
         records.append(value)
-    batch = DecodeProject({"format": "Planner Project", "version": 1, "settings": settings,
+    # Reference pixels are independent of historical scene-model variants.
+    # The current image was validated with project settings; validate older
+    # replacement images only when replaying their reference deltas below.
+    batchSettings = {key: value for key, value in settings.items() if key != "referenceImage"}
+    batch = DecodeProject({"format": "Planner Project", "version": 1, "settings": batchSettings,
                            "scene": {"objects": records, "groups": [], "hidden": []}}, definitions, validatePlacement = False)
     walls, windows, furnishings, groups, hidden, flags, view, labels = batch
     snapshot = SimpleNamespace(walls = walls, windows = windows, furnishings = furnishings, labels = labels,
@@ -209,6 +221,21 @@ def DecodeHistory(history, settings, definitions, current):
     decoded = {"undo": [], "redo": []}
     for name in decoded:
         for edit in history[name]:
+            if "referenceImage" in edit:
+                reference = edit["referenceImage"]
+                if (edit["changes"] or edit["orders"] or edit["groups"] != [[], []] or edit["hidden"] != [[], []]
+                        or not isinstance(reference, dict) or set(reference) != {"changes", "pivots"}
+                        or not isinstance(reference["changes"], dict)
+                        or set(reference["changes"]) - {"center", "width", "height", "angle", "opacity", "path", "data"}
+                        or any(not isinstance(pair, list) or len(pair) != 2 for pair in reference["changes"].values())):
+                    raise ValueError("Invalid reference history edit.")
+                pivots = reference["pivots"]
+                if (not isinstance(pivots, list) or len(pivots) != 2
+                        or any(pivot is not None and (not isinstance(pivot, list) or len(pivot) != 2
+                           or any(type(value) not in (int, float) or not math.isfinite(value) or abs(value) > 1e12 for value in pivot)) for pivot in pivots)):
+                    raise ValueError("Invalid reference history pivot.")
+                decoded[name].append(ReferenceImageEdit(reference["changes"], tuple(tuple(pivot) if pivot is not None else None for pivot in pivots)))
+                continue
             changes, changedIds = [], set()
             for change in edit["changes"]:
                 sides, positions = [], []
@@ -247,6 +274,11 @@ def DecodeHistory(history, settings, definitions, current):
         raise ValueError("Decoded history exceeds its memory budget.")
     for name in decoded:
         state = currentState
+        reference = settings.get("referenceImage")
+        validatedImages = {reference["data"]} if reference is not None else set()
         for edit in reversed(decoded[name]):
             state = edit.Apply(state, name == "redo", validate = True)
+            if isinstance(edit, ReferenceImageEdit):
+                reference = edit.ApplyReference(reference, name == "redo", validate = True)
+                reference = ValidateReferenceImage(reference, validatedImages)
     return decoded

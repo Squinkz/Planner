@@ -12,7 +12,7 @@ class GeometryLoadCancelled(Exception):
 
 
 geometryIssueNames = ("opening_bounds", "opening_overlap", "opening_obstruction", "fireplace_bounds")
-knownObjectTypes = {"Wall", "Pillar", "Column", "Elevator", "Stair", "Counter", "Railing", "Arrow", "MeasurementGuide", "AngleGuide", "Label", "Furnishing", "NorthArrow", *openingClasses}
+knownObjectTypes = {"Wall", "Pillar", "Column", "Elevator", "Stair", "Counter", "Railing", "Arrow", "MeasurementGuide", "BoundaryLine", "AngleGuide", "Label", "Furnishing", "NorthArrow", *openingClasses}
 
 
 def Finite(value, minimum = -1e12, maximum = 1e12):
@@ -204,13 +204,13 @@ def FindGeometryIssue(index, data, definitions, prepared = None):
             candidate[name] = [0, 0]
         else:
             candidate[name] = [value if Finite(value) else 0 for value in point]
-    if kind == "MeasurementGuide" and "textOffset" in record:
+    if kind in ("MeasurementGuide", "BoundaryLine") and "textOffset" in record:
         point = record["textOffset"]
         if not isinstance(point, list) or len(point) != 2 or not all(Finite(value) for value in point):
             candidate["textOffset"] = [0, 0]
-    minimum = 0 if kind in ("MeasurementGuide", "AngleGuide") else 1e-8 if kind == "Label" else 1
-    if not Finite(record.get("width"), minimum, 1e9) or kind in ("MeasurementGuide", "AngleGuide") and record.get("width") != 0:
-        candidate["width"] = 0 if kind in ("MeasurementGuide", "AngleGuide") else data["settings"]["wallWidth"] if kind == "Wall" else definitions.get(record.get("definition"), definitions["null"])["width"]
+    minimum = 0 if kind in ("MeasurementGuide", "BoundaryLine", "AngleGuide") else 1e-8 if kind == "Label" else 1
+    if not Finite(record.get("width"), minimum, 1e9) or kind in ("MeasurementGuide", "BoundaryLine", "AngleGuide") and record.get("width") != 0:
+        candidate["width"] = 0 if kind in ("MeasurementGuide", "BoundaryLine", "AngleGuide") else data["settings"]["wallWidth"] if kind == "Wall" else definitions.get(record.get("definition"), definitions["null"])["width"]
     if kind != "AngleGuide" and math.hypot(candidate["second"][0] - candidate["first"][0], candidate["second"][1] - candidate["first"][1]) < 1e-8:
         candidate["second"] = [candidate["first"][0] + (1000 if candidate["first"][0] <= 1e12 - 1000 else -1000), candidate["first"][1]]
     for name in ("firstMiter", "secondMiter"):

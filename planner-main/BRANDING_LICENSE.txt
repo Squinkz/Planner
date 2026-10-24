@@ -1,0 +1,50 @@
+Planner Branding License, version 1.0
+Copyright (c) 2026 Dieter Stassen. All rights reserved except as granted below.
+
+1. Scope
+
+These terms apply to Planner's original logo, application icon, and other
+artwork explicitly designated as Planner branding and owned by Dieter Stassen.
+They include assets/planner.svg (currently temporary artwork), application icons
+derived from it, and replacement official logo/application-icon artwork supplied
+under this notice. These works are not licensed under the GNU GPL or the
+Planner Original Graphics License.
+
+2. Permission for official packages
+
+You may display this branding as part of running an official Planner package.
+You may copy and redistribute it only as included in a complete, unmodified
+official Planner source or binary package, including a faithful mirror,
+installer or archive of that package. Retain all copyright and license notices.
+This permission applies to both free and paid distribution of that package.
+
+Technical conversion of the supplied application icon into an operating-system
+icon format is permitted when packaging the unmodified official source. It does
+not grant permission to create or distribute a separate icon or logo collection.
+
+3. Reserved rights
+
+No permission is granted for standalone redistribution, redistribution with
+modified versions or other products, modification except for the technical
+conversion above, or use suggesting endorsement or official status. Modified
+software distributions must remove or replace this branding unless Dieter Stassen
+has given separate written permission.
+
+No general trademark license in Planner's name or branding is granted. Truthful
+references to the original project and rights available under applicable law or
+a separate agreement are unaffected. Copyright in graphics does not itself
+establish exclusive rights in a word or name.
+
+4. Software, third-party material and statutory rights
+
+These terms impose no additional restrictions on the GPL-covered code. They do
+not restrict separately licensed third-party graphics, independently granted
+rights, hosting-platform permissions, or statutory exceptions.
+
+5. Warranty and termination
+
+The branding is provided "as is", without warranties of any kind, to the extent
+permitted by applicable law. To that extent, the copyright holder is not liable
+for loss or damage arising from its use. Permission under these terms ends for
+a recipient who breaches them. Compliant recipients retain their independent
+permissions.

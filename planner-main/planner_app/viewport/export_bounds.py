@@ -279,9 +279,17 @@ class ExportBoundsOverlay(QtCore.QObject):
                 self.dragEdge = None
                 self.dragRuler = None
         elif event.button() == QtCore.Qt.MouseButton.LeftButton:
+            ruler = self.HitRuler(position)
             edge = self.HitEdge(position)
             self.dragEdge = None
-            if edge is not None:
+            self.dragRuler = None
+            self.dragMoved = False
+            if ruler is not None:
+                origin = list(v.gridOrigin)
+                origin[ruler] = 0.0
+                if tuple(origin) != v.gridOrigin:
+                    self.originChanged.emit(origin)
+            elif edge is not None:
                 x, y, width, height = self.autoBounds
                 self.MoveEdge(edge, (x, x + width, y, y + height)[edge], reset = True)
             elif v.DrawingRect().contains(position):

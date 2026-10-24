@@ -2,7 +2,7 @@
 import json
 import re
 import warnings
-from planner_app.paths import appDirectory
+from planner_app.paths import themesDirectory
 from .fonts import fontFamily
 
 themeRoles = (
@@ -37,7 +37,7 @@ labelFont = fontFamily
 def LoadThemes(directory = None):
     definitions = {}
     sources = {}
-    themeDirectory = directory or appDirectory / "themes"
+    themeDirectory = directory or themesDirectory
     for path in sorted([*themeDirectory.glob("*.json"), *themeDirectory.glob("*.jsonc")]):
         try:
             # Strip line comments while preserving quoted strings, including

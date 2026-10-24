@@ -5,6 +5,7 @@ from PySide6 import QtCore, QtGui
 from planner_app.graphics.palette import themeColors
 from planner_app.graphics.theme import HeaderIcon, MaterialIcon, UiIcon, wallMaterials
 from planner_app.models import Door, Furnishing, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway, SilledWindow, CasementWindow, SlidingDoor, Stair, Counter, Railing, MeasurementGuide, Wall, Pillar, Column, Label, Window, Fireplace
+from planner_app.models import BoundaryLine
 from planner_app.ui.menus import AddMenuButton, AddSubmenuButton
 
 
@@ -120,7 +121,7 @@ class ContextMenuMixin:
         elif isinstance(hitObject, Window):
             category = "doors" if isinstance(hitObject, (Door, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway)) else "windows"
             measurementEnabled = self.measurementVisibility["walls"] and self.measurementSettings[category] != 2
-        elif isinstance(hitObject, MeasurementGuide):
+        elif isinstance(hitObject, MeasurementGuide) and not isinstance(hitObject, BoundaryLine):
             measurementEnabled = True
         if self.showMeasurements and measurementEnabled:
             hide = not hitObject.measurementHidden

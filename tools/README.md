@@ -8,6 +8,9 @@ Run these from the repository root with the development environment active.
 - `icon_cache_probe.py`: exercise artwork-cache retention across themes.
 - `pan_pacing_20261022.py`: controlled input-stream and repaint-pacing probe.
 - `verify_repository.py`: review Git's selected file roots, caches and large files.
+- `build_windows.py`: build and verify the Windows executable and ZIP. See
+  [Windows build](../docs/WINDOWS_BUILD.md). `Planner.spec`, `windows_entry.py`
+  and `frozen_smoke.py` support this build.
 
 Usage, report fields and interpretation are in
 [Rendering diagnostics](../docs/RENDER_DIAGNOSTICS.md).

@@ -6,7 +6,7 @@ desktop app, including distinctions between structural objects and furnishings
 that happen to share handles or an SVG renderer.
 
 [object-behavior.json](reference/object-behavior.json) is the executable companion:
-23 current types, exact visible property widgets, ranges, increments, tooltips, handles,
+24 current types, exact visible property widgets, ranges, increments, tooltips, handles,
 visibility categories, context actions with measurements on/off, seed records,
 all eight collision setting combinations and footprint exclusions. Replay it with
 `python checks/run_checks.py check_object_behavior_matrix.py` from the workspace.
@@ -87,6 +87,11 @@ Column use Walls; Elevator has Elevators. World is the master visibility switch.
 Hiding/deleting a wall includes its attached openings/fireplaces; undo restores
 the relationships. Hidden objects are different from measurement-hidden objects.
 
+Stair direction arrowheads are fixed at 12 drawing units long and 7 units on
+each side of the shaft. Stair length, width, trimmed landings and direction do
+not resize the head. Canvas and export rendering share this symbol geometry.
+Coverage: `check_stair_arrowheads.py`.
+
 Global measurements gate all ambient measurements and related UI options.
 Walls, pillars, columns and fireplaces follow wall measurement visibility;
 stairs, counters, railings and elevators have their own switches. Doors/windows
@@ -94,6 +99,10 @@ also follow their measurement mode (both sides, facing side or no cuts).
 Measurement guides draw their explicit measurement. Furnishings, labels, north
 arrows and arrows do not gain ambient object measurements merely because they
 have bounds.
+Boundary lines draw a dash-dot stroke at all times while visible, with a length
+label only when selected. They share measurement-guide editing and annotation
+collision exclusion, but have their own visibility category. Exports omit their
+selected-only measurement labels. See [annotation behavior](ANNOTATIONS.md).
 
 Hide/Show measurement belongs at the bottom of the object's top context-menu
 section, before Transform. Offer it only when that class currently draws ambient

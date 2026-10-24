@@ -2,11 +2,12 @@
 import math
 import hashlib
 import json
+import re
 from itertools import combinations
 from PySide6 import QtCore
 from .furnishing_assets import FurnishingAssetProblems
 from .geometry_recovery import FindGeometryIssue, GeometryRepairText
-from .models import Furnishing, Window, Wall, Pillar, Counter, Stair, Elevator
+from .models import Furnishing, Window, Wall, Pillar, Column, Counter, Stair, Railing, Elevator
 from .project_codec import EncodeObjectRecord
 from .viewport.geometry import CollisionPass
 from .units import FormatLength
@@ -159,14 +160,8 @@ def FindSceneProblems(viewport, includePotential = True, gridStep = None, includ
                                  description = issue["description"], repair = issue["repair"],
                                  repairText = GeometryRepairText(records[index], issue["repair"]) if issue["repair"] is not None else ""))
             continue
-        if isinstance(obj, Window):
-            valid = viewport.OpeningFits(obj)
-        elif isinstance(obj, Stair):
-            valid = viewport.StairFits(obj)
-        elif isinstance(obj, Counter):
-            valid = viewport.CounterFits(obj)
-        elif type(obj) is Wall or isinstance(obj, (Pillar, Elevator)):
-            valid = viewport.WallFits(obj)
+        if isinstance(obj, Window) or type(obj) in (Wall, Pillar, Column, Counter, Stair, Railing, Elevator):
+            valid = viewport.ArchitecturalPlacementFits(obj)
         elif isinstance(obj, Furnishing):
             valid = viewport.FurnishingFits(obj)
         else:
@@ -175,17 +170,66 @@ def FindSceneProblems(viewport, includePotential = True, gridStep = None, includ
             problems.append(dict(object = obj, code = "placement", label = "Invalid placement",
                 description = "The object does not satisfy the current placement or collision rules. Move or resize it on the canvas, or delete it.",
                 repair = None))
-    # These warnings already have error highlights on the editing canvas.
-    for label, code, affected in (("Wall contained in another wall", "contained", viewport.ContainedWalls()),
-                                   ("Duplicate furnishing", "duplicate", viewport.DuplicateFurnishings(includeHidden = True))):
-        for obj in affected:
-            problems.append(dict(object = obj, code = code, label = label,
-                                 description = label + ". Delete the redundant object if it is unintended.", repair = None))
+    contained = viewport.ContainedWalls()
+    containedIds = {id(obj) for obj in contained}
+    groups = viewport.CoincidentObjectGroups(includeHidden = True)
+    groupById = {id(obj): group for group in groups for obj in group[1:]}
+    duplicates = [obj for group in groups for obj in group[1:]]
+    duplicateIds = set(groupById)
+    for obj in {id(obj): obj for obj in contained + duplicates}.values():
+        name = re.sub(r"(?<!^)(?=[A-Z])", " ", type(obj).__name__).lower()
+        label = "Duplicate furnishing" if type(obj) is Furnishing else f"Coincident {name}" if id(obj) in duplicateIds else f"{name.capitalize()} contained in another object"
+        group = groupById.get(id(obj))
+        code = "duplicate" if type(obj) is Furnishing else "contained" if id(obj) in containedIds else "duplicate_architectural"
+        problems.append(dict(object = obj, code = code, label = label,
+            description = label + ". Delete the redundant object if it is unintended.",
+            repair = {"removeDuplicates": True} if group else None, repairKind = "duplicates" if group else None,
+            repairText = f"Remove {len(group) - 1} extra copies and keep one existing copy. Unique wall attachments are preserved." if group else ""))
     if includePotential:
         ignored = set(viewport.ignoredPotentialIssues) if not includeIgnored else set()
         problems.extend(issue for issue in FindPotentialWallIssues(viewport, viewport.GridSteps()[1] if gridStep is None else gridStep)
                         if issue["fingerprint"] not in ignored)
+        for obj in viewport.windows:
+            if 1 <= obj.length <= 10.000001:
+                signature = ["minimum-opening", obj.objectId, obj.parentWall.objectId, obj.centerFraction, obj.length]
+                fingerprint = hashlib.sha256(json.dumps(signature).encode("utf-8")).hexdigest()
+                if fingerprint not in ignored:
+                    problems.append(dict(object = obj, code = "potential:minimum-opening", label = "Near-zero opening length",
+                        description = f"This {type(obj).__name__} is only {obj.length:.6g} mm long. Resize or delete it if unintended.",
+                        repair = None, potential = True, fingerprint = fingerprint))
     return problems
+
+
+def RepairCoincidentObjects(viewport, issues):
+    selected = {id(issue["object"]) for issue in issues}
+    groups = [group for group in viewport.CoincidentObjectGroups(includeHidden = True) if any(id(obj) in selected for obj in group[1:])]
+    if not groups:
+        return False
+    before = viewport.CaptureState()
+    replacements = {}
+    for group in groups:
+        keeper = next((obj for obj in group if viewport.IsObjectVisible(obj)), group[0])
+        replacements.update({id(obj): keeper for obj in group if obj is not keeper})
+    parents = {id(keeper) for keeper in replacements.values() if type(keeper) is Wall}
+    for opening in viewport.windows:
+        if id(opening.parentWall) in replacements:
+            opening.parentWall = replacements[id(opening.parentWall)]
+    # Reparenting can make children of duplicate walls coincide too. Preserve
+    # distinct openings and remove only exact child copies on the retained walls.
+    for group in viewport.CoincidentObjectGroups(includeHidden = True):
+        if isinstance(group[0], Window) and id(group[0].parentWall) in parents:
+            keeper = next((obj for obj in group if viewport.IsObjectVisible(obj)), group[0])
+            replacements.update({id(obj): keeper for obj in group if obj is not keeper})
+    removed = set(replacements)
+    viewport.walls = [obj for obj in viewport.walls if id(obj) not in removed]
+    viewport.windows = [obj for obj in viewport.windows if id(obj) not in removed]
+    viewport.furnishings = [obj for obj in viewport.furnishings if id(obj) not in removed]
+    viewport.labels = [obj for obj in viewport.labels if id(obj) not in removed]
+    viewport.SetSelection([], notify = False)
+    viewport.RecordEdit(before)
+    viewport.selectionChanged.emit()
+    viewport.update()
+    return True
 
 
 def RepairPotentialIssue(viewport, issue):

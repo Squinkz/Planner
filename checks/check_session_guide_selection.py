@@ -12,7 +12,7 @@ os.environ["QT_QPA_PLATFORM"] = "offscreen"
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "planner-main"))
 from PySide6 import QtCore, QtWidgets
 from planner import MainWindow
-from planner_app.models import AngleGuide, MeasurementGuide, Wall, Furnishing
+from planner_app.models import AngleGuide, MeasurementGuide, BoundaryLine, Wall, Furnishing
 from planner_app.project_codec import ValidateEditorUi
 
 
@@ -29,15 +29,17 @@ def Main():
         point = QtCore.QPointF
         angle = AngleGuide(point(1000, 0), point(0, 1000), middleVertex = point())
         linear = MeasurementGuide(point(3000, 0), point(4000, 0))
+        boundary = BoundaryLine(point(6000, 0), point(7000, 0))
         wall = Wall(point(0, -2000), point(1000, -2000))
         furnishing = Furnishing(v.furnishingDefinitions["desk"], point(5000, 3000))
         angle.textOffset, linear.textOffset = point(100, -50), point(200, 80)
         before = v.CaptureState()
-        v.walls, v.furnishings = [angle, linear, wall], [furnishing]
+        v.walls, v.furnishings = [angle, linear, wall, boundary], [furnishing]
         v.RecordEdit(before)
-        ids = angle.objectId, linear.objectId, wall.objectId, furnishing.objectId
+        ids = angle.objectId, linear.objectId, wall.objectId, furnishing.objectId, boundary.objectId
         selections = [[(ids[0], index)] for index in (0, 1, 2, 3, None)]
         selections += [[(ids[1], 3)], [(ids[0], 2), (ids[1], 3), (ids[2], 0)]]
+        selections += [[(ids[4], index)] for index in (0, 1, 3, None)]
         for selection in selections:
             v = main.viewport
             objects = {obj.objectId: obj for obj in v.walls + v.furnishings}
@@ -60,7 +62,7 @@ def Main():
             assert main.BuildProjectData()["scene"] == expectedScene
         objects = {obj.objectId: obj for obj in main.viewport.walls + main.viewport.furnishings}
         ui = main.SessionUiState()
-        for objectId, index in ((ids[2], 2), (ids[2], 3), (ids[1], 2), (ids[3], 3),
+        for objectId, index in ((ids[2], 2), (ids[2], 3), (ids[1], 2), (ids[3], 3), (ids[4], 2),
                                 (ids[0], -1), (ids[0], 4), (ids[0], True), (ids[0], 1.5)):
             malformed = copy.deepcopy(ui)
             malformed["selection"] = [[objectId, index]]

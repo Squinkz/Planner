@@ -818,6 +818,17 @@
       "qtObservations": [],
       "desktopChecks": ["checks/check_ignored_potential_issues.py"],
       "status": "requires-browser-run"
+    },
+    {
+      "id": "WEB-PARITY-057",
+      "rule": "GUIDE-03",
+      "name": "Boundary line annotations",
+      "given": "A boundary line with two endpoints",
+      "when": "Place, select, edit, persist and export the annotation",
+      "then": "Share measurement-guide editing, render a readable dash-dot stroke, display length only while selected and export the line without dimension text",
+      "qtObservations": [],
+      "desktopChecks": ["checks/check_boundary_lines.py"],
+      "status": "requires-browser-run"
     }
   ],
   "reviewed": "2026-10-23"

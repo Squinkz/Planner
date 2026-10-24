@@ -55,10 +55,10 @@ def DrawStairSymbol(painter, firstPoint, secondPoint, width, stepCount = 4,
     painter.drawLine(QtCore.QLineF(start, tip))
     painter.setPen(LinePen(color, lineWidth))
     painter.drawLine(QtCore.QLineF(start, tip))
-    headLength = min(12, (length - firstTrim - secondTrim) * .12, width * .15 * 12 / 7)
+    headLength, headWidth = 12, 7
     for side in (-1, 1):
         painter.drawLine(QtCore.QLineF(tip, tip - arrowDirection * headLength
-                                      + arrowNormal * (side * headLength * 7 / 12)))
+                                      + arrowNormal * (side * headWidth)))
 
 
 def DrawOpeningSymbol(painter, firstPoint, secondPoint, width, openingType = Window,

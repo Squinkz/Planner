@@ -29,7 +29,7 @@ def Main():
         assert not about.logoLabel.pixmap().isNull()
         assert about.logoLabel.pixmap().size() == QtCore.QSize(300, 300)
         labels = [widget.text() for widget in about.findChildren(QtWidgets.QLabel)]
-        assert "Development version" in labels and "2026 Dieter Stassen" in labels
+        assert "Alpha 0.1.0" in labels and "2026 Dieter Stassen" in labels
         assert "Build your dream,\ndesign your space.\n\nMake your house a Home." in labels
         assert not any("Stacker" in text for text in labels)
         assert about.grab().save(str(captures / "about-dark.png"))
@@ -52,13 +52,16 @@ def Main():
         assert main.aboutDialog.isVisible()
         assert helpWindow.browser.source() == source
         assert helpWindow.browser.backwardHistoryCount() == historyCount
-        with patch.object(QtGui.QDesktopServices, "openUrl", return_value = True) as openUrl:
-            link = next(widget for widget in main.aboutDialog.findChildren(QtWidgets.QWidget)
-                        if widget.accessibleName() == "Github")
-            QtTest.QTest.mouseClick(link, QtCore.Qt.MouseButton.LeftButton)
-            assert openUrl.call_count == 1
-            assert openUrl.call_args.args[0].toString() == "https://github.com/Squinkz"
-        assert main.aboutDialog is None
+        for name, url in (("Github", "https://github.com/Squinkz/Planner"),
+                          ("Report Issue", "https://github.com/Squinkz/Planner/issues")):
+            main.ShowAbout()
+            with patch.object(QtGui.QDesktopServices, "openUrl", return_value = True) as openUrl:
+                link = next(widget for widget in main.aboutDialog.findChildren(QtWidgets.QWidget)
+                            if widget.accessibleName() == name)
+                QtTest.QTest.mouseClick(link, QtCore.Qt.MouseButton.LeftButton)
+                assert openUrl.call_count == 1
+                assert openUrl.call_args.args[0].toString() == url
+            assert main.aboutDialog is None
         main.ShowAbout()
         link = next(widget for widget in main.aboutDialog.findChildren(QtWidgets.QWidget)
                     if widget.accessibleName() == "Licenses")
@@ -67,6 +70,12 @@ def Main():
         assert main.aboutDialog is None and main.licensesDialog.isVisible()
         text = main.licensesDialog.findChild(QtWidgets.QPlainTextEdit).toPlainText()
         assert "Photopea" in text and "SIL OPEN FONT LICENSE" in text and "Planner" in text
+        assert "GNU GENERAL PUBLIC LICENSE" in text and "GPL-3.0-only" in text
+        assert "Planner Original Graphics License" in text and "Planner Branding License" in text
+        assert "D-DIN Condensed" in text and "Datto Inc." in text
+        assert "Drafting Small Caps" in text and "Architects Daughter" in text and "Kimberly Geswein" in text
+        for name in ("OFL.txt", "OFL-D-DIN.txt", "OFL-DraftingSmallCaps.txt", "FONTLOG.txt"):
+            assert name in text
         assert "could not be loaded" not in text
         main.licensesDialog.close()
         main.ShowAbout()

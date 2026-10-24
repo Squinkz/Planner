@@ -11,6 +11,7 @@ from .widgets import DragSlider, DragSpinBox, SizeLinkButton
 from .reference_calibration import ReferenceCalibration
 from planner_app.models import Furnishing
 from planner_app.units import PropertyUnit
+from planner_app.history_edits import ReferenceImageEdit
 
 
 class ReferenceImageController:
@@ -28,6 +29,8 @@ class ReferenceImageController:
         self.fieldBefore = None
         self.fieldPivotBefore = None
         self.suppressRelease = False
+        self.historyState = (None, None)
+        self.historyRestoring = False
         self.calibration = ReferenceCalibration(self)
 
     def BuildPanel(self, layout):
@@ -64,6 +67,7 @@ class ReferenceImageController:
         self.opacitySlider.setRange(0, 100)
         self.opacitySlider.setAccessibleName("Reference image opacity")
         self.opacitySlider.valueChanged.connect(self.SetOpacity)
+        self.opacitySlider.sliderReleased.connect(self.RecordHistory)
         self.opacityValue = QtWidgets.QLabel()
         opacityRow.addWidget(self.opacitySlider, 1)
         opacityRow.addWidget(self.opacityValue)
@@ -119,9 +123,56 @@ class ReferenceImageController:
         if self.state is not None:
             self.state.pop("locked", None)
         self.image = image
+        self.rotating, self.pivot = False, None
+        self.historyState = self.HistoryState()
         self.revision += 1
         self.SyncControls()
         self.viewport.update()
+
+    def HistoryState(self):
+        return self.Snapshot(), (self.pivot.x(), self.pivot.y()) if self.pivot is not None else None
+
+    def RecordHistory(self):
+        if (self.historyRestoring or self.mainWindow.projectLoading or self.drag is not None
+                or self.fieldBefore is not None or self.opacitySlider.isSliderDown()):
+            return
+        after = self.HistoryState()
+        if self.historyState != after:
+            # The initial image establishes the baseline. Only changed properties
+            # enter the shared journal, so moves do not repeat the embedded data.
+            if self.historyState[0] is not None and after[0] is not None:
+                before = self.historyState
+                changes = {name: (before[0][name], value) for name, value in after[0].items()
+                           if name != "visible" and before[0][name] != value}
+                if changes or before[1] != after[1]:
+                    v = self.viewport
+                    v.undoHistory.append(ReferenceImageEdit(changes, (before[1], after[1])))
+                    v.redoHistory.clear()
+                    v.historyCoalesceKey = None
+                    totalBytes = sum(edit.byteSize for edit in v.undoHistory)
+                    while v.undoHistory and (len(v.undoHistory) > v.historyLimit or totalBytes > v.historyByteBudget):
+                        totalBytes -= v.undoHistory.pop(0).byteSize
+                    v.sceneRevision += 1
+                    v.sceneChanged.emit()
+            self.historyState = after
+
+    def RestoreHistory(self, edit, forward):
+        record = edit.ApplyReference(self.Snapshot(), forward)
+        pivot = edit.pivots[1 if forward else 0]
+        self.historyRestoring = True
+        try:
+            self.CancelDrag()
+            self.FinishPropertyDrag(True)
+            self.calibration.Stop()
+            if self.state["data"] != record["data"]:
+                self.image = ReadReferenceImage(base64.b64decode(record["data"]))
+            self.state = dict(record, center = list(record["center"]), visible = self.state["visible"])
+            self.pivot = QtCore.QPointF(*pivot) if pivot is not None else None
+            self.SyncControls()
+            self.historyState = self.HistoryState()
+            self.Changed()
+        finally:
+            self.historyRestoring = False
 
     def SyncControls(self):
         main = self.mainWindow
@@ -211,6 +262,7 @@ class ReferenceImageController:
                 field.lineEdit().unsetCursor()
         self.fieldBefore = None
         self.fieldPivotBefore = None
+        self.RecordHistory()
 
     def Browse(self):
         current = self.state["path"] if self.state else str(self.mainWindow.BrowseDirectory())
@@ -249,7 +301,6 @@ class ReferenceImageController:
         self.mainWindow.RememberBrowseFolder(path)
         self.SyncControls()
         self.Changed()
-        self.Show()
         return True
 
     def ToggleVisibility(self, enabled):
@@ -261,10 +312,11 @@ class ReferenceImageController:
             self.CancelDrag()
             self.state["visible"] = enabled
             self.SyncControls()
-            self.Changed()
-        if enabled:
-            self.Show()
-        else:
+            self.revision += 1
+            self.viewport.update()
+            self.mainWindow.ProjectSettingsChanged()
+            self.historyState = self.HistoryState()
+        if not enabled:
             self.Hide()
 
     def Show(self):
@@ -279,6 +331,7 @@ class ReferenceImageController:
         self.sizeLinkButton.setChecked(True)
         main.propertiesHeading.SetContent("Reference Image", "Image")
         self.rotating, self.pivot = False, None
+        self.historyState = (self.historyState[0], None)
         for index in range(main.propertiesScrollArea.widget().layout().count()):
             widget = main.propertiesScrollArea.widget().layout().itemAt(index).widget()
             if widget is not None:
@@ -322,6 +375,7 @@ class ReferenceImageController:
             self.Hide()
 
     def Changed(self):
+        self.RecordHistory()
         self.revision += 1
         self.viewport.update()
         self.mainWindow.ProjectSettingsChanged()
@@ -449,6 +503,11 @@ class ReferenceImageController:
                             self.CancelDrag()
                         else:
                             self.Hide()
+                    elif control and key == QtCore.Qt.Key.Key_Z:
+                        if event.modifiers() & QtCore.Qt.KeyboardModifier.ShiftModifier:
+                            v.Redo()
+                        else:
+                            v.Undo()
                     elif key in arrows and self.drag is None:
                         step = v.GridSteps()[1]
                         dx, dy = arrows[key]

@@ -1,0 +1,41 @@
+name: Build Windows
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    env:
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          cache: pip
+          cache-dependency-path: |
+            requirements-dev.txt
+            requirements-build.txt
+      - name: Install build dependencies
+        run: python -m pip install -r requirements-build.txt
+      - name: Build and smoke-test executable
+        run: python tools/build_windows.py
+      - name: Save distribution
+        uses: actions/upload-artifact@v4
+        with:
+          name: Planner-Windows
+          path: dist/Planner-Windows.zip
+      - name: Save smoke-test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Windows-build-verification
+          path: |
+            build/windows/smoke-report.json
+            build/windows/external-resources.json
+          if-no-files-found: ignore

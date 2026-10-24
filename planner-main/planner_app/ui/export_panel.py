@@ -23,7 +23,7 @@ from planner_app.export_bounds import AutomaticBounds, BorderSize
 
 from planner_app.units import unitModes
 
-from planner_app.paths import appDirectory
+from planner_app.paths import appDirectory, texturesDirectory
 
 from .widgets import DownwardComboBox, DragSlider, VisibilityItemDelegate, SectionHeading, UnitSpinBox, ExpressionSpinBox
 
@@ -89,39 +89,31 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
 
         panelLayout.addLayout(headingRow)
 
-        pathRow = QtWidgets.QHBoxLayout()
-
-        pathRow.setContentsMargins(14, 14, 14, 6)
-
-        pathRow.setSpacing(6)
-
-        self.pathField = QtWidgets.QLineEdit()
-
-        self.pathField.setPlaceholderText("Export file path")
-
-        self.pathField.setAccessibleName("Export file path")
-
+        destinationLayout = QtWidgets.QVBoxLayout()
+        destinationLayout.setContentsMargins(14, 14, 14, 6)
+        destinationLayout.setSpacing(8)
+        folderRow = QtWidgets.QHBoxLayout()
+        folderRow.setContentsMargins(0, 0, 0, 0)
+        folderRow.setSpacing(6)
+        self.folderField = QtWidgets.QLineEdit()
+        self.folderField.setPlaceholderText("Output folder")
+        self.folderField.setAccessibleName("Export folder")
         self.browseButton = QtWidgets.QToolButton()
-
         self.browseButton.setObjectName("exportBrowseButton")
-
         self.browseButton.setIcon(UiIcon("folder_open"))
-
         self.browseButton.setIconSize(QtCore.QSize(26, 26))
-
         self.browseButton.setFixedSize(44, 32)
-
         self.browseButton.setToolTip("Browse")
-
-        self.browseButton.setAccessibleName("Browse export file path")
-
+        self.browseButton.setAccessibleName("Browse export folder")
         self.browseButton.clicked.connect(self.BrowsePath)
-
-        pathRow.addWidget(self.pathField, 1)
-
-        pathRow.addWidget(self.browseButton)
-
-        panelLayout.addLayout(pathRow)
+        folderRow.addWidget(self.folderField, 1)
+        folderRow.addWidget(self.browseButton)
+        destinationLayout.addLayout(folderRow)
+        self.fileNameField = QtWidgets.QLineEdit()
+        self.fileNameField.setPlaceholderText("Filename")
+        self.fileNameField.setAccessibleName("Export filename")
+        destinationLayout.addWidget(self.fileNameField)
+        panelLayout.addLayout(destinationLayout)
 
         typeRow = QtWidgets.QHBoxLayout()
 
@@ -893,7 +885,7 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
         self.textureField.setAccessibleName("Export normal-map texture")
         self.textureField.addItem("None", None)
         formats = {"." + bytes(value).decode().lower() for value in QtGui.QImageReader.supportedImageFormats()}
-        for path in sorted((appDirectory / "textures").glob("*"), key = lambda path: path.name.casefold()):
+        for path in sorted(texturesDirectory.glob("*"), key = lambda path: path.name.casefold()):
             if path.is_file() and path.suffix.lower() in formats:
                 try:
                     label, mode, scale = TextureMapping(path.name)
@@ -996,7 +988,7 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
 
                                    QtWidgets.QToolButton, QtWidgets.QSlider, QtWidgets.QComboBox,
 
-                                   QtWidgets.QAbstractSpinBox)) or widget is self.pathField:
+                                   QtWidgets.QAbstractSpinBox)) or widget in (self.folderField, self.fileNameField):
 
                 widget.setFixedHeight(headingHeight if widget.objectName() == "exportSectionHeading" else rowHeight)
 
@@ -2035,39 +2027,37 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
 
 
 
+    def OutputPath(self):
+        name = self.fileNameField.text().strip()
+        if not name or name in (".", "..") or any(character in name for character in '<>:"/\\|?*\0'):
+            raise ValueError("Enter a filename without folder separators or reserved characters.")
+        folder = self.folderField.text().strip()
+        if not folder:
+            raise ValueError("Choose an output folder.")
+        extension = ".svg" if self.typeField.currentData() == "SVG" else ".png"
+        return Path(folder) / Path(name).with_suffix(extension)
+
     def PopulatePath(self, force = False):
-
         project = self.mainWindow.projectPath
-
-        current = self.pathField.text().strip()
-
-        if not force and project == self.pathProject and current and current != self.automaticPath:
-
+        folder = self.folderField.text().strip()
+        if force or project != self.pathProject or not folder:
+            folder = str(self.mainWindow.BrowseDirectory(forExport = True))
+            self.folderField.setText(folder)
+        name = self.fileNameField.text().strip()
+        automaticName = Path(self.automaticPath).name if self.automaticPath else None
+        if not force and project == self.pathProject and name and name != automaticName:
             return
-
-        folder = self.mainWindow.BrowseDirectory(forExport = True)
-
+        folder = Path(folder)
         name = project.stem if project is not None else "plan"
-
         extension = "svg" if self.typeField.currentData() == "SVG" else "png"
-
         path = folder / f"{name}.{extension}"
-
         number = 1
-
         while path.exists():
-
             path = folder / f"{name}_{number}.{extension}"
-
             number += 1
-
         self.pathProject = project
-
         self.automaticPath = str(path)
-
-        self.pathField.setText(self.automaticPath)
-
-
+        self.fileNameField.setText(path.name)
 
     def SetPathType(self, kind):
         ownGesture = self.exportGestureBefore is None
@@ -2090,15 +2080,15 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
 
         self.mainWindow.viewport.update()
 
-        current = self.pathField.text().strip()
+        current = self.fileNameField.text().strip()
 
-        if not current or current == self.automaticPath:
+        if not current or current == (Path(self.automaticPath).name if self.automaticPath else None):
 
             self.PopulatePath()
 
         else:
 
-            self.pathField.setText(str(Path(current).with_suffix(".svg" if kind == "SVG" else ".png")))
+            self.FileNameEdited()
 
         self.RecordExportHistory()
         if ownGesture:
@@ -2175,9 +2165,12 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
         optimized = self.typeField.currentData() == "PNG_OPTIMIZED"
         outputFormat = "svg" if self.typeField.currentData() == "SVG" else "png"
 
-        path = Path(self.pathField.text().strip()).with_suffix("." + outputFormat)
-
-        self.pathField.setText(str(path))
+        try:
+            path = self.OutputPath()
+        except ValueError as error:
+            main.ShowAppMessage("Export Failed", str(error), "error")
+            return
+        self.fileNameField.setText(path.name)
 
         if path.exists():
 
@@ -2255,33 +2248,22 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
 
 
 
+    def FileNameEdited(self):
+        try:
+            path = self.OutputPath()
+        except ValueError:
+            pass
+        else:
+            self.fileNameField.setText(path.name)
+        self.RecordExportHistory()
+
     def BrowsePath(self):
-
-        kind = self.typeField.currentData()
-
-        current = self.pathField.text().strip()
-
-        if not current:
-
+        self.PopulatePath()
+        folder = QtWidgets.QFileDialog.getExistingDirectory(self, "Choose Export Folder", self.folderField.text().strip())
+        if folder:
+            self.BeginExportGesture()
+            self.folderField.setText(folder)
+            self.mainWindow.appPreferences["lastExportFolder"] = str(Path(folder).resolve())
+            self.mainWindow.SaveAppPreferences()
             self.PopulatePath()
-
-            current = self.pathField.text()
-
-        filters = "PNG images (*.png);;SVG images (*.svg);;Optimized PNG images (*.png)"
-        selectedType = "Optimized PNG" if kind == "PNG_OPTIMIZED" else kind
-        extension = "svg" if kind == "SVG" else "png"
-
-        path, selectedFilter = QtWidgets.QFileDialog.getSaveFileName(
-
-            self, "Export File", str(self.mainWindow.BrowseDirectory(forExport = True) / Path(current).name), filters, f"{selectedType} images (*.{extension})")
-
-        if path:
-
-            self.mainWindow.RememberBrowseFolder(path, forExport = True)
-
-            self.pathField.setText(path)
-            self.RecordExportHistory()
-
-            selectedType = "SVG" if selectedFilter.startswith("SVG") else "PNG_OPTIMIZED" if selectedFilter.startswith("Optimized") else "PNG"
-            self.typeField.setCurrentIndex(self.typeField.findData(selectedType))
-
+            self.EndExportGesture()

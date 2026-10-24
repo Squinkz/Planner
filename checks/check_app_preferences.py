@@ -20,7 +20,7 @@ from planner_app.project_recovery import RecoverProject
 def Main():
     app = QtWidgets.QApplication([])
     with tempfile.TemporaryDirectory() as directory:
-        folder = Path(directory)
+        folder = Path(directory).resolve()
         projectFolder, browseFolder, exportFolder = [folder / name for name in ("projects", "browse", "exports")]
         for child in (projectFolder, browseFolder, exportFolder):
             child.mkdir()
@@ -39,15 +39,15 @@ def Main():
             assert Path(dialog.call_args.args[2]) == browseFolder / "home.plan"
         assert main.BrowseDirectory() == browseFolder
         target = exportFolder / "drawing.svg"
-        with patch.object(QtWidgets.QFileDialog, "getSaveFileName", return_value = (str(target), "SVG images (*.svg)")) as dialog:
+        with patch.object(QtWidgets.QFileDialog, "getExistingDirectory", return_value = str(exportFolder)) as dialog:
             main.exportPanel.BrowsePath()
-            assert Path(dialog.call_args.args[2]).parent == projectFolder
+            assert Path(dialog.call_args.args[2]) == projectFolder
         assert main.BrowseDirectory() == browseFolder
         assert main.BrowseDirectory(forExport = True) == exportFolder
-        assert Path(main.exportPanel.pathField.text()) == target
-        with patch.object(QtWidgets.QFileDialog, "getSaveFileName", return_value = ("", "")) as dialog:
+        assert Path(main.exportPanel.folderField.text()) == exportFolder
+        with patch.object(QtWidgets.QFileDialog, "getExistingDirectory", return_value = "") as dialog:
             main.exportPanel.BrowsePath()
-            assert Path(dialog.call_args.args[2]).parent == exportFolder
+            assert Path(dialog.call_args.args[2]) == exportFolder
         main.appPreferences["lastExportFolder"] = str(folder / "missing")
         assert main.BrowseDirectory(forExport = True) == projectFolder
         main.RememberBrowseFolder(target, forExport = True)

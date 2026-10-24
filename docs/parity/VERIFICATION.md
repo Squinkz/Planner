@@ -16,7 +16,7 @@ Automatic body-cap clipping is required at zero as well as with manual chamfer.
 
 [OBJECTS.md](OBJECTS.md) and [EXAMPLES.md](EXAMPLES.md) add a per-type observed
 matrix, two workflows with 20 frozen state checkpoints, portable `.plan` examples
-and 32 object rendering cases. The matrix covers all 23 current types, whole/control point
+and 33 object rendering cases. The matrix covers all 24 current types, whole/control point
 properties, actual context actions and eight collision profiles. Workflow replay
 uses desktop input/command adapters and independent assertions. Image replay
 compares decoded pixels; SVG cases also check vector structure. See EXAMPLES for
@@ -188,7 +188,7 @@ certify fractional-scale visual parity.
 Session UI recovery preserves whole-object and endpoint selections, AngleGuide
 middle index 2, and linear/angular label index 3. Validation checks the selected
 index against decoded objects before applying the scene. Only AngleGuide has a
-middle point; only MeasurementGuide/AngleGuide have label selection. Invalid
+middle point; MeasurementGuide/BoundaryLine/AngleGuide have label selection. Invalid
 indices, including booleans, are rejected. Missing object IDs retain the existing
 skip behavior. `check_session_guide_selection.py` exercises actual close/reopen
 cycles, mixed selections, usable restored handles, exact scene preservation and

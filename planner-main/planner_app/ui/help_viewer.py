@@ -3,13 +3,12 @@ from pathlib import Path
 import math
 import re
 from PySide6 import QtCore, QtGui, QtWidgets
-from planner_app.paths import appDirectory
+from planner_app.paths import helpDirectory
 from planner_app.graphics.palette import themeColors
 from planner_app.graphics.theme import HeaderIcon
 from planner_app.graphics.icons import UiIcon
 
 
-helpDirectory = appDirectory / "docs" / "help"
 inlinePaddingProperty = QtGui.QTextFormat.Property.UserProperty.value + 1
 tableHeaderStyledProperty = QtGui.QTextFormat.Property.UserProperty.value + 2
 

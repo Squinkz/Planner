@@ -9,7 +9,7 @@ from planner_app.geometry.editing import TransformPoint, OpeningTransformTarget,
 from planner_app.geometry.group_movement import (ProjectGroupTravel, GroupOpeningLimits,
     BoundGroupTravel, TranslatedOpeningFraction, AttachedConstraintPoint)
 from .geometry import CollisionPass
-from planner_app.history_edits import SceneEdit
+from planner_app.history_edits import SceneEdit, ReferenceImageEdit
 from planner_app.furnishing_parts import FurnishingParts, FurnishingCollisionFootprints
 from planner_app.graphics.path_operations import Paths
 from PySide6 import QtCore, QtGui, QtWidgets
@@ -842,7 +842,8 @@ class SceneEditingMixin:
     def Undo(self):
         reference = getattr(self, "referenceImage", None)
         if reference is not None and reference.active:
-            return
+            reference.CancelDrag()
+            reference.FinishPropertyDrag(True)
         if self.exportOverlay.active:
             self.window().exportPanel.UndoExport()
             return
@@ -850,13 +851,19 @@ class SceneEditingMixin:
         self.CancelInteraction()
         if self.undoHistory:
             edit = self.undoHistory.pop()
-            self.RestoreState(edit.Apply(self.CaptureState(), False))
+            if isinstance(edit, ReferenceImageEdit):
+                reference.RestoreHistory(edit, False)
+                self.sceneRevision += 1
+                self.sceneChanged.emit()
+            else:
+                self.RestoreState(edit.Apply(self.CaptureState(), False))
             self.redoHistory.append(edit)
 
     def Redo(self):
         reference = getattr(self, "referenceImage", None)
         if reference is not None and reference.active:
-            return
+            reference.CancelDrag()
+            reference.FinishPropertyDrag(True)
         if self.exportOverlay.active:
             self.window().exportPanel.RedoExport()
             return
@@ -864,7 +871,12 @@ class SceneEditingMixin:
         self.CancelInteraction()
         if self.redoHistory:
             edit = self.redoHistory.pop()
-            self.RestoreState(edit.Apply(self.CaptureState(), True))
+            if isinstance(edit, ReferenceImageEdit):
+                reference.RestoreHistory(edit, True)
+                self.sceneRevision += 1
+                self.sceneChanged.emit()
+            else:
+                self.RestoreState(edit.Apply(self.CaptureState(), True))
             self.undoHistory.append(edit)
 
     def DissolveWalls(self, vertex):

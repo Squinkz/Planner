@@ -89,7 +89,7 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
     from planner_app.graphics.furnishings import FurnishingRendererMap
     from planner_app.graphics.fonts import LoadApplicationFonts
     from planner_app.graphics.theme import ApplyApplicationTheme
-    from planner_app.paths import assetsDirectory
+    from planner_app.paths import fontsDirectory
     from planner_app.project_codec import DecodeProject, ReadProjectBytes
     from planner_app.viewport.widget import DrawingViewport
     from planner_app.export_bounds import AutomaticBounds, BorderSize
@@ -118,7 +118,7 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
 
     # Give the Windows offscreen backend a font directory before startup.
     if sys.platform == "win32" and "QT_QPA_FONTDIR" not in os.environ:
-        os.environ["QT_QPA_FONTDIR"] = str(assetsDirectory / "fonts")
+        os.environ["QT_QPA_FONTDIR"] = str(fontsDirectory)
     app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
     LoadApplicationFonts(app)
     data = projectData if projectData is not None else json.loads(ReadProjectBytes(planPath).decode("utf-8-sig"))

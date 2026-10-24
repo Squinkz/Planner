@@ -20,7 +20,7 @@ from planner_app.graphics.furnishings import DrawFurnishing, SelectedFurnishingR
 from planner_app.paths import furnishingsDirectory
 from planner_app.graphics.symbols import DrawOpeningSymbol, DrawStairSymbol
 from planner_app.graphics.arrows import ArrowPaths, ConnectedArrowDirections, ConnectedArrowCorners
-from planner_app.models import OpenDoorway, Door, Furnishing, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, SlidingDoor, MeasurementGuide, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Label, Window, NorthArrow, Fireplace
+from planner_app.models import OpenDoorway, Door, Furnishing, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, SlidingDoor, MeasurementGuide, BoundaryLine, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Label, Window, NorthArrow, Fireplace
 from planner_app.units import MetricUnit, FormatLength, PropertyUnit, GridUnit, imperialModes
 from planner_app.graphics.measurement_text import MeasurementTextPath
 from .geometry import CollisionPass
@@ -700,7 +700,8 @@ class RenderingMixin(EditPaintCacheMixin):
                changes.DefinitionKeys(),
                tuple(self.lineWidths.items()), tuple((id(obj), index) for obj, index in selection),
                changes.visibility, tuple(self.visibility.items()), self.showMeasurements, self.measurementPrecision,
-               tuple(self.measurementVisibility.items()), tuple(self.measurementSettings.items()))
+               tuple(self.measurementVisibility.items()), tuple(self.measurementSettings.items()),
+               tuple(self.collisionSettings.items()), getattr(self, "exportRender", False))
         if self.verifyRenderRevisions:
             reference = self.SceneRenderValueKey(backgroundKey)
             previous = self.renderRevisionReference
@@ -753,7 +754,8 @@ class RenderingMixin(EditPaintCacheMixin):
         key = (backgroundKey, palette.labelFont, tuple(self.lineWidths.items()), tuple(objectKeys), tuple((id(obj), index) for obj, index in selection),
                 tuple(tuple(id(obj) for obj in group) for group in self.objectGroups),
                 frozenset(self.hiddenObjectIds), tuple(self.visibility.items()), self.showMeasurements, self.measurementPrecision,
-                tuple(self.measurementVisibility.items()), tuple(self.measurementSettings.items()))
+                tuple(self.measurementVisibility.items()), tuple(self.measurementSettings.items()),
+                tuple(self.collisionSettings.items()), getattr(self, "exportRender", False))
         if diagnostics is not None:
             diagnostics.RecordPhase("scene-key", started)
         return key
@@ -791,7 +793,8 @@ class RenderingMixin(EditPaintCacheMixin):
                                      self.inactiveOpeningPreview, self.counterPreview, self.arrowPreview, self.labelPreview)))
         changes = self.renderChanges
         preparationKey = (changes.geometry, changes.appearance, changes.topology, changes.visibility,
-                          tuple(self.visibility.items()), self.basePixelsPerMillimeter)
+                          tuple(self.visibility.items()), tuple(self.collisionSettings.items()),
+                          getattr(self, "exportRender", False), self.basePixelsPerMillimeter)
         preparation = getattr(self, "scenePreparation", None)
         if not stablePreparation or preparation is None or preparation[0] != preparationKey:
             prepared = {}
@@ -799,6 +802,21 @@ class RenderingMixin(EditPaintCacheMixin):
                 self.scenePreparation = (preparationKey, prepared)
         else:
             prepared = preparation[1]
+        containedObjects = prepared.get("containedObjects")
+        if containedObjects is None:
+            containedObjects = prepared["containedObjects"] = ([] if getattr(self, "exportRender", False) else
+                self.ContainedWalls([obj for obj in self.walls if self.IsObjectVisible(obj)]))
+        advisoryIds = prepared.get("architecturalAdvisories")
+        if advisoryIds is None:
+            advisoryIds = prepared["architecturalAdvisories"] = ({id(obj) for obj in containedObjects + self.DuplicateArchitecturalObjects()}
+                if not getattr(self, "exportRender", False) else set())
+        invalidArchitecture = prepared.get("invalidArchitecture")
+        if invalidArchitecture is None:
+            invalidArchitecture = prepared["invalidArchitecture"] = {
+                id(obj) for obj in self.walls + self.windows
+                if not getattr(self, "exportRender", False) and self.IsObjectVisible(obj)
+                and (isinstance(obj, Window) or type(obj) in (Wall, Pillar, Column, Counter, Stair, Railing, Elevator))
+                and not self.ArchitecturalPlacementFits(obj)}
         highlightedWall = (self.windowDropPreview if self.windowDropPreview is not None else
                            self.counterPreview if self.counterPreview is not None else
                            self.pendingWall if self.pendingWall is not None else
@@ -825,11 +843,12 @@ class RenderingMixin(EditPaintCacheMixin):
         handleState = self.furnishingHandleDrag
         invalidHandleGroup = (not handleState["rotationValid"] if handleState is not None and handleState.get("structuralRotation", False)
                               else any(not self.FurnishingFits(state[0]) for state in handleMembers))
-        invalidWalls = {}
+        invalidWalls = {id(wall): wall for wall in self.walls
+                        if type(wall) in (Wall, Pillar, Column, Elevator) and id(wall) in invalidArchitecture}
         if self.pendingShapeWalls:
             extent = self.pendingWall.secondVertex - self.pendingWall.firstVertex
             if abs(extent.x()) < 1 or abs(extent.y()) < 1 or any(not self.WallFits(wall) for wall in self.pendingShapeWalls):
-                invalidWalls = {id(wall): wall for wall in self.pendingShapeWalls}
+                invalidWalls.update({id(wall): wall for wall in self.pendingShapeWalls})
         elif self.pendingWall is not None and not self.WallFits(self.pendingWall):
             invalidWalls[id(self.pendingWall)] = self.pendingWall
         selectedVertexKeys = {(id(obj), index) for obj, index in renderedSelection if index is not None}
@@ -862,8 +881,16 @@ class RenderingMixin(EditPaintCacheMixin):
                     furnishingLayers[obj.behindCounters].append(obj)
             prepared["furnishingLayers"] = furnishingLayers
         furnishingBounds = prepared.setdefault("furnishingBounds", {})
+        occludedFurnishings = prepared.get("occludedFurnishings")
+        if occludedFurnishings is None:
+            occludedFurnishings = prepared["occludedFurnishings"] = {
+                id(obj) for group in self.CoincidentObjectGroups() if type(group[0]) is Furnishing for obj in group[:-1]}
         def DrawFurnishings(behindCounters):
             for obj in furnishingLayers[behindCounters]:
+                # Exact rear copies cannot contribute visible artwork. Painting
+                # their dark strokes under the warning leaves dark antialias fringes.
+                if id(obj) in occludedFurnishings:
+                    continue
                 bounds = furnishingBounds.get(id(obj))
                 if bounds is None:
                     bounds = self.ObjectFootprint(obj)[0].united(FurnishingArtworkBounds(obj, self.furnishingRenderers[obj.definition["key"]]))
@@ -926,10 +953,11 @@ class RenderingMixin(EditPaintCacheMixin):
             if self.counterPreview is not None:
                 movingCounterIds.add(id(self.counterPreview))
             for counter in visibleCounters:
-                invalid = id(counter) in movingCounterIds and not self.CounterFits(counter)
+                invalid = id(counter) in invalidArchitecture or id(counter) in movingCounterIds and not self.CounterFits(counter)
+                warning = id(counter) in advisoryIds or id(counter) in invalidArchitecture and self.dragStart is None
                 if invalid:
                     invalidCounterIds.add(id(counter))
-                if id(counter) not in highlightedIds and not invalid:
+                if id(counter) not in highlightedIds and not invalid and not warning:
                     continue
                 clip = QtGui.QPainterPath()
                 clip.setFillRule(QtCore.Qt.FillRule.WindingFill)
@@ -938,11 +966,25 @@ class RenderingMixin(EditPaintCacheMixin):
                         clip.addPolygon(polygon)
                         clip.closeSubpath()
                 clip = QtGui.QTransform().translate(origin.x(), origin.y()).scale(self.zoom, self.zoom).map(clip)
+                # Merging coincident counters can assign their entire surface to
+                # the rear owner. The front warning still owns its footprint.
+                if clip.isEmpty() and (invalid or warning):
+                    clip.addPolygon(self.WallPolygon(counter))
+                    clip.closeSubpath()
                 painter.save()
                 painter.setClipPath(clip, QtCore.Qt.ClipOperation.IntersectClip)
-                if id(counter) in highlightedIds and not invalid:
+                if id(counter) in highlightedIds and not invalid and not warning:
                     painter.fillPath(counterPath, QtGui.QColor(themeColors["groupSelectionFill"] if id(counter) in groupedIds else themeColors["selectionFill"]))
-                painter.setPen(LinePen(themeColors["invalidOutline"] if invalid else self.SelectionColor(counter), self.lineWidths["architectural"]))
+                painter.restore()
+                # Include the full stroke, rather than leaving half the normal
+                # outline visible outside the surface clip.
+                stroke = QtGui.QPainterPathStroker()
+                stroke.setWidth(self.lineWidths["architectural"] + 2)
+                painter.save()
+                painter.setClipPath(clip.united(stroke.createStroke(clip)), QtCore.Qt.ClipOperation.IntersectClip)
+                color = (themeColors["warningOutline"] if warning else
+                         themeColors["invalidOutline"] if invalid else self.SelectionColor(counter))
+                painter.setPen(LinePen(color, self.lineWidths["architectural"]))
                 painter.drawPath(counterPath)
                 painter.restore()
             painter.restore()
@@ -960,7 +1002,10 @@ class RenderingMixin(EditPaintCacheMixin):
             visibleWalls = prepared["walls"] = [wall for wall in visibleWalls if self.IsObjectVisible(wall)]
         containedWalls = prepared.get("contained")
         if containedWalls is None:
-            containedWalls = prepared["contained"] = self.ContainedWalls(visibleWalls)
+            containedWalls = prepared["contained"] = [obj for obj in containedObjects if type(obj) in (Wall, Pillar, Column)]
+            if previewWalls:
+                containedWalls = prepared["contained"] = list({id(obj): obj for obj in
+                    containedWalls + self.ContainedWalls(visibleWalls)}.values())
         self.preparedWallMembers = visibleWalls if stablePreparation else None
         self.preparedWallRevision = preparationKey
         combinedPath = self.ConnectedWallPath(visibleWalls)
@@ -968,8 +1013,8 @@ class RenderingMixin(EditPaintCacheMixin):
         if self.dragStart is not None and self.isDragging:
             movingWalls = {id(wall): wall for wall in [self.selectedWall] + [wall for wall, index, position in self.ActiveAttachments()]}
             blockers = self.furnishings + [wall for wall in self.walls if isinstance(wall, (Counter, Railing, Stair, Elevator))]
-            invalidWalls = {wallId: wall for wallId, wall in movingWalls.items()
-                            if type(wall) in (Wall, Pillar, Column, Elevator) and not self.WallFits(wall, blockers = blockers)}
+            invalidWalls.update({wallId: wall for wallId, wall in movingWalls.items()
+                                 if type(wall) in (Wall, Pillar, Column, Elevator) and not self.WallFits(wall, blockers = blockers)})
         # Share one pattern origin so hatching continues across wall junctions.
         painter.setBrushOrigin(origin)
         detachedIds = {id(obj) for obj, index in self.groupEntries} if self.groupOpeningPreviews else {id(self.selectedWall)}
@@ -1203,10 +1248,11 @@ class RenderingMixin(EditPaintCacheMixin):
         painter.save()
         for wallId in invalidWalls:
             invalidPath = viewTransform.map(self.wallMaterialPaths.get(wallId, QtGui.QPainterPath()))
-            painter.setOpacity(.55)
-            painter.fillPath(invalidPath, QtGui.QColor(themeColors["canvas"]))
+            warning = wallId in invalidArchitecture and self.dragStart is None
+            painter.setOpacity(1 if warning else .55)
+            painter.fillPath(invalidPath, self.warningMaterialBrushes[invalidWalls[wallId].material] if warning else QtGui.QColor(themeColors["canvas"]))
             painter.setOpacity(1)
-            painter.setPen(LinePen(themeColors["invalidOutline"], self.lineWidths["walls"]))
+            painter.setPen(LinePen(themeColors["warningOutline"] if warning else themeColors["invalidOutline"], self.lineWidths["walls"]))
             painter.drawPath(invalidPath)
         painter.restore()
         painter.restore()
@@ -1214,7 +1260,7 @@ class RenderingMixin(EditPaintCacheMixin):
         from planner_app.geometry_recovery import ActiveGeometryIssues
         recoveryErrorIds = {id(opening) for opening in self.windows if getattr(opening, "geometryIssues", ()) and ActiveGeometryIssues(opening, self)}
         openingPreviews = self.groupOpeningPreviews or ([self.inactiveOpeningPreview] if isinstance(self.inactiveOpeningPreview, Window) else [])
-        previewIds = {id(opening) for opening in openingPreviews}
+        previewIds = {id(opening) for opening in openingPreviews} | invalidArchitecture
         for opening in visibleWindows + openingPreviews:
             if not self.IsObjectVisible(opening):
                 continue
@@ -1226,12 +1272,13 @@ class RenderingMixin(EditPaintCacheMixin):
                 padding = (opening.length + opening.width / 2 + getattr(opening, "sillDepth", 0)) * pixelsPerMillimeter + max(self.lineWidths.values()) + 2
                 if not any(bounds.adjusted(-padding, -padding, padding, padding).intersects(rect) for rect in dirtyRects):
                     continue
-            color = (themeColors["warningOutline"] if id(opening) in recoveryErrorIds else
+            warning = id(opening) in recoveryErrorIds or id(opening) in advisoryIds or id(opening) in invalidArchitecture and self.dragStart is None
+            color = (themeColors["warningOutline"] if warning else
                      themeColors["invalidOutline"] if id(opening) in previewIds or id(opening.parentWall) in invalidWalls else
                      self.SelectionColor(opening) if id(opening) in highlightedIds else themeColors["objectOutline"])
             if isinstance(opening, Fireplace):
                 transform = QtGui.QTransform().translate(origin.x(), origin.y()).scale(pixelsPerMillimeter, -pixelsPerMillimeter)
-                bodyColor = (themeColors["warningOutline"] if id(opening) in recoveryErrorIds else
+                bodyColor = (themeColors["warningOutline"] if warning else
                              themeColors["invalidOutline"] if id(opening) in previewIds or id(opening.parentWall) in invalidWalls else
                              self.SelectionColor(opening) if id(opening) in highlightedIds else themeColors["wallOutline"])
                 path = transform.map(FireplacePath(opening))
@@ -1254,14 +1301,16 @@ class RenderingMixin(EditPaintCacheMixin):
                               opening.panelsFlipped if isinstance(opening, SlidingDoor) else False, pixelsPerMillimeter,
                               opening.sillDepth if isinstance(opening, SilledWindow) else 40.0,
                               lineWidth = self.lineWidths["architectural"], wallLineWidth = self.lineWidths["walls"],
-                              wallColor = themeColors["warningOutline"] if id(opening) in recoveryErrorIds else
-                              themeColors["invalidOutline"] if id(opening.parentWall) in invalidWalls else themeColors["wallOutline"])
+                              wallColor = themeColors["warningOutline"] if warning else
+                              themeColors["invalidOutline"] if id(opening) in invalidArchitecture or id(opening.parentWall) in invalidWalls else themeColors["wallOutline"])
         visibleStairs = [wall for wall in self.walls if isinstance(wall, Stair)]
         invalidStairs = []
         movingStairs = ([self.selectedWall] if isinstance(self.selectedWall, Stair) else []) + [
             wall for wall, index, position in self.ActiveAttachments() if isinstance(wall, Stair)]
         if movingStairs and self.dragStart is not None and not self.OpeningsValid():
             invalidStairs = list({id(stair): stair for stair in movingStairs}.values())
+        invalidStairs = list({id(stair): stair for stair in invalidStairs + [
+            stair for stair in visibleStairs if id(stair) in invalidArchitecture or id(stair) in advisoryIds]}.values())
         if isinstance(self.windowDropPreview, Stair):
             visibleStairs.append(self.windowDropPreview)
         visibleStairs = [stair for stair in visibleStairs if self.IsObjectVisible(stair)]
@@ -1371,7 +1420,8 @@ class RenderingMixin(EditPaintCacheMixin):
                 firstTrim, secondTrim = self.StairLandingTrims(stair, self.stairEndpointNeighbors[(id(stair), 0)] + self.stairEndpointNeighbors[(id(stair), 1)])
                 treadCount, stepSize, landingCount = stair.StepLayout((firstTrim, secondTrim))
                 DrawStairSymbol(painter, self.WorldToViewport(stair.firstVertex), self.WorldToViewport(stair.secondVertex),
-                                stair.width * pixelsPerMillimeter, treadCount, stair.directionReversed, themeColors["invalidOutline"],
+                                stair.width * pixelsPerMillimeter, treadCount, stair.directionReversed,
+                                themeColors["warningOutline"] if id(stair) in advisoryIds or id(stair) in invalidArchitecture and self.dragStart is None else themeColors["invalidOutline"],
                                 firstTrim = firstTrim * pixelsPerMillimeter, secondTrim = secondTrim * pixelsPerMillimeter, clipRect = drawingRect, lineWidth = self.lineWidths["architectural"])
         if isinstance(self.inactiveOpeningPreview, Stair):
             stair = self.inactiveOpeningPreview
@@ -1405,13 +1455,19 @@ class RenderingMixin(EditPaintCacheMixin):
             painter.setBrush(QtCore.Qt.BrushStyle.NoBrush)
             painter.drawPath(postOutlines)
             for railing in visibleRailings:
-                if id(railing) in highlightedIds:
+                if id(railing) in highlightedIds or id(railing) in invalidArchitecture or id(railing) in advisoryIds:
                     selectionClip = QtGui.QPainterPath()
                     selectionClip.addPolygon(self.WallPolygon(railing))
+                    selectionClip.closeSubpath()
+                    stroke = QtGui.QPainterPathStroker()
+                    stroke.setWidth(self.lineWidths["architectural"] + 2)
+                    selectionClip = selectionClip.united(stroke.createStroke(selectionClip))
                     painter.save()
                     painter.setClipPath(selectionClip, QtCore.Qt.ClipOperation.IntersectClip)
-                    painter.setPen(LinePen(self.SelectionColor(railing), self.lineWidths["architectural"]))
-                    painter.setBrush(QtGui.QColor(themeColors["stairSelectionFill"]))
+                    color = (themeColors["warningOutline"] if id(railing) in advisoryIds or id(railing) in invalidArchitecture and self.dragStart is None else
+                             themeColors["invalidOutline"] if id(railing) in invalidArchitecture else self.SelectionColor(railing))
+                    painter.setPen(LinePen(color, self.lineWidths["architectural"]))
+                    painter.setBrush(QtGui.QColor(themeColors["canvas"] if id(railing) in invalidArchitecture or id(railing) in advisoryIds else themeColors["stairSelectionFill"]))
                     painter.drawPath(railingPath)
                     painter.setBrush(QtCore.Qt.BrushStyle.NoBrush)
                     painter.drawPath(postOutlines)
@@ -1444,8 +1500,10 @@ class RenderingMixin(EditPaintCacheMixin):
             captureEngine.captureBackground = True
         for elevator in visibleElevators:
             selected = id(elevator) in highlightedIds
-            invalid = (elevator is self.arrowPreview or selected and (self.isDragging or self.furnishingHandleDrag is not None)) and not self.WallFits(elevator)
-            color = themeColors["invalidOutline"] if invalid else self.SelectionColor(elevator) if selected else themeColors["objectOutline"]
+            invalid = id(elevator) in invalidArchitecture or (elevator is self.arrowPreview or selected and (self.isDragging or self.furnishingHandleDrag is not None)) and not self.WallFits(elevator)
+            warning = id(elevator) in advisoryIds or id(elevator) in invalidArchitecture and self.dragStart is None
+            color = (themeColors["warningOutline"] if warning else themeColors["invalidOutline"] if invalid else
+                     self.SelectionColor(elevator) if selected else themeColors["objectOutline"])
             key = (color, themeColors["canvas"], self.lineWidths["architectural"], palette.labelFont)
             if key not in elevatorRenderers:
                 if len(elevatorRenderers) >= 8:
@@ -1454,7 +1512,7 @@ class RenderingMixin(EditPaintCacheMixin):
                     palette = {"outline": color, "background": themeColors["canvas"], "missing": themeColors["missing"]},
                     lineWidth = self.lineWidths["architectural"])
             DrawFurnishing(painter, elevator, self.WorldToViewport(elevator.firstVertex), self.WorldToViewport(elevator.secondVertex),
-                           pixelsPerMillimeter, elevatorRenderers[key], selected, invalid, selectionColor = color, drawBounds = False)
+                           pixelsPerMillimeter, elevatorRenderers[key], selected, invalid and not warning, selectionColor = color, drawBounds = False)
         if captureEngine is not None:
             captureEngine.captureBackground = False
         visibleArrows = [obj for obj in self.walls if isinstance(obj, Arrow) and self.IsObjectVisible(obj)]
@@ -1488,6 +1546,21 @@ class RenderingMixin(EditPaintCacheMixin):
         visibleGuides = [obj for obj in self.walls if isinstance(obj, MeasurementGuide) and self.IsObjectVisible(obj)]
         if isinstance(self.arrowPreview, MeasurementGuide) and self.IsObjectVisible(self.arrowPreview):
             visibleGuides.append(self.arrowPreview)
+        visibleBoundaries = [guide for guide in visibleGuides if isinstance(guide, BoundaryLine)]
+        if visibleBoundaries:
+            painter.save()
+            for guide in visibleBoundaries:
+                color = self.SelectionColor(guide) if id(guide) in highlightedIds else themeColors["measurementLine"]
+                lineWidth = self.lineWidths["dimensions"]
+                pen = LinePen(color, lineWidth, QtCore.Qt.PenStyle.DashDotLine)
+                if lineWidth > 0:
+                    # Qt measures dash lengths in stroke widths. Keep thin
+                    # dimension strokes from collapsing the pattern to pixels.
+                    unit = max(1, lineWidth) / lineWidth
+                    pen.setDashPattern([6 * unit, 3 * unit, unit, 3 * unit])
+                painter.setPen(pen)
+                painter.drawLine(QtCore.QLineF(self.WorldToViewport(guide.firstVertex), self.WorldToViewport(guide.secondVertex)))
+            painter.restore()
         sceneState = (highlightedObjects, highlightedIds, selectedVertexKeys, invalidWalls, invalidCounterIds, invalidStairs,
                       visibleWalls, visibleCounters, visibleWindows, visibleStairs, visibleRailings, visibleArrows, visibleGuides)
         if drawAnnotations:
@@ -1551,7 +1624,8 @@ class RenderingMixin(EditPaintCacheMixin):
                                  if visibleRailings and (drawMeasurements and self.measurementVisibility["railings"]
                                  or any(id(obj) in measurementSelectedIds for obj in visibleRailings)) else [])
             dimensions = [(guide.firstVertex, guide.secondVertex, [guide]) for guide in visibleGuides
-                          if not isinstance(guide, AngleGuide) and id(guide) not in groupedSelectedIds]
+                          if not isinstance(guide, AngleGuide) and id(guide) not in groupedSelectedIds
+                          and (not isinstance(guide, BoundaryLine) or id(guide) in measurementSelectedIds)]
             wallDimensions = (self.WallDimensions(visibleWalls, combinedPath, visibleWindows, cachedBoundary = True)
                               if drawMeasurements and self.measurementVisibility["walls"] or
                               any(id(obj) in measurementSelectedIds for obj in visibleWalls) else [])
@@ -1624,7 +1698,8 @@ class RenderingMixin(EditPaintCacheMixin):
                 direction = secondPoint - firstPoint
                 screenLength = math.hypot(direction.x(), direction.y())
                 bounds = QtCore.QRectF(firstPoint, secondPoint).normalized().adjusted(-80, -80, 80, 80)
-                manualGuide = owners[0] if len(owners) == 1 and type(owners[0]) is MeasurementGuide else None
+                manualGuide = owners[0] if len(owners) == 1 and type(owners[0]) in (MeasurementGuide, BoundaryLine) else None
+                boundary = isinstance(manualGuide, BoundaryLine)
                 if manualGuide is not None:
                     bounds = bounds.united(self.MeasurementLabelLayout(manualGuide, painter.fontMetrics())[3].boundingRect())
                 if picture is None and not bounds.intersects(drawingRect):
@@ -1652,10 +1727,11 @@ class RenderingMixin(EditPaintCacheMixin):
                         labelPosition, angle, labelRect, labelHitPath = self.MeasurementLabelLayout(
                             manualGuide, painter.fontMetrics(), label, labelPath)
                     painter.setPen(LinePen(selectedColor if isSelected else themeColors["measurementLine"], self.lineWidths["dimensions"]))
-                    painter.drawLine(QtCore.QLineF(dimensionStart, dimensionEnd))
+                    if not boundary:
+                        painter.drawLine(QtCore.QLineF(dimensionStart, dimensionEnd))
                     if manualGuide is not None and not manualGuide.textOffset.isNull():
                         painter.drawLine(QtCore.QLineF((dimensionStart + dimensionEnd) / 2, labelPosition))
-                    for endpoint, dimensionPoint in ((firstPoint, dimensionStart), (secondPoint, dimensionEnd)):
+                    for endpoint, dimensionPoint in (() if boundary else ((firstPoint, dimensionStart), (secondPoint, dimensionEnd))):
                         painter.drawLine(QtCore.QLineF(endpoint + normal * 4, dimensionPoint + normal * 4))
                         tick = (direction / screenLength + normal) * 3
                         painter.drawLine(QtCore.QLineF(dimensionPoint - tick, dimensionPoint + tick))

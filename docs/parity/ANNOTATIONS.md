@@ -1,5 +1,31 @@
 # Annotation behavior
 
+## GUIDE-03: boundary lines
+
+BoundaryLine is a zero-width, nonphysical annotation with two control points.
+It is placed from Boundary in Build's Annotations section and uses the same
+placement, endpoint/body/label editing, Ctrl angle snapping, cancellation,
+properties, clipboard, duplication and undo behavior as MeasurementGuide.
+Boundary lines have their own World/export visibility category, Boundary lines.
+They do not collide with architecture or furnishings.
+
+Draw a dash-dot stroke directly between the control points using the dimension
+line width and measurement-line color (selection color when selected). It has
+dash/gap/dot/gap lengths of 6/3/1/3 times the larger of one logical pixel and
+the stroke width, so thin strokes retain a readable pattern. It has
+no measurement ticks or label when unselected, independently of the global
+measurement switch. Selection displays its length, including when automatic
+measurements are hidden. Its selected label can be moved like a measurement
+guide label; its hidden label and leader are not hit targets when unselected.
+Export always includes only the dash-dot line, with no measurements. Preserve
+dash patterns in both solid/transparent PNG and SVG rendering. The object's
+nonselected bounds follow its line, not an invisible dimension label.
+
+Persist the type as BoundaryLine with zero width and optional textOffset. History,
+recovery, session handle selections and clipboard transports retain the type.
+Existing files without Boundary lines visibility default that category to on.
+Coverage: `check_boundary_lines.py`, `check_session_guide_selection.py`.
+
 ## GUIDE-01: angle guides
 
 AngleGuide is a nonphysical scene annotation, not a wall attachment. It shares
@@ -61,6 +87,6 @@ label moves; the marker's geometric anchor stays in place.
 
 Evidence: `check_angle_guides.py`, `check_angle_guide_controls.py`,
 `check_angle_point_properties.py`, `check_angle_guide_hover.py`,
-`check_angle_right_marker.py`, `check_guide_labels.py`, the 23-type object matrix
+`check_angle_right_marker.py`, `check_guide_labels.py`, the 24-type object matrix
 and the AngleGuide render example. The fixture matrix observes both endpoints,
 middle and label states, not just whole-object selection.

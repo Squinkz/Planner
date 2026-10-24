@@ -69,14 +69,14 @@ def Main():
         expected = RenderPlan(main.projectPath, 100, v.exportOverlay.bounds, ruler = True,
                               projectData = data, applyTheme = False)
         assert expected.pixelColor(v.rulerSize + 5, v.rulerSize + 5).name() == "#123456"
-        outputPath = Path(panel.pathField.text())
+        outputPath = panel.OutputPath()
         main.exportButton.click()
         assert outputPath.exists() and QtGui.QImage(str(outputPath)) == expected
         assert not main.projectPath.exists(), "Export required saving the project first"
-        assert Path(panel.pathField.text()) == folder / "unsaved_1.png"
+        assert panel.OutputPath() == folder / "unsaved_1.png"
         main.exportButton.click()
         assert (folder / "unsaved_1.png").exists()
-        assert Path(panel.pathField.text()) == folder / "unsaved_2.png"
+        assert panel.OutputPath() == folder / "unsaved_2.png"
         panel.unitsField.setCurrentText("Centimeters")
         view = panel.CaptureView()
         before = copy.deepcopy(main.BuildProjectData(includeHistory = False))
@@ -85,7 +85,7 @@ def Main():
         expectedSvg = RenderPlan(main.projectPath, 100, v.exportOverlay.bounds, ruler = True,
                                  outputFormat = "svg", projectData = data, applyTheme = False)
         panel.typeField.setCurrentIndex(panel.typeField.findData("SVG"))
-        svgPath = Path(panel.pathField.text())
+        svgPath = panel.OutputPath()
         main.exportButton.click()
         renderer = QtSvg.QSvgRenderer(str(svgPath))
         assert renderer.isValid() and renderer.defaultSize() == expected.size()
@@ -96,7 +96,8 @@ def Main():
         assert (palette.activeUITheme, palette.activeCanvasTheme, dict(palette.themeColors)) == themes
 
         # A manually chosen existing path is protected; declining changes nothing.
-        panel.pathField.setText(str(svgPath))
+        panel.folderField.setText(str(svgPath.parent))
+        panel.fileNameField.setText(svgPath.name)
         contents = svgPath.read_bytes()
         with patch.object(main, "ShowAppMessage", return_value = QtWidgets.QMessageBox.StandardButton.No) as question:
             main.exportButton.click()
@@ -110,7 +111,8 @@ def Main():
         assert svgPath.read_bytes() == contents
 
         # Failed writes report an error and leave the button and cursor usable.
-        panel.pathField.setText(str(svgPath / "blocked.svg"))
+        panel.folderField.setText(str(svgPath))
+        panel.fileNameField.setText("blocked.svg")
         with patch.object(main, "ShowAppMessage") as warning:
             main.exportButton.click()
             warning.assert_called_once()

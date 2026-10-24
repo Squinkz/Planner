@@ -7,7 +7,7 @@ from pathlib import Path
 
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "planner-main"))
-from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6 import QtCore, QtGui, QtWidgets, QtTest
 from planner import MainWindow, Wall
 from planner_app.project_codec import DecodeProject
 from check_history import Drag
@@ -61,6 +61,35 @@ def Main():
     assert v.gridOrigin == origin
     main.ApplyProject(decoded, None)
     assert v.gridOrigin == origin
+    # Reset each ruler independently, without snapping the other axis or
+    # starting a new drag from the double-click's trailing release.
+    cropTop = v.WorldToViewport(QtCore.QPointF(overlay.bounds[0] + overlay.bounds[2] / 2,
+                                              overlay.bounds[1] + overlay.bounds[3]))
+    positions = ((QtCore.QPointF(v.DrawingRect().center().x(), v.rulerSize / 2), 0),
+                 (QtCore.QPointF(v.rulerSize / 2, v.DrawingRect().center().y()), 1),
+                 (cropTop - QtCore.QPointF(0, 12), 0))
+    for position, axis in positions:
+        panel.SetOverride("gridOrigin", [337.25, -123.75])
+        panel.ResetExportHistory()
+        before = tuple(v.gridOrigin)
+        camera = (v.zoom, QtCore.QPointF(v.panOffset))
+        crop = tuple(overlay.bounds)
+        assert overlay.HitRuler(position) == axis
+        QtTest.QTest.mouseDClick(v, QtCore.Qt.MouseButton.LeftButton, pos = position.toPoint())
+        QtTest.QTest.mouseMove(v, (position + QtCore.QPointF(15, 15)).toPoint())
+        QtTest.QTest.mouseRelease(v, QtCore.Qt.MouseButton.LeftButton, pos = position.toPoint())
+        expected = list(before)
+        expected[axis] = 0.0
+        assert v.gridOrigin == tuple(expected)
+        assert (v.zoom, v.panOffset) == camera and tuple(overlay.bounds) == crop
+        assert overlay.dragRuler is None and len(panel.exportUndoHistory) == 1
+        v.Undo()
+        assert v.gridOrigin == before
+        v.Redo()
+        assert v.gridOrigin == tuple(expected)
+        QtTest.QTest.mouseDClick(v, QtCore.Qt.MouseButton.LeftButton, pos = position.toPoint())
+        QtTest.QTest.mouseRelease(v, QtCore.Qt.MouseButton.LeftButton, pos = position.toPoint())
+        assert len(panel.exportUndoHistory) == 1, "Resetting an unchanged origin created an undo step"
     main.close()
     print("PASS: export ruler origin drag, snapping, rendering, persistence and viewport restoration")
 

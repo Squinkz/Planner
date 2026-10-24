@@ -12,11 +12,13 @@ class ExportHistoryMixin:
         for slider in self.findChildren(QtWidgets.QSlider):
             slider.sliderPressed.connect(self.BeginExportGesture)
             slider.sliderReleased.connect(self.EndExportGesture)
-        self.pathField.editingFinished.connect(self.RecordExportHistory)
+        self.folderField.editingFinished.connect(self.PopulatePath)
+        self.folderField.editingFinished.connect(self.RecordExportHistory)
+        self.fileNameField.editingFinished.connect(self.FileNameEdited)
 
     def ExportHistoryState(self):
         return {"overrides": copy.deepcopy(self.overrides), "type": self.typeField.currentData(),
-                "path": self.pathField.text(), "automaticPath": self.automaticPath}
+                "folder": self.folderField.text(), "filename": self.fileNameField.text(), "automaticPath": self.automaticPath}
 
     def ResetExportHistory(self):
         self.exportUndoHistory.clear()
@@ -58,7 +60,8 @@ class ExportHistoryMixin:
             self.typeField.setCurrentIndex(self.typeField.findData(state["type"]))
             del blocker
             self.SetPathType(state["type"])
-            self.pathField.setText(state["path"])
+            self.folderField.setText(state["folder"])
+            self.fileNameField.setText(state["filename"])
             self.automaticPath = state["automaticPath"]
             if self.projectView is not None:
                 self.ApplyView(self.ResolvedView())

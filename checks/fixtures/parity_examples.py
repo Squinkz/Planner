@@ -17,7 +17,7 @@ from planner_app.ui.main_window import MainWindow
 objectTypes = ("Wall", "Counter", "Railing", "Stair", "Pillar", "Column", "Elevator",
                "Door", "SlidingDoor", "PocketDoor", "BarnDoor", "BifoldDoor", "OpenDoorway",
                "Window", "SilledWindow", "CasementWindow", "Fireplace",
-               "Furnishing", "Label", "NorthArrow", "Arrow", "MeasurementGuide", "AngleGuide")
+               "Furnishing", "Label", "NorthArrow", "Arrow", "MeasurementGuide", "BoundaryLine", "AngleGuide")
 openingTypes = ("Door", "SlidingDoor", "PocketDoor", "BarnDoor", "BifoldDoor", "OpenDoorway",
                 "Window", "SilledWindow", "CasementWindow", "Fireplace")
 workspace = Path(__file__).resolve().parents[2]
@@ -76,7 +76,7 @@ def CreateObject(viewport, name):
     if name in ("Pillar", "Column", "Elevator"):
         size = viewport.miscDefaultSizes[name] * 10
         return cls(point(0, -size / 2), point(0, size / 2), size)
-    width = viewport.miscDefaultSizes[name] * 10 if name in viewport.miscDefaultSizes else 240 if name == "Wall" else 0 if name == "MeasurementGuide" else 10
+    width = viewport.miscDefaultSizes[name] * 10 if name in viewport.miscDefaultSizes else 240 if name == "Wall" else 0 if name in ("MeasurementGuide", "BoundaryLine") else 10
     return cls(point(-1000, 0), point(1000, 0), width)
 
 

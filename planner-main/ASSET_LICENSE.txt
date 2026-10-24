@@ -1,0 +1,72 @@
+Planner Original Graphics License, version 1.0
+Copyright (c) 2026 Dieter Stassen. All rights reserved except as granted below.
+
+1. Scope
+
+These terms apply only to original furnishing graphics and original user-interface
+icons and graphics whose copyright is held by Dieter Stassen and that are supplied
+with Planner. Original furnishing artwork is supplied in furnishings/images or
+embedded in furnishing data. Original UI artwork is supplied in assets/icons_ui
+and other explicitly identified original UI graphics.
+
+These graphics are separate non-code works and are not licensed under Planner's
+GNU GPL. Planner logos and application icons are governed instead by
+BRANDING_LICENSE.txt. Third-party material, including Google Material Symbols /
+Material Icons and their third-party portions, retains its own license. These
+terms neither claim ownership of that material nor restrict permissions granted
+by its copyright holders. See LICENSES.txt and notices beside the resources.
+Font software, including the modified Drafting Small Caps font derived from
+Architects Daughter, is excluded from these terms and retains its OFL-1.1 license.
+
+2. Use in Planner and plans
+
+You may use these original graphics in Planner for personal or commercial work.
+You may include them in plans, drawings and exports created with Planner, and
+copy, publish, sell, print and share those plans and outputs, commercially or
+noncommercially. This permission includes editable .plan files, embedded graphic
+data, SVG and raster exports, printed copies, and subsequent copies of those
+plans and outputs made or shared by their recipients.
+
+You may resize, rotate, mirror, recolor, crop, combine and convert the graphics
+as reasonably needed to create, edit, render and share those plans and outputs.
+An output must be a plan or drawing, rather than a standalone graphic or asset
+collection presented as an output to circumvent section 4.
+
+These permissions do not place your plan or output under the GNU GPL, transfer
+ownership of your original work, require a visible credit in the plan or output,
+or require attaching this license to each plan, export or printed copy. Embedded
+graphics retain their original copyright. Third-party material may have separate
+requirements, which these terms do not change.
+
+3. Distribution with Planner
+
+You may copy and redistribute these graphics as included in a complete,
+unmodified official Planner source or binary package, including a faithful
+mirror, installer or archive of that package. Retain the package's copyright
+and license notices. Charging for distribution does not remove this permission.
+
+4. Reserved rights
+
+No permission is granted to redistribute these graphics separately, whether
+unchanged or modified; to distribute them as an icon set, furnishing library,
+stock artwork or other asset collection; or to license them for another product.
+Receiving a shared plan or SVG does not grant permission to extract its graphics
+for standalone redistribution. Distribution with a modified software package
+requires separate written permission or replacement/removal of these graphics.
+Uses outside the permissions above require written permission from Dieter Stassen.
+
+5. Separation from software and other rights
+
+These terms impose no additional restrictions on Planner's GPL-covered code.
+You may exercise the permissions granted by the GNU GPL for that code, including
+distributing modified versions with these graphics removed or replaced. These
+terms do not limit applicable statutory exceptions, independently granted rights,
+or rights provided under a hosting platform's terms.
+
+6. Warranty and termination
+
+The graphics are provided "as is", without warranties of any kind, to the extent
+permitted by applicable law. To that extent, the copyright holder is not liable
+for loss or damage arising from their use. Permission under this license ends
+for a recipient who breaches its terms. This does not terminate the independent
+permissions of recipients who continue to comply with these terms.

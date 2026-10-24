@@ -1,6 +1,6 @@
 """Class visibility and undoable hiding of individual scene objects."""
 from planner_app.models import Elevator
-from planner_app.models import Door, Furnishing, OpenDoorway, PocketDoor, BarnDoor, BifoldDoor, SlidingDoor, MeasurementGuide, Arrow, Counter, Railing, Stair, Window, Label, NorthArrow, Fireplace
+from planner_app.models import Door, Furnishing, OpenDoorway, PocketDoor, BarnDoor, BifoldDoor, SlidingDoor, MeasurementGuide, BoundaryLine, Arrow, Counter, Railing, Stair, Window, Label, NorthArrow, Fireplace
 
 
 class VisibilityMixin:
@@ -16,6 +16,8 @@ class VisibilityMixin:
             return "North arrows"
         if isinstance(obj, Fireplace):
             return "Fireplaces"
+        if isinstance(obj, BoundaryLine):
+            return "Boundary lines"
         if isinstance(obj, MeasurementGuide):
             return "Measurement guides"
         if isinstance(obj, Arrow):

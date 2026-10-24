@@ -57,3 +57,28 @@ class SceneEdit(SparseSceneEdit):
         hiddenIds = {id(obj) for obj in result[7]}
         if hiddenIds - members or len(hiddenIds) != len(result[7]):
             raise ValueError("Invalid hidden history objects.")
+
+
+class ReferenceImageEdit(SceneEdit):
+    """Reference deltas share the scene journal without retaining whole images per move."""
+    __slots__ = ("referenceChanges", "pivots")
+
+    def __init__(self, changes, pivots = (None, None)):
+        super().__init__((), ((), ()), ((), ()), {})
+        self.referenceChanges = changes
+        self.pivots = pivots
+        self.byteSize = RetainedBytes((changes, pivots)) + 128
+
+    def Apply(self, state, forward, validate = False):
+        return state
+
+    def ApplyReference(self, record, forward, validate = False):
+        if record is None:
+            raise ValueError("Reference history has no image.")
+        result = dict(record, center = list(record["center"]))
+        source, target = (0, 1) if forward else (1, 0)
+        for name, values in self.referenceChanges.items():
+            if validate and result[name] != values[source]:
+                raise ValueError("Reference history does not match the current image.")
+            result[name] = list(values[target]) if name == "center" else values[target]
+        return result

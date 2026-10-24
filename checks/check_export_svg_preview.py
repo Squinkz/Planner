@@ -96,7 +96,7 @@ def Main():
             v.grab()
             assert drawVector.call_count == 2, "Stopping pan did not refresh the sharp preview"
         assert overlay.svgRenderer is renderer and overlay.svgData is data
-        outputPath = Path(panel.pathField.text())
+        outputPath = panel.OutputPath()
         main.exportButton.click()
         assert outputPath.read_bytes() == panel.Render("svg")
         for change in (lambda: panel.scaleField.setValue(75),

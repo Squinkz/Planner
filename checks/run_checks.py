@@ -39,11 +39,14 @@ with tempfile.TemporaryDirectory() as sessionFolder:
             raise RuntimeError(f'{len(callbackErrors)} unhandled callback/thread exceptions occurred during this check.')
 """
     failures = []
+    # Full catalog theme changes and repeated PNG/SVG integration renders
+    # run substantially slower on hosted Windows workers than locally.
+    timeouts = {"check_external_themes.py": 120, "check_furnishings_on_counters.py": 60,
+                "check_export_settings.py": 60, "check_export_solid_objects.py": 60,
+                "check_export_cli_settings.py": 60, "check_parity_rendering.py": 60}
     for check in checks:
         print(f"Checking {check.name}", flush = True)
-        # Preview integration and repeated catalog theme changes can exceed 30s.
-        # The external-theme check completed in 36.6s with the default themes.
-        timeout = 60 if check.name in ("check_export_settings.py", "check_export_solid_objects.py", "check_export_cli_settings.py", "check_parity_rendering.py", "check_external_themes.py") else 30
+        timeout = timeouts.get(check.name, 30)
         started = perf_counter()
         try:
             result = subprocess.run([sys.executable, "-c", bootstrap, str(check)], capture_output = True,

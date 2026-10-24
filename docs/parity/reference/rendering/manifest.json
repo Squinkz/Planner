@@ -475,6 +475,27 @@
       "svg": null
     },
     {
+      "id": "boundaryline",
+      "type": "BoundaryLine",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "boundaryline.plan",
+      "image": "boundaryline.png",
+      "pixels": [
+        400,
+        300
+      ],
+      "rgbaSha256": "a4446b6c4b90776103cbf78bffca3d7153b1a3f3befa4441571bc50cc500a967",
+      "svg": null
+    },
+    {
       "id": "angleguide",
       "type": "AngleGuide",
       "theme": "Dark Canvas",

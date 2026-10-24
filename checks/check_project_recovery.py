@@ -138,7 +138,7 @@ def Main():
         messages.append((args, kwargs))
         return QtWidgets.QMessageBox.StandardButton.Discard
     with tempfile.TemporaryDirectory() as directory, patch.object(main, "ShowAppMessage", side_effect = Message):
-        folder = Path(directory)
+        folder = Path(directory).resolve()
         main.sessionPath = folder / "session.json"
         missingCountPath = folder / "Missing counts.plan"
         missingCountPath.write_text(json.dumps(multipleMissing))

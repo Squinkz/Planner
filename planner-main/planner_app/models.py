@@ -75,6 +75,10 @@ class MeasurementGuide(Wall):
     textOffset: QtCore.QPointF = field(default_factory = QtCore.QPointF)
 
 
+class BoundaryLine(MeasurementGuide):
+    """A dash-dot annotation whose dimensions appear only while selected."""
+
+
 class AngleGuide(MeasurementGuide):
     """A free angle: two outer points, a translating vertex, and a label offset."""
     def __init__(self, firstVertex, secondVertex, width = 0.0, firstMiter = 0.0, secondMiter = 0.0,

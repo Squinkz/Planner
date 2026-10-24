@@ -59,7 +59,7 @@ def Main():
         panel.typeField.setCurrentIndex(2)
         assert panel.compositeSection.isVisible() and panel.resolutionRow.isVisible()
         assert main.viewport.exportOverlay.outputFormat == "png"
-        assert Path(panel.pathField.text()).suffix == ".png"
+        assert panel.OutputPath().suffix == ".png"
         assert panel.scaleUnitsField.currentText() == "px/m"
         panel.SetScaleOption("scaleMode", "Architectural")
         assert abs(panel.ScalePerMeter() - 300 * 1000 / (25.4 * 100)) < .001
@@ -67,7 +67,8 @@ def Main():
         panel.SetOverride("vignetteEnabled", True)
         image = panel.Render("png")
         path = Path(directory) / "optimized.png"
-        panel.pathField.setText(str(path))
+        panel.folderField.setText(str(path.parent))
+        panel.fileNameField.setText(path.name)
         with patch.object(main, "ShowAppMessage") as message:
             panel.Export()
             assert not message.called, message.call_args
@@ -75,17 +76,18 @@ def Main():
         assert data[25] == 3, "Expected an indexed PNG"
         assert QtGui.QImage(str(path)).size() == image.size()
         assert main.exportButton.isEnabled() and app.overrideCursor() is None
-        # Selecting the optimized file filter keeps the third option and .png suffix.
-        with patch.object(QtWidgets.QFileDialog, "getSaveFileName", return_value = (str(path), "Optimized PNG images (*.png)")):
+        # Choosing a folder keeps the selected type and filename.
+        with patch.object(QtWidgets.QFileDialog, "getExistingDirectory", return_value = str(path.parent)):
             panel.BrowsePath()
         assert panel.typeField.currentData() == "PNG_OPTIMIZED"
         panel.typeField.setCurrentIndex(panel.typeField.findData("SVG"))
-        assert Path(panel.pathField.text()).suffix == ".svg"
+        assert panel.OutputPath().suffix == ".svg"
         panel.UndoExport()
         assert panel.typeField.currentData() == "PNG_OPTIMIZED"
         assert main.viewport.exportOverlay.outputFormat == "png"
         # Encoding failure must leave the existing destination intact.
-        panel.pathField.setText(str(path))
+        panel.folderField.setText(str(path.parent))
+        panel.fileNameField.setText(path.name)
         with patch("planner_app.optimized_png.EncodeOptimizedPng", side_effect = RuntimeError("Encoding failed")):
             with patch.object(main, "ShowAppMessage", return_value = QtWidgets.QMessageBox.StandardButton.Yes) as message:
                 panel.Export()
@@ -93,7 +95,7 @@ def Main():
         assert path.read_bytes() == data
         main.MarkProjectClean()
         main.close()
-    print("PASS: optimized PNG palette, transparency, DPI, raster controls, file filter, undo and atomic errors")
+    print("PASS: optimized PNG palette, transparency, DPI, raster controls, folder selection, undo and atomic errors")
 
 
 if __name__ == "__main__":

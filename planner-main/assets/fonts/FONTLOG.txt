@@ -1,0 +1,47 @@
+Planner bundled fonts: sources, notices and modification history
+===============================================================
+
+All font software listed here is distributed under the SIL Open Font License
+1.1 (OFL-1.1), not Planner's GPL code license or reserved-graphics terms.
+Retain the applicable copyright and complete OFL notice with redistributed fonts.
+
+Noto Sans
+---------
+Files: NotoSans-Regular.ttf, NotoSans-SemiBold.ttf, NotoSans-Bold.ttf
+Version: 2.015
+Copyright 2022 The Noto Project Authors
+Source: https://github.com/notofonts/latin-greek-cyrillic
+License: OFL.txt
+These bundled font files are unmodified copies.
+
+D-DIN Condensed
+---------------
+File: D-DINCondensed.ttf
+Version: 1.00
+Copyright (c) 2017, Datto Inc. (fonts@datto.com)
+Designer identified by the font: Charles Nix
+Original project: https://www.datto.com/fonts/d-din
+License: OFL-D-DIN.txt
+Reserved Font Name: D-DIN Condensed
+The complete license notice was copied from this font's embedded license field,
+including the upstream Reserved Font Name declaration.
+
+Drafting Small Caps
+-------------------
+File: DraftingSmallCaps-Regular.ttf
+Version: 1.000
+Derived from: Architects Daughter, by Kimberly Geswein
+Original copyright (c) 2010, Kimberly Geswein (kimberlygeswein.com)
+Upstream reference: https://github.com/google/fonts/tree/main/ofl/architectsdaughter
+License: OFL-DraftingSmallCaps.txt
+
+Planner's bundled version is a modified small-caps variant of Architects Daughter,
+renamed to Drafting Small Caps. Its internal family is Drafting Small Caps and
+its PostScript name is DraftingSmallCaps-Regular. The modification date and
+complete editing history are not recorded here. The upstream copyright and
+OFL remain intact. The derivative, including its small-caps changes, remains
+under OFL-1.1 and is excluded from Planner's reserved-graphics license.
+
+The separate OFL file preserves the complete license text embedded in the
+modified font, with line endings normalized for readability. No glyphs, font
+metrics or font binaries were changed when adding these notices.

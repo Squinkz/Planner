@@ -37,13 +37,14 @@ def RecoverProject(data, definitions, defaults, chooseGeometry = None):
 
     def DecodeRecoveredProject():
         # Validate raster bytes once, outside the per-setting/resource probes.
-        decoded = DecodeProject(repaired, definitions)
+        validatedImages = set()
         if referenceRecord is not None:
             try:
-                decoded[5]["referenceImage"] = ValidateReferenceImage(referenceRecord)
+                repaired["settings"]["referenceImage"] = ValidateReferenceImage(referenceRecord, validatedImages)
             except (ValueError, TypeError, RuntimeError):
+                repaired["settings"].pop("referenceImage", None)
                 notices.append("Removed invalid reference image settings.")
-        return decoded
+        return DecodeProject(repaired, definitions, validatedImages = validatedImages)
     settings = copy.deepcopy(probe["settings"])
     settings["snapEnabled"] = False
     required = {"wallWidth", "wallMaterial", "doorType", "windowType", "snapEnabled", "snap", "visibility",
@@ -142,7 +143,7 @@ def RecoverProject(data, definitions, defaults, chooseGeometry = None):
                 identityChanged = True
                 notices.append(f"Regenerated invalid or duplicate ID for object {index + 1}.")
             seenIds.add(record["id"])
-        if record.get("type") in ("Wall", "Pillar", "Column", "Elevator", "Stair", "Counter", "Railing", "Arrow", "MeasurementGuide", "AngleGuide", "Fireplace"):
+        if record.get("type") in ("Wall", "Pillar", "Column", "Elevator", "Stair", "Counter", "Railing", "Arrow", "MeasurementGuide", "BoundaryLine", "AngleGuide", "Fireplace"):
             material = record.get("material")
             if material not in wallMaterials and not (record.get("type") == "Fireplace" and material is None):
                 if isinstance(material, str):

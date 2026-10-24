@@ -30,9 +30,11 @@ def Main():
         panel = main.exportPanel
         assert not any(button.isChecked() for button in panel.sectionButtons.values())
         assert [panel.typeField.itemText(index) for index in range(panel.typeField.count())] == ["PNG (raster)", "SVG (vector)", "Optimized PNG (raster)"]
-        with patch.object(QtWidgets.QFileDialog, "getSaveFileName", return_value = (str(Path(folder) / "render.svg"), "SVG images (*.svg)")):
+        panel.fileNameField.setText("render.png")
+        with patch.object(QtWidgets.QFileDialog, "getExistingDirectory", return_value = str(Path(folder))):
             panel.browseButton.click()
-        assert panel.pathField.text().endswith("render.svg") and panel.typeField.currentData() == "SVG"
+        panel.typeField.setCurrentIndex(panel.typeField.findData("SVG"))
+        assert panel.fileNameField.text() == "render.svg" and panel.typeField.currentData() == "SVG"
         assert panel.browseButton.text() == "" and not panel.browseButton.icon().isNull()
         original = copy.deepcopy(main.ProjectSettings())
         view = panel.CaptureView()

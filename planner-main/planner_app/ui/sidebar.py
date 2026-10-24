@@ -7,7 +7,7 @@ from planner_app.graphics.palette import themeColors
 from planner_app.graphics.icons import UiIcon, UiIconPath, GroupModeIcon
 from planner_app.furnishing_search import FindFurnishings, FurnishingDimensionText, SortFurnishings
 from planner_app.graphics.theme import HeaderIcon, MaterialIcon, wallMaterials
-from planner_app.models import OpenDoorway, Door, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, Window, SilledWindow, CasementWindow, MeasurementGuide, Arrow, Counter, Railing, Stair, Pillar, Column, Label, NorthArrow, Fireplace
+from planner_app.models import OpenDoorway, Door, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, Window, SilledWindow, CasementWindow, MeasurementGuide, BoundaryLine, Arrow, Counter, Railing, Stair, Pillar, Column, Label, NorthArrow, Fireplace
 from planner_app.ui.menus import AddMenuButton
 from planner_app.ui.export_panel import ExportPanel
 from planner_app.ui.furnishing_list import FurnishingCatalogList
@@ -169,7 +169,7 @@ class SidebarMixin:
         self.visibilityTree.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
         self.visibilityItems = {}
         for name, parentName in (("World", None), ("Walls", "World"), ("Doors", "Walls"),
-                                 ("Windows", "Walls"), ("Fireplaces", "Walls"), ("Elevators", "World"), ("Stairs", "World"), ("Counters", "World"), ("Railings", "World"), ("Furnishings", "World"), ("Labels", "World"), ("Arrows", "World"), ("Measurement guides", "World"), ("North arrows", "World")):
+                                 ("Windows", "Walls"), ("Fireplaces", "Walls"), ("Elevators", "World"), ("Stairs", "World"), ("Counters", "World"), ("Railings", "World"), ("Furnishings", "World"), ("Labels", "World"), ("Arrows", "World"), ("Measurement guides", "World"), ("Boundary lines", "World"), ("North arrows", "World")):
             parent = self.visibilityItems[parentName] if parentName else self.visibilityTree
             item = QtWidgets.QTreeWidgetItem(parent, [name])
             item.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled | QtCore.Qt.ItemFlag.ItemIsUserCheckable)
@@ -180,15 +180,25 @@ class SidebarMixin:
         self.referenceImageItem.setCheckState(0, QtCore.Qt.CheckState.Unchecked)
         self.visibilityTree.expandAll()
         self.visibilityTree.itemChanged.connect(self.SetVisibility)
-        self.visibilityTree.itemClicked.connect(lambda item, column: self.referenceImage.Show() if item is self.referenceImageItem else None)
+        self.referenceImagePressState = None
+        self.visibilityTree.itemPressed.connect(lambda item, column: setattr(self, "referenceImagePressState", item.checkState(0)))
+        self.visibilityTree.itemClicked.connect(self.ReferenceImageClicked)
         self.viewport.sceneChanged.connect(self.RefreshVisibilityCounts)
         self.RefreshVisibilityCounts()
         layout.addWidget(self.visibilityTree, 1)
         self.sidebarTabs.addTab(visibilityPage, UiIcon("world"), "Visibility")
 
+    def ReferenceImageClicked(self, item, column):
+        # A checkbox click changes visibility. Clicking the entry's text enters
+        # image editing without making the visibility toggle unlock it too.
+        if item is self.referenceImageItem and self.referenceImagePressState == item.checkState(0):
+            self.referenceImage.Show()
+        self.referenceImagePressState = None
+
     def RefreshVisibilityCounts(self):
         stairs = sum(isinstance(obj, Stair) for obj in self.viewport.walls)
         guides = sum(isinstance(obj, MeasurementGuide) for obj in self.viewport.walls)
+        boundaries = sum(isinstance(obj, BoundaryLine) for obj in self.viewport.walls)
         arrows = sum(isinstance(obj, Arrow) for obj in self.viewport.walls)
         railings = sum(isinstance(obj, Railing) for obj in self.viewport.walls)
         counters = sum(isinstance(obj, Counter) for obj in self.viewport.walls)
@@ -199,7 +209,7 @@ class SidebarMixin:
                   "Elevators": sum(isinstance(obj, Elevator) for obj in self.viewport.walls),
                   "Fireplaces": sum(isinstance(obj, Fireplace) for obj in self.viewport.windows),
                   "North arrows": sum(isinstance(obj, NorthArrow) for obj in self.viewport.furnishings),
-                  "Furnishings": sum(not isinstance(obj, NorthArrow) for obj in self.viewport.furnishings), "Labels": len(self.viewport.labels), "Arrows": arrows, "Measurement guides": guides}
+                  "Furnishings": sum(not isinstance(obj, NorthArrow) for obj in self.viewport.furnishings), "Labels": len(self.viewport.labels), "Arrows": arrows, "Measurement guides": guides - boundaries, "Boundary lines": boundaries}
         blocker = QtCore.QSignalBlocker(self.visibilityTree)
         for name, count in counts.items():
             label = f"{name} ({count} {'object' if count == 1 else 'objects'})"
@@ -493,6 +503,7 @@ class SidebarMixin:
         self.labelButton = WindowButton(objectType = "label")
         self.arrowButton = WindowButton(objectType = "arrow")
         self.measurementGuideButton = WindowButton(objectType = "measurement-guide")
+        self.boundaryLineButton = WindowButton(objectType = "boundary-line")
         self.angleGuideButton = WindowButton(objectType = "angle-guide")
         self.angleGuideButton.setAccessibleName("Angle Guide")
         self.angleGuideButton.setToolTip("Drag an Angle Guide onto the canvas. Move its middle point to carry both arms.")
@@ -502,7 +513,7 @@ class SidebarMixin:
                       ("Windows", ((self.windowButton, "Standard"), (self.silledWindowButton, "Silled"),
                                     (self.casementWindowButton, "Casement"))),
                       ("Miscellaneous", ((self.stairButton, "Stair"), (self.counterButton, "Counter"), (self.railingButton, "Railing"), (self.pillarButton, "Pillar"), (self.columnButton, "Column"), (self.fireplaceButton, "Fireplace"), (self.elevatorButton, "Elevator"))),
-                      ("Annotations", ((self.labelButton, "Label"), (self.arrowButton, "Arrow"), (self.measurementGuideButton, "Measure"), (self.angleGuideButton, "Angle"), (self.northArrowButton, "North"))))
+                      ("Annotations", ((self.labelButton, "Label"), (self.arrowButton, "Arrow"), (self.measurementGuideButton, "Measure"), (self.boundaryLineButton, "Boundary"), (self.angleGuideButton, "Angle"), (self.northArrowButton, "North"))))
         self.buildObjectLayouts = {}
         for category, buttons in categories:
             heading = QtWidgets.QLabel(category)

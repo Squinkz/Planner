@@ -41,7 +41,7 @@ def Main():
         viewport = window.viewport
         assert window.viewOptions["showGrid"].shortcutLabel.text() == "G"
         assert [None if action.isSeparator() else action.defaultWidget().accessibleName() for action in window.viewMenu.actions()] == [
-            "Show grid", None, "Reference Image", None, "Show all measurements", "Show wall measurements", "Show stair measurements",
+            "Show grid", None, "Reference Image", None, "Toggle measurements", "Show wall measurements", "Show stair measurements",
             "Show counter measurements", "Show elevator measurements", "Show railing measurements", None, "Maximize", None, "Show tips", "Show FPS counter"]
         assert not viewport.showFpsCounter and not viewport.performanceLabel.isVisible()
         assert viewport.showTips
@@ -80,16 +80,17 @@ def Main():
         panel = window.settingsWindow
         window.viewOptions["stairs"].click()
         assert viewport.showMeasurements and viewport.measurementVisibility["stairs"]
-        assert panel.measurementVisibilityItems["all"].checkState(0) == QtCore.Qt.CheckState.PartiallyChecked
+        assert panel.measurementVisibilityItems["all"].checkState(0) == QtCore.Qt.CheckState.Checked
         window.ShowViewMenu()
         assert not window.viewOptions["showMeasurements"].iconLabel.pixmap().isNull()
+        remembered = dict(viewport.measurementVisibility)
         window.viewOptions["showMeasurements"].click()
-        assert not viewport.showMeasurements and not any(viewport.measurementVisibility.values())
+        assert not viewport.showMeasurements and viewport.measurementVisibility == remembered
         window.viewOptions["counters"].click()
-        assert viewport.showMeasurements and viewport.measurementVisibility == {"walls": False, "stairs": False, "counters": True, "elevators": False, "railings": False}
+        assert viewport.showMeasurements and viewport.measurementVisibility == dict(remembered, counters = True)
         window.viewOptions["showMeasurements"].click()
         window.viewOptions["showMeasurements"].click()
-        assert viewport.showMeasurements and all(viewport.measurementVisibility.values())
+        assert viewport.showMeasurements and viewport.measurementVisibility == dict(remembered, counters = True)
         panel.hide()
         window.viewOptions["showFpsCounter"].click()
         assert viewport.performanceLabel.isVisible() and viewport.performanceTimer.isActive()

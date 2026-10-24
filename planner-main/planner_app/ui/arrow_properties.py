@@ -1,7 +1,7 @@
 """Arrow appearance and dimension controls, including mixed selections."""
 import math
 from PySide6 import QtCore, QtWidgets
-from planner_app.models import Arrow, MeasurementGuide, ObjectControlPoints
+from planner_app.models import Arrow, MeasurementGuide, BoundaryLine, ObjectControlPoints
 from planner_app.units import MetricUnit
 from planner_app.graphics.icons import UiIcon
 from .widgets import DragSpinBox, DragSlider
@@ -68,7 +68,7 @@ class ArrowPropertiesMixin:
         self.wallProperties.hide()
         self.doorProperties.hide()
         guide = isinstance(arrows[0], MeasurementGuide)
-        name = "Measurement guide" if guide else "Arrow"
+        name = "Boundary line" if isinstance(arrows[0], BoundaryLine) else "Measurement guide" if guide else "Arrow"
         self.selectionLabel.setText(f"{name} (#{arrows[0].objectId:04d})" if len(arrows) == 1 else f"{len(arrows)} {name.lower()}s selected")
         for fieldName, field in self.arrowFields.items():
             row = self.arrowIntensityValue.parentWidget() if fieldName == "intensity" else field

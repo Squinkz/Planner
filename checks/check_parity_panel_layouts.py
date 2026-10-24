@@ -49,13 +49,16 @@ def Main():
         assert not main.propertiesPanel.isVisible() and main.exportActionPanel.isVisible()
         assert not export.scrollArea.isAncestorOf(main.exportButton)
         assert not export.scrollArea.isAncestorOf(export.scaleModeTabs)
-        assert Rect(export.pathField, export).right() < Rect(export.browseButton, export).left()
+        assert Rect(export.folderField, export).right() < Rect(export.browseButton, export).left()
+        assert Rect(export.folderField, export).left() == Rect(export.fileNameField, export).left() == 14
+        assert Rect(export.fileNameField, export).right() == Rect(export.browseButton, export).right()
+        assert Rect(export.folderField, export).bottom() < Rect(export.fileNameField, export).top()
         assert export.browseButton.size() == QtCore.QSize(44, 32)
-        before = [Rect(widget, export) for widget in (export.pathField, export.typeField, export.scaleModeTabs)]
+        before = [Rect(widget, export) for widget in (export.folderField, export.fileNameField, export.typeField, export.scaleModeTabs)]
         actionBefore = Rect(main.exportButton, main.sidebarContentPanel)
         export.scrollArea.verticalScrollBar().setValue(export.scrollArea.verticalScrollBar().maximum())
         app.processEvents()
-        assert before == [Rect(widget, export) for widget in (export.pathField, export.typeField, export.scaleModeTabs)]
+        assert before == [Rect(widget, export) for widget in (export.folderField, export.fileNameField, export.typeField, export.scaleModeTabs)]
         assert Rect(main.exportButton, main.sidebarContentPanel) == actionBefore
         for output in ("PNG", "SVG", "PNG_OPTIMIZED"):
             export.typeField.setCurrentIndex(export.typeField.findData(output))
@@ -111,6 +114,7 @@ def Main():
         main.sidebarTabs.setCurrentWidget(main.visibilityPage)
         reference = main.referenceImage
         assert reference.Load(path)
+        main.SetViewOption("editReferenceImage")
         for sidebarWidth in (460, 700):
             main.mainSplitter.setSizes([main.width() - sidebarWidth, sidebarWidth])
             app.processEvents()

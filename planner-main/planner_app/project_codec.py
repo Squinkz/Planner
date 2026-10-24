@@ -7,7 +7,7 @@ import math
 from pathlib import Path
 from xml.etree import ElementTree
 from PySide6 import QtCore, QtGui
-from .models import Door, Furnishing, OpenDoorway, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, SlidingDoor, MeasurementGuide, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Label, Window, NorthArrow, Fireplace
+from .models import Door, Furnishing, OpenDoorway, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, SlidingDoor, MeasurementGuide, BoundaryLine, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Label, Window, NorthArrow, Fireplace
 from .graphics.theme import wallMaterials
 from .graphics.theme import gridIntensityDefaults
 from .preferences import wallPresetWidths, openingDefaultSizes, miscDefaultSizes, measurementDefaults, measurementVisibilityDefaults, stairStepSizeDefaults, railingSpacingDefaults, lineworkDefaults, collisionDefaults
@@ -17,7 +17,7 @@ from .reference_image import ValidateReferenceImage
 
 
 from .object_schema import openingClasses, openingFields, ReadArrowTipSize
-visibilityNames = ("World", "Walls", "Doors", "Windows", "Fireplaces", "Elevators", "Stairs", "Counters", "Railings", "Furnishings", "Labels", "Arrows", "Measurement guides", "North arrows")
+visibilityNames = ("World", "Walls", "Doors", "Windows", "Fireplaces", "Elevators", "Stairs", "Counters", "Railings", "Furnishings", "Labels", "Arrows", "Measurement guides", "Boundary lines", "North arrows")
 snapNames = ("grid", "vertices", "corners", "midpoints", "alignment")
 projectFileLimit = 64 * 1024 * 1024
 
@@ -289,7 +289,7 @@ def DecodeFurnishingDefinitions(embedded, definitions):
     return projectDefinitions
 
 
-def DecodeProject(data, definitions, validatePlacement = True):
+def DecodeProject(data, definitions, validatePlacement = True, validatedImages = None):
     if not isinstance(data, dict) or data.get("format") != "Planner Project" or type(data.get("version")) is not int or data["version"] != 1:
         raise ValueError("This is not a supported Planner project.")
     if not isinstance(data.get("settings"), dict) or not isinstance(data.get("scene"), dict):
@@ -310,8 +310,8 @@ def DecodeProject(data, definitions, validatePlacement = True):
         if kind in openingClasses:
             continue
         first, second = ValidatePoint(record["first"]), ValidatePoint(record["second"])
-        width = ValidateNumber(record["width"], minimum = 0 if kind in ("MeasurementGuide", "AngleGuide") else 1e-8 if kind == "Label" else 1, maximum = 1e9)
-        if kind in ("MeasurementGuide", "AngleGuide") and width != 0:
+        width = ValidateNumber(record["width"], minimum = 0 if kind in ("MeasurementGuide", "BoundaryLine", "AngleGuide") else 1e-8 if kind == "Label" else 1, maximum = 1e9)
+        if kind in ("MeasurementGuide", "BoundaryLine", "AngleGuide") and width != 0:
             raise ValueError("Measurement guides cannot have a width.")
         if kind != "AngleGuide" and QtCore.QLineF(first, second).length() < 1e-8:
             raise ValueError("An object has zero length.")
@@ -336,10 +336,10 @@ def DecodeProject(data, definitions, validatePlacement = True):
             obj.definitionKey = record["definition"]
             obj.firstVertex, obj.secondVertex, obj.width = first, second, width
             furnishings.append(obj)
-        elif kind in ("Wall", "Pillar", "Column", "Elevator", "Stair", "Counter", "Railing", "Arrow", "MeasurementGuide", "AngleGuide"):
+        elif kind in ("Wall", "Pillar", "Column", "Elevator", "Stair", "Counter", "Railing", "Arrow", "MeasurementGuide", "BoundaryLine", "AngleGuide"):
             if record["material"] not in wallMaterials:
                 raise ValueError("A wall material is unknown.")
-            cls = {"Wall": Wall, "Pillar": Pillar, "Column": Column, "Elevator": Elevator, "Stair": Stair, "Counter": Counter, "Railing": Railing, "Arrow": Arrow, "MeasurementGuide": MeasurementGuide, "AngleGuide": AngleGuide}[kind]
+            cls = {"Wall": Wall, "Pillar": Pillar, "Column": Column, "Elevator": Elevator, "Stair": Stair, "Counter": Counter, "Railing": Railing, "Arrow": Arrow, "MeasurementGuide": MeasurementGuide, "BoundaryLine": BoundaryLine, "AngleGuide": AngleGuide}[kind]
             obj = cls(first, second, width, ValidateNumber(record["firstMiter"], minimum = 0, maximum = 1),
                       ValidateNumber(record["secondMiter"], minimum = 0, maximum = 1), record["material"])
             if isinstance(obj, MeasurementGuide):
@@ -525,7 +525,7 @@ def DecodeProject(data, definitions, validatePlacement = True):
         # Older projects used one switch for both kinds of target.
         snap = {**snap, "corners": snap.get("vertices", True)}
     flags["snap"] = ValidateFlags(snap, snapNames)
-    flags["visibility"] = ValidateFlags({"Elevators": True, "Fireplaces": True, "North arrows": True, "Railings": True, "Labels": True, "Counters": True, "Arrows": True, "Measurement guides": True, **settings["visibility"]}, visibilityNames)
+    flags["visibility"] = ValidateFlags({"Elevators": True, "Fireplaces": True, "North arrows": True, "Railings": True, "Labels": True, "Counters": True, "Arrows": True, "Measurement guides": True, "Boundary lines": True, **settings["visibility"]}, visibilityNames)
     if flags["snapEnabled"] and not any(flags["snap"].values()):
         raise ValueError("Snapping is enabled without any snap options.")
     flags["wallWidth"] = ValidateNumber(settings["wallWidth"], minimum = 1)
@@ -696,7 +696,7 @@ def DecodeProject(data, definitions, validatePlacement = True):
         flags["imperialAutoSizes"][kind] = limits
     flags["unitsMode"] = settings.get("unitsMode", "Adaptive Metric")
     if settings.get("referenceImage") is not None:
-        flags["referenceImage"] = ValidateReferenceImage(settings["referenceImage"])
+        flags["referenceImage"] = ValidateReferenceImage(settings["referenceImage"], validatedImages)
     flags["measurementPrecision"] = settings.get("measurementPrecision", "Medium")
     if not isinstance(flags["measurementPrecision"], str) or flags["measurementPrecision"] not in measurementPrecisions:
         raise ValueError("The project contains an invalid measurement precision.")

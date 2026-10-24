@@ -22,7 +22,7 @@ from planner_app.geometry.measurements import (MergeMeasurementSegments, FindMea
 from planner_app.graphics.arrows import ArrowPaths, ConnectedArrowDirections, ConnectedArrowCorners
 from planner_app.graphics.path_operations import Paths
 from PySide6 import QtCore, QtGui
-from planner_app.models import OpenDoorway, Door, PocketDoor, BarnDoor, BifoldDoor, SlidingDoor, MeasurementGuide, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Window, SilledWindow, CasementWindow, Label, Furnishing, NorthArrow, Fireplace
+from planner_app.models import OpenDoorway, Door, PocketDoor, BarnDoor, BifoldDoor, SlidingDoor, MeasurementGuide, BoundaryLine, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Window, SilledWindow, CasementWindow, Label, Furnishing, NorthArrow, Fireplace
 from planner_app.graphics.fireplace import FireplacePath
 from planner_app.graphics.column import ColumnPolygon, ColumnPath, ColumnContains
 from planner_app.graphics.furnishings import FurnishingContainsPoint
@@ -316,6 +316,36 @@ class GeometryMixin:
             seen.add(key)
         return duplicates
 
+    def DuplicateArchitecturalObjects(self, includeHidden = False):
+        """Find front copies across all architectural types, including openings."""
+        duplicates = []
+        for group in self.CoincidentObjectGroups(includeHidden):
+            obj = group[0]
+            if isinstance(obj, Window) or type(obj) in (Wall, Pillar, Column, Counter, Stair, Railing, Elevator):
+                duplicates.extend(group[1:])
+        return duplicates
+
+    def CoincidentObjectGroups(self, includeHidden = False):
+        """Keep paint order and visual identity consistent for duplicate repairs."""
+        import json
+        from planner_app.project_codec import EncodeObjectRecord
+        objects = self.walls + self.windows + sorted(self.furnishings, key = lambda obj: not obj.behindCounters) + self.labels
+        indices = {id(obj): index for index, obj in enumerate(objects)}
+        groups = {}
+        for obj in objects:
+            if not includeHidden and not self.IsObjectVisible(obj):
+                continue
+            if type(obj) is Furnishing:
+                key = ("Furnishing", getattr(obj, "definitionKey", obj.definition["key"]), obj.firstVertex.x(), obj.firstVertex.y(),
+                       obj.secondVertex.x(), obj.secondVertex.y(), obj.width, obj.flipHorizontal, obj.flipVertical)
+            else:
+                record = EncodeObjectRecord(obj, indices)
+                for name in ("id", "measurementHidden", "measurementFlipped", "geometryIssues"):
+                    record.pop(name, None)
+                key = json.dumps(record, sort_keys = True, separators = (",", ":"))
+            groups.setdefault(key, []).append(obj)
+        return [tuple(group) for group in groups.values() if len(group) > 1]
+
     def WallPolygon(self, wall):
         if isinstance(wall, Column):
             return QtGui.QPolygonF([self.WorldToViewport(point) for point in ColumnPolygon(wall)])
@@ -338,6 +368,25 @@ class GeometryMixin:
         origin = self.WorldToViewport(QtCore.QPointF())
         scale = self.basePixelsPerMillimeter * self.zoom
         worldTransform = QtGui.QTransform().translate(origin.x(), origin.y()).scale(scale, -scale)
+        # A collapsed opening still needs a usable hit area on either wall face,
+        # even while its parent wall is selected and would otherwise win the hit.
+        selectedIds = {id(obj) for obj, index in self.SelectionEntries()}
+        for opening in reversed(self.windows):
+            if id(opening) not in selectedIds and self.IsObjectVisible(opening) and opening.length * scale < 10:
+                first, second = self.WorldToViewport(opening.firstVertex), self.WorldToViewport(opening.secondVertex)
+                path = QtGui.QPainterPath()
+                polygon = self.WallPolygon(opening)
+                path.addPolygon(polygon)
+                path.closeSubpath()
+                if path.isEmpty():
+                    direction = self.WorldToViewport(opening.parentWall.secondVertex) - self.WorldToViewport(opening.parentWall.firstVertex)
+                    length = math.hypot(direction.x(), direction.y())
+                    normal = QtCore.QPointF(-direction.y(), direction.x()) / max(length, 1e-8) * (opening.width * scale / 2)
+                    path.moveTo(first - normal)
+                    path.lineTo(first + normal)
+                stroke = Paths.PrepareStroke(width = 10)
+                if Paths.Contains(path, position) or Paths.Contains(stroke(path), position):
+                    return opening, None
         for obj in reversed(self.furnishings):
             if isinstance(obj, NorthArrow) and self.IsObjectVisible(obj) and self.WallPolygon(obj).containsPoint(position, QtCore.Qt.FillRule.OddEvenFill):
                 return obj, None
@@ -474,13 +523,13 @@ class GeometryMixin:
                 continue
             if isinstance(wall, MeasurementGuide):
                 labelPosition, angle, labelRect, labelPath = self.MeasurementLabelLayout(wall)
-                if Paths.Contains(labelPath, position):
+                if not isinstance(wall, BoundaryLine) and Paths.Contains(labelPath, position):
                     return wall, 3
                 first = self.WorldToViewport(wall.firstVertex)
                 second = self.WorldToViewport(wall.secondVertex)
                 path = QtGui.QPainterPath(first)
                 path.lineTo(second)
-                if not wall.textOffset.isNull():
+                if not isinstance(wall, BoundaryLine) and not wall.textOffset.isNull():
                     path.moveTo((first + second) / 2)
                     path.lineTo(labelPosition)
                 if Paths.Contains(Paths.PrepareStroke(width = 10)(path), position):
@@ -1571,6 +1620,14 @@ class GeometryMixin:
             footprint = worldBounds, points, (QtCore.QPointF(1, 0), QtCore.QPointF(0, 1))
             key = tuple((point.x(), point.y()) for point in points) + ((drawingObject.textOffset.x(), drawingObject.textOffset.y(), self.zoom),)
             drawingObject.footprintCache = key, footprint
+            drawingObject.numericCollisionFootprint = None
+            return footprint
+        if isinstance(drawingObject, BoundaryLine):
+            points = ObjectControlPoints(drawingObject)
+            padding = max(1, self.lineWidths["dimensions"]) / (self.basePixelsPerMillimeter * self.zoom)
+            bounds = QtGui.QPolygonF(points).boundingRect().adjusted(-padding, -padding, padding, padding)
+            footprint = bounds, points, (QtCore.QPointF(1, 0), QtCore.QPointF(0, 1))
+            drawingObject.footprintCache = (tuple((point.x(), point.y()) for point in points), self.zoom, padding), footprint
             drawingObject.numericCollisionFootprint = None
             return footprint
         if isinstance(drawingObject, MeasurementGuide):

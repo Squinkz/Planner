@@ -25,7 +25,8 @@ def Main():
     LoadApplicationFonts(app)
     ApplyApplicationTheme(app)
     with tempfile.TemporaryDirectory() as directory:
-        path = Path(directory) / "reference.png"
+        folder = Path(directory).resolve()
+        path = folder / "reference.png"
         image = QtGui.QImage(320, 160, QtGui.QImage.Format.Format_RGB32)
         image.fill(QtGui.QColor("#cc4030"))
         assert image.save(str(path))
@@ -58,7 +59,7 @@ def Main():
             main.viewOptions["referenceImage"].click()
             assert dialog.call_count == 1
         app.processEvents()
-        assert main.sidebarTabs.currentWidget() is main.visibilityPage
+        assert main.sidebarTabs.currentIndex() == 0 and not reference.active
         main.ShowViewMenu()
         assert not main.viewOptions["referenceImage"].iconLabel.pixmap().isNull()
         main.viewMenu.hide()
@@ -71,7 +72,9 @@ def Main():
             QtTest.QTest.keyClick(v, QtCore.Qt.Key.Key_B, QtCore.Qt.KeyboardModifier.AltModifier)
         assert not reference.state["visible"] and not reference.active and main.sidebarTabs.currentIndex() == 0
         QtTest.QTest.keyClick(v, QtCore.Qt.Key.Key_B)
-        assert reference.state["visible"] and reference.active
+        assert reference.state["visible"] and not reference.active
+        QtTest.QTest.keyClick(v, QtCore.Qt.Key.Key_B, QtCore.Qt.KeyboardModifier.AltModifier)
+        assert reference.active
         originalPath = reference.pathField.text()
         reference.pathField.setFocus()
         reference.pathField.setCursorPosition(len(originalPath))
@@ -136,6 +139,8 @@ def Main():
         main.sidebarTabs.setCurrentIndex(1)
         with patch.object(QtWidgets.QFileDialog, "getOpenFileName", side_effect = AssertionError("Asked for image again")):
             main.viewOptions["referenceImage"].click()
+        assert main.sidebarTabs.currentIndex() == 1 and not reference.active
+        main.SetViewOption("editReferenceImage")
         assert main.sidebarTabs.currentWidget() is main.visibilityPage and reference.active
         main.visibilityItems["World"].setCheckState(0, QtCore.Qt.CheckState.Unchecked)
         assert reference.state["visible"] and item.checkState(0) == QtCore.Qt.CheckState.Checked
@@ -309,7 +314,7 @@ def Main():
         app.processEvents()
         main.grab().save(str(root / "diagnostics/reference-image.png"))
         saved = reference.Snapshot()
-        project = Path(directory) / "reference.plan"
+        project = folder / "reference.plan"
         assert main.SaveProject(project)
         path.unlink()
         assert main.OpenProject(project)

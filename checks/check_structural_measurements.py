@@ -127,7 +127,7 @@ def Main():
     panel.SetMeasurementVisibility("counters", True)
     items = panel.measurementVisibilityItems
     tree = panel.measurementVisibilityTree
-    assert items["all"].text(0) == "Show all measurements"
+    assert items["all"].text(0) == "Show measurements"
     assert tree.topLevelItemCount() == 1 and items["all"].childCount() == 5
 
     def Toggle(key):
@@ -188,23 +188,24 @@ def Main():
     rendering.FormatLength = originalFormat
     Toggle("stairs")
     assert not v.measurementVisibility["stairs"]
-    assert items["all"].checkState(0) == QtCore.Qt.CheckState.PartiallyChecked
+    assert items["all"].checkState(0) == QtCore.Qt.CheckState.Checked
+    remembered = dict(v.measurementVisibility)
     Toggle("all")
     assert not v.showMeasurements
-    assert not any(v.measurementVisibility.values())
-    assert all(item.checkState(0) == QtCore.Qt.CheckState.Unchecked for item in items.values())
+    assert v.measurementVisibility == remembered
+    assert items["all"].checkState(0) == QtCore.Qt.CheckState.Unchecked
+    assert all(items[key].checkState(0) == (QtCore.Qt.CheckState.Checked if enabled else QtCore.Qt.CheckState.Unchecked)
+               for key, enabled in remembered.items())
     assert all(item.flags() & QtCore.Qt.ItemFlag.ItemIsEnabled for item in items.values())
-    Toggle("walls")
-    assert v.showMeasurements and v.measurementVisibility == {"walls": True, "stairs": False, "counters": False, "railings": False, "elevators": False}
-    assert items["all"].checkState(0) == QtCore.Qt.CheckState.PartiallyChecked
     Toggle("all")
-    assert not v.showMeasurements and not any(v.measurementVisibility.values())
-    main.SetViewOption("showMeasurements")  # Same path as Ctrl+M.
-    assert v.showMeasurements and all(v.measurementVisibility.values())
+    assert v.showMeasurements and v.measurementVisibility == remembered
+    main.SetViewOption("showMeasurements")  # Same path as M.
+    assert not v.showMeasurements and v.measurementVisibility == remembered
+    main.SetViewOption("showMeasurements")
+    assert v.showMeasurements and v.measurementVisibility == remembered
     assert items["all"].checkState(0) == QtCore.Qt.CheckState.Checked
-    Toggle("stairs")
-    Toggle("counters")
-    Toggle("railings")
+    for key in v.measurementVisibility:
+        panel.SetMeasurementVisibility(key, key in ("walls", "elevators"))
     data = main.BuildProjectData()
     decoded = DecodeProject(data, v.furnishingDefinitions)[5]
     assert decoded["measurementVisibility"] == {"walls": True, "stairs": False, "counters": False, "railings": False, "elevators": True}

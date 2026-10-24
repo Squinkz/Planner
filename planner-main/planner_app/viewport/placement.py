@@ -6,7 +6,7 @@ from planner_app.models import Elevator
 import math
 from contextlib import contextmanager
 from PySide6 import QtCore, QtGui, QtWidgets
-from planner_app.models import OpenDoorway, Door, Furnishing, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, SlidingDoor, MeasurementGuide, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Label, Window, NorthArrow, Fireplace
+from planner_app.models import OpenDoorway, Door, Furnishing, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, SlidingDoor, MeasurementGuide, BoundaryLine, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Label, Window, NorthArrow, Fireplace
 from .geometry import CollisionPass
 from planner_app.geometry.opening_placement import (ProjectOpening, OpeningGap,
     BlockedOpeningIntervals, OpeningPlacementSpan, CenteredOpeningSpan)
@@ -16,6 +16,15 @@ from planner_app.placement_sizing import NominalPlacementSize, FurnishingPlaceme
 
 
 class PlacementMixin:
+    def ArchitecturalPlacementFits(self, obj):
+        if isinstance(obj, Window):
+            return self.OpeningFits(obj)
+        if isinstance(obj, Stair):
+            return self.StairFits(obj)
+        if isinstance(obj, Counter):
+            return self.CounterFits(obj)
+        return self.WallFits(obj)
+
     def AutoSizingLimits(self, kind):
         values = self.stairStepSizes if kind == "stairs" else self.railingSpacings
         unitsMode = self.autoSizingUnitsMode or self.unitsMode
@@ -625,7 +634,7 @@ class PlacementMixin:
         if self.guiDragCancelled:
             event.ignore()
             return
-        if any(event.mimeData().hasFormat("application/x-planner-" + kind) for kind in ("arrow", "measurement-guide", "angle-guide", "railing", "pillar", "column", "elevator")):
+        if any(event.mimeData().hasFormat("application/x-planner-" + kind) for kind in ("arrow", "measurement-guide", "boundary-line", "angle-guide", "railing", "pillar", "column", "elevator")):
             event.acceptProposedAction()
             return
         if event.mimeData().hasFormat("application/x-planner-counter"):
@@ -657,7 +666,7 @@ class PlacementMixin:
         if self.guiDragCancelled:
             event.ignore()
             return
-        if any(event.mimeData().hasFormat("application/x-planner-" + kind) for kind in ("arrow", "measurement-guide", "angle-guide", "railing", "pillar", "column", "elevator")):
+        if any(event.mimeData().hasFormat("application/x-planner-" + kind) for kind in ("arrow", "measurement-guide", "boundary-line", "angle-guide", "railing", "pillar", "column", "elevator")):
             self.hoverPosition = event.position()
             if self.DrawingRect().contains(event.position()):
                 self.arrowPreview = self.FindArrowPlacement(event.position(), event.modifiers(),
@@ -666,6 +675,7 @@ class PlacementMixin:
                     Pillar if event.mimeData().hasFormat("application/x-planner-pillar") else
                     Railing if event.mimeData().hasFormat("application/x-planner-railing") else
                     AngleGuide if event.mimeData().hasFormat("application/x-planner-angle-guide") else
+                    BoundaryLine if event.mimeData().hasFormat("application/x-planner-boundary-line") else
                     MeasurementGuide if event.mimeData().hasFormat("application/x-planner-measurement-guide") else Arrow)
                 event.acceptProposedAction()
             else:
@@ -807,7 +817,7 @@ class PlacementMixin:
         if self.guiDragCancelled:
             event.ignore()
             return
-        if any(event.mimeData().hasFormat("application/x-planner-" + kind) for kind in ("arrow", "measurement-guide", "angle-guide", "railing", "pillar", "column", "elevator")):
+        if any(event.mimeData().hasFormat("application/x-planner-" + kind) for kind in ("arrow", "measurement-guide", "boundary-line", "angle-guide", "railing", "pillar", "column", "elevator")):
             self.arrowPreview = None
             if self.DrawingRect().contains(event.position()):
                 before = self.CaptureState()
@@ -817,6 +827,7 @@ class PlacementMixin:
                     Pillar if event.mimeData().hasFormat("application/x-planner-pillar") else
                     Railing if event.mimeData().hasFormat("application/x-planner-railing") else
                     AngleGuide if event.mimeData().hasFormat("application/x-planner-angle-guide") else
+                    BoundaryLine if event.mimeData().hasFormat("application/x-planner-boundary-line") else
                     MeasurementGuide if event.mimeData().hasFormat("application/x-planner-measurement-guide") else Arrow)
                 if isinstance(arrow, (Railing, Pillar)) and not self.WallFits(arrow):
                     self.alignmentGuides = []

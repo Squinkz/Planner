@@ -23,7 +23,7 @@ def ReadReferenceImage(payload):
     return image
 
 
-def ValidateReferenceImage(record):
+def ValidateReferenceImage(record, validatedImages = None):
     if not isinstance(record, dict):
         raise ValueError("Invalid reference image settings.")
     if not isinstance(record.get("path"), str) or "\0" in record["path"]:
@@ -32,7 +32,10 @@ def ValidateReferenceImage(record):
     if not isinstance(encoded, str) or len(encoded) > (imageByteLimit + 2) // 3 * 4:
         raise ValueError("Invalid embedded reference image.")
     try:
-        ReadReferenceImage(base64.b64decode(encoded, validate = True))
+        if validatedImages is None or encoded not in validatedImages:
+            ReadReferenceImage(base64.b64decode(encoded, validate = True))
+            if validatedImages is not None:
+                validatedImages.add(encoded)
     except (ValueError, TypeError) as error:
         raise ValueError("Invalid embedded reference image: " + str(error)) from error
     if type(record.get("visible")) is not bool:

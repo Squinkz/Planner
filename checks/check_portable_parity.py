@@ -45,11 +45,11 @@ def Main():
     assert len({case["id"] for case in scenarios}) == len(scenarios)
     documentation = "\n".join(path.read_text(encoding = "utf-8") for path in directory.glob("*.md"))
     ruleIds = set(re.findall(r"^#{1,3} ([A-Z]+(?:-[A-Z]+)*-\d+):", documentation, flags = re.M))
-    requiredRules = {"GUIDE-01", "GUIDE-02", "ART-01", "EXPORT-03", "HELP-01", "SIZE-01", "NUM-01", "SETTINGS-01", "BUILD-01",
+    requiredRules = {"GUIDE-01", "GUIDE-02", "GUIDE-03", "ART-01", "EXPORT-03", "HELP-01", "SIZE-01", "NUM-01", "SETTINGS-01", "BUILD-01",
                      "EXPORT-UI-01", "PROPERTIES-01", "REFERENCE-01", "CALIBRATE-01", "EDIT-02", "EXPORT-04"}
     assert requiredRules <= {case["rule"] for case in scenarios}, "Current parity scenarios are missing"
     indexedChecks = {name for case in scenarios for name in case["checks"]}
-    currentChecks = {"angle_guides", "guide_labels", "number_expressions", "linked_size", "optimized_png",
+    currentChecks = {"angle_guides", "guide_labels", "boundary_lines", "number_expressions", "linked_size", "optimized_png",
                      "large_export_preview", "furnishing_fixed", "compound_fixed_size", "reference_calibration",
                      "imperial_auto_sizes", "furnishing_sort", "recovery_locate", "errored_asset_clipboard",
                      "window_app_state", "close_project", "help_autoscroll", "session_guide_selection", "parity_layouts", "parity_panel_layouts",

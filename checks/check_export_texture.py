@@ -26,7 +26,7 @@ def Main():
         normal.fill(QtGui.QColor(255, 128, 255))
         assert normal.save(str(textures / "test.png"))
         (textures / "ignore.txt").write_text("not an image")
-        with patch.object(compositing, "appDirectory", directory), patch.object(export_panel, "appDirectory", directory):
+        with patch.object(compositing, "texturesDirectory", directory / "textures"), patch.object(export_panel, "texturesDirectory", directory / "textures"):
             shades = []
             for angle in (0, 90, 180, 270):
                 image = QtGui.QImage(24, 24, QtGui.QImage.Format.Format_RGB32)

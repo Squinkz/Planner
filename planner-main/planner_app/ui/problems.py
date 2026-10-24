@@ -1,7 +1,7 @@
 """Modeless scene inspection, using recovery checks and canvas navigation."""
 from PySide6 import QtCore, QtGui, QtWidgets
 from planner_app.graphics.icons import UiIcon
-from planner_app.scene_problems import FindSceneProblems, RepairPotentialIssue
+from planner_app.scene_problems import FindSceneProblems, RepairPotentialIssue, RepairCoincidentObjects
 
 
 class ProblemsWindow(QtWidgets.QDialog):
@@ -134,7 +134,8 @@ class ProblemsWindow(QtWidgets.QDialog):
     def RefreshActions(self):
         item = self.tree.currentItem()
         issues = item.data(0, QtCore.Qt.ItemDataRole.UserRole) if item is not None else []
-        self.repairButton.setEnabled(len(issues) == 1 and issues[0]["repair"] is not None)
+        self.repairButton.setEnabled(bool(issues) and (all(issue.get("repairKind") == "duplicates" for issue in issues)
+                                     or len(issues) == 1 and issues[0]["repair"] is not None))
         self.deleteButton.setEnabled(bool(issues))
         potential = self.tabs.currentIndex() == 1
         self.ignoreButton.setVisible(potential)
@@ -148,7 +149,9 @@ class ProblemsWindow(QtWidgets.QDialog):
                 description += "\n\n" + issue["repairText"] + "\nThe change can be undone."
             self.description.setText(description)
         else:
-            self.description.setText("Select an individual problem to inspect its repair options." if issues else "")
+            self.description.setText("Auto-Repair removes extra copies in each coincident group, keeping one copy per group. The change can be undone."
+                                     if issues and all(issue.get("repairKind") == "duplicates" for issue in issues) else
+                                     "Select an individual problem to inspect its repair options." if issues else "")
 
     def JumpTo(self, *unused):
         item = self.tree.currentItem()
@@ -161,6 +164,12 @@ class ProblemsWindow(QtWidgets.QDialog):
         if item is None:
             return
         selected = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
+        if selected and all(issue.get("repairKind") == "duplicates" for issue in selected):
+            v = self.parentWidget().viewport
+            v.CancelInteraction()
+            RepairCoincidentObjects(v, selected)
+            self.RefreshObjects()
+            return
         if len(selected) != 1:
             return
         # Recompute before acting, so a pending refresh cannot apply a stale fix.

@@ -107,7 +107,7 @@ own typing, selection and clipboard shortcuts.
 | `Alt + Drag` | *numeric field* | Fine control. |
 | `Enter` | | Commit input. |
 | `Escape` | *drag* | Cancel. |
-| `Ctrl + M` | | Toggle measurements. |
+| `M` | | Toggle measurements. |
 
 [> Next: Troubleshooting](troubleshooting.md)
 

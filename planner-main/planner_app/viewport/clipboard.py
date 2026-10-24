@@ -6,7 +6,7 @@ from planner_app.models import Elevator
 import json
 import math
 from PySide6 import QtCore, QtWidgets
-from planner_app.models import Door, Furnishing, OpenDoorway, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, SlidingDoor, MeasurementGuide, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Label, Window, NorthArrow, Fireplace
+from planner_app.models import Door, Furnishing, OpenDoorway, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, SlidingDoor, MeasurementGuide, BoundaryLine, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Label, Window, NorthArrow, Fireplace
 
 
 clipboardMimeType = "application/x-planner-selection"
@@ -85,13 +85,13 @@ class ClipboardMixin:
                         return None
                     if objectType == "Fireplace" and record.get("material") not in self.warningMaterialBrushes:
                         return None
-                elif objectType in ("Wall", "Pillar", "Column", "Elevator", "Stair", "Counter", "Railing", "Furnishing", "Label", "NorthArrow", "Arrow", "MeasurementGuide", "AngleGuide"):
+                elif objectType in ("Wall", "Pillar", "Column", "Elevator", "Stair", "Counter", "Railing", "Furnishing", "Label", "NorthArrow", "Arrow", "MeasurementGuide", "BoundaryLine", "AngleGuide"):
                     points.extend((record["first"], record["second"]))
-                    if not math.isfinite(record["width"]) or record["width"] < (0 if objectType in ("MeasurementGuide", "AngleGuide") else 1e-8 if objectType == "Label" else 1):
+                    if not math.isfinite(record["width"]) or record["width"] < (0 if objectType in ("MeasurementGuide", "BoundaryLine", "AngleGuide") else 1e-8 if objectType == "Label" else 1):
                         return None
-                    if objectType in ("MeasurementGuide", "AngleGuide") and record["width"] != 0:
+                    if objectType in ("MeasurementGuide", "BoundaryLine", "AngleGuide") and record["width"] != 0:
                         return None
-                    if objectType in ("MeasurementGuide", "AngleGuide"):
+                    if objectType in ("MeasurementGuide", "BoundaryLine", "AngleGuide"):
                         points.append(record.get("textOffset", [0, 0]))
                     if objectType == "AngleGuide":
                         points.append(record["middle"])
@@ -260,7 +260,7 @@ class ClipboardMixin:
                 if not all(math.isfinite(value) for value in (first.x(), first.y(), second.x(), second.y(), width)):
                     return False
                 minimumSize = 1e-8 if objectType == "Label" else 1
-                if width < (0 if objectType in ("MeasurementGuide", "AngleGuide") else minimumSize) or objectType != "AngleGuide" and QtCore.QLineF(first, second).length() < minimumSize:
+                if width < (0 if objectType in ("MeasurementGuide", "BoundaryLine", "AngleGuide") else minimumSize) or objectType != "AngleGuide" and QtCore.QLineF(first, second).length() < minimumSize:
                     return False
                 if objectType == "Label":
                     obj = Label(text = record["text"], intensity = record.get("intensity", 1.0))
@@ -281,13 +281,13 @@ class ClipboardMixin:
                         setattr(obj, field, record.get(field, False))
                     obj.definitionKey = record["definition"]
                     obj.firstVertex, obj.secondVertex, obj.width = first, second, width
-                elif objectType in ("Wall", "Pillar", "Column", "Elevator", "Stair", "Counter", "Railing", "Arrow", "MeasurementGuide", "AngleGuide"):
+                elif objectType in ("Wall", "Pillar", "Column", "Elevator", "Stair", "Counter", "Railing", "Arrow", "MeasurementGuide", "BoundaryLine", "AngleGuide"):
                     if not all(math.isfinite(record[field]) for field in ("firstMiter", "secondMiter")):
                         return False
                     material = record["material"]
                     if material not in self.warningMaterialBrushes:
                         return False
-                    obj = {"Wall": Wall, "Pillar": Pillar, "Column": Column, "Elevator": Elevator, "Stair": Stair, "Counter": Counter, "Railing": Railing, "Arrow": Arrow, "MeasurementGuide": MeasurementGuide, "AngleGuide": AngleGuide}[objectType](first, second, width,
+                    obj = {"Wall": Wall, "Pillar": Pillar, "Column": Column, "Elevator": Elevator, "Stair": Stair, "Counter": Counter, "Railing": Railing, "Arrow": Arrow, "MeasurementGuide": MeasurementGuide, "BoundaryLine": BoundaryLine, "AngleGuide": AngleGuide}[objectType](first, second, width,
                           record["firstMiter"], record["secondMiter"], material)
                     if isinstance(obj, MeasurementGuide):
                         obj.textOffset = QtCore.QPointF(*record.get("textOffset", [0, 0]))

@@ -587,7 +587,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.measurementVisibilityTree.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
         self.measurementVisibilityTree.setItemDelegate(VisibilityItemDelegate(self.measurementVisibilityTree))
         self.measurementVisibilityItems = {}
-        for key, title in (("all", "Show all measurements"), ("walls", "Show wall measurements"),
+        for key, title in (("all", "Show measurements"), ("walls", "Show wall measurements"),
                            ("stairs", "Show stair measurements"), ("counters", "Show counter measurements"),
                            ("railings", "Show railing measurements"), ("elevators", "Show elevator measurements")):
             parent = self.measurementVisibilityTree if key == "all" else self.measurementVisibilityItems["all"]
@@ -800,18 +800,14 @@ class SettingsWindow(QtWidgets.QDialog):
         self.showGridField.setChecked(showGrid)
         del gridBlocker
         blocker = QtCore.QSignalBlocker(self.measurementVisibilityTree)
-        states = []
         for key, item in self.measurementVisibilityItems.items():
             if key == "all":
                 continue
             enabled = showMeasurements and measurementVisibility[key]
-            state = QtCore.Qt.CheckState.Checked if enabled else QtCore.Qt.CheckState.Unchecked
-            states.append(state)
+            state = QtCore.Qt.CheckState.Checked if measurementVisibility[key] else QtCore.Qt.CheckState.Unchecked
             item.setCheckState(0, state)
             item.setForeground(0, QtGui.QBrush(QtGui.QColor(themeColors["text" if enabled else "treeDisabledText"])))
-        state = (QtCore.Qt.CheckState.Checked if all(value == QtCore.Qt.CheckState.Checked for value in states)
-                 else QtCore.Qt.CheckState.Unchecked if all(value == QtCore.Qt.CheckState.Unchecked for value in states)
-                 else QtCore.Qt.CheckState.PartiallyChecked)
+        state = QtCore.Qt.CheckState.Checked if showMeasurements else QtCore.Qt.CheckState.Unchecked
         item = self.measurementVisibilityItems["all"]
         item.setCheckState(0, state)
         item.setForeground(0, QtGui.QBrush(QtGui.QColor(themeColors["treeDisabledText" if state == QtCore.Qt.CheckState.Unchecked else "text"])))
@@ -825,12 +821,12 @@ class SettingsWindow(QtWidgets.QDialog):
         v = self.mainWindow.viewport
         if key == "all":
             v.showMeasurements = checked
-            v.measurementVisibility = dict.fromkeys(v.measurementVisibility, checked)
         else:
-            if not v.showMeasurements:
-                v.measurementVisibility = dict.fromkeys(v.measurementVisibility, False)
             v.measurementVisibility[key] = checked
-            v.showMeasurements = any(v.measurementVisibility.values())
+            if checked:
+                v.showMeasurements = True
+            elif not any(v.measurementVisibility.values()):
+                v.showMeasurements = False
         self.RefreshMeasurementVisibility()
         v.update()
         self.mainWindow.RefreshProperties()

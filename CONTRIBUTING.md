@@ -28,5 +28,13 @@ The in-app guide under `planner-main/docs/help/` is maintained separately.
 Do not edit those files without an explicit request from the project owner.
 
 Before publishing a new asset, record its source and retain applicable notices.
-The project has not yet selected a license for its original code. Bundled
-third-party notices are in [LICENSES.txt](planner-main/LICENSES.txt).
+Original code contributions are provided under [GPL-3.0-only](LICENSE).
+Contributors retain their copyright. This does not assign copyright or grant
+the project owner permission to relicense a contribution as proprietary code.
+Agree any additional contributor/relicensing terms before accepting outside code
+if future dual licensing is intended.
+
+Original artwork and branding use separate terms. Do not assume that third-party
+icons, fonts or other resources have those same terms, or add them without their
+required permissions and notices. See [licensing](docs/LICENSING.md) and
+[LICENSES.txt](planner-main/LICENSES.txt).

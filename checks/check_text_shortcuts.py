@@ -26,7 +26,7 @@ def Main():
     thickness = main.wallWidthSelector.slider.value()
     grid, measurements = v.showGrid, v.showMeasurements
     tab = main.sidebarTabs.currentIndex()
-    text = "qwsdfhtu123"
+    text = "qwsdfhtumg123"
     QtTest.QTest.keyClicks(field, text)
     assert field.toPlainText() == text and label.text == text
     assert main.wallWidthSelector.slider.value() == thickness
@@ -49,7 +49,7 @@ def Main():
     v.setFocus()
     QtTest.QTest.keyClick(v, QtCore.Qt.Key.Key_Q)
     assert main.wallWidthSelector.slider.value() == max(main.wallWidthSelector.slider.minimum(), thickness - 1)
-    QtTest.QTest.keyClick(v, QtCore.Qt.Key.Key_M, QtCore.Qt.KeyboardModifier.ControlModifier)
+    QtTest.QTest.keyClick(v, QtCore.Qt.Key.Key_M)
     assert v.showMeasurements != measurements
     app.clipboard().clear()
     main.close()

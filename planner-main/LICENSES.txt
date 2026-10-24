@@ -1,7 +1,34 @@
-Planner third-party notices
-===========================
+Planner licensing and third-party notices
+========================================
 
 Planner copyright (c) 2026 Dieter Stassen.
+
+Original Planner source code, tests and build tools are licensed under the
+GNU General Public License, version 3 only (SPDX: GPL-3.0-only). You may
+redistribute and modify that code under those terms. The complete license
+is in COPYING (and LICENSE at the repository root).
+
+Planner is provided WITHOUT ANY WARRANTY, including the implied warranties
+of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See COPYING.
+Source repository: https://github.com/Squinkz/Planner
+Binary redistributors must provide corresponding source under GPL section 6;
+a link to an unrelated or later source revision is not a substitute.
+
+Original furnishing graphics and original UI artwork owned by Dieter Stassen
+are separately licensed under ASSET_LICENSE.txt. They may appear in shared
+editable plans, exports and printed work, including commercial work, but may
+not be redistributed as standalone assets. Other copyright holders' graphics
+keep their own licenses; these original-asset terms do not override them.
+
+Planner's logo and application icon are reserved branding, separately covered
+by BRANDING_LICENSE.txt. They may be redistributed only within unmodified
+official Planner packages. Modified distributions must remove or replace
+reserved graphics and branding or obtain separate written permission.
+
+Original documentation and other original non-code package content not covered
+by the licenses above retain copyright. Permission is granted to redistribute
+them within complete, unmodified official Planner packages, retaining notices.
+This does not restrict separately granted rights or third-party licenses.
 
 The temporary Planner About logo is copied from Stacker's blue artwork,
 copyright (c) 2026 Dieter Stassen, pending replacement with Planner artwork.
@@ -13,8 +40,20 @@ provided with the Qt/PySide distribution for complete terms and notices.
 Material Symbols / Material Icons artwork is from Google, under Apache-2.0.
 The GitHub logo is a trademark of GitHub, Inc., used to link to the author's profile.
 
-Bundled Noto Sans: copyright 2022 The Noto Project Authors, SIL Open Font License 1.1.
-Its complete notice follows in the Licenses window, from assets/fonts/OFL.txt.
+All bundled font software is under SIL Open Font License 1.1 (OFL-1.1):
+- Noto Sans Regular, SemiBold and Bold: copyright 2022 The Noto Project Authors.
+  Complete notice: assets/fonts/OFL.txt.
+- D-DIN Condensed: copyright (c) 2017, Datto Inc. (fonts@datto.com),
+  with Reserved Font Name D-DIN Condensed. Designer: Charles Nix.
+  Complete notice: assets/fonts/OFL-D-DIN.txt.
+- Drafting Small Caps: a modified small-caps version of Architects Daughter,
+  original copyright (c) 2010, Kimberly Geswein (kimberlygeswein.com).
+  The modified font remains under OFL-1.1, not Planner's graphics license.
+  Complete notice: assets/fonts/OFL-DraftingSmallCaps.txt.
+Sources and modification notes: assets/fonts/FONTLOG.txt.
+These complete notices follow in the Licenses window and accompany the external
+font files in distributed packages. Their OFL permissions are not restricted
+by Planner's original-graphics or branding terms.
 
 UPNG.js: copyright (c) 2017 Photopea, MIT License.
 Pako: copyright (C) 2014-2017 Vitaly Puzrin and Andrei Tuputcyn, MIT and Zlib notices.

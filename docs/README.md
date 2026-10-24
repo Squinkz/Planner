@@ -9,6 +9,9 @@ belong there. These pages also appear in the application's Help window.
 ## Development and implementation
 
 - [Development setup, command-line export and checks](DEVELOPMENT.md)
+- [Windows executable build](WINDOWS_BUILD.md)
+- [Licensing and redistribution](LICENSING.md)
+- [Releases and version numbers](RELEASING.md)
 - [Architecture and source layout](ARCHITECTURE.md)
 - [Portable numeric geometry contracts](GEOMETRY.md)
 - [Editing transactions and desktop adapter boundaries](EDITING_PORTS.md)

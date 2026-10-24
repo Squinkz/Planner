@@ -27,7 +27,7 @@ def Main():
     point = QtCore.QPointF
     main.snapButton.setChecked(False)
     assert not main.measurementGuideButton.icon().isNull()
-    assert main.buildObjectLayouts["Annotations"].count() == 5
+    assert main.buildObjectLayouts["Annotations"].count() == 6
     mime = QtCore.QMimeData()
     mime.setData("application/x-planner-measurement-guide", b"measurement-guide")
     position = v.WorldToViewport(point())

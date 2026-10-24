@@ -31,7 +31,7 @@ def Main():
     v.snapEnabled = False
     assert not main.angleGuideButton.icon().isNull()
     annotationButtons = main.buildObjectLayouts["Annotations"]
-    assert annotationButtons.count() == 5
+    assert annotationButtons.count() == 6
     mime = QtCore.QMimeData()
     mime.setData("application/x-planner-angle-guide", b"angle-guide")
     position = v.WorldToViewport(point())

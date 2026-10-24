@@ -20,7 +20,7 @@ Start here:
    DOM event differences, focus, CSS sizing and browser acceptance requirements.
 7. [First-port review](FIRST_PORT_REVIEW.md): pinned-source findings from the
    October 9 React port, separating verified differences from runtime risks.
-8. [Object behavior](OBJECTS.md): all 23 current types, creation defaults, properties,
+8. [Object behavior](OBJECTS.md): all 24 current types, creation defaults, properties,
    handles, attachment, visibility, measurements, collision and drawing rules.
 9. [Workflow and rendering examples](EXAMPLES.md): replayable editing checkpoints,
    saved projects and frozen PNG/SVG object renders with explicit scale/crop data.

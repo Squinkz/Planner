@@ -1,7 +1,7 @@
 """Bundled typography shared by widgets, scene labels and offscreen exports."""
 
 from PySide6 import QtGui
-from planner_app.paths import assetsDirectory
+from planner_app.paths import fontsDirectory
 
 fontFamily = "Noto Sans"
 fontFiles = ("NotoSans-Regular.ttf", "NotoSans-SemiBold.ttf", "NotoSans-Bold.ttf")
@@ -14,7 +14,7 @@ def LoadApplicationFonts(app = None):
     if getattr(app, "plannerFontIds", None) is not None:
         return
     fontIds = []
-    fontDirectory = assetsDirectory / "fonts"
+    fontDirectory = fontsDirectory
     paths = [fontDirectory / filename for filename in fontFiles]
     paths.extend(path for path in sorted(fontDirectory.iterdir())
                  if path.suffix.lower() in (".ttf", ".otf", ".ttc", ".otc") and path not in paths)

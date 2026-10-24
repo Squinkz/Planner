@@ -61,7 +61,7 @@ and the one-time workspace migration; the UI must display stored values directly
 | Attached opening | `parent`, `center` fraction along wall, `length`, class fields below |
 
 Object types include Wall, Counter, Railing, Stair, Pillar, Column, Elevator,
-Arrow, MeasurementGuide, AngleGuide, Furnishing, Label, NorthArrow and the opening types.
+Arrow, MeasurementGuide, BoundaryLine, AngleGuide, Furnishing, Label, NorthArrow and the opening types.
 Class inheritance does not imply that every field applies to every type. The
 encoder and examples define actual wire records. A furnishing's endpoint segment
 and width encode oriented dimensions; it is not an axis-aligned screen rectangle.
@@ -91,7 +91,7 @@ be less than wall thickness for a normally valid placement. Depth offset chooses
 its position across that thickness. Openings require an actual Wall parent.
 Resolve attachments after constructing unattached records, retaining indices.
 
-MeasurementGuide and AngleGuide can encode `textOffset`. AngleGuide also
+MeasurementGuide, BoundaryLine and AngleGuide can encode `textOffset`. AngleGuide also
 encodes `middle: [x, y]` for its central control point, in addition to `first`
 and `second` for the arm endpoints.
 
@@ -181,6 +181,16 @@ are null or `[position, objectRecord]`; category indices are 0, 3, 5, 8. Unlike
 scene records, history references parents/members by **object ID**. Serialized
 orders use stringified category keys. Selection is not serialized as a scene
 edit's geometry change. Do not serialize runtime identity addresses or tokens.
+
+Reference-image edits use the same journal. These edits have empty scene changes,
+memberships and orders, plus `referenceImage: {changes, pivots}`. Its `changes`
+maps each changed property to `[before, after]`; supported properties are center,
+width, height, angle, opacity, path and data. Only replacement-image edits retain
+pixel data. `pivots` holds the before/after editor pivot as null or `[x,y]`.
+Visibility and panel activation are not journal edits. Validate the reference
+delta chain against the current image alongside scene replay; validate historical
+replacement bytes once per distinct image. Mixed edits survive project/session
+restoration and remain undoable with reference controls closed.
 
 Validate replay against the current scene in both directions before accepting
 the journal. Incompatible history can be ignored without losing the scene;
@@ -295,7 +305,7 @@ and session UI does not add those selectors either.
 
 Session UI selections use persistent object IDs with an optional handle index:
 `null` for the whole object, 0/1 for endpoints, 2 for AngleGuide middle, and 3 for
-MeasurementGuide/AngleGuide labels. Validate the handle against decoded scene
+MeasurementGuide/BoundaryLine/AngleGuide labels. Validate the handle against decoded scene
 objects before applying recovery. A wall cannot acquire an index-2 middle point
 or index-3 label merely because another class supports them. Unknown object IDs
 are skipped as in earlier sessions. These are session UI fields, separate from

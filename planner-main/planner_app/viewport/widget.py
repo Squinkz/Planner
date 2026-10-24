@@ -123,7 +123,7 @@ class DrawingViewport(GuideLabelsMixin, AngleGuidesMixin, VisibilityMixin, Group
         self.performanceTimer = QtCore.QTimer(self)
         self.performanceTimer.setInterval(250)
         self.performanceTimer.timeout.connect(self.RefreshPerformance)
-        self.visibility = dict.fromkeys(("World", "Walls", "Doors", "Windows", "Fireplaces", "Elevators", "Stairs", "Counters", "Railings", "Furnishings", "Labels", "Arrows", "Measurement guides", "North arrows"), True)
+        self.visibility = dict.fromkeys(("World", "Walls", "Doors", "Windows", "Fireplaces", "Elevators", "Stairs", "Counters", "Railings", "Furnishings", "Labels", "Arrows", "Measurement guides", "Boundary lines", "North arrows"), True)
         self.objectGroups = []
         self.hiddenObjects = []
         self.hiddenObjectIds = set()

@@ -1022,6 +1022,24 @@
       "when": "Export PNG or SVG with a digital density and optional explicit bounding box",
       "then": "Match the Export tab's saved appearance and inherited settings, give CLI density and bounds precedence, auto-crop when no saved or explicit bounds exist, read legacy borders, reject removed -auto/-ruler options, and leave the input file unchanged",
       "checks": ["checks/check_export_cli_settings.py", "checks/check_export_plan.py"]
+    },
+    {
+      "id": "PARITY-076",
+      "rule": "EDIT-02",
+      "name": "Coincident architectural objects",
+      "given": "Exact copies of any architectural type, including stairs and railings, with collisions disabled",
+      "when": "Inspect the canvas and problem list, move a copy or export PNG/SVG",
+      "then": "Share duplicate detection across all types, name the actual type in the problem list, warn on front copies, export one copy and keep joined end-to-end constructions valid",
+      "checks": ["checks/check_architectural_duplicates.py", "checks/check_elevator_duplicate_warning.py", "checks/check_architectural_error_highlights.py"]
+    },
+    {
+      "id": "PARITY-077",
+      "rule": "GUIDE-03",
+      "name": "Boundary line annotations",
+      "given": "A boundary annotation with two control points and optional moved label",
+      "when": "Place, select, edit, copy, undo, save/reopen, restore a session or export it",
+      "then": "Use measurement-guide editing with a dash-dot stroke, show its length only while selected, exclude hidden labels from hit targets, preserve its own visibility and nonphysical collision policy, and export only the line",
+      "checks": ["checks/check_boundary_lines.py", "checks/check_session_guide_selection.py", "checks/check_object_behavior_matrix.py", "checks/check_parity_rendering.py"]
     }
   ],
   "reviewed": "2026-10-23"

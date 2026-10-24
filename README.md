@@ -14,6 +14,8 @@ py -3.14 -m venv .venv
 ```
 
 For runtime dependencies only, install `planner-main/requirements.txt` instead.
+To build a Windows executable with editable external resources, see
+[Windows executable build](docs/WINDOWS_BUILD.md).
 
 ## Repository layout
 
@@ -28,9 +30,22 @@ workspace directories, outside the application. See [Contributing](CONTRIBUTING.
 
 ## Licensing
 
-Copyright (c) 2026 Dieter Stassen. A license for the original project code has
-not yet been selected. Bundled third-party notices remain in
-[LICENSES.txt](planner-main/LICENSES.txt) and beside their respective resources.
+Copyright (c) 2026 Dieter Stassen. Original Planner code, tests and build tools
+are licensed under [GPL-3.0-only](LICENSE).
+
+The code license does not cover the separately copyrighted graphics and branding:
+
+- [Original graphics terms](planner-main/ASSET_LICENSE.txt) permit inclusion in
+  shared editable plans, exports and printed work, including commercial work,
+  but not standalone asset redistribution.
+- [Branding terms](planner-main/BRANDING_LICENSE.txt) permit the logo and app
+  icon within unmodified official Planner packages, not separate redistribution
+  or use on modified distributions.
+- Third-party components retain their own licenses. See
+  [LICENSES.txt](planner-main/LICENSES.txt) and notices beside those resources.
+
+See [licensing scope and redistribution](docs/LICENSING.md) and
+[release/version guidance](docs/RELEASING.md).
 
 ## User guide
 

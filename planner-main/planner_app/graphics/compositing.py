@@ -5,7 +5,7 @@ import re
 from functools import lru_cache
 from pathlib import Path
 from PySide6 import QtCore, QtGui
-from planner_app.paths import appDirectory
+from planner_app.paths import texturesDirectory
 
 vignetteNoise = None
 
@@ -122,10 +122,10 @@ def DrawNormalTexture(painter, rect, name, angle, pixelSize, scaleOverride = Non
         raise ValueError("Texture scale override must be between 0 and 4.")
     if not isinstance(name, str) or "/" in name or "\\" in name or name in ("", ".", ".."):
         raise ValueError("Invalid composite texture name.")
-    path = appDirectory / "textures" / name
+    path = texturesDirectory / name
     if not path.is_file():
         # Saved projects may still refer to the shipped files' decimal names.
-        path = appDirectory / "textures" / CompactTextureName(name)
+        path = texturesDirectory / CompactTextureName(name)
     label, mode, scale = TextureMapping(name)
     if mode == "tile" and scaleOverride is not None:
         scale = scaleOverride

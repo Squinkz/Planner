@@ -11,7 +11,7 @@ def Main():
     paths = sorted(set(result.stdout.decode("utf-8").split("\0")) - {""})
     allowed = {"planner-main", "checks", "tools", "docs", "demos", ".github"}
     metadata = {".gitignore", ".gitattributes", "README.md", "CONTRIBUTING.md", "requirements-dev.txt",
-                "LICENSE", "LICENSE.txt", "CHANGELOG.md"}
+                "LICENSE", "LICENSE.txt", "CHANGELOG.md", "requirements-build.txt"}
     total = 0
     counts = Counter()
     for name in paths:

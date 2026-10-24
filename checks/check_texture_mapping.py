@@ -68,7 +68,7 @@ def Main():
         for index, color in enumerate(((128, 255, 255), (128, 0, 255), (255, 128, 255), (128, 128, 255))):
             normal.setPixelColor(index, 0, QtGui.QColor(*color))
         images = {}
-        with patch.object(compositing, "appDirectory", directory), patch.object(export_panel, "appDirectory", directory):
+        with patch.object(compositing, "texturesDirectory", directory / "textures"), patch.object(export_panel, "texturesDirectory", directory / "textures"):
             for suffix in ("_s", "_t", "_t2", "_t0.5", "_2", "", "_t1.33_5_5_5_3"):
                 name = "Pattern" + suffix + ".png"
                 assert normal.save(str(textures / name))
