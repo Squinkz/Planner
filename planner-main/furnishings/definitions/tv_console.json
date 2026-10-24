@@ -1,0 +1,20 @@
+{
+    "name": "TV Console",
+    "image": "tv_console",
+    "width": 1200,
+    "length": 450,
+    "category": "Living Room",
+    "keywords": [
+        "tv",
+        "television",
+        "console",
+        "stand",
+        "cabinet",
+        "media",
+        "entertainment",
+        "unit",
+        "storage",
+        "lowboard",
+        "credenza"
+    ]
+}

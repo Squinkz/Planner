@@ -1,0 +1,25 @@
+{
+    "name": "Towel Rack",
+    "image": "towel_rack",
+    "width": 600,
+    "length": 80,
+    "category": [
+        "Bathroom",
+        "Utility"
+    ],
+    "keywords": [
+        "towel",
+        "towels",
+        "rack",
+        "rail",
+        "bar",
+        "holder",
+        "stand",
+        "storage",
+        "drying",
+        "linen",
+        "bathroom",
+        "accessory",
+        "fittings"
+    ]
+}

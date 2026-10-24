@@ -1,0 +1,22 @@
+{
+    "name": "Sleeping Kitten",
+    "image": "cat",
+    "width": 400,
+    "length": 400,
+    "icon": null,
+    "category": [
+        "Living Room",
+        "Bedroom"
+    ],
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "cat",
+        "kitten",
+        "feline",
+        "pet",
+        "animal",
+        "sleeping",
+        "curled"
+    ]
+}

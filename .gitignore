@@ -1,0 +1,36 @@
+# This repository shares a directory with a private development workspace.
+# Publish only these deliberately selected roots and metadata files.
+/*
+!/planner-main/
+!/checks/
+!/docs/
+!/tools/
+!/demos/
+!/.github/
+!/.gitignore
+!/.gitattributes
+!/README.md
+!/CONTRIBUTING.md
+!/requirements-dev.txt
+!/LICENSE
+!/LICENSE.txt
+!/CHANGELOG.md
+
+# Generated files are never source or test reference images.
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+build/
+dist/
+renders/
+checks/tmp*/
+*.bak
+*.log
+.env
+.env.*
+
+/planner-main/docs/help/DO.NOT.EDIT.ANYTHING.IN.THIS.FOLDER

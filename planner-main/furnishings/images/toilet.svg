@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   stroke-width="1"
+   viewBox="0 0 45 70"
+   preserveAspectRatio="none"
+   version="1.1"
+   id="svg2"
+   sodipodi:docname="toilet.svg"
+   width="45"
+   height="70"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/" vector-effect="non-scaling-stroke">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="namedview2"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="11.040967"
+     inkscape:cx="-6.2041665"
+     inkscape:cy="33.194555"
+     inkscape:window-width="2560"
+     inkscape:window-height="1336"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2" />
+  <title
+     id="title1">Toilet</title>
+  <g
+     fill="#ffffff"
+     stroke="#000000"
+     stroke-width="1"
+     stroke-linejoin="round"
+     id="g2" vector-effect="non-scaling-stroke">
+    <path stroke-width="1"
+       d="m 8.149166,12.973749 h 28.701668 c 4.484635,9.00829 7.175417,18.01658 7.175417,30.027633 0,16.014737 -7.175417,27.024869 -21.526251,27.024869 -14.350834,0 -21.5262509,-11.010132 -21.5262509,-27.024869 0,-12.011053 2.6907814,-21.019343 7.1754169,-30.027633 z"
+       vector-effect="non-scaling-stroke"
+       id="path1"
+       style="stroke-width:1;vector-effect:non-scaling-stroke" />
+    <path stroke-width="1"
+       d="m 11.736875,23.983881 q 10.763125,-5.004605 21.52625,0 c 3.587709,5.004605 4.484636,12.011053 4.484636,19.017501 0,12.011053 -4.484636,20.018421 -15.247761,20.018421 -10.763125,0 -15.2477611,-8.007368 -15.2477611,-20.018421 0,-7.006448 0.8969271,-14.012896 4.4846361,-19.017501 z"
+       vector-effect="non-scaling-stroke"
+       id="path2"
+       style="stroke-width:1;vector-effect:non-scaling-stroke" />
+    <rect style="stroke-width:1;vector-effect:non-scaling-stroke" stroke-width="1"
+       x="0"
+       y="0"
+       width="45"
+       height="14"
+       rx="2"
+       vector-effect="non-scaling-stroke"
+       id="rect2" />
+    <circle style="stroke-width:1;vector-effect:non-scaling-stroke" stroke-width="1"
+       cx="22.5"
+       cy="7"
+       r="2"
+       vector-effect="non-scaling-stroke"
+       id="circle2" />
+  </g>
+  <metadata
+     id="metadata2">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Toilet</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+</svg>

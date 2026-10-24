@@ -1,0 +1,30 @@
+{
+    "name": "Cooktop Ceramic 2",
+    "image": "hob_cer2",
+    "width": 500,
+    "length": 260,
+    "icon": null,
+    "category": "Kitchen",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "hob",
+        "cooktop",
+        "stove",
+        "stovetop",
+        "burner",
+        "burners",
+        "plate",
+        "cooking",
+        "food",
+        "appliance",
+        "kitchen",
+        "ceramic",
+        "electric",
+        "glass",
+        "radiant",
+        "two",
+        "double",
+        "compact"
+    ]
+}

@@ -1,0 +1,21 @@
+{
+    "name": "Medicine Cabinet",
+    "image": "med_cabinet",
+    "width": 600,
+    "length": 150,
+    "category": "Bathroom",
+    "keywords": [
+        "medicine",
+        "medical",
+        "medication",
+        "cabinet",
+        "cupboard",
+        "storage",
+        "toiletry",
+        "toiletries",
+        "pharmacy",
+        "first",
+        "aid",
+        "wall"
+    ]
+}

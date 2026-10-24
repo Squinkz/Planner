@@ -1,0 +1,22 @@
+{
+    "name": "Sideboard",
+    "image": "sideboard",
+    "width": 1600,
+    "length": 450,
+    "category": [
+        "Dining Room",
+        "Living Room"
+    ],
+    "keywords": [
+        "sideboard",
+        "credenza",
+        "buffet",
+        "server",
+        "cabinet",
+        "cupboard",
+        "crockery",
+        "cutlery",
+        "storage",
+        "dining"
+    ]
+}

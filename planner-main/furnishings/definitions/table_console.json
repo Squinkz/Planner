@@ -1,0 +1,23 @@
+{
+    "name": "Console Table",
+    "image": "console_table",
+    "width": 1200,
+    "length": 300,
+    "category": [
+        "Entry",
+        "Living Room",
+        "Dining Room"
+    ],
+    "keywords": [
+        "table",
+        "console",
+        "hall",
+        "hallway",
+        "entry",
+        "foyer",
+        "sofa",
+        "display",
+        "accent",
+        "narrow"
+    ]
+}

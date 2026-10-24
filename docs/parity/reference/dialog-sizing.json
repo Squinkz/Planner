@@ -1,0 +1,122 @@
+{
+  "description": "Message minimum size and button placement; status icons covered by popup check",
+  "logicalSize": [
+    440,
+    180
+  ],
+  "devicePixelRatio": 1.0,
+  "controls": [
+    {
+      "class": "QLabel",
+      "name": "qt_msgbox_label",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        32,
+        11,
+        397,
+        57
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Replace the existing file?"
+    },
+    {
+      "class": "QPushButton",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        332,
+        137,
+        47,
+        32
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "&Yes",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QPushButton",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        385,
+        137,
+        44,
+        32
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "&No",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "qt_msgbox_informativelabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        32,
+        74,
+        397,
+        57
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "example.png"
+    }
+  ],
+  "layouts": [
+    {
+      "class": "QHBoxLayout",
+      "parent": "qt_msgbox_buttonbox",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QGridLayout",
+      "parent": "AppMessageBox",
+      "margins": [
+        11,
+        11,
+        11,
+        11
+      ],
+      "spacing": 6
+    }
+  ]
+}

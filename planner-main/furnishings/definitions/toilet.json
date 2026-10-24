@@ -1,0 +1,21 @@
+{
+    "name": "Toilet",
+    "image": "toilet",
+    "width": 450,
+    "length": 700,
+    "category": "Bathroom",
+    "keywords": [
+        "toilet",
+        "wc",
+        "lavatory",
+        "loo",
+        "commode",
+        "water",
+        "closet",
+        "pan",
+        "bowl",
+        "cistern",
+        "sanitaryware",
+        "plumbing"
+    ]
+}

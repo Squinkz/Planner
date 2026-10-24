@@ -1,0 +1,692 @@
+{
+  "description": "Complete Export Grid section",
+  "logicalSize": [
+    350,
+    500
+  ],
+  "devicePixelRatio": 1.0,
+  "controls": [
+    {
+      "class": "QPushButton",
+      "name": "exportSectionHeading",
+      "accessibleName": "Grid section",
+      "enabled": true,
+      "bounds": [
+        0,
+        0,
+        350,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "Collapse Grid",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": -1.0,
+        "pixelSize": 14,
+        "weight": 600
+      },
+      "text": "Grid",
+      "checkable": true,
+      "checked": true
+    },
+    {
+      "class": "QCheckBox",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        131,
+        52,
+        87,
+        32
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Show Grid",
+      "checkable": true,
+      "checked": true
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        0,
+        96,
+        34,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Color"
+    },
+    {
+      "class": "QPushButton",
+      "name": "",
+      "accessibleName": "Export grid color",
+      "enabled": true,
+      "bounds": [
+        42,
+        96,
+        268,
+        32
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "Choose a grid color for export",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": " Theme",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QPushButton",
+      "name": "",
+      "accessibleName": "Reset export grid color to theme",
+      "enabled": false,
+      "bounds": [
+        318,
+        96,
+        32,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Use the theme's grid color",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        0,
+        140,
+        83,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Grid Intensity"
+    },
+    {
+      "class": "DragSlider",
+      "name": "",
+      "accessibleName": "Export Grid Intensity",
+      "enabled": true,
+      "bounds": [
+        0,
+        184,
+        212,
+        32
+      ],
+      "cursor": "SizeHorCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0,
+      "maximum": 2000,
+      "step": 1,
+      "value": 1000
+    },
+    {
+      "class": "QDoubleSpinBox",
+      "name": "settingsValue",
+      "accessibleName": "Export Grid Intensity value",
+      "enabled": true,
+      "bounds": [
+        220,
+        184,
+        88,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0.0,
+      "maximum": 2.0,
+      "step": 0.01,
+      "value": 1.0,
+      "keyboardTracking": true,
+      "buttons": "UpDownArrows",
+      "decimals": 3,
+      "suffix": ""
+    },
+    {
+      "class": "QLineEdit",
+      "name": "qt_spinbox_lineedit",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        225,
+        189,
+        39,
+        22
+      ],
+      "cursor": "IBeamCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "1.000"
+    },
+    {
+      "class": "QPushButton",
+      "name": "",
+      "accessibleName": "Reset export Grid Intensity",
+      "enabled": false,
+      "bounds": [
+        316,
+        184,
+        34,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Reset grid intensity to 1.000",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        0,
+        248,
+        94,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Major Gridlines"
+    },
+    {
+      "class": "DragSlider",
+      "name": "",
+      "accessibleName": "Export Major Gridlines",
+      "enabled": true,
+      "bounds": [
+        0,
+        292,
+        212,
+        32
+      ],
+      "cursor": "SizeHorCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0,
+      "maximum": 1000,
+      "step": 1,
+      "value": 169
+    },
+    {
+      "class": "QDoubleSpinBox",
+      "name": "settingsValue",
+      "accessibleName": "Export Major Gridlines value",
+      "enabled": true,
+      "bounds": [
+        220,
+        292,
+        88,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "step": 0.01,
+      "value": 0.169,
+      "keyboardTracking": true,
+      "buttons": "UpDownArrows",
+      "decimals": 3,
+      "suffix": ""
+    },
+    {
+      "class": "QLineEdit",
+      "name": "qt_spinbox_lineedit",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        225,
+        297,
+        39,
+        22
+      ],
+      "cursor": "IBeamCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "0.169"
+    },
+    {
+      "class": "QPushButton",
+      "name": "",
+      "accessibleName": "Reset export Major Gridlines",
+      "enabled": false,
+      "bounds": [
+        316,
+        292,
+        34,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Reset major gridlines to 0.169",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        0,
+        336,
+        95,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Minor Gridlines"
+    },
+    {
+      "class": "DragSlider",
+      "name": "",
+      "accessibleName": "Export Minor Gridlines",
+      "enabled": true,
+      "bounds": [
+        0,
+        380,
+        212,
+        32
+      ],
+      "cursor": "SizeHorCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0,
+      "maximum": 1000,
+      "step": 1,
+      "value": 83
+    },
+    {
+      "class": "QDoubleSpinBox",
+      "name": "settingsValue",
+      "accessibleName": "Export Minor Gridlines value",
+      "enabled": true,
+      "bounds": [
+        220,
+        380,
+        88,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "step": 0.01,
+      "value": 0.083,
+      "keyboardTracking": true,
+      "buttons": "UpDownArrows",
+      "decimals": 3,
+      "suffix": ""
+    },
+    {
+      "class": "QLineEdit",
+      "name": "qt_spinbox_lineedit",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        225,
+        385,
+        39,
+        22
+      ],
+      "cursor": "IBeamCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "0.083"
+    },
+    {
+      "class": "QPushButton",
+      "name": "",
+      "accessibleName": "Reset export Minor Gridlines",
+      "enabled": false,
+      "bounds": [
+        316,
+        380,
+        34,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Reset minor gridlines to 0.083",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        0,
+        424,
+        39,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Origin"
+    },
+    {
+      "class": "DragSlider",
+      "name": "",
+      "accessibleName": "Export Origin",
+      "enabled": true,
+      "bounds": [
+        0,
+        468,
+        212,
+        32
+      ],
+      "cursor": "SizeHorCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0,
+      "maximum": 1000,
+      "step": 1,
+      "value": 305
+    },
+    {
+      "class": "QDoubleSpinBox",
+      "name": "settingsValue",
+      "accessibleName": "Export Origin value",
+      "enabled": true,
+      "bounds": [
+        220,
+        468,
+        88,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "step": 0.01,
+      "value": 0.305,
+      "keyboardTracking": true,
+      "buttons": "UpDownArrows",
+      "decimals": 3,
+      "suffix": ""
+    },
+    {
+      "class": "QLineEdit",
+      "name": "qt_spinbox_lineedit",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        225,
+        473,
+        39,
+        22
+      ],
+      "cursor": "IBeamCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "0.305"
+    },
+    {
+      "class": "QPushButton",
+      "name": "",
+      "accessibleName": "Reset export Origin",
+      "enabled": false,
+      "bounds": [
+        316,
+        468,
+        34,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Reset origin to 0.305",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    }
+  ],
+  "layouts": [
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QGridLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": -1
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QFormLayout",
+      "parent": "exportGridOptions",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": -1
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    }
+  ]
+}

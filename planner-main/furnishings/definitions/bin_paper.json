@@ -1,0 +1,26 @@
+{
+    "name": "Wastepaper Bin",
+    "image": "bin_paper",
+    "width": 250,
+    "length": 250,
+    "icon": null,
+    "category": [
+        "Office",
+        "Bedroom"
+    ],
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "wastepaper",
+        "wastebasket",
+        "basket",
+        "bin",
+        "paper",
+        "rubbish",
+        "trash",
+        "garbage",
+        "waste",
+        "refuse",
+        "recycling"
+    ]
+}

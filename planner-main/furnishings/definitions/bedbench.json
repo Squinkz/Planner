@@ -1,0 +1,20 @@
+{
+    "name": "Bed Bench",
+    "image": "bed_bench",
+    "width": 1400,
+    "length": 450,
+    "category": [
+        "Bedroom",
+        "Entry"
+    ],
+    "keywords": [
+        "bench",
+        "bedbench",
+        "bed",
+        "foot",
+        "end",
+        "seat",
+        "seating",
+        "upholstered"
+    ]
+}

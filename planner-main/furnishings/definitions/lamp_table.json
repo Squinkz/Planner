@@ -1,0 +1,22 @@
+{
+    "name": "Table Lamp",
+    "image": "lamp_table",
+    "width": 300,
+    "length": 300,
+    "category": [
+        "Bedroom",
+        "Living Room",
+        "Office"
+    ],
+    "keywords": [
+        "lamp",
+        "light",
+        "lighting",
+        "table",
+        "bedside",
+        "nightstand",
+        "reading",
+        "shade",
+        "desk"
+    ]
+}

@@ -1,0 +1,22 @@
+{
+    "name": "Pouf",
+    "image": "pouf",
+    "width": 400,
+    "length": 400,
+    "category": [
+        "Living Room",
+        "Bedroom"
+    ],
+    "keywords": [
+        "pouf",
+        "pouffe",
+        "ottoman",
+        "footstool",
+        "footrest",
+        "hassock",
+        "stool",
+        "seat",
+        "seating",
+        "upholstered"
+    ]
+}

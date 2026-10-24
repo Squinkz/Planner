@@ -1,0 +1,357 @@
+{
+  "description": "Complete Export Border section",
+  "logicalSize": [
+    350,
+    208
+  ],
+  "devicePixelRatio": 1.0,
+  "controls": [
+    {
+      "class": "QPushButton",
+      "name": "exportSectionHeading",
+      "accessibleName": "Border section",
+      "enabled": true,
+      "bounds": [
+        0,
+        0,
+        350,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "Collapse Border",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": -1.0,
+        "pixelSize": 14,
+        "weight": 600
+      },
+      "text": "Border",
+      "checkable": true,
+      "checked": true
+    },
+    {
+      "class": "DownwardComboBox",
+      "name": "",
+      "accessibleName": "Export border",
+      "enabled": true,
+      "bounds": [
+        0,
+        52,
+        350,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "editable": false,
+      "currentIndex": 6,
+      "items": [
+        {
+          "text": "None",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Plain",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Frame",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Corner Marks",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Reference Zones",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Marked",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Ruler",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Ruler + Reference Zones",
+          "data": null,
+          "tooltip": null
+        }
+      ]
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        0,
+        140,
+        350,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Border Size"
+    },
+    {
+      "class": "DragSlider",
+      "name": "",
+      "accessibleName": "Export border size",
+      "enabled": true,
+      "bounds": [
+        0,
+        176,
+        258,
+        32
+      ],
+      "cursor": "SizeHorCursor",
+      "tooltip": "Border width at export scale; minimum 28 pixels",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 28,
+      "maximum": 128,
+      "step": 1,
+      "value": 28
+    },
+    {
+      "class": "QSpinBox",
+      "name": "settingsValue",
+      "accessibleName": "Export border size in pixels or SVG units",
+      "enabled": true,
+      "bounds": [
+        262,
+        176,
+        88,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Border width at export scale; minimum 28 pixels",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 28,
+      "maximum": 128,
+      "step": 1,
+      "value": 28,
+      "keyboardTracking": true,
+      "buttons": "UpDownArrows"
+    },
+    {
+      "class": "QLineEdit",
+      "name": "qt_spinbox_lineedit",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        267,
+        181,
+        39,
+        22
+      ],
+      "cursor": "IBeamCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "28 px"
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        0,
+        96,
+        34,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Color"
+    },
+    {
+      "class": "QPushButton",
+      "name": "",
+      "accessibleName": "Export border color",
+      "enabled": true,
+      "bounds": [
+        42,
+        96,
+        268,
+        32
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "Choose a border color for export",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": " Theme",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QPushButton",
+      "name": "",
+      "accessibleName": "Reset export border color to theme",
+      "enabled": false,
+      "bounds": [
+        318,
+        96,
+        32,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Use the theme's border color",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    }
+  ],
+  "layouts": [
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QGridLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": -1
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "QFrame",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "exportBorderSizeOptions",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "exportBorderSizeOptions",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    }
+  ]
+}

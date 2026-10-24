@@ -1,0 +1,73 @@
+{
+  "format": "Planner inherited Qt UI behavior",
+  "version": 1,
+  "qt": "6.11.1",
+  "baseStyle": "Fusion",
+  "styleClass": "QStyleSheetStyle",
+  "startDragDistance": 10,
+  "doubleClickInterval": 400,
+  "observations": {
+    "numeric-draft": {
+      "text": "12.",
+      "value": 10.25
+    },
+    "numeric-enter": {
+      "text": "12.00",
+      "value": 12.0
+    },
+    "numeric-up": 12.5,
+    "numeric-wheel-without-focus": {
+      "value": 13.0,
+      "focus": false
+    },
+    "numeric-escape-without-drag": {
+      "text": "14.75",
+      "value": 10.25
+    },
+    "numeric-focus-loss-after-escape": 14.75,
+    "numeric-incomplete-commit": {
+      "text": "10.25",
+      "value": 10.25
+    },
+    "numeric-local-text-undo": {
+      "text": "10.25",
+      "value": 10.25
+    },
+    "combo-closed-down": 2,
+    "combo-popup-initial-highlight": 2,
+    "combo-popup-up": {
+      "value": 2,
+      "highlight": 1
+    },
+    "combo-popup-escape": {
+      "value": 2,
+      "visible": false
+    },
+    "combo-popup-reopen-highlight": 1,
+    "combo-popup-enter": {
+      "value": 0,
+      "visible": false
+    },
+    "slider-right-pageup-home-end": [
+      51,
+      61,
+      0,
+      100
+    ],
+    "tab-right-activates": 1,
+    "tab-right-at-last": 2,
+    "tree-caption-click": "PartiallyChecked",
+    "tree-mixed-checkbox-click": "Unchecked",
+    "settings-enter-commits-keeps-dialog": {
+      "value": 0.37,
+      "visible": true
+    },
+    "measurement-selector-configuration": {
+      "orientation": "Vertical",
+      "singleStep": 1,
+      "pageStep": 1,
+      "invertedAppearance": true,
+      "invertedControls": true
+    }
+  }
+}

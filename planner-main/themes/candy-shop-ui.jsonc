@@ -1,0 +1,29 @@
+// A restrained raspberry-and-cream workspace, with teal message accents.
+{
+    "name": "Candy Shop UI",
+    "type": "ui",
+    "extends": "Light UI",
+    "colors": {
+        "text": "#422c46",
+        "mutedText": "#75516f",
+        "activeText": "#42203a",
+        "windowBackground": "#f1e4ec",
+        "controlBackground": "#e6d3df",
+        "fieldBackground": "#fff6fb",
+        "hoverBackground": "#dbbfd3",
+        "pressedBackground": "#caabc2",
+        "activeBackground": "#dfb1ce",
+        "activeHoverBackground": "#d29abd",
+        "disabledBackground": "#e9dfe5",
+        "border": "#b69aaf",
+        "menuBorder": "#9d7a93",
+        "sliderHandle": "#a24d80",
+        "scrollbarHandle": "#b99bb0",
+        "icon": "#61374f",
+        "iconDisabled": "#bca6b5",
+        "treeDisabledText": "#b2a0ae",
+        "treeEmptyText": "#886b82",
+        "info": "#2e7a80",
+        "infoTitle": "#2e7a80"
+    }
+}

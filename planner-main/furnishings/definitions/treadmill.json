@@ -1,0 +1,22 @@
+{
+    "name": "Treadmill",
+    "image": "treadmill",
+    "width": 750,
+    "length": 1588,
+    "icon": null,
+    "category": "Gym",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "treadmill",
+        "running",
+        "walking",
+        "jogging",
+        "cardio",
+        "exercise",
+        "fitness",
+        "workout",
+        "training",
+        "machine"
+    ]
+}

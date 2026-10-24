@@ -1,0 +1,25 @@
+{
+    "name": "Kid's Table",
+    "image": "table_kids",
+    "width": 600,
+    "length": 600,
+    "category": [
+        "Bedroom",
+        "Living Room",
+        "Dining Room"
+    ],
+    "keywords": [
+        "table",
+        "child",
+        "children",
+        "kids",
+        "toddler",
+        "junior",
+        "nursery",
+        "playroom",
+        "play",
+        "craft",
+        "drawing",
+        "activity"
+    ]
+}

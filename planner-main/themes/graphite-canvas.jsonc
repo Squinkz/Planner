@@ -1,0 +1,29 @@
+// A quiet near-monochrome presentation sheet with soft charcoal ink.
+{
+    "name": "Graphite Canvas",
+    "type": "canvas",
+    "labelFont": "Noto Sans",
+    "extends": "Light Canvas",
+    "colors": {
+        "canvas": "#f3f3f0",
+        "grid": "#90908b",
+        "objectOutline": "#272927",
+        "wallOutline": "#424640",
+        "wallFill": "#d8dad3",
+        "materialPattern": "#898d83",
+        "selectionOutline": "#356b78",
+        "selectionFill": "#cbdfe0",
+        "groupSelectionOutline": "#845f89",
+        "groupSelectionFill": "#e0d5e2",
+        "stairSelectionFill": "#dde8e4",
+        "stairGroupSelectionFill": "#e9e1eb",
+        "selectionBoxFill": "#23356b78",
+        "measurementLine": "#6f746b",
+        "rulerBackground": "#e1e3dc",
+        "rulerMajorTick": "#747a70",
+        "rulerMinorTick": "#a5aaa0",
+        "rulerText": "#444a42",
+        "overlayFill": "#f0f3f3f0",
+        "invalidOutline": "#91968b"
+    }
+}

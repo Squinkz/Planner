@@ -1,0 +1,58 @@
+{
+    "name": "Dining Set Square 2",
+    "category": [
+        "Dining Room",
+        "Kitchen"
+    ],
+    "children": [
+        {
+            "furnishing": "chair_dining",
+            "x": 0.0,
+            "y": 300.0,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 0.0,
+            "zIndex": 0,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "chair_dining",
+            "x": 0.0,
+            "y": -300.0,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 180.0,
+            "zIndex": 1,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "table_dining_square_2",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 700.0,
+            "length": 700.0,
+            "angle": 0.0,
+            "zIndex": 2
+        }
+    ],
+    "keywords": [
+        "dining",
+        "dinner",
+        "table",
+        "chairs",
+        "seats",
+        "seating",
+        "seater",
+        "person",
+        "set",
+        "suite",
+        "kitchen",
+        "eating",
+        "meals",
+        "breakfast",
+        "dinette",
+        "two",
+        "square",
+        "arrangement"
+    ]
+}

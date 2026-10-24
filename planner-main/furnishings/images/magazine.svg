@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="20"
+   height="30"
+   viewBox="0 0 5.2916668 7.9374998"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   sodipodi:docname="magazine.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="true"
+     inkscape:deskcolor="#505050"
+     inkscape:document-units="px"
+     showborder="true"
+     inkscape:zoom="5.6568543"
+     inkscape:cx="-36.062446"
+     inkscape:cy="28.90299"
+     inkscape:window-width="2560"
+     inkscape:window-height="1336"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <defs
+     id="defs1">
+    <inkscape:path-effect
+       effect="perspective-envelope"
+       up_left_point="34.723712,16.25"
+       up_right_point="50.448712,13.747317"
+       down_left_point="34.723712,41.25"
+       down_right_point="50.448712,43.747317"
+       id="path-effect14"
+       is_visible="true"
+       lpeversion="1"
+       deform_type="perspective"
+       horizontal_mirror="false"
+       vertical_mirror="false"
+       overflow_perspective="false" />
+    <inkscape:path-effect
+       effect="perspective-envelope"
+       up_left_point="34.723712,16.25"
+       up_right_point="50.448712,13.747317"
+       down_left_point="34.723712,41.25"
+       down_right_point="50.448712,43.747317"
+       id="path-effect14-3"
+       is_visible="true"
+       lpeversion="1"
+       deform_type="perspective"
+       horizontal_mirror="false"
+       vertical_mirror="false"
+       overflow_perspective="false" />
+    <inkscape:path-effect
+       effect="perspective-envelope"
+       up_left_point="34.723712,16.25"
+       up_right_point="50.448712,13.747317"
+       down_left_point="34.723712,41.25"
+       down_right_point="50.448712,43.747317"
+       id="path-effect14-7"
+       is_visible="true"
+       lpeversion="1"
+       deform_type="perspective"
+       horizontal_mirror="false"
+       vertical_mirror="false"
+       overflow_perspective="false" />
+  </defs>
+  <g
+     id="g14"
+     transform="matrix(0.26458333,0,0,0.26458333,-8.62179,-3.6373)"
+     inkscape:path-effect="#path-effect14"
+     style="display:inline;stroke-width:1;stroke-dasharray:none"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke" />
+  <path
+     id="rect14"
+     style="display:inline;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1;stroke-dasharray:none;vector-effect:non-scaling-stroke"
+     d="M 5.29166,7.9375 V 0 H 0 v 7.9375 z"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke" />
+  <path
+     id="rect14-2"
+     style="display:inline;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1;vector-effect:non-scaling-stroke"
+     d="M 4.7877,7.40837 V 0.52914 H 0.50397 v 6.87923 z"
+     sodipodi:nodetypes="ccccc"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke" />
+  <path
+     id="rect14-2-9"
+     style="display:inline;fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1;vector-effect:non-scaling-stroke"
+     d="M 4.28372,2.11665 V 1.05832 H 1.00793 v 1.05833 z"
+     sodipodi:nodetypes="ccccc"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke" />
+  <path
+     id="rect14-2-9-2"
+     style="display:inline;fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1;vector-effect:non-scaling-stroke"
+     d="M 4.28372,6.89238 V 6.36321 h -1.6379 v 0.52917 z"
+     sodipodi:nodetypes="ccccc"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke" />
+  <g
+     id="g14-0"
+     transform="matrix(0.26458333,0,0,0.26458333,-28.167883,4.2009813)"
+     inkscape:path-effect="#path-effect14-3"
+     style="display:inline;stroke-width:1;stroke-dasharray:none"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke" />
+  <g
+     id="g14-00"
+     transform="matrix(0.26458333,0,0,0.26458333,-21.32179,4.43252)"
+     inkscape:path-effect="#path-effect14-7"
+     style="display:inline;stroke-width:1;stroke-dasharray:none"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke" />
+</svg>

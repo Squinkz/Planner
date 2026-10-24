@@ -1,0 +1,29 @@
+// Warm porcelain and parchment surfaces, with a burnt-orange highlight.
+{
+    "name": "Light Fire UI",
+    "type": "ui",
+    "extends": "Light UI",
+    "colors": {
+        "text": "#372b22",
+        "mutedText": "#695545",
+        "activeText": "#392516",
+        "windowBackground": "#eee7dd",
+        "controlBackground": "#e3d9cc",
+        "fieldBackground": "#fcf7ee",
+        "hoverBackground": "#dbc8b5",
+        "pressedBackground": "#ccb59d",
+        "activeBackground": "#efb57e",
+        "activeHoverBackground": "#e2a36b",
+        "disabledBackground": "#e0d9cf",
+        "border": "#bca58d",
+        "menuBorder": "#a58a70",
+        "sliderHandle": "#b65324",
+        "scrollbarHandle": "#b9a18b",
+        "icon": "#58391f",
+        "iconDisabled": "#bba996",
+        "treeDisabledText": "#ab9b8c",
+        "treeEmptyText": "#806e5d",
+        "info": "#a45427",
+        "infoTitle": "#a45427"
+    }
+}

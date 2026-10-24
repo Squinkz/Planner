@@ -1,0 +1,25 @@
+{
+    "name": "Daybed",
+    "image": "daybed",
+    "width": 975,
+    "length": 2000,
+    "category": [
+        "Bedroom",
+        "Living Room"
+    ],
+    "keywords": [
+        "daybed",
+        "bed",
+        "sofa",
+        "couch",
+        "divan",
+        "guest",
+        "spare",
+        "nap",
+        "sleep",
+        "sleeping",
+        "mattress",
+        "seating",
+        "lounger"
+    ]
+}

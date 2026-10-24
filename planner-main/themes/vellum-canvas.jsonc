@@ -1,0 +1,35 @@
+// Warm drafting vellum, graphite linework and muted teal selection.
+{
+    "name": "Vellum Canvas",
+    "type": "canvas",
+    "extends": "Light Canvas",
+    "labelFont": "Drafting Small Caps",
+    "colors": {
+        "canvas": "#f5efdf",
+        "grid": "#9e947b",
+        "objectOutline": "#423a2c",
+        "wallOutline": "#5e5341",
+        "wallFill": "#dfd5bd",
+        "materialPattern": "#9c8d70",
+        "selectionOutline": "#246f79",
+        "selectionFill": "#d1e3db",
+        "groupSelectionOutline": "#9a6335",
+        "groupSelectionFill": "#ead6b7",
+        "stairSelectionFill": "#e1e9d9",
+        "stairGroupSelectionFill": "#f0e0c5",
+        "selectionBoxFill": "#23246f79",
+        "measurementLine": "#897b61",
+        "rulerBackground": "#e7dec7",
+        "rulerMajorTick": "#8c7d61",
+        "rulerMinorTick": "#b4a88d",
+        "rulerText": "#5c503e",
+        "overlayFill": "#f0f5efdf",
+        "invalidOutline": "#a59a7e",
+        "warningFill": "#edcfb8",
+        "warningOutline": "#a2472d",
+        "errorBorder": "#b77858",
+        "errorFill": "#f0f7dfc9",
+        "errorText": "#963a29",
+        "missing": "#a2472d"
+    }
+}

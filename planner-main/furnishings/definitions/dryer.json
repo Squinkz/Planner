@@ -1,0 +1,25 @@
+{
+    "name": "Dryer",
+    "image": "dryer",
+    "width": 600,
+    "length": 600,
+    "icon": null,
+    "category": "Utility",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "dryer",
+        "tumbledryer",
+        "tumble",
+        "drying",
+        "machine",
+        "washing",
+        "clothes",
+        "clothing",
+        "laundry",
+        "appliance",
+        "linen",
+        "freestanding",
+        "standalone"
+    ]
+}

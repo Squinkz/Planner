@@ -1,0 +1,35 @@
+// Muted, muddy brown paper and dark sepia drafting ink.
+{
+    "name": "Sepia Canvas",
+    "type": "canvas",
+    "extends": "Vellum Canvas",
+    "colors": {
+        "canvas": "#c1b7a7",
+        "grid": "#8b8071",
+        "objectOutline": "#302a25",
+        "wallOutline": "#4b4238",
+        "wallFill": "#a89b87",
+        "materialPattern": "#827461",
+        "selectionOutline": "#345451",
+        "selectionFill": "#abb4a6",
+        "groupSelectionOutline": "#6a493c",
+        "groupSelectionFill": "#bba392",
+        "stairSelectionFill": "#b4baad",
+        "stairGroupSelectionFill": "#c3b09e",
+        "selectionBoxFill": "#23345451",
+        "measurementLine": "#62574b",
+        "rulerBackground": "#b2a591",
+        "rulerMajorTick": "#675b4b",
+        "rulerMinorTick": "#91836e",
+        "rulerText": "#43392f",
+        "overlayFill": "#f0c1b7a7",
+        "invalidOutline": "#8c7e69",
+        "warningFill": "#bfab98",
+        "warningOutline": "#784a36",
+        "errorBorder": "#916f59",
+        "errorFill": "#f0c9b7a4",
+        "errorText": "#703f30",
+        "missing": "#784a36"
+    },
+    "labelFont": "D-DIN Condensed"
+}

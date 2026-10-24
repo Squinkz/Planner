@@ -1,0 +1,17 @@
+{
+    "name": "Dressing Table",
+    "image": "dressing_table",
+    "width": 1000,
+    "length": 450,
+    "category": "Bedroom",
+    "keywords": [
+        "table",
+        "dressing",
+        "vanity",
+        "dresser",
+        "makeup",
+        "cosmetics",
+        "mirror",
+        "grooming"
+    ]
+}

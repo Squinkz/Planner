@@ -1,0 +1,762 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300" version="1.1">
+<title>washer-svg-digital</title>
+<desc>Generated with Qt</desc>
+<defs>
+<clipPath id="clipPath1" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath2" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath3" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath4" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M169,119 L231,119 L231,181 L169,181 L169,119 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath5" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath6" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M169,119 L232,119 L232,182 L169,182 L169,119 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath7" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath8" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M169,124 L232,124 L232,127 L169,127 L169,124 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath9" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath10" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M190,145 L210,145 L210,161 L190,161 L190,145 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath11" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath12" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M173,126 L227,126 L227,179 L173,179 L173,126 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath13" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath14" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M179,131 L221,131 L221,174 L179,174 L179,131 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath15" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath16" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M175,120 L181,120 L181,126 L175,126 L175,120 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath17" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath18" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M174,119 L181,119 L181,126 L174,126 L174,119 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath19" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath20" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M180,121 L184,121 L184,125 L180,125 L180,121 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath21" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath22" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M180,120 L185,120 L185,125 L180,125 L180,120 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath23" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath24" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M183,121 L187,121 L187,125 L183,125 L183,121 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath25" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath26" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M183,120 L188,120 L188,125 L183,125 L183,120 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath27" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath28" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M186,121 L190,121 L190,125 L186,125 L186,121 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath29" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath30" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M186,120 L190,120 L190,125 L186,125 L186,120 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath31" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath32" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath33" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath34" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath35" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath36" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath37" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="" clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath38" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath39" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath40" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath41" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath42" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath43" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath44" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+<clipPath id="clipPath45" clipPathUnits="userSpaceOnUse">
+<path vector-effect="none" fill-rule="evenodd" d="M0,0 L400,0 L400,300 L0,300 L0,0 Z " clip-rule="evenodd" />
+</clipPath>
+</defs>
+<g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel">
+
+<g fill="#ffffff" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="13.3333" font-weight="400" font-style="normal">
+<rect x="0" y="0" width="400" height="300" />
+</g>
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath1)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath1)"><g fill="none" stroke="#000000" stroke-opacity="0.304997" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<polyline fill="none" vector-effect="none" points="200,0 200,300 " />
+</g>
+</g>
+
+<g clip-path="url(#clipPath1)"><g fill="none" stroke="#000000" stroke-opacity="0.168994" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<polyline fill="none" vector-effect="none" points="1e-06,0 1e-06,300 " />
+<polyline fill="none" vector-effect="none" points="100,0 100,300 " />
+<polyline fill="none" vector-effect="none" points="300,0 300,300 " />
+<polyline fill="none" vector-effect="none" points="400,0 400,300 " />
+</g>
+</g>
+
+<g clip-path="url(#clipPath1)"><g fill="none" stroke="#000000" stroke-opacity="0.0829938" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<polyline fill="none" vector-effect="none" points="20,0 20,300 " />
+<polyline fill="none" vector-effect="none" points="40,0 40,300 " />
+<polyline fill="none" vector-effect="none" points="60,0 60,300 " />
+<polyline fill="none" vector-effect="none" points="80,0 80,300 " />
+<polyline fill="none" vector-effect="none" points="120,0 120,300 " />
+<polyline fill="none" vector-effect="none" points="140,0 140,300 " />
+<polyline fill="none" vector-effect="none" points="160,0 160,300 " />
+<polyline fill="none" vector-effect="none" points="180,0 180,300 " />
+<polyline fill="none" vector-effect="none" points="220,0 220,300 " />
+<polyline fill="none" vector-effect="none" points="240,0 240,300 " />
+<polyline fill="none" vector-effect="none" points="260,0 260,300 " />
+<polyline fill="none" vector-effect="none" points="280,0 280,300 " />
+<polyline fill="none" vector-effect="none" points="320,0 320,300 " />
+<polyline fill="none" vector-effect="none" points="340,0 340,300 " />
+<polyline fill="none" vector-effect="none" points="360,0 360,300 " />
+<polyline fill="none" vector-effect="none" points="380,0 380,300 " />
+</g>
+</g>
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath2)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath2)"><g fill="none" stroke="#000000" stroke-opacity="0.304997" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<polyline fill="none" vector-effect="none" points="0,150 400,150 " />
+</g>
+</g>
+
+<g clip-path="url(#clipPath2)"><g fill="none" stroke="#000000" stroke-opacity="0.168994" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<polyline fill="none" vector-effect="none" points="0,50 400,50 " />
+<polyline fill="none" vector-effect="none" points="0,250 400,250 " />
+</g>
+</g>
+
+<g clip-path="url(#clipPath2)"><g fill="none" stroke="#000000" stroke-opacity="0.0829938" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<polyline fill="none" vector-effect="none" points="0,10 400,10 " />
+<polyline fill="none" vector-effect="none" points="0,30 400,30 " />
+<polyline fill="none" vector-effect="none" points="0,70 400,70 " />
+<polyline fill="none" vector-effect="none" points="0,90 400,90 " />
+<polyline fill="none" vector-effect="none" points="0,110 400,110 " />
+<polyline fill="none" vector-effect="none" points="0,130 400,130 " />
+<polyline fill="none" vector-effect="none" points="0,170 400,170 " />
+<polyline fill="none" vector-effect="none" points="0,190 400,190 " />
+<polyline fill="none" vector-effect="none" points="0,210 400,210 " />
+<polyline fill="none" vector-effect="none" points="0,230 400,230 " />
+<polyline fill="none" vector-effect="none" points="0,270 400,270 " />
+<polyline fill="none" vector-effect="none" points="0,290 400,290 " />
+</g>
+</g>
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath3)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath3)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath3)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,200,150)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath3)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,200,150)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath3)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath4)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath4)"><g fill="#ffffff" fill-opacity="1" stroke="none" transform="matrix(0.6,0,0,0.6,170,120)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<path vector-effect="none" fill-rule="evenodd" d="M0,3.97095 C0,1.77786 1.77786,0 3.97095,0 L96.029,0 C98.2221,0 100,1.77786 100,3.97095 L100,96.029 C100,98.2221 98.2221,100 96.029,100 L3.97095,100 C1.77786,100 0,98.2221 0,96.029 L0,3.97095 Z " />
+</g>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="none" transform="matrix(0.6,0,0,0.6,170,120)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath4)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath5)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath6)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath6)"><g fill="none" stroke="none" transform="matrix(0.6,0,0,0.6,170,120)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<path vector-effect="none" fill-rule="evenodd" d="M0,3.97095 C0,1.77786 1.77786,0 3.97095,0 L96.029,0 C98.2221,0 100,1.77786 100,3.97095 L100,96.029 C100,98.2221 98.2221,100 96.029,100 L3.97095,100 C1.77786,100 0,98.2221 0,96.029 L0,3.97095 Z " />
+</g>
+</g>
+
+<g clip-path="url(#clipPath6)"><g fill="#343c42" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<path vector-effect="none" fill-rule="nonzero" d="M169.5,122.383 C169.5,120.86 170.86,119.5 172.383,119.5 L227.617,119.5 C229.14,119.5 230.5,120.86 230.5,122.383 L230.5,177.617 C230.5,179.14 229.14,180.5 227.617,180.5 L172.383,180.5 C170.86,180.5 169.5,179.14 169.5,177.617 L169.5,122.383 Z M170.5,122.383 L170.5,177.617 C170.5,178.726 171.274,179.5 172.383,179.5 L227.617,179.5 C228.726,179.5 229.5,178.726 229.5,177.617 L229.5,122.383 C229.5,121.274 228.726,120.5 227.617,120.5 L172.383,120.5 C171.274,120.5 170.5,121.274 170.5,122.383 Z " />
+</g>
+</g>
+
+<g fill="none" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g fill="none" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath6)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath7)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath8)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath8)"><g fill="none" stroke="none" transform="matrix(0.6,0,0,0.6,170,120)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<path vector-effect="none" fill-rule="nonzero" d="M0,8.80082 L100,8.80082 " />
+</g>
+</g>
+
+<g clip-path="url(#clipPath8)"><g fill="#343c42" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<path vector-effect="none" fill-rule="nonzero" d="M170,124.78 L230,124.78 L230,125.78 L170,125.78 L170,124.78 Z " />
+</g>
+</g>
+
+<g fill="none" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g fill="none" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath8)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath9)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath10)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath10)"><g fill="#343c42" fill-opacity="1" stroke="none" transform="matrix(0.6,0,0,0.6,170,120)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<path vector-effect="none" fill-rule="evenodd" d="M64.5625,42.8906 L58.2969,66.4531 L55.2813,66.4531 L50.7031,51 C50.5677,50.5417 50.4349,50.0703 50.3047,49.5859 C50.1745,49.1016 50.0547,48.6406 49.9453,48.2031 C49.8359,47.7656 49.7422,47.3854 49.6641,47.0625 C49.5859,46.7396 49.5365,46.5052 49.5156,46.3594 C49.4948,46.5052 49.4557,46.7396 49.3984,47.0625 C49.3411,47.3854 49.2578,47.7656 49.1484,48.2031 C49.0391,48.6406 48.9245,49.1068 48.8047,49.6016 C48.6849,50.0964 48.5469,50.599 48.3906,51.1094 L43.9375,66.4531 L40.9375,66.4531 L34.6875,42.8906 L37.7969,42.8906 L41.4531,57.2813 C41.5885,57.7813 41.7109,58.2786 41.8203,58.7734 C41.9297,59.2682 42.0339,59.7526 42.1328,60.2266 C42.2318,60.7005 42.3151,61.1589 42.3828,61.6016 C42.4505,62.0443 42.5156,62.474 42.5781,62.8906 C42.651,62.4531 42.724,62.0026 42.7969,61.5391 C42.8698,61.0755 42.9609,60.5964 43.0703,60.1016 C43.1797,59.6068 43.3021,59.1068 43.4375,58.6016 C43.5729,58.0964 43.7031,57.599 43.8281,57.1094 L48,42.8906 L51.0625,42.8906 L55.3906,57.2188 C55.5469,57.7188 55.6901,58.2266 55.8203,58.7422 C55.9505,59.2578 56.0703,59.7578 56.1797,60.2422 C56.2891,60.7266 56.3828,61.1953 56.4609,61.6484 C56.5391,62.1016 56.6094,62.5156 56.6719,62.8906 C56.7344,62.3385 56.8229,61.7604 56.9375,61.1563 C57.0521,60.5521 57.1849,59.9193 57.3359,59.2578 C57.487,58.5964 57.651,57.9271 57.8281,57.25 L61.4531,42.8906 L64.5625,42.8906 Z " />
+</g>
+</g>
+
+<g fill="#343c42" fill-opacity="1" stroke="none" transform="matrix(0.6,0,0,0.6,170,120)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g fill="#343c42" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath10)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath11)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath12)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath12)"><g fill="none" stroke="none" transform="matrix(0.6,0,0,0.6,170,120)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<path vector-effect="none" fill-rule="evenodd" d="M91.7684,54.4004 C91.7684,77.4684 73.068,96.1688 50,96.1688 C26.932,96.1688 8.23164,77.4684 8.23164,54.4004 C8.23164,31.3324 26.932,12.632 50,12.632 C73.068,12.632 91.7684,31.3324 91.7684,54.4004 Z " />
+</g>
+</g>
+
+<g clip-path="url(#clipPath12)"><g fill="#343c42" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<path vector-effect="none" fill-rule="nonzero" d="M225.561,152.64 C225.561,166.688 214.048,178.201 200,178.201 C185.952,178.201 174.439,166.688 174.439,152.64 C174.439,138.592 185.952,127.079 200,127.079 C214.048,127.079 225.561,138.592 225.561,152.64 Z M224.561,152.64 C224.561,139.007 213.634,128.079 200,128.079 C186.366,128.079 175.439,139.007 175.439,152.64 C175.439,166.274 186.366,177.201 200,177.201 C213.634,177.201 224.561,166.274 224.561,152.64 Z " />
+</g>
+</g>
+
+<g fill="none" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g fill="none" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath12)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath13)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath14)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath14)"><g fill="none" stroke="none" transform="matrix(0.6,0,0,0.6,170,120)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<path vector-effect="none" fill-rule="evenodd" d="M82.9707,54.4004 C82.9707,72.6096 68.2092,87.3711 50,87.3711 C31.7908,87.3711 17.0293,72.6096 17.0293,54.4004 C17.0293,36.1912 31.7908,21.4297 50,21.4297 C68.2092,21.4297 82.9707,36.1912 82.9707,54.4004 Z " />
+</g>
+</g>
+
+<g clip-path="url(#clipPath14)"><g fill="#343c42" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<path vector-effect="none" fill-rule="nonzero" d="M220.282,152.64 C220.282,163.773 211.133,172.923 200,172.923 C188.867,172.923 179.718,163.773 179.718,152.64 C179.718,141.508 188.867,132.358 200,132.358 C211.133,132.358 220.282,141.508 220.282,152.64 Z M219.282,152.64 C219.282,141.922 210.718,133.358 200,133.358 C189.282,133.358 180.718,141.922 180.718,152.64 C180.718,163.359 189.282,171.923 200,171.923 C210.718,171.923 219.282,163.359 219.282,152.64 Z " />
+</g>
+</g>
+
+<g fill="none" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g fill="none" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath14)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath15)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath16)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath16)"><g fill="#ffffff" fill-opacity="1" stroke="none" transform="matrix(0.6,0,0,0.6,170,120)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<path vector-effect="none" fill-rule="evenodd" d="M15.9306,4.51529 C15.9306,6.28235 14.4981,7.71484 12.7311,7.71484 C10.964,7.71484 9.53152,6.28235 9.53152,4.51529 C9.53152,2.74822 10.964,1.31573 12.7311,1.31573 C14.4981,1.31573 15.9306,2.74822 15.9306,4.51529 Z " />
+</g>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="none" transform="matrix(0.6,0,0,0.6,170,120)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath16)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath17)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath18)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath18)"><g fill="none" stroke="none" transform="matrix(0.6,0,0,0.6,170,120)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<path vector-effect="none" fill-rule="evenodd" d="M15.9306,4.51529 C15.9306,6.28235 14.4981,7.71484 12.7311,7.71484 C10.964,7.71484 9.53152,6.28235 9.53152,4.51529 C9.53152,2.74822 10.964,1.31573 12.7311,1.31573 C14.4981,1.31573 15.9306,2.74822 15.9306,4.51529 Z " />
+</g>
+</g>
+
+<g clip-path="url(#clipPath18)"><g fill="#343c42" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<path vector-effect="none" fill-rule="nonzero" d="M180.058,122.709 C180.058,123.977 178.906,125.129 177.639,125.129 C176.371,125.129 175.219,123.977 175.219,122.709 C175.219,121.442 176.371,120.289 177.639,120.289 C178.906,120.289 180.058,121.442 180.058,122.709 Z M179.058,122.709 C179.058,121.856 178.492,121.289 177.639,121.289 C176.786,121.289 176.219,121.856 176.219,122.709 C176.219,123.562 176.786,124.129 177.639,124.129 C178.492,124.129 179.058,123.562 179.058,122.709 Z " />
+</g>
+</g>
+
+<g fill="none" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g fill="none" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath18)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath19)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath20)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath20)"><g fill="#ffffff" fill-opacity="1" stroke="none" transform="matrix(0.6,0,0,0.6,170,120)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<path vector-effect="none" fill-rule="evenodd" d="M21.8743,4.51529 C21.8743,5.39882 21.158,6.11506 20.2745,6.11506 C19.3909,6.11506 18.6747,5.39882 18.6747,4.51529 C18.6747,3.63175 19.3909,2.91551 20.2745,2.91551 C21.158,2.91551 21.8743,3.63175 21.8743,4.51529 Z " />
+</g>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="none" transform="matrix(0.6,0,0,0.6,170,120)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath20)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath21)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath22)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath22)"><g fill="none" stroke="none" transform="matrix(0.6,0,0,0.6,170,120)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<path vector-effect="none" fill-rule="evenodd" d="M21.8743,4.51529 C21.8743,5.39882 21.158,6.11506 20.2745,6.11506 C19.3909,6.11506 18.6747,5.39882 18.6747,4.51529 C18.6747,3.63175 19.3909,2.91551 20.2745,2.91551 C21.158,2.91551 21.8743,3.63175 21.8743,4.51529 Z " />
+</g>
+</g>
+
+<g clip-path="url(#clipPath22)"><g fill="#343c42" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<path vector-effect="none" fill-rule="nonzero" d="M183.625,122.709 C183.625,123.446 182.902,124.169 182.165,124.169 C181.427,124.169 180.705,123.446 180.705,122.709 C180.705,121.972 181.427,121.249 182.165,121.249 C182.902,121.249 183.625,121.972 183.625,122.709 Z M182.625,122.709 C182.625,122.386 182.488,122.249 182.165,122.249 C181.842,122.249 181.705,122.386 181.705,122.709 C181.705,123.032 181.842,123.169 182.165,123.169 C182.488,123.169 182.625,123.032 182.625,122.709 Z " />
+</g>
+</g>
+
+<g fill="none" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g fill="none" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath22)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath23)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath24)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath24)"><g fill="#ffffff" fill-opacity="1" stroke="none" transform="matrix(0.6,0,0,0.6,170,120)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<path vector-effect="none" fill-rule="evenodd" d="M26.7101,4.51529 C26.7101,5.39882 25.9938,6.11506 25.1103,6.11506 C24.2268,6.11506 23.5105,5.39882 23.5105,4.51529 C23.5105,3.63175 24.2268,2.91551 25.1103,2.91551 C25.9938,2.91551 26.7101,3.63175 26.7101,4.51529 Z " />
+</g>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="none" transform="matrix(0.6,0,0,0.6,170,120)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath24)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath25)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath26)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath26)"><g fill="none" stroke="none" transform="matrix(0.6,0,0,0.6,170,120)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<path vector-effect="none" fill-rule="evenodd" d="M26.7101,4.51529 C26.7101,5.39882 25.9938,6.11506 25.1103,6.11506 C24.2268,6.11506 23.5105,5.39882 23.5105,4.51529 C23.5105,3.63175 24.2268,2.91551 25.1103,2.91551 C25.9938,2.91551 26.7101,3.63175 26.7101,4.51529 Z " />
+</g>
+</g>
+
+<g clip-path="url(#clipPath26)"><g fill="#343c42" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<path vector-effect="none" fill-rule="nonzero" d="M186.526,122.709 C186.526,123.446 185.803,124.169 185.066,124.169 C184.329,124.169 183.606,123.446 183.606,122.709 C183.606,121.972 184.329,121.249 185.066,121.249 C185.803,121.249 186.526,121.972 186.526,122.709 Z M185.526,122.709 C185.526,122.386 185.389,122.249 185.066,122.249 C184.743,122.249 184.606,122.386 184.606,122.709 C184.606,123.032 184.743,123.169 185.066,123.169 C185.389,123.169 185.526,123.032 185.526,122.709 Z " />
+</g>
+</g>
+
+<g fill="none" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g fill="none" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath26)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath27)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath28)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath28)"><g fill="#ffffff" fill-opacity="1" stroke="none" transform="matrix(0.6,0,0,0.6,170,120)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<path vector-effect="none" fill-rule="evenodd" d="M31.5459,4.51529 C31.5459,5.39882 30.8296,6.11506 29.9461,6.11506 C29.0626,6.11506 28.3463,5.39882 28.3463,4.51529 C28.3463,3.63175 29.0626,2.91551 29.9461,2.91551 C30.8296,2.91551 31.5459,3.63175 31.5459,4.51529 Z " />
+</g>
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="none" transform="matrix(0.6,0,0,0.6,170,120)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g fill="#ffffff" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath28)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath29)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath30)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath30)"><g fill="none" stroke="none" transform="matrix(0.6,0,0,0.6,170,120)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<path vector-effect="none" fill-rule="evenodd" d="M31.5459,4.51529 C31.5459,5.39882 30.8296,6.11506 29.9461,6.11506 C29.0626,6.11506 28.3463,5.39882 28.3463,4.51529 C28.3463,3.63175 29.0626,2.91551 29.9461,2.91551 C30.8296,2.91551 31.5459,3.63175 31.5459,4.51529 Z " />
+</g>
+</g>
+
+<g clip-path="url(#clipPath30)"><g fill="#343c42" fill-opacity="1" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<path vector-effect="none" fill-rule="nonzero" d="M189.428,122.709 C189.428,123.446 188.705,124.169 187.968,124.169 C187.23,124.169 186.508,123.446 186.508,122.709 C186.508,121.972 187.23,121.249 187.968,121.249 C188.705,121.249 189.428,121.972 189.428,122.709 Z M188.428,122.709 C188.428,122.386 188.291,122.249 187.968,122.249 C187.645,122.249 187.508,122.386 187.508,122.709 C187.508,123.032 187.645,123.169 187.968,123.169 C188.291,123.169 188.428,123.032 188.428,122.709 Z " />
+</g>
+</g>
+
+<g fill="none" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g fill="none" stroke="none" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath30)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath31)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath31)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,200,150)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath32)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,200,150)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,200,150)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath32)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,200,150)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath33)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,200,150)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,200,150)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath33)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath34)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath34)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath35)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath35)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath36)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath37)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath37)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath38)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath39)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath39)"><g fill="none" stroke="#59636b" stroke-opacity="1" stroke-width="4" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+<path vector-effect="none" fill-rule="nonzero" d="M200,150 Z " />
+</g>
+</g>
+
+<g clip-path="url(#clipPath39)"><g fill="none" stroke="#59636b" stroke-opacity="1" stroke-width="4" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath40)"><g fill="none" stroke="#59636b" stroke-opacity="1" stroke-width="4" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g fill="none" stroke="#59636b" stroke-opacity="1" stroke-width="4" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g fill="none" stroke="#59636b" stroke-opacity="1" stroke-width="4" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath40)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath41)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath41)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath42)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath43)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g fill="none" stroke="#c92d35" stroke-opacity="1" stroke-width="2" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g fill="none" stroke="#c92d35" stroke-opacity="1" stroke-width="2" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+
+<g clip-path="url(#clipPath43)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath44)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath44)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g>
+</g>
+
+<g clip-path="url(#clipPath45)"><g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(1,0,0,1,0,0)" font-family="Noto Sans" font-size="10.6667" font-weight="400" font-style="normal">
+</g></g>
+</g>
+</svg>

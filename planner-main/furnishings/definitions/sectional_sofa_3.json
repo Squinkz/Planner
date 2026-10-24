@@ -1,0 +1,100 @@
+{
+    "name": "Sofa Sectional 3",
+    "category": "Living Room",
+    "children": [
+        {
+            "furnishing": "sofa_section_corner",
+            "x": -1275.0,
+            "y": 425.0,
+            "width": 850.0,
+            "length": 850.0,
+            "angle": 0.0,
+            "zIndex": 0,
+            "flipHorizontal": false,
+            "flipVertical": false
+        },
+        {
+            "furnishing": "sofa_section_end",
+            "x": -1275.0,
+            "y": -425.0,
+            "width": 850.0,
+            "length": 850.0,
+            "angle": 270.0,
+            "zIndex": 1,
+            "flipHorizontal": false,
+            "flipVertical": false
+        },
+        {
+            "furnishing": "sofa_section",
+            "x": -425.0,
+            "y": 425.0,
+            "width": 850.0,
+            "length": 850.0,
+            "angle": 0.0,
+            "zIndex": 2,
+            "flipHorizontal": false,
+            "flipVertical": false
+        },
+        {
+            "furnishing": "sofa_section",
+            "x": 425.0,
+            "y": 425.0,
+            "width": 850.0,
+            "length": 850.0,
+            "angle": 0.0,
+            "zIndex": 3,
+            "flipHorizontal": false,
+            "flipVertical": false
+        },
+        {
+            "furnishing": "sofa_section_corner",
+            "x": 1275.0,
+            "y": 425.0,
+            "width": 850.0,
+            "length": 850.0,
+            "angle": 270.0,
+            "zIndex": 4,
+            "flipHorizontal": false,
+            "flipVertical": false
+        },
+        {
+            "furnishing": "sofa_section",
+            "x": 1275.0,
+            "y": -425.0,
+            "width": 850.0,
+            "length": 850.0,
+            "angle": 270.0,
+            "zIndex": 5,
+            "flipHorizontal": false,
+            "flipVertical": false
+        },
+        {
+            "furnishing": "pillow_throw",
+            "x": 0.0,
+            "y": 449.426397,
+            "width": 350.0,
+            "length": 350.0,
+            "angle": 315.0,
+            "zIndex": 6,
+            "flipHorizontal": false,
+            "flipVertical": false
+        }
+    ],
+    "keywords": [
+        "sofa",
+        "couch",
+        "settee",
+        "sectional",
+        "modular",
+        "lounge",
+        "seat",
+        "seating",
+        "upholstered",
+        "corner",
+        "suite",
+        "arrangement",
+        "chaise",
+        "l",
+        "shaped"
+    ]
+}

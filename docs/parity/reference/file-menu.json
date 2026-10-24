@@ -1,0 +1,691 @@
+{
+  "description": "Menu row spacing, separators, shortcut alignment and disabled Revert",
+  "logicalSize": [
+    310,
+    326
+  ],
+  "devicePixelRatio": 1.0,
+  "controls": [
+    {
+      "class": "QPushButton",
+      "name": "headerMenuItem",
+      "accessibleName": "New Project",
+      "enabled": true,
+      "bounds": [
+        5,
+        5,
+        300,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "menuIconLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        17,
+        16,
+        18,
+        18
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": ""
+    },
+    {
+      "class": "QLabel",
+      "name": "menuTextLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        49,
+        5,
+        126,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "New Project"
+    },
+    {
+      "class": "QLabel",
+      "name": "menuShortcutLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        195,
+        5,
+        96,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Ctrl + N"
+    },
+    {
+      "class": "QPushButton",
+      "name": "headerMenuItem",
+      "accessibleName": "Open Project",
+      "enabled": true,
+      "bounds": [
+        5,
+        45,
+        300,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "menuIconLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        17,
+        56,
+        18,
+        18
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": ""
+    },
+    {
+      "class": "QLabel",
+      "name": "menuTextLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        49,
+        45,
+        126,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Open Project"
+    },
+    {
+      "class": "QLabel",
+      "name": "menuShortcutLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        195,
+        45,
+        96,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Ctrl + O"
+    },
+    {
+      "class": "QPushButton",
+      "name": "headerMenuItem",
+      "accessibleName": "Revert",
+      "enabled": false,
+      "bounds": [
+        5,
+        94,
+        300,
+        40
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "menuIconLabel",
+      "accessibleName": "",
+      "enabled": false,
+      "bounds": [
+        17,
+        105,
+        18,
+        18
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": ""
+    },
+    {
+      "class": "QLabel",
+      "name": "menuTextLabel",
+      "accessibleName": "",
+      "enabled": false,
+      "bounds": [
+        49,
+        94,
+        126,
+        40
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Revert"
+    },
+    {
+      "class": "QLabel",
+      "name": "menuShortcutLabel",
+      "accessibleName": "",
+      "enabled": false,
+      "bounds": [
+        285,
+        94,
+        6,
+        40
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": ""
+    },
+    {
+      "class": "QPushButton",
+      "name": "headerMenuItem",
+      "accessibleName": "Save Project",
+      "enabled": true,
+      "bounds": [
+        5,
+        143,
+        300,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "menuIconLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        17,
+        154,
+        18,
+        18
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": ""
+    },
+    {
+      "class": "QLabel",
+      "name": "menuTextLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        49,
+        143,
+        126,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Save Project"
+    },
+    {
+      "class": "QLabel",
+      "name": "menuShortcutLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        195,
+        143,
+        96,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Ctrl + S"
+    },
+    {
+      "class": "QPushButton",
+      "name": "headerMenuItem",
+      "accessibleName": "Save Project as",
+      "enabled": true,
+      "bounds": [
+        5,
+        183,
+        300,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "menuIconLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        17,
+        194,
+        18,
+        18
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": ""
+    },
+    {
+      "class": "QLabel",
+      "name": "menuTextLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        49,
+        183,
+        126,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Save Project as"
+    },
+    {
+      "class": "QLabel",
+      "name": "menuShortcutLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        195,
+        183,
+        96,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Ctrl + Shift + S"
+    },
+    {
+      "class": "QPushButton",
+      "name": "headerMenuItem",
+      "accessibleName": "Save startup file",
+      "enabled": true,
+      "bounds": [
+        5,
+        232,
+        300,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "menuIconLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        17,
+        243,
+        18,
+        18
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": ""
+    },
+    {
+      "class": "QLabel",
+      "name": "menuTextLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        49,
+        232,
+        126,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Save startup file"
+    },
+    {
+      "class": "QLabel",
+      "name": "menuShortcutLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        285,
+        232,
+        6,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": ""
+    },
+    {
+      "class": "QPushButton",
+      "name": "headerMenuItem",
+      "accessibleName": "Close Project",
+      "enabled": true,
+      "bounds": [
+        5,
+        281,
+        300,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "menuIconLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        17,
+        292,
+        18,
+        18
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": ""
+    },
+    {
+      "class": "QLabel",
+      "name": "menuTextLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        49,
+        281,
+        126,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Close Project"
+    },
+    {
+      "class": "QLabel",
+      "name": "menuShortcutLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        195,
+        281,
+        96,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Ctrl + W"
+    }
+  ],
+  "layouts": [
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    }
+  ]
+}

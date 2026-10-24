@@ -1,0 +1,28 @@
+// Cool charcoal surfaces with clear glacial-blue highlights.
+{
+    "name": "Dark Ice UI",
+    "type": "ui",
+    "extends": "Dark UI",
+    "colors": {
+        "text": "#e9edf1",
+        "mutedText": "#b7bdc4",
+        "activeText": "#f3faff",
+        "windowBackground": "#1c1f23",
+        "controlBackground": "#292e34",
+        "fieldBackground": "#353b42",
+        "hoverBackground": "#424950",
+        "pressedBackground": "#23282e",
+        "activeBackground": "#2465a9",
+        "activeHoverBackground": "#1d568f",
+        "disabledBackground": "#22272d",
+        "border": "#474f58",
+        "menuBorder": "#5c6670",
+        "sliderHandle": "#85c9f4",
+        "scrollbarHandle": "#5b6672",
+        "icon": "#d8dfe6",
+        "iconDisabled": "#626c77",
+        "treeEmptyText": "#a2adb7",
+        "info": "#7ecbfa",
+        "infoTitle": "#74c5f7"
+    }
+}

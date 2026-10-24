@@ -1,0 +1,21 @@
+{
+    "name": "Lounge Chair",
+    "image": "chair_lounge",
+    "width": 750,
+    "length": 750,
+    "category": [
+        "Living Room",
+        "Bedroom"
+    ],
+    "keywords": [
+        "chair",
+        "armchair",
+        "lounge",
+        "easy",
+        "accent",
+        "reading",
+        "seat",
+        "seating",
+        "upholstered"
+    ]
+}

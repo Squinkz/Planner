@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   stroke-width="1"
+   viewBox="0 0 100 100"
+   preserveAspectRatio="none"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="washdryer_built.svg"
+   width="100"
+   height="100"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   vector-effect="non-scaling-stroke"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#3d3d3d"
+     inkscape:zoom="2.8284271"
+     inkscape:cx="-41.365747"
+     inkscape:cy="13.611806"
+     inkscape:window-width="2560"
+     inkscape:window-height="1336"
+     inkscape:window-x="2552"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <g
+     fill="#ffffff"
+     stroke="#000000"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     id="g1">
+    <path
+       vector-effect="non-scaling-stroke"
+       stroke-width="1"
+       id="path2-8"
+       style="vector-effect:non-scaling-stroke;fill:none;stroke:#000000;stroke-miterlimit:7.7;stroke-width:1"
+       d="M 82.970722,56.637466 A 32.970722,32.970722 0 0 1 50,89.608188 32.970722,32.970722 0 0 1 17.029278,56.637466 32.970722,32.970722 0 0 1 50,23.666744 32.970722,32.970722 0 0 1 82.970722,56.637466 Z m 8.797642,0 A 41.768364,41.768364 0 0 1 50,98.40583 41.768364,41.768364 0 0 1 8.231636,56.637466 41.768364,41.768364 0 0 1 50,14.869102 41.768364,41.768364 0 0 1 91.768364,56.637466 Z" />
+  </g>
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
+     id="rect3"
+     style="fill:#ffffff;stroke:#000000;stroke-miterlimit:7.7;stroke-dasharray:4, 4;stroke-width:1;vector-effect:non-scaling-stroke"
+     d="M 100,13.153806 V 100 H 0 V 13.153806"
+     sodipodi:nodetypes="cccc" />
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
+     id="rect2"
+     style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-miterlimit:7.7;stroke-width:1"
+     d="m 13.147875,0.0057332 h 73.70425 c 4.456977,0 8.045084,3.5881075 8.045084,8.045084 H 89.89464 L 9.5655225,8.2485277 c 0,0 -4.4627317,5.5977963 -4.4627317,-0.1977105 0,-4.4569765 3.5881075,-8.045084 8.0450842,-8.045084 z"
+     sodipodi:nodetypes="ssccccs" />
+  <g
+     fill="#ffffff"
+     stroke="#000000"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     id="g2">
+    <path
+       stroke-width="1"
+       vector-effect="non-scaling-stroke"
+       id="rect1"
+       style="display:inline;vector-effect:non-scaling-stroke;stroke-width:1"
+       d="M 3.9709542,4.2046232 H 96.029046 C 98.228954,4.2046232 100,5.9756689 100,8.1755779 V 13.153806 H 0 V 8.1755779 C 0,5.9756689 1.7710456,4.2046232 3.9709542,4.2046232 Z"
+       sodipodi:nodetypes="sssccss" />
+  </g>
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
+     id="path4"
+     style="fill:#ffffff;stroke:#000000;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-dashoffset:0;stroke-width:1;vector-effect:non-scaling-stroke"
+     d="M 100,13.153806 0,100 M 0,13.153806 100,100" />
+  <rect
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
+     style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-dashoffset:0;vector-effect:non-scaling-stroke"
+     id="rect4"
+     width="58.922001"
+     height="58.922001"
+     x="45.900265"
+     y="-24.810413"
+     transform="rotate(45)" />
+  <text
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     xml:space="preserve"
+     style="font-weight:bold;font-size:33.7834px;font-family:'Noto Sans';-inkscape-font-specification:'Noto Sans Bold';text-align:start;letter-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:start;vector-effect:non-scaling-stroke;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1"
+     x="22.787466"
+     y="68.698143"
+     id="text2"><tspan
+       stroke-width="1"
+       vector-effect="non-scaling-stroke"
+       id="tspan2"
+       x="22.787466"
+       y="68.698143"
+       sodipodi:role="line"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Noto Sans';-inkscape-font-specification:'Noto Sans';vector-effect:non-scaling-stroke;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1;stroke-dasharray:none;stroke-opacity:1">WD</tspan></text>
+  <ellipse
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1;vector-effect:non-scaling-stroke"
+     id="path6"
+     cx="12.731081"
+     cy="8.7137308"
+     rx="3.1995585"
+     ry="3.199558" />
+  <circle
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1;vector-effect:non-scaling-stroke"
+     id="path6-8"
+     cx="20.274483"
+     cy="8.7137308"
+     r="1.5997792" />
+  <circle
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1;vector-effect:non-scaling-stroke"
+     id="path6-8-8"
+     cx="25.110289"
+     cy="8.7137308"
+     r="1.5997792" />
+  <circle
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1;vector-effect:non-scaling-stroke"
+     id="path6-8-8-9"
+     cx="29.946095"
+     cy="8.7137308"
+     r="1.5997792" />
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
+     style="fill:none;stroke:#000000;stroke-miterlimit:7.7;stroke-dasharray:4, 4;stroke-dashoffset:0;stroke-opacity:1;stroke-width:1;vector-effect:non-scaling-stroke"
+     d="M 100,13.153806 V 0"
+     id="path5" />
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
+     style="fill:none;stroke:#000000;stroke-miterlimit:7.7;stroke-dasharray:4, 4;stroke-dashoffset:0;stroke-opacity:1;stroke-width:1;vector-effect:non-scaling-stroke"
+     d="M 0,13.153806 V 0"
+     id="path5-6" />
+</svg>

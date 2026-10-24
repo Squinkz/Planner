@@ -1,0 +1,26 @@
+{
+    "name": "Ballet Bar End",
+    "image": "ballet_bar_end",
+    "width": 100,
+    "length": 120,
+    "icon": null,
+    "category": "Gym",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "ballet",
+        "barre",
+        "bar",
+        "dance",
+        "dancing",
+        "dancer",
+        "stretching",
+        "exercise",
+        "fitness",
+        "studio",
+        "support",
+        "rail",
+        "end",
+        "extension"
+    ]
+}

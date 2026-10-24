@@ -1,0 +1,20 @@
+{
+    "name": "Dining Chair",
+    "image": "chair",
+    "width": 450,
+    "length": 500,
+    "category": [
+        "Dining Room",
+        "Kitchen"
+    ],
+    "keywords": [
+        "chair",
+        "seat",
+        "seating",
+        "dining",
+        "dinner",
+        "kitchen",
+        "table",
+        "side"
+    ]
+}

@@ -1,0 +1,69 @@
+{
+    "name": "Banquette Nook",
+    "category": [
+        "Dining Room",
+        "Kitchen"
+    ],
+    "children": [
+        {
+            "furnishing": "banquette_seg",
+            "x": 0.0,
+            "y": 375.0,
+            "width": 600.0,
+            "length": 600.0,
+            "angle": 0.0,
+            "zIndex": 0
+        },
+        {
+            "furnishing": "banquette_seg",
+            "x": 600.0,
+            "y": 375.0,
+            "width": 600.0,
+            "length": 600.0,
+            "angle": 0.0,
+            "zIndex": 1
+        },
+        {
+            "furnishing": "banquette_seg",
+            "x": -600.0,
+            "y": -225.0,
+            "width": 600.0,
+            "length": 600.0,
+            "angle": 90.0,
+            "zIndex": 2
+        },
+        {
+            "furnishing": "banquette_corn",
+            "x": -600.0,
+            "y": 375.0,
+            "width": 600.0,
+            "length": 600.0,
+            "angle": 0.0,
+            "zIndex": 3
+        },
+        {
+            "furnishing": "table_dining_4",
+            "x": 250.0,
+            "y": -275.0,
+            "width": 1200.0,
+            "length": 800.0,
+            "angle": 0.0,
+            "zIndex": 4
+        }
+    ],
+    "keywords": [
+        "banquette",
+        "bench",
+        "booth",
+        "seating",
+        "seat",
+        "breakfast",
+        "nook",
+        "dinette",
+        "kitchen",
+        "dining",
+        "upholstered",
+        "corner",
+        "wraparound"
+    ]
+}

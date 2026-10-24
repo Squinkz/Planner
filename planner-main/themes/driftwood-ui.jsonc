@@ -1,0 +1,27 @@
+// A warm neutral workspace: sand, stone and a quiet olive highlight.
+{
+    "name": "Driftwood UI",
+    "type": "ui",
+    "extends": "Neutral UI",
+    "colors": {
+        "text": "#302a21",
+        "mutedText": "#51483b",
+        "activeText": "#1d2d22",
+        "windowBackground": "#c9c1b2",
+        "controlBackground": "#b6ad9d",
+        "fieldBackground": "#ece6da",
+        "hoverBackground": "#aba18e",
+        "pressedBackground": "#9b917f",
+        "activeBackground": "#a5b7a0",
+        "activeHoverBackground": "#95a78e",
+        "disabledBackground": "#ccc5b9",
+        "border": "#978b77",
+        "menuBorder": "#82745f",
+        "sliderHandle": "#665b47",
+        "scrollbarHandle": "#a0927d",
+        "icon": "#514735",
+        "iconDisabled": "#a89c88",
+        "treeDisabledText": "#a69b87",
+        "treeEmptyText": "#756a56"
+    }
+}

@@ -1,0 +1,28 @@
+{
+    "name": "Freezer",
+    "image": "freezer",
+    "width": 700,
+    "length": 700,
+    "icon": null,
+    "category": [
+        "Kitchen",
+        "Utility"
+    ],
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "freezer",
+        "frozen",
+        "freeze",
+        "freezing",
+        "food",
+        "cold",
+        "refrigeration",
+        "storage",
+        "appliance",
+        "freestanding",
+        "standalone",
+        "upright",
+        "vertical"
+    ]
+}

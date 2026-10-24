@@ -1,0 +1,21 @@
+{
+    "name": "Magazine Rack",
+    "image": "mag_rack",
+    "width": 400,
+    "length": 300,
+    "category": [
+        "Living Room",
+        "Office"
+    ],
+    "keywords": [
+        "magazine",
+        "magazines",
+        "rack",
+        "holder",
+        "reading",
+        "newspaper",
+        "newspapers",
+        "periodicals",
+        "storage"
+    ]
+}

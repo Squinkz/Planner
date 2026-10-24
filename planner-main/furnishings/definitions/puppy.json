@@ -1,0 +1,22 @@
+{
+    "name": "Sleeping Puppy",
+    "image": "puppy",
+    "width": 400,
+    "length": 350,
+    "icon": null,
+    "category": [
+        "Living Room",
+        "Bedroom"
+    ],
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "puppy",
+        "dog",
+        "canine",
+        "pet",
+        "animal",
+        "sleeping",
+        "curled"
+    ]
+}

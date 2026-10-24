@@ -1,0 +1,29 @@
+{
+    "name": "Cooktop Solid Plate 2",
+    "image": "hob_solid2",
+    "width": 500,
+    "length": 270,
+    "icon": null,
+    "category": "Kitchen",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "hob",
+        "cooktop",
+        "stove",
+        "stovetop",
+        "burner",
+        "burners",
+        "plate",
+        "cooking",
+        "food",
+        "appliance",
+        "kitchen",
+        "solid",
+        "electric",
+        "hotplate",
+        "two",
+        "double",
+        "compact"
+    ]
+}

@@ -1,0 +1,350 @@
+{
+  "rule": "CHAMFER-01",
+  "qt": "6.11.1",
+  "devicePixelRatio": 1,
+  "theme": "Light Canvas",
+  "cases": [
+    {
+      "id": "angle30-widths240-240-chamfer0",
+      "angleDegrees": 30,
+      "widthsMillimeters": [
+        240,
+        240
+      ],
+      "chamfer": 0,
+      "scalePixelsPerMeter": 250,
+      "boundsMillimeters": [
+        -700,
+        -600,
+        1400,
+        1400
+      ],
+      "plan": "angle30-widths240-240-chamfer0.plan",
+      "image": "angle30-widths240-240-chamfer0.png",
+      "rgbaSha256": "0c94fe4fcc6a6000bbabcba8beab73b297513cc8b24c38ff954b45ac8d20066b"
+    },
+    {
+      "id": "angle30-widths240-240-chamfer0.5",
+      "angleDegrees": 30,
+      "widthsMillimeters": [
+        240,
+        240
+      ],
+      "chamfer": 0.5,
+      "scalePixelsPerMeter": 250,
+      "boundsMillimeters": [
+        -700,
+        -600,
+        1400,
+        1400
+      ],
+      "plan": "angle30-widths240-240-chamfer0.5.plan",
+      "image": "angle30-widths240-240-chamfer0.5.png",
+      "rgbaSha256": "e458817e63acdc60bcb5917c3b4a397c0ac3c4e4bc999f3ffcc676a6aa17437e"
+    },
+    {
+      "id": "angle30-widths240-240-chamfer1",
+      "angleDegrees": 30,
+      "widthsMillimeters": [
+        240,
+        240
+      ],
+      "chamfer": 1,
+      "scalePixelsPerMeter": 250,
+      "boundsMillimeters": [
+        -700,
+        -600,
+        1400,
+        1400
+      ],
+      "plan": "angle30-widths240-240-chamfer1.plan",
+      "image": "angle30-widths240-240-chamfer1.png",
+      "rgbaSha256": "98a2db64b3ce88a74137046910043490b187d19e074c1d43298b1fad7720c38b"
+    },
+    {
+      "id": "angle30-widths120-360-chamfer0",
+      "angleDegrees": 30,
+      "widthsMillimeters": [
+        120,
+        360
+      ],
+      "chamfer": 0,
+      "scalePixelsPerMeter": 250,
+      "boundsMillimeters": [
+        -700,
+        -600,
+        1400,
+        1400
+      ],
+      "plan": "angle30-widths120-360-chamfer0.plan",
+      "image": "angle30-widths120-360-chamfer0.png",
+      "rgbaSha256": "39ffc86e191642428bcab98123ada3817b94460be202bfe0590f8b97037eccc8"
+    },
+    {
+      "id": "angle30-widths120-360-chamfer0.5",
+      "angleDegrees": 30,
+      "widthsMillimeters": [
+        120,
+        360
+      ],
+      "chamfer": 0.5,
+      "scalePixelsPerMeter": 250,
+      "boundsMillimeters": [
+        -700,
+        -600,
+        1400,
+        1400
+      ],
+      "plan": "angle30-widths120-360-chamfer0.5.plan",
+      "image": "angle30-widths120-360-chamfer0.5.png",
+      "rgbaSha256": "6eaebaea174ef45f1d88f360138ca08fcf765c6a5c76212df536fac006bd139a"
+    },
+    {
+      "id": "angle30-widths120-360-chamfer1",
+      "angleDegrees": 30,
+      "widthsMillimeters": [
+        120,
+        360
+      ],
+      "chamfer": 1,
+      "scalePixelsPerMeter": 250,
+      "boundsMillimeters": [
+        -700,
+        -600,
+        1400,
+        1400
+      ],
+      "plan": "angle30-widths120-360-chamfer1.plan",
+      "image": "angle30-widths120-360-chamfer1.png",
+      "rgbaSha256": "c909ca5b8bc0d913dc2723aace12c4934248efff42bf854c685072d5fe418597"
+    },
+    {
+      "id": "angle90-widths240-240-chamfer0",
+      "angleDegrees": 90,
+      "widthsMillimeters": [
+        240,
+        240
+      ],
+      "chamfer": 0,
+      "scalePixelsPerMeter": 250,
+      "boundsMillimeters": [
+        -700,
+        -600,
+        1400,
+        1400
+      ],
+      "plan": "angle90-widths240-240-chamfer0.plan",
+      "image": "angle90-widths240-240-chamfer0.png",
+      "rgbaSha256": "b0d959f52ee9649a25a7030d47f4268ea21055a39866334a3c8327a8f543d973"
+    },
+    {
+      "id": "angle90-widths240-240-chamfer0.5",
+      "angleDegrees": 90,
+      "widthsMillimeters": [
+        240,
+        240
+      ],
+      "chamfer": 0.5,
+      "scalePixelsPerMeter": 250,
+      "boundsMillimeters": [
+        -700,
+        -600,
+        1400,
+        1400
+      ],
+      "plan": "angle90-widths240-240-chamfer0.5.plan",
+      "image": "angle90-widths240-240-chamfer0.5.png",
+      "rgbaSha256": "a982f9cafdafbb7eebe454c237ea2d86290a2fee2496c89d11329aa88d3c18fd"
+    },
+    {
+      "id": "angle90-widths240-240-chamfer1",
+      "angleDegrees": 90,
+      "widthsMillimeters": [
+        240,
+        240
+      ],
+      "chamfer": 1,
+      "scalePixelsPerMeter": 250,
+      "boundsMillimeters": [
+        -700,
+        -600,
+        1400,
+        1400
+      ],
+      "plan": "angle90-widths240-240-chamfer1.plan",
+      "image": "angle90-widths240-240-chamfer1.png",
+      "rgbaSha256": "83a5924a61684b82d9a7cd806f146ab41833dafd5303e2258ed91d340b182888"
+    },
+    {
+      "id": "angle90-widths120-360-chamfer0",
+      "angleDegrees": 90,
+      "widthsMillimeters": [
+        120,
+        360
+      ],
+      "chamfer": 0,
+      "scalePixelsPerMeter": 250,
+      "boundsMillimeters": [
+        -700,
+        -600,
+        1400,
+        1400
+      ],
+      "plan": "angle90-widths120-360-chamfer0.plan",
+      "image": "angle90-widths120-360-chamfer0.png",
+      "rgbaSha256": "649de7f760223b3de1adf21ccbe33149d166744555c98cc3a95cee1811d03850"
+    },
+    {
+      "id": "angle90-widths120-360-chamfer0.5",
+      "angleDegrees": 90,
+      "widthsMillimeters": [
+        120,
+        360
+      ],
+      "chamfer": 0.5,
+      "scalePixelsPerMeter": 250,
+      "boundsMillimeters": [
+        -700,
+        -600,
+        1400,
+        1400
+      ],
+      "plan": "angle90-widths120-360-chamfer0.5.plan",
+      "image": "angle90-widths120-360-chamfer0.5.png",
+      "rgbaSha256": "0f2be374bf591151ac646c68af4c30819774908448879572d0f6e10b50b65b26"
+    },
+    {
+      "id": "angle90-widths120-360-chamfer1",
+      "angleDegrees": 90,
+      "widthsMillimeters": [
+        120,
+        360
+      ],
+      "chamfer": 1,
+      "scalePixelsPerMeter": 250,
+      "boundsMillimeters": [
+        -700,
+        -600,
+        1400,
+        1400
+      ],
+      "plan": "angle90-widths120-360-chamfer1.plan",
+      "image": "angle90-widths120-360-chamfer1.png",
+      "rgbaSha256": "910471850b4ca2ea7ec5dc5c4e27545051390b46dc65213ed5339bc73ecab0f8"
+    },
+    {
+      "id": "angle135-widths240-240-chamfer0",
+      "angleDegrees": 135,
+      "widthsMillimeters": [
+        240,
+        240
+      ],
+      "chamfer": 0,
+      "scalePixelsPerMeter": 250,
+      "boundsMillimeters": [
+        -700,
+        -600,
+        1400,
+        1400
+      ],
+      "plan": "angle135-widths240-240-chamfer0.plan",
+      "image": "angle135-widths240-240-chamfer0.png",
+      "rgbaSha256": "b1a8328e16cbf16f37cd9e965e8996c588b3080e4c60a6d0d618cd8f7d8b150d"
+    },
+    {
+      "id": "angle135-widths240-240-chamfer0.5",
+      "angleDegrees": 135,
+      "widthsMillimeters": [
+        240,
+        240
+      ],
+      "chamfer": 0.5,
+      "scalePixelsPerMeter": 250,
+      "boundsMillimeters": [
+        -700,
+        -600,
+        1400,
+        1400
+      ],
+      "plan": "angle135-widths240-240-chamfer0.5.plan",
+      "image": "angle135-widths240-240-chamfer0.5.png",
+      "rgbaSha256": "d126c6ac725179cd4078dd834680909f7a4cd836391bdd10448761370d99dbf2"
+    },
+    {
+      "id": "angle135-widths240-240-chamfer1",
+      "angleDegrees": 135,
+      "widthsMillimeters": [
+        240,
+        240
+      ],
+      "chamfer": 1,
+      "scalePixelsPerMeter": 250,
+      "boundsMillimeters": [
+        -700,
+        -600,
+        1400,
+        1400
+      ],
+      "plan": "angle135-widths240-240-chamfer1.plan",
+      "image": "angle135-widths240-240-chamfer1.png",
+      "rgbaSha256": "f307099bafa0801f6b3e9a7e038508fd04a2d3747bb5efaff9e07b0ff40c8627"
+    },
+    {
+      "id": "angle135-widths120-360-chamfer0",
+      "angleDegrees": 135,
+      "widthsMillimeters": [
+        120,
+        360
+      ],
+      "chamfer": 0,
+      "scalePixelsPerMeter": 250,
+      "boundsMillimeters": [
+        -700,
+        -600,
+        1400,
+        1400
+      ],
+      "plan": "angle135-widths120-360-chamfer0.plan",
+      "image": "angle135-widths120-360-chamfer0.png",
+      "rgbaSha256": "b9050bb6fe6b7b1661e30d358b34c024b1b53ec55abb68215fc39f3618de1797"
+    },
+    {
+      "id": "angle135-widths120-360-chamfer0.5",
+      "angleDegrees": 135,
+      "widthsMillimeters": [
+        120,
+        360
+      ],
+      "chamfer": 0.5,
+      "scalePixelsPerMeter": 250,
+      "boundsMillimeters": [
+        -700,
+        -600,
+        1400,
+        1400
+      ],
+      "plan": "angle135-widths120-360-chamfer0.5.plan",
+      "image": "angle135-widths120-360-chamfer0.5.png",
+      "rgbaSha256": "97e1aebc66ea509abba4374c62e7267d609fabb65f3eac71ef9717936c691a99"
+    },
+    {
+      "id": "angle135-widths120-360-chamfer1",
+      "angleDegrees": 135,
+      "widthsMillimeters": [
+        120,
+        360
+      ],
+      "chamfer": 1,
+      "scalePixelsPerMeter": 250,
+      "boundsMillimeters": [
+        -700,
+        -600,
+        1400,
+        1400
+      ],
+      "plan": "angle135-widths120-360-chamfer1.plan",
+      "image": "angle135-widths120-360-chamfer1.png",
+      "rgbaSha256": "a148217ed33c7be30e6508b474add391441b4be7563f8372a64044208a1d0606"
+    }
+  ]
+}

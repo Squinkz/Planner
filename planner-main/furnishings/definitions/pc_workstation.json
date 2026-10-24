@@ -1,0 +1,86 @@
+{
+    "name": "PC Workstation",
+    "category": [
+        "Office",
+        "Bedroom"
+    ],
+    "children": [
+        {
+            "furnishing": "chair_office",
+            "x": 0.0,
+            "y": -125.0,
+            "width": 600.0,
+            "length": 600.0,
+            "angle": 180.0,
+            "zIndex": 0,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "desk",
+            "x": 0.0,
+            "y": 125.0,
+            "width": 1200.0,
+            "length": 600.0,
+            "angle": 0.0,
+            "zIndex": 1
+        },
+        {
+            "furnishing": "desktop_pc",
+            "x": 460.0,
+            "y": 175.0,
+            "width": 200.0,
+            "length": 400.0,
+            "angle": 0.0,
+            "zIndex": 2,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "monitor",
+            "x": 0.0,
+            "y": 210.0,
+            "width": 600.0,
+            "length": 170.0,
+            "angle": 0.0,
+            "zIndex": 3,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "keyboard",
+            "x": -170.0,
+            "y": -30.0,
+            "width": 470.0,
+            "length": 160.0,
+            "angle": 0.0,
+            "zIndex": 4,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "mousepad_setup_regular",
+            "x": 205.0,
+            "y": -25.0,
+            "width": 250.0,
+            "length": 200.0,
+            "angle": 0.0,
+            "zIndex": 5,
+            "fixedSize": true
+        }
+    ],
+    "keywords": [
+        "pc",
+        "workstation",
+        "computer",
+        "desk",
+        "setup",
+        "station",
+        "desktop",
+        "tower",
+        "monitor",
+        "keyboard",
+        "mouse",
+        "chair",
+        "study",
+        "work",
+        "workspace",
+        "homework"
+    ]
+}

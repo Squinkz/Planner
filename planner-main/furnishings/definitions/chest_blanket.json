@@ -1,0 +1,21 @@
+{
+    "name": "Blanket Chest",
+    "image": "chest",
+    "width": 1000,
+    "length": 450,
+    "category": [
+        "Bedroom",
+        "Living Room"
+    ],
+    "keywords": [
+        "chest",
+        "trunk",
+        "blanket",
+        "blankets",
+        "linen",
+        "bedding",
+        "hope",
+        "storage",
+        "box"
+    ]
+}

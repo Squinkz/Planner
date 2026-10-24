@@ -1,0 +1,79 @@
+{
+    "name": "Dining Set Round 4",
+    "category": [
+        "Dining Room",
+        "Kitchen"
+    ],
+    "children": [
+        {
+            "furnishing": "chair_dining",
+            "x": 0.0,
+            "y": 437.014367,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 0.0,
+            "zIndex": 0,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "chair_dining",
+            "x": 437.014367,
+            "y": 0.0,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 270.0,
+            "zIndex": 1,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "chair_dining",
+            "x": 0.0,
+            "y": -437.014367,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 180.0,
+            "zIndex": 2,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "chair_dining",
+            "x": -437.014367,
+            "y": 0.0,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 90.0,
+            "zIndex": 3,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "table_dining_round_4",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1000.0,
+            "length": 1000.0,
+            "angle": 0.0,
+            "zIndex": 4
+        }
+    ],
+    "keywords": [
+        "dining",
+        "dinner",
+        "table",
+        "chairs",
+        "seats",
+        "seating",
+        "seater",
+        "person",
+        "set",
+        "suite",
+        "kitchen",
+        "eating",
+        "meals",
+        "breakfast",
+        "dinette",
+        "four",
+        "round",
+        "circular",
+        "arrangement"
+    ]
+}

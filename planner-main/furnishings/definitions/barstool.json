@@ -1,0 +1,22 @@
+{
+    "name": "Bar Stool",
+    "image": "stool",
+    "width": 450,
+    "length": 450,
+    "category": [
+        "Kitchen",
+        "Dining Room"
+    ],
+    "keywords": [
+        "stool",
+        "barstool",
+        "bar",
+        "counter",
+        "breakfast",
+        "island",
+        "seat",
+        "seating",
+        "kitchen",
+        "pub"
+    ]
+}

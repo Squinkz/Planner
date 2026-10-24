@@ -1,0 +1,24 @@
+{
+    "name": "Kid's Chair",
+    "image": "chair_kids",
+    "width": 350,
+    "length": 350,
+    "category": [
+        "Bedroom",
+        "Living Room",
+        "Dining Room"
+    ],
+    "keywords": [
+        "chair",
+        "seat",
+        "seating",
+        "child",
+        "children",
+        "kids",
+        "toddler",
+        "junior",
+        "nursery",
+        "playroom",
+        "play"
+    ]
+}

@@ -1,0 +1,31 @@
+{
+    "name": "Washer/Dryer",
+    "image": "washdryer",
+    "width": 600,
+    "length": 600,
+    "icon": null,
+    "category": "Utility",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "washer",
+        "dryer",
+        "washing",
+        "drying",
+        "machine",
+        "combination",
+        "combo",
+        "combined",
+        "clothes",
+        "clothing",
+        "laundry",
+        "appliance",
+        "front",
+        "loader",
+        "loading",
+        "linen",
+        "freestanding",
+        "standalone",
+        "scullery"
+    ]
+}

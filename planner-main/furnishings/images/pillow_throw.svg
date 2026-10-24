@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   stroke-width="1"
+   viewBox="0 0 35 35"
+   preserveAspectRatio="none"
+   version="1.1"
+   id="svg2"
+   sodipodi:docname="pillow_throw.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   width="35"
+   height="35"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/" vector-effect="non-scaling-stroke">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="namedview2"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="11.304658"
+     inkscape:cx="7.5190248"
+     inkscape:cy="2.698003"
+     inkscape:window-width="2560"
+     inkscape:window-height="1336"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2" />
+  <title
+     id="title1">Single bed</title>
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Single bed</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <path
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     id="rect2-2-4-2-4-8-9"
+     style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-opacity:1"
+     d="m -1.1340013e-5,26.837906 c 0,0 0.999788980013,-6.135521 0.999787980013,-9.228098 C 0.99977464,14.517221 -1.1340013e-5,8.3816906 -1.1340013e-5,8.3816906 -0.47938533,3.9571389 3.7352266,0.35215674 8.3749895,0.35214716 c 0,0 6.0651135,0.95876104 9.1249995,0.95876104 3.05988,0 9.124994,-0.95875146 9.124994,-0.95875146 4.249405,-1.78592384 8.375001,3.58117636 8.375001,8.02954346 0,0 -1.000211,6.1355108 -1.000211,9.2281078 2e-6,3.092597 1.000211,9.228108 1.000211,9.228108 0.479564,4.424542 -3.735251,8.029543 -8.375001,8.029543 0,0 -6.065126,-0.958761 -9.124999,-0.958752 -3.059879,0 -9.1249955,0.958742 -9.1249955,0.958742 C 3.8428136,35.819834 -1.2340013e-5,31.286283 -1.1340013e-5,26.837906 Z"
+     sodipodi:nodetypes="sassassassass" />
+</svg>

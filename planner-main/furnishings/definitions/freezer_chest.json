@@ -1,0 +1,29 @@
+{
+    "name": "Freezer Chest",
+    "image": "freezer_chest",
+    "width": 1000,
+    "length": 600,
+    "icon": null,
+    "category": [
+        "Kitchen",
+        "Utility"
+    ],
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "freezer",
+        "frozen",
+        "freeze",
+        "freezing",
+        "food",
+        "cold",
+        "refrigeration",
+        "storage",
+        "appliance",
+        "chest",
+        "horizontal",
+        "deep",
+        "top",
+        "loading"
+    ]
+}

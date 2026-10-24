@@ -1,0 +1,20 @@
+{
+    "name": "Mouse",
+    "image": "mouse",
+    "width": 65,
+    "length": 120,
+    "category": "Office",
+    "keywords": [
+        "mouse",
+        "computer",
+        "pc",
+        "pointing",
+        "device",
+        "input",
+        "peripheral",
+        "accessory",
+        "mousepad",
+        "pad",
+        "equipment"
+    ]
+}

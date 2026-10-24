@@ -1,0 +1,1274 @@
+{
+  "description": "Complete Export Composite section",
+  "logicalSize": [
+    350,
+    662
+  ],
+  "devicePixelRatio": 1.0,
+  "controls": [
+    {
+      "class": "QPushButton",
+      "name": "exportSectionHeading",
+      "accessibleName": "Composite section",
+      "enabled": true,
+      "bounds": [
+        0,
+        0,
+        350,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "Expand or collapse Composite",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": -1.0,
+        "pixelSize": 14,
+        "weight": 600
+      },
+      "text": "Composite",
+      "checkable": true,
+      "checked": true
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        138,
+        52,
+        74,
+        29
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 11.0,
+        "pixelSize": -1,
+        "weight": 700
+      },
+      "text": "Vignette"
+    },
+    {
+      "class": "QCheckBox",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        115,
+        87,
+        120,
+        32
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Enable Vignette",
+      "checkable": true,
+      "checked": true
+    },
+    {
+      "class": "QLabel",
+      "name": "exportControlLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        0,
+        125,
+        350,
+        18
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Strength"
+    },
+    {
+      "class": "DragSlider",
+      "name": "",
+      "accessibleName": "Vignette strength from 0 to 2",
+      "enabled": true,
+      "bounds": [
+        0,
+        147,
+        214,
+        32
+      ],
+      "cursor": "SizeHorCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0,
+      "maximum": 2000,
+      "step": 1,
+      "value": 250
+    },
+    {
+      "class": "QDoubleSpinBox",
+      "name": "settingsValue",
+      "accessibleName": "Vignette strength value",
+      "enabled": true,
+      "bounds": [
+        222,
+        147,
+        88,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0.0,
+      "maximum": 2.0,
+      "step": 0.01,
+      "value": 0.25,
+      "keyboardTracking": false,
+      "buttons": "UpDownArrows",
+      "decimals": 3,
+      "suffix": ""
+    },
+    {
+      "class": "QLineEdit",
+      "name": "qt_spinbox_lineedit",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        227,
+        152,
+        39,
+        22
+      ],
+      "cursor": "IBeamCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "0.250"
+    },
+    {
+      "class": "QPushButton",
+      "name": "",
+      "accessibleName": "Reset vignette strength",
+      "enabled": false,
+      "bounds": [
+        318,
+        147,
+        32,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Reset vignette strength to 0.25",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        142,
+        199,
+        66,
+        29
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 11.0,
+        "pixelSize": -1,
+        "weight": 700
+      },
+      "text": "Texture"
+    },
+    {
+      "class": "DownwardComboBox",
+      "name": "",
+      "accessibleName": "Export normal-map texture",
+      "enabled": true,
+      "bounds": [
+        0,
+        234,
+        350,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "editable": false,
+      "currentIndex": 1,
+      "items": [
+        {
+          "text": "None",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Book Cover",
+          "data": "book_cover_t2_5_75_5_10.png",
+          "tooltip": null
+        },
+        {
+          "text": "Cardboard",
+          "data": "cardboard_t1_75_25_5_5.png",
+          "tooltip": null
+        },
+        {
+          "text": "Crumpled Paper",
+          "data": "crumpled_paper_t1.33_5_5_5_2.png",
+          "tooltip": null
+        },
+        {
+          "text": "Dishrag",
+          "data": "dishrag_t2_5_33_5_2.png",
+          "tooltip": null
+        },
+        {
+          "text": "Leather 1",
+          "data": "leather_1_t2_6_45_5_75.png",
+          "tooltip": null
+        },
+        {
+          "text": "Leather 2",
+          "data": "leather_2_t2_7_45_5_75.png",
+          "tooltip": null
+        },
+        {
+          "text": "Leather 3",
+          "data": "leather_3_t2_5_4_5_10.png",
+          "tooltip": null
+        },
+        {
+          "text": "Linen",
+          "data": "linen_t2_5_5_333_10.png",
+          "tooltip": null
+        },
+        {
+          "text": "Old Paper",
+          "data": "old_paper_t1_10_5_5_10.png",
+          "tooltip": null
+        },
+        {
+          "text": "Paper Towel",
+          "data": "paper_towel_t2_5_2_2_5.png",
+          "tooltip": null
+        },
+        {
+          "text": "Print Paper",
+          "data": "print_paper_t1.5_10_65_5_10.png",
+          "tooltip": null
+        },
+        {
+          "text": "Smooth Card",
+          "data": "smooth_card_t1_6_5_5_10.png",
+          "tooltip": null
+        },
+        {
+          "text": "Toilet Paper",
+          "data": "toilet_paper_t2_5_33_5_7.png",
+          "tooltip": null
+        },
+        {
+          "text": "Weave",
+          "data": "weave_t2_2_33_5_75.png",
+          "tooltip": null
+        },
+        {
+          "text": "Wrinkled Paper",
+          "data": "wrinkled_paper_t1.33_5_5_5_5.png",
+          "tooltip": null
+        }
+      ]
+    },
+    {
+      "class": "QLabel",
+      "name": "exportControlLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        0,
+        278,
+        350,
+        18
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Scale"
+    },
+    {
+      "class": "DragSlider",
+      "name": "",
+      "accessibleName": "Texture scale",
+      "enabled": true,
+      "bounds": [
+        0,
+        300,
+        214,
+        32
+      ],
+      "cursor": "SizeHorCursor",
+      "tooltip": "Scale: 2 normal-map pixels per canvas pixel; zero bypasses the texture",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0,
+      "maximum": 4000,
+      "step": 1,
+      "value": 2000
+    },
+    {
+      "class": "QDoubleSpinBox",
+      "name": "settingsValue",
+      "accessibleName": "Texture scale value",
+      "enabled": true,
+      "bounds": [
+        222,
+        300,
+        88,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0.0,
+      "maximum": 4.0,
+      "step": 0.01,
+      "value": 2.0,
+      "keyboardTracking": false,
+      "buttons": "UpDownArrows",
+      "decimals": 3,
+      "suffix": ""
+    },
+    {
+      "class": "QLineEdit",
+      "name": "qt_spinbox_lineedit",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        227,
+        305,
+        39,
+        22
+      ],
+      "cursor": "IBeamCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "2.000"
+    },
+    {
+      "class": "QPushButton",
+      "name": "",
+      "accessibleName": "Reset texture scale",
+      "enabled": false,
+      "bounds": [
+        318,
+        300,
+        32,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Use filename scale (2 normal-map pixels per canvas pixel)",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "exportControlLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        0,
+        344,
+        350,
+        18
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Angle"
+    },
+    {
+      "class": "DragSlider",
+      "name": "",
+      "accessibleName": "Texture angle",
+      "enabled": true,
+      "bounds": [
+        0,
+        366,
+        214,
+        32
+      ],
+      "cursor": "SizeHorCursor",
+      "tooltip": "Angle: 0 degrees",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0,
+      "maximum": 360,
+      "step": 1,
+      "value": 0
+    },
+    {
+      "class": "QSpinBox",
+      "name": "settingsValue",
+      "accessibleName": "Texture angle value",
+      "enabled": true,
+      "bounds": [
+        222,
+        366,
+        88,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0,
+      "maximum": 360,
+      "step": 1,
+      "value": 0,
+      "keyboardTracking": false,
+      "buttons": "UpDownArrows"
+    },
+    {
+      "class": "QLineEdit",
+      "name": "qt_spinbox_lineedit",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        227,
+        371,
+        39,
+        22
+      ],
+      "cursor": "IBeamCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "0"
+    },
+    {
+      "class": "QPushButton",
+      "name": "",
+      "accessibleName": "Reset texture angle",
+      "enabled": false,
+      "bounds": [
+        318,
+        366,
+        32,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Reset angle to 0",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "exportControlLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        0,
+        410,
+        350,
+        18
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Strength"
+    },
+    {
+      "class": "DragSlider",
+      "name": "",
+      "accessibleName": "Texture strength",
+      "enabled": true,
+      "bounds": [
+        0,
+        432,
+        214,
+        32
+      ],
+      "cursor": "SizeHorCursor",
+      "tooltip": "Strength: 0.5",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0,
+      "maximum": 1000,
+      "step": 1,
+      "value": 500
+    },
+    {
+      "class": "QDoubleSpinBox",
+      "name": "settingsValue",
+      "accessibleName": "Texture strength value",
+      "enabled": true,
+      "bounds": [
+        222,
+        432,
+        88,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "step": 0.01,
+      "value": 0.5,
+      "keyboardTracking": false,
+      "buttons": "UpDownArrows",
+      "decimals": 3,
+      "suffix": ""
+    },
+    {
+      "class": "QLineEdit",
+      "name": "qt_spinbox_lineedit",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        227,
+        437,
+        39,
+        22
+      ],
+      "cursor": "IBeamCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "0.500"
+    },
+    {
+      "class": "QPushButton",
+      "name": "",
+      "accessibleName": "Reset texture strength",
+      "enabled": false,
+      "bounds": [
+        318,
+        432,
+        32,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Reset strength to 0.5 (texture default)",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "exportControlLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        0,
+        476,
+        350,
+        18
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Highlights"
+    },
+    {
+      "class": "DragSlider",
+      "name": "",
+      "accessibleName": "Texture highlights",
+      "enabled": true,
+      "bounds": [
+        0,
+        498,
+        214,
+        32
+      ],
+      "cursor": "SizeHorCursor",
+      "tooltip": "Highlights: 0.75",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0,
+      "maximum": 1000,
+      "step": 1,
+      "value": 750
+    },
+    {
+      "class": "QDoubleSpinBox",
+      "name": "settingsValue",
+      "accessibleName": "Texture highlights value",
+      "enabled": true,
+      "bounds": [
+        222,
+        498,
+        88,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "step": 0.01,
+      "value": 0.75,
+      "keyboardTracking": false,
+      "buttons": "UpDownArrows",
+      "decimals": 3,
+      "suffix": ""
+    },
+    {
+      "class": "QLineEdit",
+      "name": "qt_spinbox_lineedit",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        227,
+        503,
+        39,
+        22
+      ],
+      "cursor": "IBeamCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "0.750"
+    },
+    {
+      "class": "QPushButton",
+      "name": "",
+      "accessibleName": "Reset texture highlights",
+      "enabled": false,
+      "bounds": [
+        318,
+        498,
+        32,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Reset highlights to 0.75 (texture default)",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "exportControlLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        0,
+        542,
+        350,
+        18
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Midtones"
+    },
+    {
+      "class": "DragSlider",
+      "name": "",
+      "accessibleName": "Texture midtones",
+      "enabled": true,
+      "bounds": [
+        0,
+        564,
+        214,
+        32
+      ],
+      "cursor": "SizeHorCursor",
+      "tooltip": "Midtones: 0.5",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0,
+      "maximum": 1000,
+      "step": 1,
+      "value": 500
+    },
+    {
+      "class": "QDoubleSpinBox",
+      "name": "settingsValue",
+      "accessibleName": "Texture midtones value",
+      "enabled": true,
+      "bounds": [
+        222,
+        564,
+        88,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "step": 0.01,
+      "value": 0.5,
+      "keyboardTracking": false,
+      "buttons": "UpDownArrows",
+      "decimals": 3,
+      "suffix": ""
+    },
+    {
+      "class": "QLineEdit",
+      "name": "qt_spinbox_lineedit",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        227,
+        569,
+        39,
+        22
+      ],
+      "cursor": "IBeamCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "0.500"
+    },
+    {
+      "class": "QPushButton",
+      "name": "",
+      "accessibleName": "Reset texture midtones",
+      "enabled": false,
+      "bounds": [
+        318,
+        564,
+        32,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Reset midtones to 0.5 (texture default)",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "exportControlLabel",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        0,
+        608,
+        350,
+        18
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Shadows"
+    },
+    {
+      "class": "DragSlider",
+      "name": "",
+      "accessibleName": "Texture shadows",
+      "enabled": true,
+      "bounds": [
+        0,
+        630,
+        214,
+        32
+      ],
+      "cursor": "SizeHorCursor",
+      "tooltip": "Shadows: 1",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0,
+      "maximum": 1000,
+      "step": 1,
+      "value": 1000
+    },
+    {
+      "class": "QDoubleSpinBox",
+      "name": "settingsValue",
+      "accessibleName": "Texture shadows value",
+      "enabled": true,
+      "bounds": [
+        222,
+        630,
+        88,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "step": 0.01,
+      "value": 1.0,
+      "keyboardTracking": false,
+      "buttons": "UpDownArrows",
+      "decimals": 3,
+      "suffix": ""
+    },
+    {
+      "class": "QLineEdit",
+      "name": "qt_spinbox_lineedit",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        227,
+        635,
+        39,
+        22
+      ],
+      "cursor": "IBeamCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "1.000"
+    },
+    {
+      "class": "QPushButton",
+      "name": "",
+      "accessibleName": "Reset texture shadows",
+      "enabled": false,
+      "bounds": [
+        318,
+        630,
+        32,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Reset shadows to 1 (texture default)",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    }
+  ],
+  "layouts": [
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "sectionHeading",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "sectionHeading",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "QFrame",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    }
+  ]
+}

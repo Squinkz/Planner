@@ -1,0 +1,43 @@
+{
+    "name": "Room Divider 2",
+    "category": [
+        "Living Room",
+        "Bedroom",
+        "Office"
+    ],
+    "children": [
+        {
+            "furnishing": "divider",
+            "x": -250.0,
+            "y": 0.0,
+            "width": 500.0,
+            "length": 60.0,
+            "angle": 0.0,
+            "zIndex": 0
+        },
+        {
+            "furnishing": "divider",
+            "x": 250.0,
+            "y": 0.0,
+            "width": 500.0,
+            "length": 60.0,
+            "angle": 0.0,
+            "zIndex": 1
+        }
+    ],
+    "keywords": [
+        "divider",
+        "partition",
+        "screen",
+        "privacy",
+        "folding",
+        "fold",
+        "panel",
+        "room",
+        "separation",
+        "freestanding",
+        "dressing",
+        "two",
+        "panels"
+    ]
+}

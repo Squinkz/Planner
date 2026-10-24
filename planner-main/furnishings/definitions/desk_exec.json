@@ -1,0 +1,25 @@
+{
+    "name": "Desk Executive",
+    "image": "desk_exec",
+    "width": 1800,
+    "length": 800,
+    "category": [
+        "Office",
+        "Bedroom"
+    ],
+    "keywords": [
+        "desk",
+        "writing",
+        "work",
+        "workstation",
+        "station",
+        "computer",
+        "study",
+        "workspace",
+        "homework",
+        "table",
+        "surface",
+        "executive",
+        "large"
+    ]
+}

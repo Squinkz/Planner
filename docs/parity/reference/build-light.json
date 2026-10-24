@@ -1,0 +1,7995 @@
+{
+  "description": "Same layout with independent light UI/canvas palettes",
+  "logicalSize": [
+    1440,
+    900
+  ],
+  "devicePixelRatio": 1.0,
+  "controls": [
+    {
+      "class": "QSplitter",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        12,
+        12,
+        1416,
+        876
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      }
+    },
+    {
+      "class": "QPushButton",
+      "name": "headerButton",
+      "accessibleName": "File",
+      "enabled": true,
+      "bounds": [
+        1234,
+        12,
+        34,
+        26
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "File",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": true,
+      "checked": false
+    },
+    {
+      "class": "QPushButton",
+      "name": "headerButton",
+      "accessibleName": "Edit",
+      "enabled": true,
+      "bounds": [
+        1274,
+        12,
+        34,
+        26
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "Edit",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": true,
+      "checked": false
+    },
+    {
+      "class": "QPushButton",
+      "name": "headerButton",
+      "accessibleName": "View",
+      "enabled": true,
+      "bounds": [
+        1314,
+        12,
+        34,
+        26
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "View",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": true,
+      "checked": false
+    },
+    {
+      "class": "QPushButton",
+      "name": "headerButton",
+      "accessibleName": "Settings",
+      "enabled": true,
+      "bounds": [
+        1354,
+        12,
+        34,
+        26
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "Settings",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QPushButton",
+      "name": "headerButton",
+      "accessibleName": "Help",
+      "enabled": true,
+      "bounds": [
+        1394,
+        12,
+        34,
+        26
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "Help",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": true,
+      "checked": false
+    },
+    {
+      "class": "QToolButton",
+      "name": "viewportToolbarButton",
+      "accessibleName": "Snap",
+      "enabled": true,
+      "bounds": [
+        988,
+        48,
+        40,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "Toggle snapping. Hold Alt to temporarily disable snapping.",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": true,
+      "checked": true
+    },
+    {
+      "class": "QToolButton",
+      "name": "viewportToolbarButton",
+      "accessibleName": "Snapping Options",
+      "enabled": true,
+      "bounds": [
+        988,
+        94,
+        40,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "Snapping options",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": true,
+      "checked": false
+    },
+    {
+      "class": "QToolButton",
+      "name": "viewportToolbarButton",
+      "accessibleName": "Connected Points",
+      "enabled": true,
+      "bounds": [
+        988,
+        161,
+        40,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "Move connected points together",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": true,
+      "checked": true
+    },
+    {
+      "class": "QToolButton",
+      "name": "viewportToolbarButton",
+      "accessibleName": "Connected Objects",
+      "enabled": true,
+      "bounds": [
+        988,
+        207,
+        40,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "Move connected objects together",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": true,
+      "checked": false
+    },
+    {
+      "class": "QToolButton",
+      "name": "viewportToolbarButton",
+      "accessibleName": "Group Mode",
+      "enabled": true,
+      "bounds": [
+        988,
+        274,
+        40,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "Toggle group selection",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": true,
+      "checked": true
+    },
+    {
+      "class": "QToolButton",
+      "name": "viewportToolbarButton",
+      "accessibleName": "Group",
+      "enabled": false,
+      "bounds": [
+        988,
+        320,
+        40,
+        40
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Group selected (Ctrl + G)",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QToolButton",
+      "name": "viewportToolbarButton",
+      "accessibleName": "Ungroup",
+      "enabled": false,
+      "bounds": [
+        988,
+        366,
+        40,
+        40
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Ungroup selected (Alt + G)",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QToolButton",
+      "name": "viewportToolbarButton",
+      "accessibleName": "Hide",
+      "enabled": true,
+      "bounds": [
+        988,
+        433,
+        40,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "Hide selected (H)",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QToolButton",
+      "name": "viewportToolbarButton",
+      "accessibleName": "HideUnselected",
+      "enabled": true,
+      "bounds": [
+        988,
+        479,
+        40,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "Hide unselected (Alt + H)",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QToolButton",
+      "name": "viewportToolbarButton",
+      "accessibleName": "Unhide",
+      "enabled": false,
+      "bounds": [
+        988,
+        525,
+        40,
+        40
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Unhide all (U)",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QToolButton",
+      "name": "viewportToolbarButton",
+      "accessibleName": "Transform orientation",
+      "enabled": true,
+      "bounds": [
+        988,
+        592,
+        40,
+        40
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "Global transforms (Tab: switch to local)",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QSplitter",
+      "name": "sidebarContentSplitter",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1038,
+        48,
+        390,
+        840
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      }
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1135,
+        628,
+        18,
+        18
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": ""
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1163,
+        623,
+        140,
+        29
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 11.0,
+        "pixelSize": -1,
+        "weight": 700
+      },
+      "text": "Object Properties"
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1396,
+        628,
+        18,
+        18
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": ""
+    },
+    {
+      "class": "QScrollArea",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1039,
+        658,
+        388,
+        230
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      }
+    },
+    {
+      "class": "QLabel",
+      "name": "selectionHeading",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1052,
+        666,
+        361,
+        26
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 14.0,
+        "pixelSize": -1,
+        "weight": 600
+      },
+      "text": "Wall (#0001)"
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1052,
+        714,
+        37,
+        36
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Width"
+    },
+    {
+      "class": "DragSpinBox",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1119,
+        714,
+        294,
+        36
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Drag left or right to adjust. Hold Alt for finer control. Click to type a value.",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0.1,
+      "maximum": 1000000000.0,
+      "step": 1.0,
+      "value": 24.0,
+      "keyboardTracking": false,
+      "buttons": "NoButtons",
+      "decimals": 3,
+      "suffix": " cm"
+    },
+    {
+      "class": "QLineEdit",
+      "name": "qt_spinbox_lineedit",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1124,
+        719,
+        284,
+        26
+      ],
+      "cursor": "IBeamCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "24.000 cm"
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1052,
+        756,
+        43,
+        36
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Length"
+    },
+    {
+      "class": "DragSpinBox",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1119,
+        756,
+        294,
+        36
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Drag left or right to adjust. Hold Alt for finer control. Click to type a value.",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0.88,
+      "maximum": 1000000000.0,
+      "step": 0.1,
+      "value": 4.4,
+      "keyboardTracking": false,
+      "buttons": "NoButtons",
+      "decimals": 3,
+      "suffix": " m"
+    },
+    {
+      "class": "QLineEdit",
+      "name": "qt_spinbox_lineedit",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1124,
+        761,
+        284,
+        26
+      ],
+      "cursor": "IBeamCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "4.400 m"
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1052,
+        798,
+        51,
+        36
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Material"
+    },
+    {
+      "class": "DownwardComboBox",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1119,
+        798,
+        294,
+        36
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "editable": false,
+      "currentIndex": 0,
+      "items": [
+        {
+          "text": "Generic",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Brick",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Concrete Block",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Ceramic",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Concrete",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Lumber",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Metal",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Plywood",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Steel",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Wood",
+          "data": null,
+          "tooltip": null
+        }
+      ]
+    },
+    {
+      "class": "QScrollArea",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1039,
+        94,
+        388,
+        508
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      }
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1176,
+        113,
+        18,
+        18
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": ""
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1204,
+        108,
+        76,
+        29
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 11.0,
+        "pixelSize": -1,
+        "weight": 700
+      },
+      "text": "Wall Tool"
+    },
+    {
+      "class": "QToolButton",
+      "name": "viewportToolbarButton",
+      "accessibleName": "Line",
+      "enabled": true,
+      "bounds": [
+        1053,
+        151,
+        24,
+        28
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "Line",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": true,
+      "checked": true
+    },
+    {
+      "class": "QToolButton",
+      "name": "viewportToolbarButton",
+      "accessibleName": "Square",
+      "enabled": true,
+      "bounds": [
+        1053,
+        194,
+        24,
+        28
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "Square",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": true,
+      "checked": false
+    },
+    {
+      "class": "QToolButton",
+      "name": "viewportToolbarButton",
+      "accessibleName": "Circle",
+      "enabled": true,
+      "bounds": [
+        1053,
+        237,
+        24,
+        28
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "Circle",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": true,
+      "checked": false
+    },
+    {
+      "class": "DragSlider",
+      "name": "",
+      "accessibleName": "Wall width preset",
+      "enabled": true,
+      "bounds": [
+        1120,
+        203,
+        271,
+        18
+      ],
+      "cursor": "SizeHorCursor",
+      "tooltip": "Drag to choose a wall width. Press Q to decrease the width or W to increase it.",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0,
+      "maximum": 3,
+      "step": 1,
+      "value": 3
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1108,
+        229,
+        51,
+        31
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Material"
+    },
+    {
+      "class": "DownwardComboBox",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1175,
+        229,
+        228,
+        36
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "editable": false,
+      "currentIndex": 0,
+      "items": [
+        {
+          "text": "Generic",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Brick",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Concrete Block",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Ceramic",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Concrete",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Lumber",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Metal",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Plywood",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Steel",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Wood",
+          "data": null,
+          "tooltip": null
+        }
+      ]
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1181,
+        292,
+        18,
+        18
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": ""
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1209,
+        287,
+        66,
+        29
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 11.0,
+        "pixelSize": -1,
+        "weight": 700
+      },
+      "text": "Objects"
+    },
+    {
+      "class": "QLabel",
+      "name": "objectSubheading",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1053,
+        330,
+        350,
+        18
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 700
+      },
+      "text": "Doors"
+    },
+    {
+      "class": "WindowButton",
+      "name": "openingIconButton",
+      "accessibleName": "Door",
+      "enabled": true,
+      "bounds": [
+        1061,
+        360,
+        48,
+        48
+      ],
+      "cursor": "OpenHandCursor",
+      "tooltip": "Door",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "openingIconCaption",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1053,
+        412,
+        64,
+        15
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Standard"
+    },
+    {
+      "class": "WindowButton",
+      "name": "openingIconButton",
+      "accessibleName": "Sliding Door",
+      "enabled": true,
+      "bounds": [
+        1133,
+        360,
+        48,
+        48
+      ],
+      "cursor": "OpenHandCursor",
+      "tooltip": "Sliding door",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "openingIconCaption",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1125,
+        412,
+        64,
+        15
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Sliding"
+    },
+    {
+      "class": "WindowButton",
+      "name": "openingIconButton",
+      "accessibleName": "Pocket Door",
+      "enabled": true,
+      "bounds": [
+        1205,
+        360,
+        48,
+        48
+      ],
+      "cursor": "OpenHandCursor",
+      "tooltip": "Pocket door",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "openingIconCaption",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1197,
+        412,
+        64,
+        15
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Pocket"
+    },
+    {
+      "class": "WindowButton",
+      "name": "openingIconButton",
+      "accessibleName": "Barn Door",
+      "enabled": true,
+      "bounds": [
+        1277,
+        360,
+        48,
+        48
+      ],
+      "cursor": "OpenHandCursor",
+      "tooltip": "Barn door",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "openingIconCaption",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1269,
+        412,
+        64,
+        15
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Barn"
+    },
+    {
+      "class": "WindowButton",
+      "name": "openingIconButton",
+      "accessibleName": "Bifold Door",
+      "enabled": true,
+      "bounds": [
+        1061,
+        439,
+        48,
+        48
+      ],
+      "cursor": "OpenHandCursor",
+      "tooltip": "Bifold door",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "openingIconCaption",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1053,
+        491,
+        64,
+        15
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Bifold"
+    },
+    {
+      "class": "WindowButton",
+      "name": "openingIconButton",
+      "accessibleName": "Open Doorway",
+      "enabled": true,
+      "bounds": [
+        1133,
+        439,
+        48,
+        48
+      ],
+      "cursor": "OpenHandCursor",
+      "tooltip": "Open doorway",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "openingIconCaption",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1125,
+        491,
+        64,
+        15
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Open"
+    },
+    {
+      "class": "QLabel",
+      "name": "objectSubheading",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1053,
+        528,
+        350,
+        18
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 700
+      },
+      "text": "Windows"
+    },
+    {
+      "class": "WindowButton",
+      "name": "openingIconButton",
+      "accessibleName": "Window",
+      "enabled": true,
+      "bounds": [
+        1061,
+        558,
+        48,
+        48
+      ],
+      "cursor": "OpenHandCursor",
+      "tooltip": "Window",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "openingIconCaption",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1053,
+        610,
+        64,
+        15
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Standard"
+    },
+    {
+      "class": "WindowButton",
+      "name": "openingIconButton",
+      "accessibleName": "Silled Window",
+      "enabled": true,
+      "bounds": [
+        1133,
+        558,
+        48,
+        48
+      ],
+      "cursor": "OpenHandCursor",
+      "tooltip": "Silled window",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "openingIconCaption",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1125,
+        610,
+        64,
+        15
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Silled"
+    },
+    {
+      "class": "WindowButton",
+      "name": "openingIconButton",
+      "accessibleName": "Casement Window",
+      "enabled": true,
+      "bounds": [
+        1205,
+        558,
+        48,
+        48
+      ],
+      "cursor": "OpenHandCursor",
+      "tooltip": "Casement window",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "openingIconCaption",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1197,
+        610,
+        64,
+        15
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Casement"
+    },
+    {
+      "class": "QLabel",
+      "name": "objectSubheading",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1053,
+        647,
+        350,
+        18
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 700
+      },
+      "text": "Miscellaneous"
+    },
+    {
+      "class": "WindowButton",
+      "name": "openingIconButton",
+      "accessibleName": "Stair",
+      "enabled": true,
+      "bounds": [
+        1061,
+        677,
+        48,
+        48
+      ],
+      "cursor": "OpenHandCursor",
+      "tooltip": "Stair",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "openingIconCaption",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1053,
+        729,
+        64,
+        15
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Stair"
+    },
+    {
+      "class": "WindowButton",
+      "name": "openingIconButton",
+      "accessibleName": "Counter",
+      "enabled": true,
+      "bounds": [
+        1133,
+        677,
+        48,
+        48
+      ],
+      "cursor": "OpenHandCursor",
+      "tooltip": "Counter",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "openingIconCaption",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1125,
+        729,
+        64,
+        15
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Counter"
+    },
+    {
+      "class": "WindowButton",
+      "name": "openingIconButton",
+      "accessibleName": "Railing",
+      "enabled": true,
+      "bounds": [
+        1205,
+        677,
+        48,
+        48
+      ],
+      "cursor": "OpenHandCursor",
+      "tooltip": "Railing",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "openingIconCaption",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1197,
+        729,
+        64,
+        15
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Railing"
+    },
+    {
+      "class": "WindowButton",
+      "name": "openingIconButton",
+      "accessibleName": "Pillar",
+      "enabled": true,
+      "bounds": [
+        1277,
+        677,
+        48,
+        48
+      ],
+      "cursor": "OpenHandCursor",
+      "tooltip": "Pillar",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "openingIconCaption",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1269,
+        729,
+        64,
+        15
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Pillar"
+    },
+    {
+      "class": "WindowButton",
+      "name": "openingIconButton",
+      "accessibleName": "Column",
+      "enabled": true,
+      "bounds": [
+        1061,
+        756,
+        48,
+        48
+      ],
+      "cursor": "OpenHandCursor",
+      "tooltip": "Column",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "openingIconCaption",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1053,
+        808,
+        64,
+        15
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Column"
+    },
+    {
+      "class": "WindowButton",
+      "name": "openingIconButton",
+      "accessibleName": "Fireplace",
+      "enabled": true,
+      "bounds": [
+        1133,
+        756,
+        48,
+        48
+      ],
+      "cursor": "OpenHandCursor",
+      "tooltip": "Fireplace",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "openingIconCaption",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1125,
+        808,
+        64,
+        15
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Fireplace"
+    },
+    {
+      "class": "WindowButton",
+      "name": "openingIconButton",
+      "accessibleName": "Elevator",
+      "enabled": true,
+      "bounds": [
+        1205,
+        756,
+        48,
+        48
+      ],
+      "cursor": "OpenHandCursor",
+      "tooltip": "Elevator",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "openingIconCaption",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1197,
+        808,
+        64,
+        15
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Elevator"
+    },
+    {
+      "class": "QLabel",
+      "name": "objectSubheading",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1053,
+        845,
+        350,
+        18
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 700
+      },
+      "text": "Annotations"
+    },
+    {
+      "class": "WindowButton",
+      "name": "openingIconButton",
+      "accessibleName": "Label",
+      "enabled": true,
+      "bounds": [
+        1061,
+        875,
+        48,
+        48
+      ],
+      "cursor": "OpenHandCursor",
+      "tooltip": "Label",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "openingIconCaption",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1053,
+        927,
+        64,
+        15
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Label"
+    },
+    {
+      "class": "WindowButton",
+      "name": "openingIconButton",
+      "accessibleName": "Arrow",
+      "enabled": true,
+      "bounds": [
+        1133,
+        875,
+        48,
+        48
+      ],
+      "cursor": "OpenHandCursor",
+      "tooltip": "Arrow",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "openingIconCaption",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1125,
+        927,
+        64,
+        15
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Arrow"
+    },
+    {
+      "class": "WindowButton",
+      "name": "openingIconButton",
+      "accessibleName": "Measurement Guide",
+      "enabled": true,
+      "bounds": [
+        1205,
+        875,
+        48,
+        48
+      ],
+      "cursor": "OpenHandCursor",
+      "tooltip": "Measurement guide",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "openingIconCaption",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1197,
+        927,
+        64,
+        15
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Measure"
+    },
+    {
+      "class": "WindowButton",
+      "name": "openingIconButton",
+      "accessibleName": "North Arrow",
+      "enabled": true,
+      "bounds": [
+        1277,
+        875,
+        48,
+        48
+      ],
+      "cursor": "OpenHandCursor",
+      "tooltip": "North arrow",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    },
+    {
+      "class": "QLabel",
+      "name": "openingIconCaption",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1269,
+        927,
+        64,
+        15
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 8.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "North"
+    },
+    {
+      "class": "SidebarTabBar",
+      "name": "sidebarTabBar",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        1038,
+        48,
+        390,
+        46
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "currentIndex": 0,
+      "tabs": [
+        {
+          "text": "Build",
+          "tooltip": "Build"
+        },
+        {
+          "text": "Furnish",
+          "tooltip": "Furnish"
+        },
+        {
+          "text": "Visibility",
+          "tooltip": "Visibility"
+        },
+        {
+          "text": "",
+          "tooltip": "Export"
+        }
+      ]
+    },
+    {
+      "class": "QPushButton",
+      "name": "fullscreenButton",
+      "accessibleName": "Toggle fullscreen",
+      "enabled": true,
+      "bounds": [
+        938,
+        52,
+        32,
+        32
+      ],
+      "cursor": "PointingHandCursor",
+      "tooltip": "Fullscreen (F)",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "",
+      "checkable": false,
+      "checked": false
+    }
+  ],
+  "layouts": [
+    {
+      "class": "QLayout",
+      "parent": "MainWindow",
+      "margins": [
+        11,
+        11,
+        11,
+        11
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "viewportMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "viewportMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "viewportMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "viewportMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "viewportMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "viewportMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "viewportMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "viewportMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "viewportToolbar",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "headerMenuItem",
+      "margins": [
+        12,
+        0,
+        14,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        1,
+        12,
+        1,
+        0
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "sectionHeading",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        13,
+        8,
+        14,
+        14
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QFormLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        16,
+        0,
+        0
+      ],
+      "spacing": -1
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "QFrame",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QStackedLayout",
+      "parent": "QStackedWidget",
+      "margins": [
+        9,
+        9,
+        9,
+        9
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QStackedLayout",
+      "parent": "QStackedWidget",
+      "margins": [
+        9,
+        9,
+        9,
+        9
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QFormLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        8,
+        0,
+        0
+      ],
+      "spacing": -1
+    },
+    {
+      "class": "QFormLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        16,
+        0,
+        0
+      ],
+      "spacing": -1
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QFormLayout",
+      "parent": "vertexProperties",
+      "margins": [
+        10,
+        18,
+        10,
+        10
+      ],
+      "spacing": -1
+    },
+    {
+      "class": "QFormLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        16,
+        0,
+        0
+      ],
+      "spacing": -1
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QStackedLayout",
+      "parent": "qt_tabwidget_stackedwidget",
+      "margins": [
+        9,
+        9,
+        9,
+        9
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        14,
+        14,
+        14,
+        14
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "FurnishingIconLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "FurnishingIconLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "FurnishingIconLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "FurnishingIconLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "FurnishingIconLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "FurnishingIconLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "FurnishingIconLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "FurnishingIconLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "FurnishingIconLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "FurnishingIconLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "FurnishingIconLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "FurnishingIconLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        14,
+        14,
+        14,
+        14
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "sectionHeading",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "ExportPanel",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "ExportPanel",
+      "margins": [
+        14,
+        14,
+        14,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "ExportPanel",
+      "margins": [
+        14,
+        14,
+        14,
+        6
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "ExportPanel",
+      "margins": [
+        14,
+        8,
+        14,
+        6
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "ExportPanel",
+      "margins": [
+        14,
+        4,
+        14,
+        4
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "ExportPanel",
+      "margins": [
+        14,
+        8,
+        14,
+        6
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "sectionHeading",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "QFrame",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QStackedLayout",
+      "parent": "qt_tabwidget_stackedwidget",
+      "margins": [
+        9,
+        9,
+        9,
+        9
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        14,
+        8,
+        14,
+        6
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "QFrame",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        14,
+        0,
+        14,
+        6
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        14,
+        8,
+        14,
+        6
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "QFrame",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "QFrame",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        14,
+        0,
+        14,
+        6
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        14,
+        14,
+        14,
+        14
+      ],
+      "spacing": 20
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QGridLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": -1
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "QFrame",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "QFrame",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QGridLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": -1
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "QFrame",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "exportBorderSizeOptions",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "exportBorderSizeOptions",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QGridLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": -1
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QFormLayout",
+      "parent": "exportGridOptions",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": -1
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QFormLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": -1
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 16
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "QFrame",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "sectionHeading",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "sectionHeading",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "QFrame",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        14,
+        14,
+        14,
+        14
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 14
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QFormLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": -1
+    },
+    {
+      "class": "FurnishingIconLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "FurnishingIconLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "FurnishingIconLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "FurnishingIconLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "sectionHeading",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "WallWidthSelector",
+      "margins": [
+        12,
+        52,
+        12,
+        0
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "QFrame",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "sectionHeading",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 4
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        14,
+        8,
+        14,
+        14
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "ColorPickerDialog",
+      "margins": [
+        11,
+        11,
+        11,
+        11
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "ColorPickerDialog",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QGridLayout",
+      "parent": "ColorPickerDialog",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "ColorPickerDialog",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "SettingsWindow",
+      "margins": [
+        12,
+        12,
+        12,
+        12
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QStackedLayout",
+      "parent": "qt_tabwidget_stackedwidget",
+      "margins": [
+        9,
+        9,
+        9,
+        9
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        16,
+        20,
+        16,
+        16
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 48
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 24
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 16
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 16
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 16
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 16
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QFormLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": -1
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "QFrame",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "QFrame",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        16,
+        20,
+        16,
+        16
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 24
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 24
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 24
+    },
+    {
+      "class": "QFormLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": -1
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 24
+    },
+    {
+      "class": "QFormLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": -1
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "QFrame",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "QFrame",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        16,
+        20,
+        16,
+        16
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QStackedLayout",
+      "parent": "qt_tabwidget_stackedwidget",
+      "margins": [
+        9,
+        9,
+        9,
+        9
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        16,
+        20,
+        16,
+        16
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 24
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QFormLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": -1
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QFormLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": -1
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QFormLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": -1
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        16,
+        20,
+        16,
+        16
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QFormLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": -1
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        16,
+        20,
+        16,
+        16
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QFormLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": -1
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        16,
+        20,
+        16,
+        16
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QFormLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": -1
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        16,
+        20,
+        16,
+        16
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QFormLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": -1
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 8
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "QDialogButtonBox",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 6
+    }
+  ]
+}

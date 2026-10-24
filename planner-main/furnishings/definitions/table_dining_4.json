@@ -1,0 +1,27 @@
+{
+    "name": "Dinner Table 4",
+    "image": "beveled_rectangle",
+    "width": 1200,
+    "length": 800,
+    "category": [
+        "Dining Room",
+        "Kitchen"
+    ],
+    "keywords": [
+        "table",
+        "dining",
+        "dinner",
+        "kitchen",
+        "eating",
+        "meals",
+        "breakfast",
+        "dinette",
+        "seats",
+        "seating",
+        "seater",
+        "person",
+        "four",
+        "rectangular",
+        "rectangle"
+    ]
+}

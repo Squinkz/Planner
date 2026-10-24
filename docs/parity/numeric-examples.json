@@ -1,0 +1,327 @@
+{
+  "format": "Planner portable numeric examples",
+  "version": 1,
+  "units": "millimeters",
+  "absoluteTolerance": 1e-09,
+  "relativeTolerance": 1e-12,
+  "cases": [
+    {
+      "id": "body-horizontal",
+      "operation": "WallBody",
+      "arguments": [
+        [
+          0,
+          0
+        ],
+        [
+          1000,
+          0
+        ],
+        200
+      ],
+      "expected": [
+        [
+          0,
+          100
+        ],
+        [
+          1000,
+          100
+        ],
+        [
+          1000,
+          -100
+        ],
+        [
+          0,
+          -100
+        ]
+      ]
+    },
+    {
+      "id": "body-vertical",
+      "operation": "WallBody",
+      "arguments": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1000
+        ],
+        200
+      ],
+      "expected": [
+        [
+          -100,
+          0
+        ],
+        [
+          -100,
+          1000
+        ],
+        [
+          100,
+          1000
+        ],
+        [
+          100,
+          0
+        ]
+      ]
+    },
+    {
+      "id": "body-diagonal",
+      "operation": "WallBody",
+      "arguments": [
+        [
+          10,
+          20
+        ],
+        [
+          310,
+          420
+        ],
+        100
+      ],
+      "expected": [
+        [
+          -30,
+          50
+        ],
+        [
+          270,
+          450
+        ],
+        [
+          350,
+          390
+        ],
+        [
+          50,
+          -10
+        ]
+      ]
+    },
+    {
+      "id": "body-degenerate",
+      "operation": "WallBody",
+      "arguments": [
+        [
+          20,
+          30
+        ],
+        [
+          20,
+          30
+        ],
+        200
+      ],
+      "expected": []
+    },
+    {
+      "id": "rectangle-xywh",
+      "operation": "RectangleFootprint",
+      "arguments": [
+        [
+          0,
+          0
+        ],
+        [
+          1000,
+          0
+        ],
+        200
+      ],
+      "expected": [
+        [
+          0,
+          -100,
+          1000,
+          200
+        ],
+        [
+          [
+            0,
+            100
+          ],
+          [
+            1000,
+            100
+          ],
+          [
+            1000,
+            -100
+          ],
+          [
+            0,
+            -100
+          ]
+        ],
+        [
+          [
+            1,
+            0
+          ],
+          [
+            0,
+            1
+          ]
+        ]
+      ]
+    },
+    {
+      "id": "ellipse-inside",
+      "operation": "ColumnContains",
+      "arguments": [
+        [
+          0,
+          0
+        ],
+        [
+          1000,
+          0
+        ],
+        400,
+        [
+          500,
+          150
+        ]
+      ],
+      "expected": true
+    },
+    {
+      "id": "ellipse-outside-corner",
+      "operation": "ColumnContains",
+      "arguments": [
+        [
+          0,
+          0
+        ],
+        [
+          1000,
+          0
+        ],
+        400,
+        [
+          900,
+          150
+        ]
+      ],
+      "expected": false
+    },
+    {
+      "id": "ellipse-boundary",
+      "operation": "ColumnContains",
+      "arguments": [
+        [
+          0,
+          0
+        ],
+        [
+          1000,
+          0
+        ],
+        400,
+        [
+          500,
+          200
+        ]
+      ],
+      "expected": true
+    },
+    {
+      "id": "ellipse-degenerate",
+      "operation": "ColumnContains",
+      "arguments": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        400,
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": false
+    },
+    {
+      "id": "metric-grid-1",
+      "operation": "GridIntervals",
+      "arguments": [
+        1,
+        false
+      ],
+      "expected": [
+        100,
+        20
+      ]
+    },
+    {
+      "id": "metric-grid-01",
+      "operation": "GridIntervals",
+      "arguments": [
+        0.1,
+        false
+      ],
+      "expected": [
+        1000,
+        200
+      ]
+    },
+    {
+      "id": "metric-grid-2",
+      "operation": "GridIntervals",
+      "arguments": [
+        2,
+        false
+      ],
+      "expected": [
+        50,
+        10
+      ]
+    },
+    {
+      "id": "imperial-grid-1",
+      "operation": "GridIntervals",
+      "arguments": [
+        1,
+        true
+      ],
+      "expected": [
+        101.6,
+        25.4
+      ]
+    },
+    {
+      "id": "imperial-grid-fine",
+      "operation": "GridIntervals",
+      "arguments": [
+        100,
+        true
+      ],
+      "expected": [
+        1.5875,
+        0.396875
+      ]
+    },
+    {
+      "id": "imperial-grid-coarse",
+      "operation": "GridIntervals",
+      "arguments": [
+        0.01,
+        true
+      ],
+      "expected": [
+        9753.6,
+        2438.4
+      ]
+    }
+  ]
+}

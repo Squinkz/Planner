@@ -1,0 +1,29 @@
+// Soft botanical greys and a fresh leaf-green selection.
+{
+    "name": "Sage UI",
+    "type": "ui",
+    "extends": "Neutral UI",
+    "colors": {
+        "text": "#293128",
+        "mutedText": "#46513e",
+        "activeText": "#1e3215",
+        "windowBackground": "#bec5b6",
+        "controlBackground": "#adb6a4",
+        "fieldBackground": "#e5eadd",
+        "hoverBackground": "#9eac92",
+        "pressedBackground": "#8e9e81",
+        "activeBackground": "#a5c28e",
+        "activeHoverBackground": "#96b27e",
+        "disabledBackground": "#c2c9bb",
+        "border": "#89957d",
+        "menuBorder": "#718263",
+        "sliderHandle": "#4a5c3f",
+        "scrollbarHandle": "#8c9d80",
+        "icon": "#3d5132",
+        "iconDisabled": "#97a28c",
+        "treeDisabledText": "#949e89",
+        "treeEmptyText": "#637456",
+        "info": "#386c5d",
+        "infoTitle": "#386c5d"
+    }
+}

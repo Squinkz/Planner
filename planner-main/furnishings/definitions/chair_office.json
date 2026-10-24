@@ -1,0 +1,21 @@
+{
+    "name": "Office Chair",
+    "image": "office_chair",
+    "width": 600,
+    "length": 600,
+    "category": "Office",
+    "keywords": [
+        "chair",
+        "seat",
+        "seating",
+        "desk",
+        "task",
+        "work",
+        "computer",
+        "swivel",
+        "study",
+        "ergonomic",
+        "arms",
+        "armrests"
+    ]
+}

@@ -1,0 +1,24 @@
+{
+    "name": "Toy Chest",
+    "image": "chest_toy",
+    "width": 800,
+    "length": 450,
+    "category": [
+        "Bedroom",
+        "Living Room"
+    ],
+    "keywords": [
+        "chest",
+        "toy",
+        "toys",
+        "toybox",
+        "box",
+        "trunk",
+        "storage",
+        "children",
+        "kids",
+        "nursery",
+        "playroom",
+        "play"
+    ]
+}

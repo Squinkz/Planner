@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg stroke-width="1"
+   viewBox="0 0 60 60"
+   preserveAspectRatio="none"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="end_table.svg"
+   width="60"
+   height="60"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/" vector-effect="non-scaling-stroke">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="7.7286771"
+     inkscape:cx="73.169055"
+     inkscape:cy="32.799921"
+     inkscape:window-width="2560"
+     inkscape:window-height="1336"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <title
+     id="title1">Circle</title>
+  <ellipse
+     fill="#ffffff"
+     stroke="#000000"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     id="circle1"
+     cy="30"
+     cx="60"
+     rx="60"
+     ry="30"
+     style="display:none;stroke-width:1;vector-effect:non-scaling-stroke" />
+  <ellipse
+     fill="#ffffff"
+     stroke="#000000"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     id="circle1-8"
+     cy="30"
+     cx="60"
+     rx="51.541393"
+     ry="24.470148"
+     style="display:none;stroke-width:1;vector-effect:non-scaling-stroke" />
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Circle</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <path stroke-width="1" vector-effect="non-scaling-stroke"
+     id="rect1"
+     style="display:inline;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;vector-effect:non-scaling-stroke"
+     d="M 6.3421311,0 53.65787,0 C 57.17141,0 60,2.8285905 60,6.3421311 V 53.657869 C 60,57.17141 57.17141,60 53.65787,60 L 6.3421311,60 C 2.8285905,60 0,57.17141 0,53.657869 V 6.3421311 C 0,2.8285905 2.8285905,0 6.3421311,0 Z"
+     sodipodi:nodetypes="sssssssss" />
+  <path stroke-width="1" vector-effect="non-scaling-stroke"
+     id="rect2"
+     style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;vector-effect:non-scaling-stroke"
+     d="m 6.3404346,5.5365295 47.3191354,0 V 54.996181 l -47.3191354,0 z"
+     sodipodi:nodetypes="ccccc" />
+</svg>

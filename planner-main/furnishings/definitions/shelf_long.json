@@ -1,0 +1,23 @@
+{
+    "name": "Shelf Long",
+    "image": "shelf_long",
+    "width": 1200,
+    "length": 300,
+    "category": [
+        "Living Room",
+        "Bedroom",
+        "Office",
+        "Kitchen"
+    ],
+    "keywords": [
+        "shelf",
+        "shelves",
+        "shelving",
+        "storage",
+        "display",
+        "ledge",
+        "wall",
+        "books",
+        "long"
+    ]
+}

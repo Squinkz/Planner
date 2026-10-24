@@ -1,0 +1,428 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   stroke-width="1"
+   viewBox="0 0 40 40"
+   preserveAspectRatio="none"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="coat_stand.svg"
+   width="40"
+   height="40"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   vector-effect="non-scaling-stroke"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs1">
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect1"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,0,1,0,0,0,1 @ F,0,0,1,0,0.749999,0,1 @ F,0,1,1,0,0.749999,0,1 @ F,0,0,1,0,0,0,1"
+       radius="0"
+       unit="px"
+       method="auto"
+       mode="F"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" />
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect1-1"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,0,1,0,0,0,1 @ F,0,0,1,0,0.749999,0,1 @ F,0,1,1,0,0.749999,0,1 @ F,0,0,1,0,0,0,1"
+       radius="0"
+       unit="px"
+       method="auto"
+       mode="F"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" />
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect1-1-7"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,0,1,0,0,0,1 @ F,0,0,1,0,0.749999,0,1 @ F,0,1,1,0,0.749999,0,1 @ F,0,0,1,0,0,0,1"
+       radius="0"
+       unit="px"
+       method="auto"
+       mode="F"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" />
+  </defs>
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="8.0000001"
+     inkscape:cx="-51.0625"
+     inkscape:cy="45.3125"
+     inkscape:window-width="2560"
+     inkscape:window-height="1336"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <title
+     id="title1">Beveled rectangle</title>
+  <g
+     id="g2-88"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     transform="rotate(-75,23.73848,11.020423)"
+     inkscape:transform-center-y="-10.717976"
+     inkscape:transform-center-x="-2.5921955">
+    <path
+       id="rect1-2"
+       style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1"
+       inkscape:label="rect1"
+       d="m 12.5,11.25 21.750187,0.483337 a 0.76685081,0.76685081 45.636515 0 1 0.749814,0.766662 v 2e-6 a 0.76685081,0.76685081 134.36349 0 1 -0.749814,0.766662 L 12.5,13.75 Z"
+       sodipodi:nodetypes="ccccc"
+       stroke-width="1"
+       vector-effect="non-scaling-stroke"
+       inkscape:path-effect="#path-effect1"
+       inkscape:original-d="m 12.5,11.25 22.500001,0.5 v 1.5 L 12.5,13.75 Z" />
+  </g>
+  <g
+     id="g2-88-1"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     transform="rotate(45,5.5994109,29.15949)"
+     inkscape:transform-center-y="7.6253081"
+     inkscape:transform-center-x="-7.6253039">
+    <path
+       id="rect1-2-1"
+       style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1"
+       inkscape:label="rect1"
+       d="m 12.5,11.25 21.750187,0.483337 a 0.76685081,0.76685081 45.636515 0 1 0.749814,0.766662 v 2e-6 a 0.76685081,0.76685081 134.36349 0 1 -0.749814,0.766662 L 12.5,13.75 Z"
+       sodipodi:nodetypes="ccccc"
+       stroke-width="1"
+       vector-effect="non-scaling-stroke"
+       inkscape:path-effect="#path-effect1-1"
+       inkscape:original-d="m 12.5,11.25 22.500001,0.5 v 1.5 L 12.5,13.75 Z" />
+  </g>
+  <g
+     id="g2-88-1-1"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     transform="rotate(165,16.73706,18.021842)"
+     inkscape:transform-center-y="2.5921893"
+     inkscape:transform-center-x="10.717977">
+    <path
+       id="rect1-2-1-4"
+       style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1"
+       inkscape:label="rect1"
+       d="m 12.5,11.25 21.750187,0.483337 a 0.76685081,0.76685081 45.636515 0 1 0.749814,0.766662 v 2e-6 a 0.76685081,0.76685081 134.36349 0 1 -0.749814,0.766662 L 12.5,13.75 Z"
+       sodipodi:nodetypes="ccccc"
+       stroke-width="1"
+       vector-effect="non-scaling-stroke"
+       inkscape:path-effect="#path-effect1-1-7"
+       inkscape:original-d="m 12.5,11.25 22.500001,0.5 v 1.5 L 12.5,13.75 Z" />
+  </g>
+  <g
+     id="g1"
+     style="display:none"
+     transform="translate(-0.24108745,-0.24108965)">
+    <g
+       id="g2"
+       stroke-width="1"
+       vector-effect="non-scaling-stroke"
+       transform="translate(10,10)">
+      <path
+         id="rect1"
+         style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1"
+         inkscape:label="rect1"
+         d="m 12.5,11.25 11.363506,0.5 v 1.5 L 12.5,13.75 Z"
+         sodipodi:nodetypes="ccccc"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke" />
+      <rect
+         x="22.5"
+         y="11.25"
+         width="2.5"
+         height="2.5"
+         rx="2.5"
+         fill="#ffffff"
+         stroke="#000000"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke"
+         id="rect1-5-4-6"
+         ry="2.5"
+         style="display:inline;vector-effect:non-scaling-stroke;stroke:#000000;stroke-width:1;stroke-opacity:1"
+         inkscape:label="rect1" />
+    </g>
+    <g
+       id="g2-8"
+       inkscape:transform-center-x="2.8967795"
+       transform="rotate(120,14.613249,20.386751)"
+       inkscape:transform-center-y="5.1844383"
+       stroke-width="1"
+       vector-effect="non-scaling-stroke">
+      <path
+         id="rect1-4"
+         style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1"
+         inkscape:label="rect1"
+         d="m 12.5,11.25 11.363506,0.5 v 1.5 L 12.5,13.75 Z"
+         sodipodi:nodetypes="ccccc"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke" />
+      <rect
+         x="22.5"
+         y="11.25"
+         width="2.5"
+         height="2.5"
+         rx="2.5"
+         fill="#ffffff"
+         stroke="#000000"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke"
+         id="rect1-5-4-6-9"
+         ry="2.5"
+         style="display:inline;vector-effect:non-scaling-stroke;stroke:#000000;stroke-width:1;stroke-opacity:1"
+         inkscape:label="rect1" />
+    </g>
+    <g
+       id="g2-8-8"
+       inkscape:transform-center-x="2.8967795"
+       transform="rotate(-120,20.386751,14.613249)"
+       inkscape:transform-center-y="-5.1844383"
+       stroke-width="1"
+       vector-effect="non-scaling-stroke">
+      <path
+         id="rect1-4-8"
+         style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1"
+         inkscape:label="rect1"
+         d="m 12.5,11.25 11.363506,0.5 v 1.5 L 12.5,13.75 Z"
+         sodipodi:nodetypes="ccccc"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke" />
+      <rect
+         x="22.5"
+         y="11.25"
+         width="2.5"
+         height="2.5"
+         rx="2.5"
+         fill="#ffffff"
+         stroke="#000000"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke"
+         id="rect1-5-4-6-9-2"
+         ry="2.5"
+         style="display:inline;vector-effect:non-scaling-stroke;stroke:#000000;stroke-width:1;stroke-opacity:1"
+         inkscape:label="rect1" />
+    </g>
+    <g
+       id="g2-8-8-5"
+       inkscape:transform-center-x="-2.8967795"
+       transform="rotate(-60,26.160254,8.839746)"
+       inkscape:transform-center-y="-5.1844383"
+       stroke-width="1"
+       vector-effect="non-scaling-stroke">
+      <path
+         id="rect1-4-8-9"
+         style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1"
+         inkscape:label="rect1"
+         d="m 12.5,11.25 11.363506,0.5 v 1.5 L 12.5,13.75 Z"
+         sodipodi:nodetypes="ccccc"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke" />
+      <rect
+         x="22.5"
+         y="11.25"
+         width="2.5"
+         height="2.5"
+         rx="2.5"
+         fill="#ffffff"
+         stroke="#000000"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke"
+         id="rect1-5-4-6-9-2-8"
+         ry="2.5"
+         style="display:inline;vector-effect:non-scaling-stroke;stroke:#000000;stroke-width:1;stroke-opacity:1"
+         inkscape:label="rect1" />
+    </g>
+    <g
+       id="g2-8-8-5-6"
+       inkscape:transform-center-x="-2.8967795"
+       transform="rotate(60,8.839746,26.160254)"
+       inkscape:transform-center-y="5.1844383"
+       stroke-width="1"
+       vector-effect="non-scaling-stroke">
+      <path
+         id="rect1-4-8-9-3"
+         style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1"
+         inkscape:label="rect1"
+         d="m 12.5,11.25 11.363506,0.5 v 1.5 L 12.5,13.75 Z"
+         sodipodi:nodetypes="ccccc"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke" />
+      <rect
+         x="22.5"
+         y="11.25"
+         width="2.5"
+         height="2.5"
+         rx="2.5"
+         fill="#ffffff"
+         stroke="#000000"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke"
+         id="rect1-5-4-6-9-2-8-6"
+         ry="2.5"
+         style="display:inline;vector-effect:non-scaling-stroke;stroke:#000000;stroke-width:1;stroke-opacity:1"
+         inkscape:label="rect1" />
+    </g>
+    <g
+       id="g2-8-8-5-6-2"
+       inkscape:transform-center-x="6.25"
+       transform="rotate(180,17.5,17.5)"
+       stroke-width="1"
+       vector-effect="non-scaling-stroke">
+      <path
+         id="rect1-4-8-9-3-0"
+         style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1"
+         inkscape:label="rect1"
+         d="m 12.5,11.25 11.363506,0.5 v 1.5 L 12.5,13.75 Z"
+         sodipodi:nodetypes="ccccc"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke" />
+      <rect
+         x="22.5"
+         y="11.25"
+         width="2.5"
+         height="2.5"
+         rx="2.5"
+         fill="#ffffff"
+         stroke="#000000"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke"
+         id="rect1-5-4-6-9-2-8-6-9"
+         ry="2.5"
+         style="display:inline;vector-effect:non-scaling-stroke;stroke:#000000;stroke-width:1;stroke-opacity:1"
+         inkscape:label="rect1" />
+    </g>
+  </g>
+  <g
+     id="g4"
+     inkscape:transform-center-x="1.4556121"
+     inkscape:transform-center-y="1.4556033"
+     transform="rotate(-22.5,22.258906,22.25891)">
+    <path
+       vector-effect="non-scaling-stroke"
+       stroke-width="1"
+       id="rect1-5-4-6-1-1"
+       style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1"
+       inkscape:label="rect1"
+       d="m 32.174193,16.798864 c 0.639787,-0.265008 1.368195,0.03671 1.633203,0.676497 0.26501,0.639785 -0.03671,1.368195 -0.676494,1.633203 -0.639786,0.265008 -1.368195,-0.03671 -1.633204,-0.676496 -0.262416,-0.633532 0.03191,-1.366209 0.676495,-1.633204 z m -0.107189,2.260511 -9.329747,4.354377 -0.956708,-2.309699 9.676712,-3.518322"
+       sodipodi:nodetypes="ssssscccc"
+       inkscape:transform-center-x="-5.5831068"
+       inkscape:transform-center-y="-2.200648" />
+    <path
+       vector-effect="non-scaling-stroke"
+       stroke-width="1"
+       id="rect1-5-4-6-1-2-2"
+       style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1"
+       inkscape:label="rect1"
+       d="m 22.0298,33.575822 c -0.09039,0.686576 -0.71589,1.166538 -1.402465,1.076148 -0.686575,-0.09039 -1.166539,-0.715889 -1.076149,-1.402464 0.09039,-0.686575 0.715889,-1.166537 1.402463,-1.076148 0.679865,0.08951 1.167217,0.710743 1.076151,1.402464 z m -1.904067,-1.223084 0.893872,-10.256986 2.478614,0.326316 -1.791401,10.139441"
+       sodipodi:nodetypes="ssssscccc"
+       inkscape:transform-center-y="6.120417"
+       inkscape:transform-center-x="0.7396755" />
+    <path
+       vector-effect="non-scaling-stroke"
+       stroke-width="1"
+       id="rect1-5-4-6-1-9-1"
+       style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1"
+       inkscape:label="rect1"
+       d="m 12.572724,16.40204 c -0.549397,-0.421568 -0.652306,-1.203247 -0.230739,-1.752642 0.421566,-0.549398 1.203246,-0.652309 1.752643,-0.230741 0.549398,0.421566 0.652306,1.203246 0.230741,1.752642 -0.417448,0.544027 -1.19913,0.655467 -1.752645,0.230741 z m 2.011254,-1.037428 8.435876,5.90261 -1.521904,1.983384 -7.885313,-6.621119"
+       sodipodi:nodetypes="ssssscccc"
+       inkscape:transform-center-x="4.7077132"
+       inkscape:transform-center-y="-3.5539992" />
+  </g>
+  <g
+     id="g3"
+     inkscape:transform-center-x="-1.4556138"
+     inkscape:transform-center-y="-1.4556046"
+     transform="rotate(22.5,22.258903,22.258909)">
+    <path
+       vector-effect="non-scaling-stroke"
+       stroke-width="1"
+       id="rect1-5-4-6-1"
+       style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1"
+       inkscape:label="rect1"
+       d="m 33.249501,19.551175 c 0.686576,-0.09039 1.312075,0.389573 1.402464,1.076149 0.09039,0.686575 -0.389572,1.312074 -1.076148,1.402463 -0.686575,0.09039 -1.312073,-0.389573 -1.402463,-1.076148 -0.08951,-0.679864 0.384427,-1.311398 1.076147,-1.402464 z m -0.6886,2.155743 -10.138838,1.791289 -0.326316,-2.478613 10.257596,-0.89392"
+       sodipodi:nodetypes="ssssscccc"
+       inkscape:transform-center-x="-6.12041"
+       inkscape:transform-center-y="-0.73968499" />
+    <path
+       vector-effect="non-scaling-stroke"
+       stroke-width="1"
+       id="rect1-5-4-6-1-2"
+       style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1"
+       inkscape:label="rect1"
+       d="m 19.108574,33.130909 c -0.265009,0.639787 -0.993418,0.941503 -1.633205,0.676494 -0.639786,-0.265007 -0.941503,-0.993417 -0.676494,-1.633203 0.265007,-0.639786 0.993416,-0.941503 1.633202,-0.676495 0.633533,0.262418 0.943491,0.988623 0.676497,1.633204 z m -1.522629,-1.674216 3.518117,-9.676138 2.3097,0.95671 -4.354641,9.330299"
+       sodipodi:nodetypes="ssssscccc"
+       inkscape:transform-center-x="2.2006398"
+       inkscape:transform-center-y="5.5831154" />
+    <path
+       vector-effect="non-scaling-stroke"
+       stroke-width="1"
+       id="rect1-5-4-6-1-9"
+       style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1"
+       inkscape:label="rect1"
+       d="m 14.418643,14.094639 c -0.421568,-0.549399 -0.318657,-1.331078 0.23074,-1.752643 0.549396,-0.421568 1.331076,-0.318658 1.752643,0.230738 0.421568,0.549397 0.318657,1.331076 -0.230739,1.752644 -0.544028,0.417445 -1.327918,0.322774 -1.752644,-0.230739 z m 2.211228,-0.481528 6.620722,7.884848 -1.983384,1.521904 -5.902956,-8.436379"
+       sodipodi:nodetypes="ssssscccc"
+       inkscape:transform-center-x="3.5540148"
+       inkscape:transform-center-y="-4.7077015" />
+  </g>
+  <rect
+     x="24.761482"
+     y="13.239419"
+     width="5"
+     height="5"
+     rx="2.5"
+     fill="#ffffff"
+     stroke="#000000"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     id="rect1-5-4"
+     ry="2.5"
+     style="display:inline;vector-effect:non-scaling-stroke;stroke:#000000;stroke-width:1;stroke-opacity:1"
+     inkscape:label="rect1"
+     transform="rotate(15)"
+     inkscape:transform-center-x="4.1043876e-06"
+     inkscape:transform-center-y="-7.776914e-06" />
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Beveled rectangle</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+</svg>

@@ -1,0 +1,902 @@
+{
+  "format": "Planner Project",
+  "version": 1,
+  "scene": {
+    "objects": [
+      {
+        "type": "Wall",
+        "id": 1,
+        "measurementHidden": false,
+        "first": [
+          0.0,
+          0.0
+        ],
+        "second": [
+          5000.0,
+          0.0
+        ],
+        "width": 200,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 2,
+        "measurementHidden": false,
+        "first": [
+          0.0,
+          0.0
+        ],
+        "second": [
+          0.0,
+          4500.0
+        ],
+        "width": 200,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 3,
+        "measurementHidden": false,
+        "first": [
+          5000.0,
+          0.0
+        ],
+        "second": [
+          10000.0,
+          0.0
+        ],
+        "width": 200,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 4,
+        "measurementHidden": false,
+        "first": [
+          5000.0,
+          0.0
+        ],
+        "second": [
+          5000.0,
+          4500.0
+        ],
+        "width": 200,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 5,
+        "measurementHidden": false,
+        "first": [
+          10000.0,
+          0.0
+        ],
+        "second": [
+          15000.0,
+          0.0
+        ],
+        "width": 200,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 6,
+        "measurementHidden": false,
+        "first": [
+          10000.0,
+          0.0
+        ],
+        "second": [
+          10000.0,
+          4500.0
+        ],
+        "width": 200,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 7,
+        "measurementHidden": false,
+        "first": [
+          0.0,
+          4500.0
+        ],
+        "second": [
+          5000.0,
+          4500.0
+        ],
+        "width": 200,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 8,
+        "measurementHidden": false,
+        "first": [
+          0.0,
+          4500.0
+        ],
+        "second": [
+          0.0,
+          9000.0
+        ],
+        "width": 200,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 9,
+        "measurementHidden": false,
+        "first": [
+          5000.0,
+          4500.0
+        ],
+        "second": [
+          10000.0,
+          4500.0
+        ],
+        "width": 200,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 10,
+        "measurementHidden": false,
+        "first": [
+          5000.0,
+          4500.0
+        ],
+        "second": [
+          5000.0,
+          9000.0
+        ],
+        "width": 200,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 11,
+        "measurementHidden": false,
+        "first": [
+          10000.0,
+          4500.0
+        ],
+        "second": [
+          15000.0,
+          4500.0
+        ],
+        "width": 200,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 12,
+        "measurementHidden": false,
+        "first": [
+          10000.0,
+          4500.0
+        ],
+        "second": [
+          10000.0,
+          9000.0
+        ],
+        "width": 200,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 13,
+        "measurementHidden": false,
+        "first": [
+          0.0,
+          9000.0
+        ],
+        "second": [
+          15000.0,
+          9000.0
+        ],
+        "width": 200,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 14,
+        "measurementHidden": false,
+        "first": [
+          15000.0,
+          0.0
+        ],
+        "second": [
+          15000.0,
+          9000.0
+        ],
+        "width": 200,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Counter",
+        "id": 15,
+        "measurementHidden": false,
+        "first": [
+          1000.0,
+          7000.0
+        ],
+        "second": [
+          4000.0,
+          7000.0
+        ],
+        "width": 600,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Stair",
+        "id": 16,
+        "measurementHidden": false,
+        "first": [
+          6000.0,
+          6000.0
+        ],
+        "second": [
+          6000.0,
+          8000.0
+        ],
+        "width": 900,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0,
+        "directionReversed": false,
+        "autosize": true,
+        "manualStepCount": 1
+      },
+      {
+        "type": "Column",
+        "id": 17,
+        "measurementHidden": false,
+        "first": [
+          12000.0,
+          6000.0
+        ],
+        "second": [
+          12000.0,
+          6600.0
+        ],
+        "width": 600,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Window",
+        "id": 18,
+        "measurementHidden": false,
+        "parent": 0,
+        "center": 0.4,
+        "length": 1000.0,
+        "swingsOutwards": false,
+        "measurementFlipped": false
+      },
+      {
+        "type": "Door",
+        "id": 19,
+        "measurementHidden": false,
+        "parent": 1,
+        "center": 0.4,
+        "length": 900.0,
+        "hingeAtSecond": false,
+        "swingsOutwards": false,
+        "measurementFlipped": false
+      },
+      {
+        "type": "Window",
+        "id": 20,
+        "measurementHidden": false,
+        "parent": 2,
+        "center": 0.4,
+        "length": 1000.0,
+        "swingsOutwards": false,
+        "measurementFlipped": false
+      },
+      {
+        "type": "Door",
+        "id": 21,
+        "measurementHidden": false,
+        "parent": 3,
+        "center": 0.4,
+        "length": 900.0,
+        "hingeAtSecond": false,
+        "swingsOutwards": false,
+        "measurementFlipped": false
+      },
+      {
+        "type": "Window",
+        "id": 22,
+        "measurementHidden": false,
+        "parent": 4,
+        "center": 0.4,
+        "length": 1000.0,
+        "swingsOutwards": false,
+        "measurementFlipped": false
+      },
+      {
+        "type": "Door",
+        "id": 23,
+        "measurementHidden": false,
+        "parent": 5,
+        "center": 0.4,
+        "length": 900.0,
+        "hingeAtSecond": false,
+        "swingsOutwards": false,
+        "measurementFlipped": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 24,
+        "measurementHidden": false,
+        "first": [
+          1100.0,
+          700.0
+        ],
+        "second": [
+          1100.0,
+          1300.0
+        ],
+        "width": 1200.0,
+        "definition": "desk",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 25,
+        "measurementHidden": false,
+        "first": [
+          3347.702248844136,
+          754.593204138084
+        ],
+        "second": [
+          3252.297751155864,
+          1245.406795861916
+        ],
+        "width": 450.0,
+        "definition": "chair_dining",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 26,
+        "measurementHidden": false,
+        "first": [
+          5612.381978024773,
+          721.8448436299637
+        ],
+        "second": [
+          5387.618021975227,
+          1278.1551563700364
+        ],
+        "width": 1200.0,
+        "definition": "desk",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 27,
+        "measurementHidden": false,
+        "first": [
+          7836.159758753757,
+          790.332358013644
+        ],
+        "second": [
+          7563.840241246243,
+          1209.667641986356
+        ],
+        "width": 450.0,
+        "definition": "chair_dining",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 28,
+        "measurementHidden": false,
+        "first": [
+          10108.397511137699,
+          784.1980598984046
+        ],
+        "second": [
+          9691.602488862301,
+          1215.8019401015954
+        ],
+        "width": 1200.0,
+        "definition": "desk",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 29,
+        "measurementHidden": false,
+        "first": [
+          12304.788011072247,
+          856.6058909122385
+        ],
+        "second": [
+          11895.211988927753,
+          1143.3941090877615
+        ],
+        "width": 450.0,
+        "definition": "chair_dining",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 30,
+        "measurementHidden": false,
+        "first": [
+          1187.711511416821,
+          2813.1085732110896
+        ],
+        "second": [
+          1012.288488583179,
+          3386.8914267889104
+        ],
+        "width": 1200.0,
+        "definition": "desk",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 31,
+        "measurementHidden": false,
+        "first": [
+          3417.367890696473,
+          2879.263101785268
+        ],
+        "second": [
+          3182.632109303527,
+          3320.736898214732
+        ],
+        "width": 450.0,
+        "definition": "chair_dining",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 32,
+        "measurementHidden": false,
+        "first": [
+          5688.7961173149515,
+          2866.856211562909
+        ],
+        "second": [
+          5311.2038826850485,
+          3333.143788437091
+        ],
+        "width": 1200.0,
+        "definition": "desk",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 33,
+        "measurementHidden": false,
+        "first": [
+          7891.511110779745,
+          2939.303097578365
+        ],
+        "second": [
+          7508.488889220255,
+          3260.696902421635
+        ],
+        "width": 450.0,
+        "definition": "chair_dining",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 34,
+        "measurementHidden": false,
+        "first": [
+          10162.385912141819,
+          2954.5571139260987
+        ],
+        "second": [
+          9637.614087858181,
+          3245.4428860739013
+        ],
+        "width": 1200.0,
+        "definition": "desk",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 35,
+        "measurementHidden": false,
+        "first": [
+          12337.764129073788,
+          3022.745751406263
+        ],
+        "second": [
+          11862.235870926212,
+          3177.254248593737
+        ],
+        "width": 450.0,
+        "definition": "chair_dining",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 36,
+        "measurementHidden": false,
+        "first": [
+          1267.757871041224,
+          4951.288728233488
+        ],
+        "second": [
+          932.242128958776,
+          5448.711271766512
+        ],
+        "width": 1200.0,
+        "definition": "desk",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 37,
+        "measurementHidden": false,
+        "first": [
+          3476.7766952966367,
+          5023.223304703363
+        ],
+        "second": [
+          3123.2233047033633,
+          5376.776695296637
+        ],
+        "width": 450.0,
+        "definition": "chair_dining",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 38,
+        "measurementHidden": false,
+        "first": [
+          5748.711271766512,
+          5032.2421289587755
+        ],
+        "second": [
+          5251.288728233488,
+          5367.7578710412245
+        ],
+        "width": 1200.0,
+        "definition": "desk",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 39,
+        "measurementHidden": false,
+        "first": [
+          7930.12621336311,
+          5102.317217877681
+        ],
+        "second": [
+          7469.87378663689,
+          5297.682782122319
+        ],
+        "width": 450.0,
+        "definition": "chair_dining",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 40,
+        "measurementHidden": false,
+        "first": [
+          10193.444280220141,
+          5137.626492754672
+        ],
+        "second": [
+          9606.555719779859,
+          5262.373507245328
+        ],
+        "width": 1200.0,
+        "definition": "desk",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 41,
+        "measurementHidden": false,
+        "first": [
+          12349.961923789098,
+          5195.636898390679
+        ],
+        "second": [
+          11850.038076210902,
+          5204.363101609321
+        ],
+        "width": 450.0,
+        "definition": "chair_dining",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 42,
+        "measurementHidden": false,
+        "first": [
+          1333.1437884370912,
+          7111.2038826850485
+        ],
+        "second": [
+          866.8562115629087,
+          7488.7961173149515
+        ],
+        "width": 1200.0,
+        "definition": "desk",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 43,
+        "measurementHidden": false,
+        "first": [
+          3520.736898214732,
+          7182.632109303528
+        ],
+        "second": [
+          3079.263101785268,
+          7417.367890696472
+        ],
+        "width": 450.0,
+        "definition": "chair_dining",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 44,
+        "measurementHidden": false,
+        "first": [
+          5786.89142678891,
+          7212.288488583179
+        ],
+        "second": [
+          5213.10857321109,
+          7387.711511416821
+        ],
+        "width": 1200.0,
+        "definition": "desk",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 45,
+        "measurementHidden": false,
+        "first": [
+          7948.630473842069,
+          7273.867884183087
+        ],
+        "second": [
+          7451.369526157931,
+          7326.132115816913
+        ],
+        "width": 450.0,
+        "definition": "chair_dining",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 46,
+        "measurementHidden": false,
+        "first": [
+          10198.858409427523,
+          7326.146722824297
+        ],
+        "second": [
+          9601.141590572477,
+          7273.853277175703
+        ],
+        "width": 1200.0,
+        "definition": "desk",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 47,
+        "measurementHidden": false,
+        "first": [
+          12340.315423984579,
+          7368.9093389542495
+        ],
+        "second": [
+          11859.684576015421,
+          7231.0906610457505
+        ],
+        "width": 450.0,
+        "definition": "chair_dining",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false
+      }
+    ],
+    "groups": [],
+    "hidden": []
+  },
+  "settings": {
+    "wallWidth": 200.0,
+    "wallMaterial": "Generic",
+    "wallShape": "line",
+    "doorType": "Door",
+    "windowType": "Window",
+    "snapEnabled": true,
+    "snap": {
+      "grid": true,
+      "vertices": true,
+      "midpoints": true,
+      "alignment": true
+    },
+    "connectedVertices": true,
+    "connectedObjects": false,
+    "groupMode": true,
+    "visibility": {
+      "World": true,
+      "Walls": true,
+      "Doors": true,
+      "Windows": true,
+      "Stairs": true,
+      "Counters": true,
+      "Railings": true,
+      "Furnishings": true,
+      "Labels": true,
+      "Arrows": true,
+      "Measurement guides": true
+    },
+    "showGrid": true,
+    "showMeasurements": true,
+    "buildSettings": {
+      "wallWidths": [
+        10,
+        15,
+        20,
+        30
+      ],
+      "openingSizes": {
+        "Door": 90,
+        "SlidingDoor": 90,
+        "PocketDoor": 90,
+        "BarnDoor": 90,
+        "BifoldDoor": 120,
+        "OpenDoorway": 90,
+        "Window": 120,
+        "SilledWindow": 120,
+        "CasementWindow": 60
+      }
+    },
+    "viewportSettings": {
+      "overall": 1.0,
+      "major": 0.169,
+      "minor": 0.083,
+      "origin": 0.305
+    },
+    "measurementSettings": {
+      "doors": 1,
+      "windows": 1,
+      "stairs": 2,
+      "counters": 2
+    },
+    "measurementVisibility": {
+      "walls": true,
+      "stairs": false,
+      "counters": false,
+      "railings": false,
+      "elevators": false
+    },
+    "railingSpacings": {
+      "minimum": 90,
+      "maximum": 150,
+      "target": 120
+    },
+    "stairStepSizes": {
+      "minimum": 25,
+      "maximum": 30
+    },
+    "unitsMode": "Millimeters"
+  },
+  "view": {
+    "zoom": 1.0,
+    "pan": [
+      0.0,
+      0.0
+    ]
+  },
+  "ui": {
+    "geometry": "AdnQywADAAAAAAAAAAAAAAAABZ8AAAODAAAAAAAAAAAAAAWfAAADgwAAAAAAAAAAAyAAAAAAAAAAAAAABZ8AAAOD",
+    "maximized": true,
+    "size": [
+      1440,
+      900
+    ],
+    "mainSplitter": [
+      948,
+      460
+    ],
+    "propertiesSplitter": [
+      600,
+      300
+    ],
+    "propertiesCollapsed": false,
+    "propertiesRestoreHeight": null
+  }
+}

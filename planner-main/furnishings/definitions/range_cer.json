@@ -1,0 +1,28 @@
+{
+    "name": "Range Ceramic",
+    "image": "range_cer",
+    "width": 600,
+    "length": 600,
+    "icon": null,
+    "category": "Kitchen",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "range",
+        "stove",
+        "cooker",
+        "oven",
+        "cooktop",
+        "hob",
+        "cooking",
+        "baking",
+        "roasting",
+        "food",
+        "appliance",
+        "kitchen",
+        "ceramic",
+        "electric",
+        "glass",
+        "radiant"
+    ]
+}

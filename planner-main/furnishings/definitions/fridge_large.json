@@ -1,0 +1,27 @@
+{
+    "name": "Refrigerator",
+    "image": "fridge_l",
+    "width": 800,
+    "length": 700,
+    "icon": null,
+    "category": "Kitchen",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "fridge",
+        "refrigerator",
+        "refrigeration",
+        "refrigerated",
+        "cooling",
+        "cold",
+        "food",
+        "storage",
+        "appliance",
+        "chiller",
+        "freestanding",
+        "standalone",
+        "full",
+        "size",
+        "tall"
+    ]
+}

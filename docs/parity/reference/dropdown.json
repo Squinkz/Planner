@@ -1,0 +1,44 @@
+{
+  "description": "Styled material dropdown, initial top scroll",
+  "logicalSize": [
+    228,
+    378
+  ],
+  "devicePixelRatio": 1.0,
+  "controls": [],
+  "layouts": [
+    {
+      "class": "QBoxLayout",
+      "parent": "QFrame",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    }
+  ]
+}

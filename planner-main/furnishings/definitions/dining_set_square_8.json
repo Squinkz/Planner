@@ -1,0 +1,118 @@
+{
+    "name": "Dining Set Square 8",
+    "category": [
+        "Dining Room",
+        "Kitchen"
+    ],
+    "children": [
+        {
+            "furnishing": "chair_dining",
+            "x": -295.0,
+            "y": 700.0,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 0.0,
+            "zIndex": 0,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "chair_dining",
+            "x": 295.0,
+            "y": 700.0,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 0.0,
+            "zIndex": 1,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "chair_dining",
+            "x": 700.0,
+            "y": -295.0,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 270.0,
+            "zIndex": 2,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "chair_dining",
+            "x": 700.0,
+            "y": 295.0,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 270.0,
+            "zIndex": 3,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "chair_dining",
+            "x": -295.0,
+            "y": -700.0,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 180.0,
+            "zIndex": 4,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "chair_dining",
+            "x": 295.0,
+            "y": -700.0,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 180.0,
+            "zIndex": 5,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "chair_dining",
+            "x": -700.0,
+            "y": 295.0,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 90.0,
+            "zIndex": 6,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "chair_dining",
+            "x": -700.0,
+            "y": -295.0,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 90.0,
+            "zIndex": 7,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "table_dining_square_8",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1500.0,
+            "length": 1500.0,
+            "angle": 0.0,
+            "zIndex": 8
+        }
+    ],
+    "keywords": [
+        "dining",
+        "dinner",
+        "table",
+        "chairs",
+        "seats",
+        "seating",
+        "seater",
+        "person",
+        "set",
+        "suite",
+        "kitchen",
+        "eating",
+        "meals",
+        "breakfast",
+        "dinette",
+        "eight",
+        "square",
+        "arrangement"
+    ]
+}

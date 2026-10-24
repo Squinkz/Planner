@@ -1,0 +1,24 @@
+{
+    "name": "Banquette Corner",
+    "image": "banquette_corner",
+    "width": 600,
+    "length": 600,
+    "category": [
+        "Dining Room",
+        "Kitchen"
+    ],
+    "keywords": [
+        "banquette",
+        "bench",
+        "booth",
+        "seating",
+        "seat",
+        "breakfast",
+        "nook",
+        "dinette",
+        "kitchen",
+        "dining",
+        "upholstered",
+        "corner"
+    ]
+}

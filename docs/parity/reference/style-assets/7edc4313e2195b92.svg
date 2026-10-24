@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:ns1="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:ns2="http://www.inkscape.org/namespaces/inkscape" height="24px" viewBox="0 0 24 24" width="24px" fill="#202020" version="1.1" id="svg2" ns1:docname="radio_button_halfchecked.svg" ns2:version="1.4 (86a8ad7, 2024-10-11)">
+  <defs id="defs2" />
+  <ns1:namedview id="namedview2" pagecolor="#505050" bordercolor="#eeeeee" borderopacity="1" ns2:showpageshadow="0" ns2:pageopacity="0" ns2:pagecheckerboard="0" ns2:deskcolor="#d1d1d1" ns2:zoom="11.385417" ns2:cx="-1.0978957" ns2:cy="14.623971" ns2:window-width="2560" ns2:window-height="1336" ns2:window-x="-8" ns2:window-y="-8" ns2:window-maximized="1" ns2:current-layer="svg2" />
+  <path d="M0 0h24v24H0V0z" fill="none" id="path1" />
+  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z" id="path2" />
+  <path id="circle2" d="M 12 7 A 5 5 0 0 0 7 12 A 5 5 0 0 0 12 17 A 5 5 0 0 0 17 12 A 5 5 0 0 0 12 7 z M 12 9.1621094 A 2.8384359 2.8384359 0 0 1 14.837891 12 A 2.8384359 2.8384359 0 0 1 12 14.837891 A 2.8384359 2.8384359 0 0 1 9.1621094 12 A 2.8384359 2.8384359 0 0 1 12 9.1621094 z " />
+</svg>

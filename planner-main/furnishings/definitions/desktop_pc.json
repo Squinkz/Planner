@@ -1,0 +1,19 @@
+{
+    "name": "Desktop Computer",
+    "image": "desktop_pc",
+    "width": 200,
+    "length": 400,
+    "category": "Office",
+    "keywords": [
+        "pc",
+        "computer",
+        "desktop",
+        "tower",
+        "system",
+        "unit",
+        "case",
+        "workstation",
+        "computing",
+        "equipment"
+    ]
+}

@@ -1,0 +1,27 @@
+{
+    "name": "Dumbbell",
+    "image": "dumbbell",
+    "width": 400,
+    "length": 200,
+    "icon": null,
+    "category": "Gym",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "dumbbell",
+        "dumbell",
+        "dumbel",
+        "dumbbel",
+        "dumb",
+        "bell",
+        "weight",
+        "weights",
+        "free",
+        "strength",
+        "training",
+        "workout",
+        "lifting",
+        "exercise",
+        "fitness"
+    ]
+}

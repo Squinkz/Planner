@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   stroke-width="1"
+   viewBox="0 0 900 750"
+   preserveAspectRatio="none"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="fridge_double.svg"
+   width="900"
+   height="750"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   vector-effect="non-scaling-stroke"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#3d3d3d"
+     inkscape:zoom="1.2444261"
+     inkscape:cx="370.8537"
+     inkscape:cy="176.38654"
+     inkscape:window-width="2560"
+     inkscape:window-height="1336"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <g
+     fill="#ffffff"
+     stroke="#000000"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     id="g1"
+     transform="scale(6)" />
+  <path vector-effect="non-scaling-stroke" stroke-width="1"
+     id="rect1"
+     style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1"
+     d="M 573.82617,0 H 876.17383 C 889.37327,0 900,10.626721 900,23.826172 V 726.17383 C 900,739.37327 889.37328,750 876.17383,750 H 23.82617 C 10.62673,750 0,739.37327 0,726.17383 V 23.826172 C 0,10.626721 10.62673,0 23.82617,0 H 526.17383 C 539.37328,0 550,10.626721 550,23.826172 V 33 h -15 v 12 h 30 V 33 H 550 V 23.826172 C 550,10.626721 560.62672,0 573.82617,0 Z"
+     sodipodi:nodetypes="ccsssssssssccccccsc" />
+  <path
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     d="M 38.826,33 H 861.174"
+     fill="none"
+     id="path1"
+     style="display:inline;vector-effect:non-scaling-stroke;fill:none;stroke:#000000;stroke-width:1;stroke-opacity:1"
+     sodipodi:nodetypes="cc" />
+  <path
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     d="M 0,45 H 900"
+     fill="none"
+     id="path1-2"
+     style="display:inline;vector-effect:non-scaling-stroke;fill:none;stroke:#000000;stroke-width:1;stroke-opacity:1"
+     sodipodi:nodetypes="cc" />
+  <path
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     d="M 861.174,45 V 0"
+     fill="none"
+     id="path1-2-1"
+     style="display:inline;vector-effect:non-scaling-stroke;fill:none;stroke:#000000;stroke-width:1;stroke-opacity:1"
+     sodipodi:nodetypes="cc" />
+  <path
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     d="M 38.826,45 V 0"
+     fill="none"
+     id="path1-2-1-8"
+     style="display:inline;vector-effect:non-scaling-stroke;fill:none;stroke:#000000;stroke-width:1;stroke-opacity:1"
+     sodipodi:nodetypes="cc" />
+  <text
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     xml:space="preserve"
+     style="font-weight:bold;font-size:202.7px;font-family:'Noto Sans';-inkscape-font-specification:'Noto Sans Bold';text-align:start;letter-spacing:0px;writing-mode:lr-tb;direction:ltr;text-anchor:start;vector-effect:non-scaling-stroke;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1"
+     x="270.50922"
+     y="447.36389"
+     id="text2"><tspan
+       stroke-width="1"
+       vector-effect="non-scaling-stroke"
+       id="tspan2"
+       x="270.50922"
+       y="447.36389"
+       sodipodi:role="line"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'Noto Sans';-inkscape-font-specification:'Noto Sans';vector-effect:non-scaling-stroke;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1;stroke-dasharray:none;stroke-opacity:1">REF</tspan></text>
+</svg>

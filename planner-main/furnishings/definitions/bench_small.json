@@ -1,0 +1,27 @@
+{
+    "name": "Bench Small",
+    "image": "bench_small",
+    "width": 1000,
+    "length": 450,
+    "category": [
+        "Dining Room",
+        "Entry",
+        "Outdoor"
+    ],
+    "keywords": [
+        "bench",
+        "seat",
+        "seating",
+        "dining",
+        "table",
+        "entry",
+        "hallway",
+        "foyer",
+        "porch",
+        "patio",
+        "garden",
+        "outdoor",
+        "small",
+        "compact"
+    ]
+}

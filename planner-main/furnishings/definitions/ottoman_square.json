@@ -1,0 +1,24 @@
+{
+    "name": "Ottoman Square",
+    "image": "ottoman_square",
+    "width": 700,
+    "length": 700,
+    "category": [
+        "Living Room",
+        "Bedroom"
+    ],
+    "keywords": [
+        "ottoman",
+        "footstool",
+        "footrest",
+        "hassock",
+        "pouf",
+        "pouffe",
+        "stool",
+        "seat",
+        "seating",
+        "feet",
+        "upholstered",
+        "square"
+    ]
+}

@@ -1,0 +1,539 @@
+{
+  "description": "HSV/RGB/hex content; popup positioning and dismissal are tested separately",
+  "logicalSize": [
+    316,
+    427
+  ],
+  "devicePixelRatio": 1.0,
+  "controls": [
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        11,
+        243,
+        53,
+        35
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Red"
+    },
+    {
+      "class": "DragSpinBox",
+      "name": "",
+      "accessibleName": "Red",
+      "enabled": true,
+      "bounds": [
+        76,
+        243,
+        76,
+        35
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Drag left or right to adjust. Hold Alt for finer control. Click to type a value.",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0.0,
+      "maximum": 255.0,
+      "step": 1.0,
+      "value": 70.0,
+      "keyboardTracking": true,
+      "buttons": "NoButtons",
+      "decimals": 0,
+      "suffix": ""
+    },
+    {
+      "class": "QLineEdit",
+      "name": "qt_spinbox_lineedit",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        81,
+        248,
+        66,
+        25
+      ],
+      "cursor": "IBeamCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "70"
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        11,
+        290,
+        53,
+        35
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Green"
+    },
+    {
+      "class": "DragSpinBox",
+      "name": "",
+      "accessibleName": "Green",
+      "enabled": true,
+      "bounds": [
+        76,
+        290,
+        76,
+        35
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Drag left or right to adjust. Hold Alt for finer control. Click to type a value.",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0.0,
+      "maximum": 255.0,
+      "step": 1.0,
+      "value": 168.0,
+      "keyboardTracking": true,
+      "buttons": "NoButtons",
+      "decimals": 0,
+      "suffix": ""
+    },
+    {
+      "class": "QLineEdit",
+      "name": "qt_spinbox_lineedit",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        81,
+        295,
+        66,
+        25
+      ],
+      "cursor": "IBeamCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "168"
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        11,
+        337,
+        53,
+        35
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Blue"
+    },
+    {
+      "class": "DragSpinBox",
+      "name": "",
+      "accessibleName": "Blue",
+      "enabled": true,
+      "bounds": [
+        76,
+        337,
+        76,
+        35
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Drag left or right to adjust. Hold Alt for finer control. Click to type a value.",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0.0,
+      "maximum": 255.0,
+      "step": 1.0,
+      "value": 210.0,
+      "keyboardTracking": true,
+      "buttons": "NoButtons",
+      "decimals": 0,
+      "suffix": ""
+    },
+    {
+      "class": "QLineEdit",
+      "name": "qt_spinbox_lineedit",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        81,
+        342,
+        66,
+        25
+      ],
+      "cursor": "IBeamCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "210"
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        164,
+        243,
+        53,
+        35
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Hue"
+    },
+    {
+      "class": "DragSpinBox",
+      "name": "",
+      "accessibleName": "Hue",
+      "enabled": true,
+      "bounds": [
+        229,
+        243,
+        76,
+        35
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Drag left or right to adjust. Hold Alt for finer control. Click to type a value.",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0.0,
+      "maximum": 360.0,
+      "step": 1.0,
+      "value": 198.0,
+      "keyboardTracking": true,
+      "buttons": "NoButtons",
+      "decimals": 1,
+      "suffix": "°"
+    },
+    {
+      "class": "QLineEdit",
+      "name": "qt_spinbox_lineedit",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        234,
+        248,
+        66,
+        25
+      ],
+      "cursor": "IBeamCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "198.0°"
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        164,
+        290,
+        53,
+        35
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Sat"
+    },
+    {
+      "class": "DragSpinBox",
+      "name": "",
+      "accessibleName": "Saturation",
+      "enabled": true,
+      "bounds": [
+        229,
+        290,
+        76,
+        35
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Drag left or right to adjust. Hold Alt for finer control. Click to type a value.",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0.0,
+      "maximum": 100.0,
+      "step": 1.0,
+      "value": 66.7,
+      "keyboardTracking": true,
+      "buttons": "NoButtons",
+      "decimals": 1,
+      "suffix": "%"
+    },
+    {
+      "class": "QLineEdit",
+      "name": "qt_spinbox_lineedit",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        234,
+        295,
+        66,
+        25
+      ],
+      "cursor": "IBeamCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "66.7%"
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        164,
+        337,
+        53,
+        35
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Value"
+    },
+    {
+      "class": "DragSpinBox",
+      "name": "",
+      "accessibleName": "Value",
+      "enabled": true,
+      "bounds": [
+        229,
+        337,
+        76,
+        35
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Drag left or right to adjust. Hold Alt for finer control. Click to type a value.",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0.0,
+      "maximum": 100.0,
+      "step": 1.0,
+      "value": 82.4,
+      "keyboardTracking": true,
+      "buttons": "NoButtons",
+      "decimals": 1,
+      "suffix": "%"
+    },
+    {
+      "class": "QLineEdit",
+      "name": "qt_spinbox_lineedit",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        234,
+        342,
+        66,
+        25
+      ],
+      "cursor": "IBeamCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "82.4%"
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        11,
+        384,
+        32,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": ""
+    },
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        55,
+        384,
+        24,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Hex"
+    },
+    {
+      "class": "QLineEdit",
+      "name": "",
+      "accessibleName": "Hex color",
+      "enabled": true,
+      "bounds": [
+        91,
+        385,
+        214,
+        30
+      ],
+      "cursor": "IBeamCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "#46a8d2"
+    }
+  ],
+  "layouts": [
+    {
+      "class": "QVBoxLayout",
+      "parent": "ColorPickerDialog",
+      "margins": [
+        11,
+        11,
+        11,
+        11
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "ColorPickerDialog",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QGridLayout",
+      "parent": "ColorPickerDialog",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "ColorPickerDialog",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 12
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+    "name": "Range Induction",
+    "image": "range_ind",
+    "width": 600,
+    "length": 600,
+    "icon": null,
+    "category": "Kitchen",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "range",
+        "stove",
+        "cooker",
+        "oven",
+        "cooktop",
+        "hob",
+        "cooking",
+        "baking",
+        "roasting",
+        "food",
+        "appliance",
+        "kitchen",
+        "induction",
+        "electric",
+        "glass"
+    ]
+}

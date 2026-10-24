@@ -1,0 +1,214 @@
+{
+  "format": "Planner Project",
+  "version": 1,
+  "scene": {
+    "objects": [
+      {
+        "type": "Wall",
+        "id": 1,
+        "measurementHidden": false,
+        "first": [
+          -2200.0,
+          1000.0
+        ],
+        "second": [
+          2200.0,
+          1000.0
+        ],
+        "width": 240,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 2,
+        "measurementHidden": false,
+        "first": [
+          -2200.0,
+          1000.0
+        ],
+        "second": [
+          -2200.0,
+          -1400.0
+        ],
+        "width": 240,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Door",
+        "id": 3,
+        "measurementHidden": false,
+        "parent": 0,
+        "center": 0.6,
+        "length": 879.9999999999998,
+        "hingeAtSecond": false,
+        "swingsOutwards": false,
+        "measurementFlipped": false
+      },
+      {
+        "type": "Furnishing",
+        "id": 4,
+        "measurementHidden": false,
+        "first": [
+          100.0,
+          -800.0
+        ],
+        "second": [
+          100.0,
+          -200.0
+        ],
+        "width": 1200.0,
+        "definition": "desk",
+        "behindCounters": false
+      }
+    ],
+    "groups": [],
+    "hidden": []
+  },
+  "settings": {
+    "uiTheme": "Dark UI",
+    "canvasTheme": "Dark Canvas",
+    "wallWidth": 240.0,
+    "wallMaterial": "Generic",
+    "wallShape": "line",
+    "doorType": "Door",
+    "windowType": "Window",
+    "snapEnabled": true,
+    "snap": {
+      "grid": true,
+      "vertices": true,
+      "midpoints": true,
+      "alignment": true
+    },
+    "connectedVertices": true,
+    "connectedObjects": false,
+    "groupMode": true,
+    "localTransforms": false,
+    "visibility": {
+      "World": true,
+      "Walls": true,
+      "Doors": true,
+      "Windows": true,
+      "Fireplaces": true,
+      "Elevators": true,
+      "Stairs": true,
+      "Counters": true,
+      "Railings": true,
+      "Furnishings": true,
+      "Labels": true,
+      "Arrows": true,
+      "Measurement guides": true,
+      "North arrows": true
+    },
+    "showGrid": true,
+    "showMeasurements": true,
+    "measurementPrecision": "Medium",
+    "showFpsCounter": false,
+    "buildSettings": {
+      "wallWidths": [
+        8.0,
+        12.0,
+        16.0,
+        24.0
+      ],
+      "openingSizes": {
+        "Door": 90.0,
+        "SlidingDoor": 90.0,
+        "PocketDoor": 90.0,
+        "BarnDoor": 90.0,
+        "BifoldDoor": 120.0,
+        "OpenDoorway": 90.0,
+        "Window": 120.0,
+        "SilledWindow": 120.0,
+        "CasementWindow": 60.0
+      },
+      "miscSizes": {
+        "Stair": 100.0,
+        "Counter": 60.0,
+        "Railing": 8.0,
+        "Pillar": 30.0,
+        "Column": 30.0,
+        "Fireplace": 120.0,
+        "Elevator": 120.0
+      }
+    },
+    "viewportSettings": {
+      "overall": 1.0,
+      "major": 0.169,
+      "minor": 0.083,
+      "origin": 0.305
+    },
+    "lineworkSettings": {
+      "baseWidth": 4.0,
+      "walls": 1.0,
+      "architectural": 0.5,
+      "furnishings": 0.25,
+      "dimensions": 0.25
+    },
+    "measurementSettings": {
+      "doors": 1,
+      "windows": 1,
+      "stairs": 2,
+      "counters": 2
+    },
+    "measurementVisibility": {
+      "walls": true,
+      "stairs": true,
+      "counters": true,
+      "railings": false,
+      "elevators": true
+    },
+    "collisionSettings": {
+      "walls": true,
+      "architectural": true,
+      "furnishings": true
+    },
+    "railingSpacings": {
+      "minimum": 90.0,
+      "maximum": 150.0,
+      "target": 120.0
+    },
+    "stairStepSizes": {
+      "minimum": 25.0,
+      "maximum": 30.0
+    },
+    "unitsMode": "Adaptive Metric"
+  },
+  "view": {
+    "zoom": 1.0,
+    "pan": [
+      0.0,
+      0.0
+    ]
+  },
+  "ui": {
+    "geometry": "AdnQywADAAAAAAABAAAAFwAABaQAAAOeAAAAAwAAABkAAAWiAAADnAAAAAAAAAAAAyAAAAADAAAAGQAABaIAAAOc",
+    "maximized": false,
+    "size": [
+      1440,
+      900
+    ],
+    "mainSplitter": [
+      968,
+      440
+    ],
+    "propertiesSplitter": [
+      555,
+      277
+    ],
+    "propertiesCollapsed": false,
+    "propertiesRestoreHeight": null,
+    "exportSections": {
+      "Canvas": false,
+      "Border": false,
+      "Grid": false,
+      "Line Weight": false,
+      "Measurements": false,
+      "Composite": false,
+      "Visibility": false
+    }
+  }
+}

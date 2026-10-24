@@ -1,0 +1,28 @@
+// A brighter blue-green cyanotype variation, with warm off-white linework.
+{
+    "name": "Cyanotype Canvas",
+    "type": "canvas",
+    "extends": "Blueprint Canvas",
+    "colors": {
+        "canvas": "#07546c",
+        "grid": "#86c9d7",
+        "objectOutline": "#f0fbf6",
+        "wallOutline": "#f0fbf6",
+        "wallFill": "#17687b",
+        "materialPattern": "#91c6cb",
+        "selectionOutline": "#a7f6e8",
+        "selectionFill": "#217e88",
+        "groupSelectionOutline": "#ffe2a3",
+        "groupSelectionFill": "#596f68",
+        "stairSelectionFill": "#1d737e",
+        "stairGroupSelectionFill": "#466761",
+        "selectionBoxFill": "#23a7f6e8",
+        "measurementLine": "#b1dcd9",
+        "rulerBackground": "#064457",
+        "rulerMajorTick": "#aed8d8",
+        "rulerMinorTick": "#5f9daa",
+        "rulerText": "#d7eeeb",
+        "overlayFill": "#ed064457",
+        "invalidOutline": "#91c6cb"
+    }
+}

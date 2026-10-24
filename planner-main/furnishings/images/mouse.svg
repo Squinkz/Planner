@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   stroke-width="1"
+   viewBox="0 0 6.5 12"
+   preserveAspectRatio="none"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="mouse_solo.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   width="6.5"
+   height="12"
+   vector-effect="non-scaling-stroke"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="45.254834"
+     inkscape:cx="2.0771262"
+     inkscape:cy="5.4027377"
+     inkscape:window-width="2560"
+     inkscape:window-height="1336"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <title
+     id="title1">Beveled rectangle</title>
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Beveled rectangle</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="planner-fixed-1"
+     transform="translate(-10.230999,-4)"
+     style="stroke:#000000;stroke-opacity:1">
+    <rect
+       stroke-width="1"
+       vector-effect="non-scaling-stroke"
+       style="vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1"
+       id="rect4"
+       width="6.2422838"
+       height="11.808665"
+       x="10.359858"
+       y="4.0956674"
+       ry="2.9388082"
+       rx="2.9388082" />
+    <path
+       stroke-width="1"
+       vector-effect="non-scaling-stroke"
+       style="vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1"
+       d="m 10.359858,7.0925598 h 6.242284"
+       id="path4"
+       sodipodi:nodetypes="cc" />
+    <path
+       stroke-width="1"
+       vector-effect="non-scaling-stroke"
+       style="vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1"
+       d="M 13.481,4.0956674 V 7.0925598"
+       id="path5" />
+    <rect
+       stroke-width="1"
+       vector-effect="non-scaling-stroke"
+       style="vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1"
+       id="rect5"
+       width="0.94886339"
+       height="1.9592272"
+       x="13.006568"
+       y="4.6145"
+       ry="0.47443169"
+       rx="0.47443169" />
+  </g>
+</svg>

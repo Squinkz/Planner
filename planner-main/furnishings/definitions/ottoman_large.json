@@ -1,0 +1,25 @@
+{
+    "name": "Ottoman Large",
+    "image": "ottoman_large",
+    "width": 900,
+    "length": 600,
+    "category": [
+        "Living Room",
+        "Bedroom"
+    ],
+    "keywords": [
+        "ottoman",
+        "footstool",
+        "footrest",
+        "hassock",
+        "pouf",
+        "pouffe",
+        "stool",
+        "seat",
+        "seating",
+        "feet",
+        "upholstered",
+        "large",
+        "long"
+    ]
+}

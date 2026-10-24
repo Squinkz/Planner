@@ -1,0 +1,28 @@
+// The original mid-grey workspace with its magenta cast removed. Heather preserves the original palette.
+{
+    "name": "Neutral UI",
+    "type": "ui",
+    "extends": "Light UI",
+    "colors": {
+        "text": "#222222",
+        "mutedText": "#303030",
+        "activeText": "#202020",
+        "disabled": "#797979",
+        "treeDisabledText": "#8e8e8e",
+        "treeEmptyText": "#656565",
+        "windowBackground": "#bbbbbb",
+        "controlBackground": "#acacac",
+        "fieldBackground": "#dddddd",
+        "hoverBackground": "#9e9e9e",
+        "pressedBackground": "#929292",
+        "activeBackground": "#b2b2b2",
+        "activeHoverBackground": "#a2a2a2",
+        "disabledBackground": "#c0c0c0",
+        "border": "#8f8f8f",
+        "menuBorder": "#808080",
+        "sliderHandle": "#4b4b4b",
+        "scrollbarHandle": "#929292",
+        "icon": "#2c2c2c",
+        "iconDisabled": "#959595"
+    }
+}

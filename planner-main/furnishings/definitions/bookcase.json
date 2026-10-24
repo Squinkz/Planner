@@ -1,0 +1,25 @@
+{
+    "name": "Bookcase",
+    "image": "bookcase",
+    "width": 900,
+    "length": 300,
+    "icon": null,
+    "category": [
+        "Office",
+        "Living Room"
+    ],
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "bookcase",
+        "bookshelf",
+        "bookshelves",
+        "shelving",
+        "shelf",
+        "books",
+        "library",
+        "storage",
+        "reading",
+        "study"
+    ]
+}

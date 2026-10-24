@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="64"
+   height="64"
+   viewBox="0 0 64 64"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="pillar.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#494949"
+     inkscape:zoom="11.313709"
+     inkscape:cx="46.40388"
+     inkscape:cy="31.422056"
+     inkscape:window-width="2560"
+     inkscape:window-height="1336"
+     inkscape:window-x="2552"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <rect
+     style="fill:#000000;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:11.7"
+     id="rect1"
+     width="37.079956"
+     height="37.079952"
+     x="13.460022"
+     y="13.460022"
+     inkscape:label="fill"
+     data-theme-fill="fieldBackground" />
+  <path
+     d="M 13.460022,13.460022 H 50.539977 V 50.539975 H 13.460022 Z m 0,14.83198 14.831982,-14.83198 M 13.460022,43.123985 43.123987,13.460022 M 20.876012,50.539975 50.539977,20.87601 M 35.707996,50.539975 50.539977,35.707995"
+     id="path1-1"
+     style="fill:none;stroke:#ffffff;stroke-width:3;stroke-dasharray:none;stroke-opacity:1" />
+  <g
+     id="path1-8-8-1-83-5">
+    <path
+       style="display:none;fill:#ffffff"
+       d="M 27.881884,39.5 H 53"
+       id="path1" />
+  </g>
+</svg>

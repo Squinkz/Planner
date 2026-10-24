@@ -1,0 +1,26 @@
+{
+    "name": "Cooktop Induction",
+    "image": "hob_ind",
+    "width": 500,
+    "length": 482,
+    "icon": null,
+    "category": "Kitchen",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "hob",
+        "cooktop",
+        "stove",
+        "stovetop",
+        "burner",
+        "burners",
+        "plate",
+        "cooking",
+        "food",
+        "appliance",
+        "kitchen",
+        "induction",
+        "electric",
+        "glass"
+    ]
+}

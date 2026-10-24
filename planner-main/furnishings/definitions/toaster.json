@@ -1,0 +1,16 @@
+{
+    "name": "Toaster",
+    "image": "toaster",
+    "width": 300,
+    "length": 200,
+    "category": "Kitchen",
+    "keywords": [
+        "toaster",
+        "toast",
+        "bread",
+        "breakfast",
+        "countertop",
+        "appliance",
+        "kitchen"
+    ]
+}

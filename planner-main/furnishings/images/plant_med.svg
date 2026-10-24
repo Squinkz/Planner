@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   stroke-width="1"
+   viewBox="0 0 60 60"
+   preserveAspectRatio="none"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="plant_med.svg"
+   width="60"
+   height="60"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/" vector-effect="non-scaling-stroke">
+  <ellipse stroke-width="1" vector-effect="non-scaling-stroke"
+     style="display:inline;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
+     id="path14-4"
+     cx="29.969225"
+     cy="30.049994"
+     rx="25.334097"
+     ry="25.402466" />
+  <path stroke-width="1" vector-effect="non-scaling-stroke"
+     id="rect1-7-2"
+     style="display:inline;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;vector-effect:non-scaling-stroke"
+     d="m 30,59.949219 c 0,0 6.827378,-4.414638 8.539062,-10.802735 C 41.049106,39.778878 34.205078,30 34.205078,30 h -8.410156 c 0,0 -6.844027,9.778878 -4.333984,19.146484 C 23.172623,55.53458 30,59.949219 30,59.949219 Z"
+     sodipodi:nodetypes="csccsc" />
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="8"
+     inkscape:cx="0.0625"
+     inkscape:cy="27.8125"
+     inkscape:window-width="2560"
+     inkscape:window-height="1336"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <title
+     id="title1">Circle</title>
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Circle</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:groupmode="layer"
+     id="layer1"
+     inkscape:label="Layer 1" stroke-width="1" vector-effect="non-scaling-stroke">
+    <path stroke-width="1" vector-effect="non-scaling-stroke"
+       id="rect1"
+       style="display:inline;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;vector-effect:non-scaling-stroke"
+       d="m 30,0.05078125 c 0,0 -6.827378,4.41463795 -8.539062,10.80273475 C 18.950894,20.221122 25.794922,30 25.794922,30 h 8.410156 c 0,0 6.844027,-9.778878 4.333984,-19.146484 C 36.827377,4.4654197 30,0.05078125 30,0.05078125 Z"
+       sodipodi:nodetypes="csccsc" />
+    <path stroke-width="1" vector-effect="non-scaling-stroke"
+       id="rect1-7"
+       style="display:inline;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;vector-effect:non-scaling-stroke"
+       d="m 59.949219,30 c 0,0 -4.414638,-6.827378 -10.802735,-8.539062 C 39.778878,18.950894 30,25.794922 30,25.794922 v 8.410156 c 0,0 9.778878,6.844027 19.146484,4.333984 C 55.53458,36.827377 59.949219,30 59.949219,30 Z"
+       sodipodi:nodetypes="csccsc" />
+    <path stroke-width="1" vector-effect="non-scaling-stroke"
+       id="rect1-7-2-4"
+       style="display:inline;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;vector-effect:non-scaling-stroke"
+       d="m 0.050781,30 c 0,0 4.414638,6.827378 10.802735,8.539062 C 20.221122,41.049106 30,34.205078 30,34.205078 v -8.410156 c 0,0 -9.778878,-6.844027 -19.146484,-4.333984 C 4.46542,23.172623 0.050781,30 0.050781,30 Z"
+       sodipodi:nodetypes="csccsc" />
+    <path stroke-width="1" vector-effect="non-scaling-stroke"
+       style="display:inline;fill:none;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
+       d="M 30,0.05078125 V 30"
+       id="path6" />
+    <path stroke-width="1" vector-effect="non-scaling-stroke"
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
+       d="M 59.949219,30 H 30"
+       id="path7" />
+    <path stroke-width="1" vector-effect="non-scaling-stroke"
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
+       d="M 30,59.949219 V 30"
+       id="path8" />
+    <path stroke-width="1" vector-effect="non-scaling-stroke"
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
+       d="M 0.050781,30 H 30"
+       id="path9" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="g5"
+     inkscape:label="Layer 1 copy"
+     transform="rotate(45,30,30)"
+     style="display:inline" stroke-width="1" vector-effect="non-scaling-stroke">
+    <path stroke-width="1" vector-effect="non-scaling-stroke"
+       id="path2"
+       style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;vector-effect:non-scaling-stroke"
+       d="m 30,0.05078125 c 0,0 -6.827378,4.41463795 -8.539062,10.80273475 C 18.950894,20.221122 25.794922,30 25.794922,30 h 8.410156 c 0,0 6.844027,-9.778878 4.333984,-19.146484 C 36.827377,4.4654197 30,0.05078125 30,0.05078125 Z"
+       sodipodi:nodetypes="csccsc" />
+    <path stroke-width="1" vector-effect="non-scaling-stroke"
+       id="path3"
+       style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;vector-effect:non-scaling-stroke"
+       d="m 59.949219,30 c 0,0 -4.414638,-6.827378 -10.802735,-8.539062 C 39.778878,18.950894 30,25.794922 30,25.794922 v 8.410156 c 0,0 9.778878,6.844027 19.146484,4.333984 C 55.53458,36.827377 59.949219,30 59.949219,30 Z"
+       sodipodi:nodetypes="csccsc" />
+    <path stroke-width="1" vector-effect="non-scaling-stroke"
+       id="path4"
+       style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;vector-effect:non-scaling-stroke"
+       d="m 30,59.949219 c 0,0 6.827378,-4.414638 8.539062,-10.802735 C 41.049106,39.778878 34.205078,30 34.205078,30 h -8.410156 c 0,0 -6.844027,9.778878 -4.333984,19.146484 C 23.172623,55.53458 30,59.949219 30,59.949219 Z"
+       sodipodi:nodetypes="csccsc" />
+    <path stroke-width="1" vector-effect="non-scaling-stroke"
+       id="path5"
+       style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;vector-effect:non-scaling-stroke"
+       d="m 0.050781,30 c 0,0 4.414638,6.827378 10.802735,8.539062 C 20.221122,41.049106 30,34.205078 30,34.205078 v -8.410156 c 0,0 -9.778878,-6.844027 -19.146484,-4.333984 C 4.46542,23.172623 0.050781,30 0.050781,30 Z"
+       sodipodi:nodetypes="csccsc" />
+    <path stroke-width="1" vector-effect="non-scaling-stroke"
+       style="display:inline;fill:none;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
+       d="M 30,0.05078121 V 30"
+       id="path10" />
+    <path stroke-width="1" vector-effect="non-scaling-stroke"
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
+       d="M 59.949219,30 H 30"
+       id="path11" />
+    <path stroke-width="1" vector-effect="non-scaling-stroke"
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
+       d="M 30,59.949219 V 30"
+       id="path12" />
+    <path stroke-width="1" vector-effect="non-scaling-stroke"
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
+       d="M 0.05078109,30 H 30"
+       id="path13" />
+  </g>
+  <ellipse stroke-width="1" vector-effect="non-scaling-stroke"
+     style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
+     id="path14"
+     cx="30.015553"
+     cy="30.041756"
+     rx="11.385545"
+     ry="11.428207" />
+</svg>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg stroke-width="1"
+   viewBox="0 0 60 8"
+   preserveAspectRatio="none"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="towel_rack.svg"
+   width="60"
+   height="8"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg" vector-effect="non-scaling-stroke">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#3d3d3d"
+     inkscape:zoom="11.304658"
+     inkscape:cx="29.147278"
+     inkscape:cy="-3.6710533"
+     inkscape:window-width="2560"
+     inkscape:window-height="1336"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g1" />
+  <g
+     fill="#ffffff"
+     stroke="#000000"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     id="g1"
+     transform="matrix(0.13686584,0,0,0.0995388,2.5317087,5.0230598)"
+     style="stroke:#000000;stroke-opacity:1">
+    <rect stroke-width="1"
+       vector-effect="non-scaling-stroke"
+       x="27.083618"
+       y="-25.98596"
+       width="18.098467"
+       height="55.693226"
+       id="rect1"
+       style="display:inline;stroke:#000000;stroke-width:1;stroke-opacity:1;vector-effect:non-scaling-stroke"
+       ry="0" />
+    <rect stroke-width="1"
+       vector-effect="non-scaling-stroke"
+       x="355.87274"
+       y="-25.98596"
+       width="18.098467"
+       height="55.693226"
+       id="rect1-2"
+       style="display:inline;stroke:#000000;stroke-width:1;stroke-opacity:1;vector-effect:non-scaling-stroke"
+       ry="0" />
+    <rect stroke-width="1"
+       vector-effect="non-scaling-stroke"
+       x="-18.49774"
+       y="-50.463337"
+       width="438.3855"
+       height="25.115833"
+       id="rect1-1"
+       style="display:inline;stroke:#000000;stroke-width:1;stroke-opacity:1;vector-effect:non-scaling-stroke"
+       ry="0"
+       rx="0" />
+    <path stroke-width="1" vector-effect="non-scaling-stroke"
+       style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
+       d="m 398.17207,-50.463335 v 25.115831"
+       id="path2"
+       sodipodi:nodetypes="cc" />
+    <path stroke-width="1" vector-effect="non-scaling-stroke"
+       style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
+       d="m 3.2159545,-50.463335 0,25.115831"
+       id="path3"
+       sodipodi:nodetypes="cc" />
+  </g>
+</svg>

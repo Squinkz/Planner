@@ -1,0 +1,33 @@
+{
+    "name": "Refrigerator Double Built-in",
+    "image": "fridge_double_built",
+    "width": 900,
+    "length": 750,
+    "icon": null,
+    "category": "Kitchen",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "fridge",
+        "refrigerator",
+        "refrigeration",
+        "refrigerated",
+        "cooling",
+        "cold",
+        "food",
+        "storage",
+        "appliance",
+        "chiller",
+        "built",
+        "builtin",
+        "integrated",
+        "fitted",
+        "undercounter",
+        "under",
+        "counter",
+        "double",
+        "doors",
+        "side",
+        "american"
+    ]
+}

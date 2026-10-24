@@ -1,0 +1,35 @@
+// A markup-oriented presentation sheet with graphite plans and red dimension ink.
+{
+    "name": "Redline Canvas",
+    "type": "canvas",
+    "extends": "Light Canvas",
+    "labelFont": "Noto Sans",
+    "colors": {
+        "canvas": "#faf8f3",
+        "grid": "#aaa39a",
+        "objectOutline": "#393a39",
+        "wallOutline": "#565651",
+        "wallFill": "#e3e0d7",
+        "materialPattern": "#99958b",
+        "selectionOutline": "#b43c32",
+        "selectionFill": "#f2d8ce",
+        "groupSelectionOutline": "#256f79",
+        "groupSelectionFill": "#cee3e1",
+        "stairSelectionFill": "#f5e4dc",
+        "stairGroupSelectionFill": "#dfecea",
+        "selectionBoxFill": "#23b43c32",
+        "measurementLine": "#a15c50",
+        "rulerBackground": "#eee8df",
+        "rulerMajorTick": "#8b776d",
+        "rulerMinorTick": "#bcb0a5",
+        "rulerText": "#655047",
+        "overlayFill": "#f0faf8f3",
+        "invalidOutline": "#a89b8b",
+        "warningFill": "#f6d4ab",
+        "warningOutline": "#a95a14",
+        "errorBorder": "#b66453",
+        "errorFill": "#f0f8ded5",
+        "errorText": "#9e342b",
+        "missing": "#b43c32"
+    }
+}

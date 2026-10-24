@@ -1,0 +1,23 @@
+{
+    "name": "Cabinet Single",
+    "image": "cabinet_single",
+    "width": 300,
+    "length": 350,
+    "icon": null,
+    "category": "Kitchen",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "cabinet",
+        "cupboard",
+        "storage",
+        "base",
+        "kitchen",
+        "counter",
+        "cabinetry",
+        "cupboards",
+        "single",
+        "one",
+        "door"
+    ]
+}

@@ -1,0 +1,337 @@
+{
+  "description": "Shared buttons, fields, arrow treatment and sliders",
+  "logicalSize": [
+    430,
+    333
+  ],
+  "devicePixelRatio": 1.0,
+  "controls": [
+    {
+      "class": "QLabel",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        158,
+        11,
+        115,
+        29
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 11.0,
+        "pixelSize": -1,
+        "weight": 700
+      },
+      "text": "Control states"
+    },
+    {
+      "class": "QPushButton",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        11,
+        46,
+        408,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Idle button",
+      "checkable": true,
+      "checked": false
+    },
+    {
+      "class": "QPushButton",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        11,
+        84,
+        408,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Checked button",
+      "checkable": true,
+      "checked": true
+    },
+    {
+      "class": "QPushButton",
+      "name": "",
+      "accessibleName": "",
+      "enabled": false,
+      "bounds": [
+        11,
+        122,
+        408,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "Disabled button",
+      "checkable": true,
+      "checked": false
+    },
+    {
+      "class": "DownwardComboBox",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        11,
+        160,
+        408,
+        32
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "editable": false,
+      "currentIndex": 0,
+      "items": [
+        {
+          "text": "Dropdown",
+          "data": null,
+          "tooltip": null
+        },
+        {
+          "text": "Longer option with room for arrow",
+          "data": null,
+          "tooltip": null
+        }
+      ]
+    },
+    {
+      "class": "DragSpinBox",
+      "name": "",
+      "accessibleName": "Scrub field: no arrows",
+      "enabled": true,
+      "bounds": [
+        11,
+        198,
+        408,
+        35
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "Drag left or right to adjust. Hold Alt for finer control. Click to type a value.",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0.0,
+      "maximum": 99.99,
+      "step": 1.0,
+      "value": 12.5,
+      "keyboardTracking": true,
+      "buttons": "NoButtons",
+      "decimals": 2,
+      "suffix": ""
+    },
+    {
+      "class": "QLineEdit",
+      "name": "qt_spinbox_lineedit",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        16,
+        203,
+        398,
+        25
+      ],
+      "cursor": "IBeamCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "12.50"
+    },
+    {
+      "class": "QDoubleSpinBox",
+      "name": "settingsValue",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        11,
+        239,
+        408,
+        35
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0.0,
+      "maximum": 99.99,
+      "step": 1.0,
+      "value": 12.5,
+      "keyboardTracking": true,
+      "buttons": "UpDownArrows",
+      "decimals": 2,
+      "suffix": ""
+    },
+    {
+      "class": "QLineEdit",
+      "name": "qt_spinbox_lineedit",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        16,
+        244,
+        359,
+        25
+      ],
+      "cursor": "IBeamCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "text": "12.50"
+    },
+    {
+      "class": "DragSlider",
+      "name": "",
+      "accessibleName": "",
+      "enabled": true,
+      "bounds": [
+        11,
+        280,
+        408,
+        18
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0,
+      "maximum": 99,
+      "step": 1,
+      "value": 50
+    },
+    {
+      "class": "DragSlider",
+      "name": "",
+      "accessibleName": "",
+      "enabled": false,
+      "bounds": [
+        11,
+        304,
+        408,
+        18
+      ],
+      "cursor": "ArrowCursor",
+      "tooltip": "",
+      "font": {
+        "family": "Noto Sans",
+        "pointSize": 10.0,
+        "pixelSize": -1,
+        "weight": 400
+      },
+      "minimum": 0,
+      "maximum": 99,
+      "step": 1,
+      "value": 0
+    }
+  ],
+  "layouts": [
+    {
+      "class": "QVBoxLayout",
+      "parent": "QWidget",
+      "margins": [
+        11,
+        11,
+        11,
+        11
+      ],
+      "spacing": 6
+    },
+    {
+      "class": "QHBoxLayout",
+      "parent": "sectionHeading",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 10
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "QFrame",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_hcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    },
+    {
+      "class": "QBoxLayout",
+      "parent": "qt_scrollarea_vcontainer",
+      "margins": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "spacing": 0
+    }
+  ]
+}

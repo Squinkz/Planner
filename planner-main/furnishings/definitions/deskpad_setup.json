@@ -1,0 +1,41 @@
+{
+    "name": "Deskpad Setup",
+    "category": "Office",
+    "children": [
+        {
+            "furnishing": "mousepad_xl",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 800.0,
+            "length": 300.0,
+            "angle": 0.0,
+            "zIndex": 0,
+            "flipHorizontal": false,
+            "flipVertical": false
+        },
+        {
+            "furnishing": "mouse",
+            "x": 300.0,
+            "y": 0.0,
+            "width": 65.0,
+            "length": 120.0,
+            "angle": 0.0,
+            "zIndex": 1,
+            "flipHorizontal": false,
+            "flipVertical": false,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "keyboard",
+            "x": -100.0,
+            "y": 0.0,
+            "width": 470.0,
+            "length": 160.0,
+            "angle": 0.0,
+            "zIndex": 2,
+            "flipHorizontal": false,
+            "flipVertical": false,
+            "fixedSize": true
+        }
+    ]
+}

@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   stroke-width="1"
+   viewBox="0 0 150 45"
+   preserveAspectRatio="none"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="bench.svg"
+   width="150"
+   height="45"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/" vector-effect="non-scaling-stroke">
+  <defs
+     id="defs1">
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect2"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,0,1,0,3.6603412,0,1 @ F,0,1,1,0,3.6603412,0,1 @ F,0,1,1,0,3.6603412,0,1 @ F,0,1,1,0,3.6603412,0,1"
+       radius="0"
+       unit="px"
+       method="auto"
+       mode="F"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" />
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect1"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,14.25,0,1 @ F,0,1,1,0,14.25,0,1"
+       radius="0"
+       unit="px"
+       method="auto"
+       mode="F"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" />
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect2-8"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,0,1,0,3.6603412,0,1 @ F,0,1,1,0,3.6603412,0,1 @ F,0,1,1,0,3.6603412,0,1 @ F,0,1,1,0,3.6603412,0,1"
+       radius="0"
+       unit="px"
+       method="auto"
+       mode="F"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" />
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect2-8-5"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,0,1,0,3.6603412,0,1 @ F,0,1,1,0,3.6603412,0,1 @ F,0,1,1,0,3.6603412,0,1 @ F,0,1,1,0,3.6603412,0,1"
+       radius="0"
+       unit="px"
+       method="auto"
+       mode="F"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" />
+  </defs>
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="3.9968"
+     inkscape:cx="42.784227"
+     inkscape:cy="10.133106"
+     inkscape:window-width="2560"
+     inkscape:window-height="1336"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <title
+     id="title1">Beveled square</title>
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Beveled square</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <path
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     id="rect15-6-4-2-7-3"
+     style="display:none;vector-effect:non-scaling-stroke;fill:none;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7"
+     d="M 35,5.7224322 H 18.374999 c -2.333696,0 -4.491169,-0.7277376 -6.258789,-1.9695828"
+     sodipodi:nodetypes="csc" />
+  <path
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     id="rect15-6-4-2-7-3-3"
+     style="display:none;vector-effect:non-scaling-stroke;fill:none;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7"
+     d="m 35,5.7224322 h 16.625001 c 2.333696,0 4.491169,-0.7277376 6.258789,-1.9695828"
+     sodipodi:nodetypes="csc" />
+  <rect
+     style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1;vector-effect:non-scaling-stroke"
+     id="rect2"
+     width="150"
+     height="7"
+     x="-6.7474713e-07"
+     y="-2.7755576e-17"  stroke-width="1" vector-effect="non-scaling-stroke"/>
+  <path
+     id="rect2-4"
+     style="display:inline;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;vector-effect:non-scaling-stroke"
+     d="M -6.7474713e-7,9 H 150 V 21.5 H -6.7474713e-7 Z"
+     sodipodi:nodetypes="ccccc"  stroke-width="1" vector-effect="non-scaling-stroke"/>
+  <rect
+     style="display:none;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1;vector-effect:non-scaling-stroke"
+     id="rect2-4-0"
+     width="150"
+     height="7"
+     x="-6.7474713e-07"
+     y="19"  stroke-width="1" vector-effect="non-scaling-stroke"/>
+  <path
+     id="rect2-4-0-6"
+     style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;vector-effect:non-scaling-stroke"
+     d="M -6.7474713e-7,23.5 H 150 V 36 H -6.7474713e-7 Z"
+     sodipodi:nodetypes="ccccc"  stroke-width="1" vector-effect="non-scaling-stroke"/>
+  <rect
+     style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1;vector-effect:non-scaling-stroke"
+     id="rect2-4-0-6-9"
+     width="150"
+     height="7"
+     x="-6.7474713e-07"
+     y="38"  stroke-width="1" vector-effect="non-scaling-stroke"/>
+  <rect
+     style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1;vector-effect:non-scaling-stroke"
+     id="rect2-6"
+     width="45"
+     height="7"
+     x="-45"
+     y="0"
+     transform="rotate(-90)"  stroke-width="1" vector-effect="non-scaling-stroke"/>
+  <rect
+     style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1;vector-effect:non-scaling-stroke"
+     id="rect2-6-1"
+     width="45"
+     height="7"
+     x="-45"
+     y="143"
+     transform="rotate(-90)"  stroke-width="1" vector-effect="non-scaling-stroke"/>
+</svg>

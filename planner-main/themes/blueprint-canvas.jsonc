@@ -1,0 +1,41 @@
+{
+    "name": "Blueprint Canvas",
+    "type": "canvas",
+    "labelFont": "D-DIN Condensed",
+    "colors": {
+        // Prussian blue paper with pale drafting ink. Alpha is first in #AARRGGBB.
+        "canvas": "#003153",
+        "grid": "#8cb9d5", // Grid intensity settings soften this ink further.
+        "objectOutline": "#edf6fc",
+        "wallOutline": "#edf6fc",
+        "wallFill": "#104466",
+        "materialPattern": "#83aec9",
+
+        // Cyan selects individual objects; warm amber distinguishes groups.
+        "selectionOutline": "#70e3ff",
+        "selectionFill": "#155a78",
+        "groupSelectionOutline": "#ffd58a",
+        "groupSelectionFill": "#4a555a",
+        "stairSelectionFill": "#0c4968",
+        "stairGroupSelectionFill": "#354952",
+        "selectionBoxFill": "#2370e3ff",
+
+        // Dimensions stay subordinate to the main white linework.
+        "measurementLine": "#a4c9df",
+        "rulerBackground": "#002840",
+        "rulerMajorTick": "#a4c9df",
+        "rulerMinorTick": "#5e8ca8",
+        "rulerText": "#d1e5f2",
+
+        "overlayFill": "#e6002840",
+        "exportOutsideShade": "#41000000",
+        "performanceText": "#ff9c91",
+        "invalidOutline": "#83aec9",
+        "warningFill": "#57394a",
+        "warningOutline": "#ff9c91",
+        "errorBorder": "#b26e79",
+        "errorFill": "#f0412738",
+        "errorText": "#ffb7ad",
+        "missing": "#ff9c91"
+    }
+}

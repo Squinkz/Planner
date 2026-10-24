@@ -1,0 +1,715 @@
+{
+  "format": "Planner object render examples",
+  "version": 1,
+  "qt": "6.11.1",
+  "style": "Fusion",
+  "devicePixelRatio": 1,
+  "fontSha256": {
+    "D-DINCondensed.ttf": "cc2df621e1546e3aaeff05f05ff64db86bbd34697b623d84ee83e0f581fcbb37",
+    "DraftingSmallCaps-Regular.ttf": "92f6f00677952e44541c880ad0dc788431d31272e4be01488bcaa3e4ba4a225a",
+    "NotoSans-Bold.ttf": "13a813c49624ae3ba3c5c6e72c5ebffc4b9e1e6ea32f421c04069b037c6ad431",
+    "NotoSans-Regular.ttf": "fe8c022f48d8dd29f17b744d16f9346f4357e16f7d4f7be58b000ae7c291b614",
+    "NotoSans-SemiBold.ttf": "e691fe27813ec6ed11d0a5be4c6c1f6739996ed682462eaa3244a6185217dd6c"
+  },
+  "cases": [
+    {
+      "id": "wall",
+      "type": "Wall",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "wall.plan",
+      "image": "wall.png",
+      "pixels": [
+        400,
+        300
+      ],
+      "rgbaSha256": "0cd3db8b4595bb901dbdf82517ffb0af032754f045b4fffc2ab8308b89bcb435",
+      "svg": null
+    },
+    {
+      "id": "counter",
+      "type": "Counter",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "counter.plan",
+      "image": "counter.png",
+      "pixels": [
+        400,
+        300
+      ],
+      "rgbaSha256": "c036615666e79c586621d02aca34eed9ee778591c6ee8c48f18309056d81e868",
+      "svg": null
+    },
+    {
+      "id": "railing",
+      "type": "Railing",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "railing.plan",
+      "image": "railing.png",
+      "pixels": [
+        400,
+        300
+      ],
+      "rgbaSha256": "c05c6fdc9ae65e5eb8d9713ba6d69247350d5e16e394e9c4ce9bb43ca4a0b704",
+      "svg": null
+    },
+    {
+      "id": "stair",
+      "type": "Stair",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "stair.plan",
+      "image": "stair.png",
+      "pixels": [
+        400,
+        300
+      ],
+      "rgbaSha256": "2243708c3edbf4e06703f106fe331d4bfe87dad8122aab951f4ce17734d706db",
+      "svg": null
+    },
+    {
+      "id": "pillar",
+      "type": "Pillar",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "pillar.plan",
+      "image": "pillar.png",
+      "pixels": [
+        400,
+        300
+      ],
+      "rgbaSha256": "abdabd61dc2e2ba527c7e8c3b3b1f792cf987a460eaf5e16346170eec0300fee",
+      "svg": null
+    },
+    {
+      "id": "column",
+      "type": "Column",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "column.plan",
+      "image": "column.png",
+      "pixels": [
+        400,
+        300
+      ],
+      "rgbaSha256": "b68871c683cf5f11f4f1a30865baa6e2f41ebf47061631d0a4317b6465fa703c",
+      "svg": null
+    },
+    {
+      "id": "elevator",
+      "type": "Elevator",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "elevator.plan",
+      "image": "elevator.png",
+      "pixels": [
+        400,
+        300
+      ],
+      "rgbaSha256": "347e63683ee4e0e7c068bea46ae375dafdb75ab8deacb6a326d03389d50ab636",
+      "svg": null
+    },
+    {
+      "id": "door",
+      "type": "Door",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -3500,
+        -2000,
+        7000,
+        4000
+      ],
+      "plan": "door.plan",
+      "image": "door.png",
+      "pixels": [
+        700,
+        400
+      ],
+      "rgbaSha256": "4e20a1ffc4e28770850aa27df4ece8d1255b745f1cb4bca8cd2b334f17ec1b83",
+      "svg": null
+    },
+    {
+      "id": "slidingdoor",
+      "type": "SlidingDoor",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -3500,
+        -2000,
+        7000,
+        4000
+      ],
+      "plan": "slidingdoor.plan",
+      "image": "slidingdoor.png",
+      "pixels": [
+        700,
+        400
+      ],
+      "rgbaSha256": "71d77ffaa51cd2e3cc145c437827405975d1a2fca262e32e284ab54489543511",
+      "svg": null
+    },
+    {
+      "id": "pocketdoor",
+      "type": "PocketDoor",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -3500,
+        -2000,
+        7000,
+        4000
+      ],
+      "plan": "pocketdoor.plan",
+      "image": "pocketdoor.png",
+      "pixels": [
+        700,
+        400
+      ],
+      "rgbaSha256": "139ed3f7f3142c487e9ee1abab22c86e83796070c0cb86110dfa1e12d026ef76",
+      "svg": null
+    },
+    {
+      "id": "barndoor",
+      "type": "BarnDoor",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -3500,
+        -2000,
+        7000,
+        4000
+      ],
+      "plan": "barndoor.plan",
+      "image": "barndoor.png",
+      "pixels": [
+        700,
+        400
+      ],
+      "rgbaSha256": "5a78b357b10551f3a06ad3e16ae7b2342b0a0e7ac736589605bb6f31ea2d7541",
+      "svg": null
+    },
+    {
+      "id": "bifolddoor",
+      "type": "BifoldDoor",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -3500,
+        -2000,
+        7000,
+        4000
+      ],
+      "plan": "bifolddoor.plan",
+      "image": "bifolddoor.png",
+      "pixels": [
+        700,
+        400
+      ],
+      "rgbaSha256": "1fefd595a53775e6678c82200e94df5b3268981fb6684ef306ee1c268a0215f3",
+      "svg": null
+    },
+    {
+      "id": "opendoorway",
+      "type": "OpenDoorway",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -3500,
+        -2000,
+        7000,
+        4000
+      ],
+      "plan": "opendoorway.plan",
+      "image": "opendoorway.png",
+      "pixels": [
+        700,
+        400
+      ],
+      "rgbaSha256": "65badcb1d1a94a4764f3f52b7f604e270c2fe9da6c969366715c96fe2462f4f3",
+      "svg": null
+    },
+    {
+      "id": "window",
+      "type": "Window",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -3500,
+        -2000,
+        7000,
+        4000
+      ],
+      "plan": "window.plan",
+      "image": "window.png",
+      "pixels": [
+        700,
+        400
+      ],
+      "rgbaSha256": "c983993f627fa966d1ab26fff26ef9c0bd04b045648a4e6886fe6b337524568f",
+      "svg": null
+    },
+    {
+      "id": "silledwindow",
+      "type": "SilledWindow",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -3500,
+        -2000,
+        7000,
+        4000
+      ],
+      "plan": "silledwindow.plan",
+      "image": "silledwindow.png",
+      "pixels": [
+        700,
+        400
+      ],
+      "rgbaSha256": "da53de2f21fc95f3614eecceb49db546264dbb0ccdeffa9206f8765c9b9e8edb",
+      "svg": null
+    },
+    {
+      "id": "casementwindow",
+      "type": "CasementWindow",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -3500,
+        -2000,
+        7000,
+        4000
+      ],
+      "plan": "casementwindow.plan",
+      "image": "casementwindow.png",
+      "pixels": [
+        700,
+        400
+      ],
+      "rgbaSha256": "6e7cb7b51af8f895806f865927198f08d97a295ce596a76054f39973e75a6aed",
+      "svg": null
+    },
+    {
+      "id": "fireplace",
+      "type": "Fireplace",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -3500,
+        -2000,
+        7000,
+        4000
+      ],
+      "plan": "fireplace.plan",
+      "image": "fireplace.png",
+      "pixels": [
+        700,
+        400
+      ],
+      "rgbaSha256": "cf2d49c20085393bbe4a0a21fd41dd9bf7078aca7cc008c5fa98656f9359dadc",
+      "svg": null
+    },
+    {
+      "id": "furnishing",
+      "type": "Furnishing",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "furnishing.plan",
+      "image": "furnishing.png",
+      "pixels": [
+        400,
+        300
+      ],
+      "rgbaSha256": "e726370ba74e0745e0a60a9d7e51ad3c49c77541dc5765297c03912f529e2cd6",
+      "svg": null
+    },
+    {
+      "id": "label",
+      "type": "Label",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "label.plan",
+      "image": "label.png",
+      "pixels": [
+        400,
+        300
+      ],
+      "rgbaSha256": "7e8c1a1f903b146d36e1c63fff29dd4446769219dd6c67df529948159e90f42f",
+      "svg": null
+    },
+    {
+      "id": "northarrow",
+      "type": "NorthArrow",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "northarrow.plan",
+      "image": "northarrow.png",
+      "pixels": [
+        400,
+        300
+      ],
+      "rgbaSha256": "0f8ae9340e6e1e35dca50641490bfb02943a025cd36b21d20444a90f70ac0282",
+      "svg": null
+    },
+    {
+      "id": "arrow",
+      "type": "Arrow",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "arrow.plan",
+      "image": "arrow.png",
+      "pixels": [
+        400,
+        300
+      ],
+      "rgbaSha256": "7163ab6e91867b5cce0337d53fc7d23f8525d8cccb942239dc3629448715cdd1",
+      "svg": null
+    },
+    {
+      "id": "measurementguide",
+      "type": "MeasurementGuide",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "measurementguide.plan",
+      "image": "measurementguide.png",
+      "pixels": [
+        400,
+        300
+      ],
+      "rgbaSha256": "1dcc6109b17d8c8b98911c713f2b3e173a125693760b64c67e510809fe81c59c",
+      "svg": null
+    },
+    {
+      "id": "angleguide",
+      "type": "AngleGuide",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "angleguide.plan",
+      "image": "angleguide.png",
+      "pixels": [
+        400,
+        300
+      ],
+      "rgbaSha256": "3744a977f1e46c0a4d5705706592d4404e130133dbea92474a1e16374f01e938",
+      "svg": null
+    },
+    {
+      "id": "washer",
+      "type": "Furnishing",
+      "definition": "washer",
+      "theme": "Light Canvas",
+      "scale": 250,
+      "format": "png",
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "washer.plan",
+      "image": "washer.png",
+      "pixels": [
+        1000,
+        750
+      ],
+      "rgbaSha256": "e2aa91be40ac61b34b235539a2231cb4596c79f2285ef126093ce7c35aad1b2e",
+      "svg": null
+    },
+    {
+      "id": "treadmill",
+      "type": "Furnishing",
+      "definition": "treadmill",
+      "theme": "Light Canvas",
+      "scale": 250,
+      "format": "png",
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "treadmill.plan",
+      "image": "treadmill.png",
+      "pixels": [
+        1000,
+        750
+      ],
+      "rgbaSha256": "72955948c62e9db2602352e810d229e2911aa44c767c03a5effc7afb4ecccc13",
+      "svg": null
+    },
+    {
+      "id": "kitchen_sink_drainer_dbl2",
+      "type": "Furnishing",
+      "definition": "sink_drainer_dbl2",
+      "theme": "Light Canvas",
+      "scale": 250,
+      "format": "png",
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "kitchen_sink_drainer_dbl2.plan",
+      "image": "kitchen_sink_drainer_dbl2.png",
+      "pixels": [
+        1000,
+        750
+      ],
+      "rgbaSha256": "8c479bfebd22545385a4408a8770ddcd4cee37faa74021bab8c276ce3b799149",
+      "svg": null
+    },
+    {
+      "id": "chair_office",
+      "type": "Furnishing",
+      "definition": "chair_office",
+      "theme": "Light Canvas",
+      "scale": 250,
+      "format": "png",
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "chair_office.plan",
+      "image": "chair_office.png",
+      "pixels": [
+        1000,
+        750
+      ],
+      "rgbaSha256": "28e182b098dc4f12acf575801158da3100fe0e93857e98ec9b7bbd84041d7c23",
+      "svg": null
+    },
+    {
+      "id": "chair_office_armless",
+      "type": "Furnishing",
+      "definition": "chair_office_armless",
+      "theme": "Light Canvas",
+      "scale": 250,
+      "format": "png",
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "chair_office_armless.plan",
+      "image": "chair_office_armless.png",
+      "pixels": [
+        1000,
+        750
+      ],
+      "rgbaSha256": "149d2ee8d6fd980a6c39b3ec4c8546ee29859c2ac347e1030784b1cb572f5964",
+      "svg": null
+    },
+    {
+      "id": "table_dining_round_6",
+      "type": "Furnishing",
+      "definition": "table_dining_round_6",
+      "theme": "Light Canvas",
+      "scale": 250,
+      "format": "png",
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "table_dining_round_6.plan",
+      "image": "table_dining_round_6.png",
+      "pixels": [
+        1000,
+        750
+      ],
+      "rgbaSha256": "ee66b3f1bfbaaa4d3a476ec081322d433f0b910e6df3a55fa535dc66e8231ad1",
+      "svg": null
+    },
+    {
+      "id": "compound-dining",
+      "type": "Furnishing",
+      "definition": "parity-compound",
+      "theme": "Light Canvas",
+      "scale": 250,
+      "format": "png",
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "compound-dining.plan",
+      "image": "compound-dining.png",
+      "pixels": [
+        1000,
+        750
+      ],
+      "rgbaSha256": "51a08cffeed84ab8b723dd0072c6a558c4a73c2139ca4405bf820d9908d7388f",
+      "svg": null
+    },
+    {
+      "id": "washer-svg-digital",
+      "type": "Furnishing",
+      "definition": "washer",
+      "theme": "Light Canvas",
+      "scale": 100,
+      "format": "svg",
+      "architecturalScale": null,
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "washer-svg-digital.plan",
+      "image": "washer-svg-digital.png",
+      "pixels": [
+        400,
+        300
+      ],
+      "rgbaSha256": "0781fcea46ddc4756a1701a08ee41aa07c4826cf92557ddba219f6660b05de83",
+      "svg": {
+        "width": "400",
+        "height": "300",
+        "viewBox": "0 0 400 300",
+        "paths": 64,
+        "images": 0,
+        "text": 0,
+        "nonScalingStrokes": 0
+      }
+    },
+    {
+      "id": "washer-svg-architectural",
+      "type": "Furnishing",
+      "definition": "washer",
+      "theme": "Light Canvas",
+      "scale": 100,
+      "format": "svg",
+      "architecturalScale": 100,
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "washer-svg-architectural.plan",
+      "image": "washer-svg-architectural.png",
+      "pixels": [
+        400,
+        300
+      ],
+      "rgbaSha256": "0781fcea46ddc4756a1701a08ee41aa07c4826cf92557ddba219f6660b05de83",
+      "svg": {
+        "width": "40mm",
+        "height": "30mm",
+        "viewBox": "0 0 400 300",
+        "paths": 64,
+        "images": 0,
+        "text": 0,
+        "nonScalingStrokes": 0
+      }
+    }
+  ]
+}

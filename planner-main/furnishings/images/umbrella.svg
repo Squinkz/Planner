@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   stroke-width="1"
+   viewBox="0 0 250 250"
+   preserveAspectRatio="none"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="umbrella.svg"
+   width="250"
+   height="250"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   vector-effect="non-scaling-stroke"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1">
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath33">
+      <rect
+         style="fill:#000000;stroke:none;stroke-width:1;stroke-linecap:butt;stroke-linejoin:bevel;paint-order:stroke markers fill;stop-color:#000000;vector-effect:non-scaling-stroke"
+         id="rect33"
+         width="46.19186"
+         height="80.006783"
+         x="74.999985"
+         y="399.99661"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke" />
+    </clipPath>
+    <linearGradient
+       id="swatch55"
+       inkscape:swatch="solid">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0"
+         id="stop56" />
+    </linearGradient>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath55">
+      <path
+         id="path55"
+         style="stroke-width:1;stroke-linecap:square;paint-order:markers fill stroke;stop-color:#000000;vector-effect:non-scaling-stroke"
+         d="m 1736.6147,-745.57287 h 1589.4765 v 72.46715 H 1736.6147 Z"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath51">
+      <path
+         id="path51"
+         style="stroke-width:1;stroke-linecap:square;paint-order:markers fill stroke;stop-color:#000000;vector-effect:non-scaling-stroke"
+         d="m 1806.4991,-753.5228 h 1637.2646 v 66.90533 H 1806.4991 Z"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath52">
+      <path
+         id="path52"
+         style="stroke-width:1;stroke-linecap:square;paint-order:markers fill stroke;stop-color:#000000;vector-effect:non-scaling-stroke"
+         d="m -880.82767,-187.29769 h 1640.84 v 73.28155 h -1640.84 z"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath24">
+      <rect
+         style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:bevel;paint-order:stroke markers fill;stop-color:#000000;vector-effect:non-scaling-stroke"
+         id="rect24"
+         width="44.999748"
+         height="77.937294"
+         x="251.53429"
+         y="222.73541"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke" />
+    </clipPath>
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect2"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,1,1,0,1.8240779,0,1 @ F,0,1,1,0,1.8240779,0,1 @ F,0,0,1,0,1.8240779,0,1 @ F,0,1,1,0,1.8240779,0,1"
+       radius="0"
+       unit="px"
+       method="auto"
+       mode="F"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" />
+  </defs>
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#494949"
+     inkscape:zoom="1.4142136"
+     inkscape:cx="-43.84062"
+     inkscape:cy="-51.972348"
+     inkscape:window-width="2560"
+     inkscape:window-height="1336"
+     inkscape:window-x="2552"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1"
+     showguides="true" />
+  <path
+     sodipodi:type="star"
+     style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
+     id="path2"
+     inkscape:flatsided="true"
+     sodipodi:sides="8"
+     sodipodi:cx="0"
+     sodipodi:cy="0"
+     sodipodi:r1="107.12775"
+     sodipodi:r2="98.973137"
+     sodipodi:arg1="0.78539816"
+     sodipodi:arg2="1.1780972"
+     inkscape:rounded="0"
+     inkscape:randomized="0"
+     d="M 75.750756,75.750756 3.6396099e-7,107.12775 -75.750756,75.750756 -107.12775,3.6396102e-7 -75.750756,-75.750756 -3.6396103e-7,-107.12775 75.750756,-75.750756 107.12775,-3.6396103e-7 Z"
+     transform="matrix(0.82507428,0.82507422,-0.82507428,0.82507422,125,124.99999)"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke" />
+  <path
+     style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
+     d="M 125.00002,249.99999 V 7.2003267e-6 L 213.38835,36.611656 36.611655,213.38835 Z"
+     id="path28"
+     sodipodi:nodetypes="ccccc"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke" />
+  <path
+     style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
+     d="M -6.3594307e-7,124.99999 250.00002,125 213.38836,213.38834 36.611652,36.611659 Z"
+     id="path28-4"
+     sodipodi:nodetypes="ccccc"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke" />
+  <circle
+     style="display:inline;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
+     id="path7"
+     cx="176.7767"
+     cy="3.1797347e-06"
+     r="13.812"
+     transform="rotate(44.999999)"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke" />
+</svg>

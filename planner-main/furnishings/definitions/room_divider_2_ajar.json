@@ -1,0 +1,46 @@
+{
+    "name": "Room Divider 2 Ajar",
+    "category": [
+        "Living Room",
+        "Bedroom",
+        "Office"
+    ],
+    "children": [
+        {
+            "furnishing": "divider",
+            "x": -230.969883,
+            "y": 0.0,
+            "width": 500.0,
+            "length": 60.0,
+            "angle": 22.5,
+            "zIndex": 0
+        },
+        {
+            "furnishing": "divider",
+            "x": 230.969883,
+            "y": 0.0,
+            "width": 500.0,
+            "length": 60.0,
+            "angle": 337.5,
+            "zIndex": 1
+        }
+    ],
+    "keywords": [
+        "divider",
+        "partition",
+        "screen",
+        "privacy",
+        "folding",
+        "fold",
+        "panel",
+        "room",
+        "separation",
+        "freestanding",
+        "dressing",
+        "two",
+        "panels",
+        "ajar",
+        "folded",
+        "angled"
+    ]
+}

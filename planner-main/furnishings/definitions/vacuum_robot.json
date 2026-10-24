@@ -1,0 +1,21 @@
+{
+    "name": "Vacuum Robot",
+    "image": "vacuum_robot",
+    "width": 350,
+    "length": 420,
+    "category": "Utility",
+    "keywords": [
+        "vacuum",
+        "roomba",
+        "robot",
+        "robotic",
+        "robovac",
+        "hoover",
+        "sweeper",
+        "cleaning",
+        "cleaner",
+        "dust",
+        "floor",
+        "automatic"
+    ]
+}

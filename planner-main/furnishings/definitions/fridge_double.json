@@ -1,0 +1,28 @@
+{
+    "name": "Refrigerator Double",
+    "image": "fridge_double",
+    "width": 900,
+    "length": 750,
+    "icon": null,
+    "category": "Kitchen",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "fridge",
+        "refrigerator",
+        "refrigeration",
+        "refrigerated",
+        "cooling",
+        "cold",
+        "food",
+        "storage",
+        "appliance",
+        "chiller",
+        "freestanding",
+        "standalone",
+        "double",
+        "doors",
+        "side",
+        "american"
+    ]
+}

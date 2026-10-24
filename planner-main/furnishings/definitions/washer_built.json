@@ -1,0 +1,32 @@
+{
+    "name": "Washer Built-in",
+    "image": "washer_built",
+    "width": 600,
+    "length": 600,
+    "icon": null,
+    "category": "Utility",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "washer",
+        "washing",
+        "machine",
+        "clothes",
+        "clothing",
+        "laundry",
+        "appliance",
+        "front",
+        "loader",
+        "loading",
+        "cleaning",
+        "linen",
+        "built",
+        "builtin",
+        "integrated",
+        "fitted",
+        "undercounter",
+        "under",
+        "counter",
+        "scullery"
+    ]
+}

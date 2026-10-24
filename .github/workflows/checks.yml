@@ -1,0 +1,42 @@
+name: Checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    env:
+      QT_QPA_PLATFORM: offscreen
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          cache: pip
+          cache-dependency-path: |
+            requirements-dev.txt
+            planner-main/requirements.txt
+      - name: Install development dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - name: Run checks in isolated processes
+        shell: pwsh
+        run: |
+          python checks/run_checks.py > check-results.txt 2>&1
+          $checkExitCode = $LASTEXITCODE
+          Get-Content check-results.txt
+          exit $checkExitCode
+      - name: Upload check results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-check-results
+          path: check-results.txt
+          if-no-files-found: ignore

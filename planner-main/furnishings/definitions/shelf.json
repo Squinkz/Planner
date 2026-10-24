@@ -1,0 +1,22 @@
+{
+    "name": "Shelf",
+    "image": "shelf",
+    "width": 800,
+    "length": 300,
+    "category": [
+        "Living Room",
+        "Bedroom",
+        "Office",
+        "Kitchen"
+    ],
+    "keywords": [
+        "shelf",
+        "shelves",
+        "shelving",
+        "storage",
+        "display",
+        "ledge",
+        "wall",
+        "books"
+    ]
+}

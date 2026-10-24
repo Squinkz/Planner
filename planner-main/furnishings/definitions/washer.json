@@ -1,0 +1,27 @@
+{
+    "name": "Washer",
+    "image": "washer",
+    "width": 600,
+    "length": 600,
+    "icon": null,
+    "category": "Utility",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "washer",
+        "washing",
+        "machine",
+        "clothes",
+        "clothing",
+        "laundry",
+        "appliance",
+        "front",
+        "loader",
+        "loading",
+        "cleaning",
+        "linen",
+        "freestanding",
+        "standalone",
+        "scullery"
+    ]
+}

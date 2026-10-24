@@ -1,0 +1,14 @@
+{
+  "rule": "CHAMFER-01",
+  "units": "millimeters",
+  "joint": [0, 0],
+  "directions": [[1, 0], [0, 1]],
+  "cases": [
+    {"widths": [240, 240], "amount": 0, "xPlusY": -240, "endpoints": [[-120, -120], [-120, -120]]},
+    {"widths": [240, 240], "amount": 0.5, "xPlusY": -180, "endpoints": [[-120, -60], [-60, -120]]},
+    {"widths": [240, 240], "amount": 1, "xPlusY": -120, "endpoints": [[-120, 0], [0, -120]]},
+    {"widths": [120, 240], "amount": 0, "xPlusY": -180, "endpoints": [[-120, -60], [-120, -60]]},
+    {"widths": [120, 240], "amount": 0.5, "xPlusY": -135, "endpoints": [[-120, -15], [-75, -60]]},
+    {"widths": [120, 240], "amount": 1, "xPlusY": -90, "endpoints": [[-120, 30], [-30, -60]]}
+  ]
+}

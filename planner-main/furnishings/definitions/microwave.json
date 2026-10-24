@@ -1,0 +1,19 @@
+{
+    "name": "Microwave",
+    "image": "microwave",
+    "width": 500,
+    "length": 380,
+    "category": "Kitchen",
+    "keywords": [
+        "microwave",
+        "oven",
+        "countertop",
+        "cooker",
+        "cooking",
+        "food",
+        "heating",
+        "reheating",
+        "defrosting",
+        "appliance"
+    ]
+}

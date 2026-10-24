@@ -1,0 +1,24 @@
+{
+    "name": "Foot Stool",
+    "image": "footstool",
+    "width": 500,
+    "length": 400,
+    "category": [
+        "Living Room",
+        "Bedroom"
+    ],
+    "keywords": [
+        "footstool",
+        "foot",
+        "stool",
+        "footrest",
+        "rest",
+        "hassock",
+        "ottoman",
+        "pouffe",
+        "pouf",
+        "feet",
+        "seating",
+        "upholstered"
+    ]
+}

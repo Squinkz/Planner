@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   stroke-width="1"
+   viewBox="0 0 105 47.5"
+   preserveAspectRatio="none"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="chest.svg"
+   width="105"
+   height="47.5"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg" vector-effect="non-scaling-stroke">
+  <defs
+     id="defs1">
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect2"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,1,1,0,1.8240779,0,1 @ F,0,1,1,0,1.8240779,0,1 @ F,0,0,1,0,1.8240779,0,1 @ F,0,1,1,0,1.8240779,0,1"
+       radius="0"
+       unit="px"
+       method="auto"
+       mode="F"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" />
+  </defs>
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#494949"
+     inkscape:zoom="7.9936"
+     inkscape:cx="45.036029"
+     inkscape:cy="16.951061"
+     inkscape:window-width="2560"
+     inkscape:window-height="1336"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1"
+     showguides="true" />
+  <rect
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1"
+     id="rect2-8-5-5"
+     width="5"
+     height="3.7883425"
+     x="-55"
+     y="1.25"
+     transform="scale(-1,1)"
+     ry="0.58708739"
+     rx="0.58708739" />
+  <rect
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1"
+     id="rect2-8-5"
+     width="15"
+     height="5.076684"
+     x="17.5"
+     y="99.923317"
+     transform="matrix(0,1,1,0,0,0)"
+     ry="1.25"
+     rx="1.25" />
+  <rect
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1"
+     id="rect2-8-5-8"
+     width="15"
+     height="5.076684"
+     x="17.5"
+     y="0"
+     transform="matrix(0,1,1,0,0,0)"
+     ry="1.25"
+     rx="1.25" />
+  <path
+     id="rect1"
+     style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1"
+     d="M 4.3240779,47.5 H 100.67592 A 1.8240779,1.8240779 135 0 0 102.5,45.675922 V 4.3240779 A 1.8240779,1.8240779 45 0 0 100.67592,2.5 H 4.3240779 A 1.8240779,1.8240779 135 0 0 2.5,4.3240779 V 45.675922 A 1.8240779,1.8240779 45 0 0 4.3240779,47.5 Z"
+     sodipodi:nodetypes="ccccc"
+     inkscape:path-effect="#path-effect2"
+     inkscape:original-d="m 2.5,47.5 h 100 V 2.5 H 2.5 Z"  stroke-width="1" vector-effect="non-scaling-stroke"/>
+  <path
+     id="rect2-8-5-5-1"
+     style="display:inline;vector-effect:non-scaling-stroke;fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7"
+     d="m 47.140077,2.5 v 3.5110186 c 0,0.9436084 0.749211,1.7032643 1.679845,1.7032643 h 7.360156 c 0.930633,0 1.679845,-0.7596559 1.679845,-1.7032643 V 2.5"
+     sodipodi:nodetypes="cssssc"  stroke-width="1" vector-effect="non-scaling-stroke"/>
+  <rect
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     style="display:none;vector-effect:non-scaling-stroke;fill:#992121;fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1"
+     id="planner-bounds"
+     width="100"
+     height="45"
+     x="2.5"
+     y="-47.5"
+     transform="scale(1,-1)" />
+  <rect
+     style="display:inline;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
+     id="rect2"
+     width="1.5"
+     height="2.5"
+     x="51.75"
+     y="1.25"
+     rx="0"
+     ry="0"  stroke-width="1" vector-effect="non-scaling-stroke"/>
+</svg>

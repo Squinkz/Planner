@@ -1,0 +1,1028 @@
+{
+  "format": "Planner parity scenarios",
+  "version": 1,
+  "baseline": "2026-10-17",
+  "cases": [
+    {
+      "id": "PARITY-001",
+      "rule": "VIS-01",
+      "name": "Theme refresh",
+      "given": "Dark UI and canvas, existing placed furnishing and palette icons",
+      "when": "Switch UI theme, then canvas theme",
+      "then": "Existing artwork and text refresh; UI and canvas roles remain independent",
+      "checks": [
+        "checks/check_canvas_theme_refresh.py",
+        "checks/check_theme_palette.py",
+        "checks/check_furnishing_theme_font.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-002",
+      "rule": "BTN-01",
+      "name": "Control cursor and disabled feedback",
+      "given": "Enabled toolbar, palette and slider controls",
+      "when": "Hover controls, disable each, then re-enable",
+      "then": "Buttons use hand, palette open hand, sliders resize; disabled controls use arrow",
+      "checks": [
+        "checks/check_canvas_cursors.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-003",
+      "rule": "DROP-01",
+      "name": "Popup anchoring and text clearance",
+      "given": "Selected item near end of a long dropdown; field near screen bottom",
+      "when": "Open, close, change font/items, reopen near screen edge",
+      "then": "Popup starts at top below field or flips above; text/icons fit beside arrow and inside panel",
+      "checks": [
+        "checks/check_export_dropdowns.py",
+        "checks/check_properties_panel.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-004",
+      "rule": "MENU-01",
+      "name": "Submenu travel",
+      "given": "Root menu open, submenu closed",
+      "when": "Enter parent; move into child; leave to another root row; reopen and click outside",
+      "then": "Immediate open; parent remains checked over child; child closes without root; outside dismisses chain",
+      "checks": [
+        "checks/check_stacker_submenu.py",
+        "checks/check_header_menus.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-005",
+      "rule": "NUM-01",
+      "name": "Scrub and typed commits",
+      "given": "Selected wall width 240 mm, empty undo stack",
+      "when": "Scrub field right; hold Alt; reverse; release; undo; type a multi-digit value",
+      "then": "Live preview, fine rate and reversible drag; one undo edit; typing does not force decimal reformat mid-entry",
+      "checks": [
+        "checks/check_drag_spinboxes.py",
+        "checks/check_mixed_property_display.py",
+        "checks/check_export_texture.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-006",
+      "rule": "NUM-01",
+      "name": "Unchanged rounded readout",
+      "given": "Model value has more precision than displayed imperial decimals",
+      "when": "Focus field and commit without editing",
+      "then": "Stored model coordinate/dimension is unchanged",
+      "checks": [
+        "checks/check_imperial_units.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-007",
+      "rule": "SLIDE-01",
+      "name": "Track jump and cancellation",
+      "given": "Enabled slider at middle value",
+      "when": "Click track at 80%; drag to 20%, then 60%; press Escape",
+      "then": "Immediate jump without repeated page steps; free reversal; original value restored",
+      "checks": [
+        "checks/check_slider_dragging.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-008",
+      "rule": "COLOR-01",
+      "name": "Entry synchronization",
+      "given": "Picker at red",
+      "when": "Set hue 120; change RGB; type abc without hash; type incomplete hex 12",
+      "then": "All valid fields/planes/swatch synchronize; abc expands; incomplete hex retains last valid color",
+      "checks": [
+        "checks/check_color_picker.py",
+        "checks/check_parity_ui_traces.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-009",
+      "rule": "COLOR-01",
+      "name": "Unarmed popup and dismissal",
+      "given": "Picker opens to left of button, never entered",
+      "when": "Move outside; click outside",
+      "then": "Travel alone keeps popup open; outside click accepts and is consumed",
+      "checks": [
+        "checks/check_color_picker.py",
+        "checks/check_parity_ui_traces.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-010",
+      "rule": "COLOR-01",
+      "name": "Drag outside and rearm",
+      "given": "Armed popup, RGB field is being scrubbed",
+      "when": "Drag outside while held, release outside, move outside, enter, then leave",
+      "then": "Popup stays open through drag/release and disarms; reentry rearms; final leave accepts",
+      "checks": [
+        "checks/check_color_picker.py",
+        "checks/check_parity_ui_traces.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-011",
+      "rule": "COLOR-01",
+      "name": "Cancel and inherit",
+      "given": "Inherited canvas color, live preview active",
+      "when": "Change color then right-click inside or Escape; reopen and accept theme color",
+      "then": "Cancel restores original; theme match creates no explicit override; reset state stays inherited",
+      "checks": [
+        "checks/check_color_picker.py",
+        "checks/check_export_settings.py",
+        "checks/check_parity_ui_traces.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-012",
+      "rule": "TAB-01",
+      "name": "Section and tab distinction",
+      "given": "Export active with collapsed Canvas",
+      "when": "Open Canvas; open Border; switch Digital to Architectural; leave and return",
+      "then": "Sections expand independently; scale tabs mutually exclusive; selected Export has own active appearance",
+      "checks": [
+        "checks/check_export_settings.py",
+        "checks/check_export_scale_modes.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-013",
+      "rule": "DIALOG-01",
+      "name": "Message sizing",
+      "given": "Unsaved project or existing export target",
+      "when": "Open unsaved prompt and replacement prompt with long path",
+      "then": "Minimum 440x180 within screen; correct themed icons; Save/No defaults; path uses available width",
+      "checks": [
+        "checks/check_popup_dialogs.py",
+        "checks/check_project_recovery.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-014",
+      "rule": "LAYOUT-01",
+      "name": "Properties splitter and export action",
+      "given": "Properties expanded at a chosen height",
+      "when": "Collapse/restore, drag divider near heading; enter Export and scroll; return",
+      "then": "Height restores; divider can collapse; Export action stays pinned; normal split restored",
+      "checks": [
+        "checks/check_properties_collapse.py",
+        "checks/check_export_button.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-015",
+      "rule": "LAYOUT-01",
+      "name": "Wrapping and palette labels",
+      "given": "Narrow sidebar with multiple furnishing categories",
+      "when": "Resize sidebar, search wildcard then ordinary term",
+      "then": "Rows wrap without clipping; captions stay under icons; wildcard matches all; category search remains correct",
+      "checks": [
+        "checks/check_build_wrapping.py",
+        "checks/check_furnishing_categories.py",
+        "checks/check_furnishing_search.py",
+        "checks/check_furnishing_search_updates.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-016",
+      "rule": "HOVER-01",
+      "name": "Overlap and handle priority",
+      "given": "Two overlapping furnishings, rear selected",
+      "when": "Hover overlap, exposed front region, selected handle, then empty canvas",
+      "then": "Selected wins overlap; exposed front remains pickable; nearby other handles do not steal hit; empty arrow",
+      "checks": [
+        "checks/check_selected_hit_priority.py",
+        "checks/check_canvas_cursors.py",
+        "checks/check_furnishing_selection_handles.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-017",
+      "rule": "EDIT-01",
+      "name": "Centered resize with Shift already held",
+      "given": "Selected furnishing in resize mode",
+      "when": "Hold Shift before pressing side/corner handle; resize; cancel",
+      "then": "Handle wins over box select; expands about center; no duplication; cancel restores",
+      "checks": [
+        "checks/check_centered_resize.py",
+        "checks/check_furnishing_resize_snapping.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-018",
+      "rule": "EDIT-01",
+      "name": "Duplicate rotate and pivot",
+      "given": "Multiple selected objects with custom pivot",
+      "when": "Hold Shift and rotate; release; rotate copies again; deselect",
+      "then": "Originals retained; one copy set committed; copies retain pivot until deselected",
+      "checks": [
+        "checks/check_rotation_duplication.py",
+        "checks/check_rotation_pivots.py",
+        "checks/check_multi_selection.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-019",
+      "rule": "EDIT-01",
+      "name": "Connected movement and duplication",
+      "given": "Touching walls/furnishings with relevant connected options",
+      "when": "Move selection; undo; Shift-drag duplicate; cancel",
+      "then": "Recursive movement follows configured connection policy; duplication excludes unselected neighbors; cancel restores all",
+      "checks": [
+        "checks/check_connected_constructions.py",
+        "checks/check_connected_furnishings.py",
+        "checks/check_duplication.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-020",
+      "rule": "EDIT-01",
+      "name": "Nudge and paste in place",
+      "given": "Selection and copied objects at known coordinates",
+      "when": "Arrow; Shift+Arrow; Ctrl+Shift+V",
+      "then": "One visible grid step; duplicate and nudge; paste at source coordinates subject to validation",
+      "checks": [
+        "checks/check_keyboard_nudge.py",
+        "checks/check_clipboard.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-021",
+      "rule": "EDIT-01",
+      "name": "Fireplace preview restores size",
+      "given": "Fireplace on thin wall, adjacent thicker wall",
+      "when": "Drag to thick wall then back without release, finally cancel",
+      "then": "Preview fits host but preserves original requested size until commit; cancel restores original attachment",
+      "checks": [
+        "checks/check_fireplace.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-022",
+      "rule": "SNAP-01",
+      "name": "Whole-object control point anchors",
+      "given": "Wall endpoints near another object control point",
+      "when": "Translate whole wall under snapping; Alt-toggle; Ctrl-constrain",
+      "then": "Control points participate; Alt inverts snapping; constraints and guides respect selected orientation",
+      "checks": [
+        "checks/check_translation_vertex_snapping.py",
+        "checks/check_object_drag_modifiers.py",
+        "checks/check_vertex_axis_origin.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-023",
+      "rule": "MEASURE-01",
+      "name": "Measurement eligibility",
+      "given": "Global/category measurements enabled, wall and label available",
+      "when": "Inspect menus/properties; hide wall measurement; select wall; disable category",
+      "then": "Only eligible object gets top-section action; normal dimension hides, selected dimensions remain; disabled category removes controls",
+      "checks": [
+        "checks/check_measurement_menu_eligibility.py",
+        "checks/check_object_measurement_visibility.py",
+        "checks/check_selected_measurements.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-024",
+      "rule": "MEASURE-01",
+      "name": "Precision and units",
+      "given": "Known millimeter geometry and unchanged property fields",
+      "when": "Switch precision, imperial modes and adaptive zoom levels",
+      "then": "Canvas rounds by chosen increment/grid unit; model and property precision unchanged; fractions same weight",
+      "checks": [
+        "checks/check_measurement_precision.py",
+        "checks/check_imperial_units.py",
+        "checks/check_measurement_font.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-025",
+      "rule": "EXPORT-01",
+      "name": "Format-mode matrix",
+      "given": "Export active",
+      "when": "Visit PNG/SVG x Digital/Architectural; change density units and pixel width",
+      "then": "Only applicable controls shown; Composite absent for SVG; density/resolution linked; physical density preserved",
+      "checks": [
+        "checks/check_export_scale_modes.py",
+        "checks/check_export_settings.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-026",
+      "rule": "EXPORT-01",
+      "name": "Dependency disabling",
+      "given": "Border None, grid off, vignette off, texture None",
+      "when": "Enable each, choose stretch texture, then reset",
+      "then": "Whole dependent groups grey/enable consistently; stretch Scale disabled; reset uses inherited/filename defaults",
+      "checks": [
+        "checks/check_export_border.py",
+        "checks/check_export_texture.py",
+        "checks/check_export_vignette.py",
+        "checks/check_texture_mapping.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-027",
+      "rule": "EXPORT-02",
+      "name": "Camera separation",
+      "given": "Remembered export zoom/pan and editing camera",
+      "when": "Return to Export with bbox crossing midpoint; then with bbox wholly one side; exit",
+      "then": "Keep pan in first case, recenter second while retaining zoom; exit restores editing camera",
+      "checks": [
+        "checks/check_export_bounds.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-028",
+      "rule": "EXPORT-02",
+      "name": "Crop and origin snapping",
+      "given": "Export grid visible, per-target grid snap off, master snap on",
+      "when": "Drag crop edge; Alt-toggle; drag export ruler; leave Export",
+      "then": "Visible export grid controls snap independent of target flags; Alt inverts; only export grid origin moves",
+      "checks": [
+        "checks/check_export_bounds.py",
+        "checks/check_export_grid_origin.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-029",
+      "rule": "EXPORT-02",
+      "name": "History isolation",
+      "given": "Scene edit exists, Export active",
+      "when": "Change slider in one gesture; Ctrl+Z; try Delete/paste/build shortcuts",
+      "then": "One export undo; scene remains untouched; build commands blocked",
+      "checks": [
+        "checks/check_export_history.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-030",
+      "rule": "FILE-01",
+      "name": "Reference interchange",
+      "given": "reference/example.plan and installed definitions",
+      "when": "Decode, encode scene again",
+      "then": "Ordered scene records and references round-trip without geometry loss",
+      "checks": [
+        "checks/check_portable_parity.py",
+        "checks/check_projects.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-031",
+      "rule": "FILE-03",
+      "name": "Custom resource portability",
+      "given": "Used custom compound and unused custom asset",
+      "when": "Save; load without local compound definition; load file missing embed",
+      "then": "Only used dependencies embedded; missing parent can decompose; absent child uses null artwork",
+      "checks": [
+        "checks/check_embedded_furnishings.py",
+        "checks/check_missing_compounds.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-032",
+      "rule": "FILE-04",
+      "name": "Optional history failure",
+      "given": "Valid project with incompatible or damaged journal",
+      "when": "Load and inspect scene/history",
+      "then": "Scene opens; unusable optional history ignored/recovered without partial mutation",
+      "checks": [
+        "checks/check_history_encoding.py",
+        "checks/check_project_recovery.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-033",
+      "rule": "FILE-05",
+      "name": "Staged geometry recovery",
+      "given": "Malformed but recoverable project, existing drawing open",
+      "when": "Choose Repair then cancel a later issue; repeat and finish",
+      "then": "Cancel retains existing drawing; successful recovery preserves exact backup and opens unsaved for Save As",
+      "checks": [
+        "checks/check_geometry_recovery.py",
+        "checks/check_project_recovery.py",
+        "checks/check_obstructed_scene_recovery.py"
+      ],
+      "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
+    },
+    {
+      "id": "PARITY-034",
+      "rule": "CHAMFER-01",
+      "name": "Translating corner chamfer",
+      "given": "Connected walls at acute, right or obtuse angles, including unequal widths; control point chamfer starts at zero",
+      "when": "Set chamfer to 0.5 and 1, rotate/reverse the walls, undo and redo",
+      "then": "A straight bisector-normal cut moves inward; body, material and export agree; zero retains the uncut join",
+      "checks": [
+        "checks/check_chamfers.py",
+        "checks/check_miters.py",
+        "checks/check_junction_ownership_coverage.py"
+      ],
+      "coverage": "Analytic/headless and desktop plane, material, ordering, cache and frozen render checks."
+    },
+    {
+      "id": "PARITY-035",
+      "rule": "WALL-JOIN-01",
+      "name": "Unequal-width wall cap clipping",
+      "given": "Two joined walls with different thicknesses, including acute and obtuse arrangements; Chamfer is zero",
+      "when": "Render, measure and manipulate the join; reverse endpoints/order or rotate the construction",
+      "then": "Wall edges continue to their intersections without an exposed endpoint cap; outline, material and geometry agree",
+      "checks": [
+        "checks/check_unequal_wall_clipping.py",
+        "checks/check_junction_ownership_coverage.py",
+        "checks/check_boundary_measurements.py"
+      ],
+      "coverage": "432 independent outline comparisons, material containment, cached geometry and existing boundary checks."
+    },
+    {
+      "id": "PARITY-036",
+      "rule": "EDIT-01",
+      "name": "Independent grid, grouping and hiding shortcuts",
+      "given": "Visible scene objects with and without a selection",
+      "when": "Press G, Ctrl+G, H, Ctrl+H and Alt+H from canvas and toolbar focus, then repeat in text fields and Export",
+      "then": "G toggles the grid independently of selection. Ctrl+G only groups. H hides selected objects, Ctrl+H hides unselected objects and Alt+H unhides. Text fields retain editing ownership and Export blocks grouping and hiding",
+      "checks": [
+        "checks/check_grouping.py",
+        "checks/check_object_hiding.py",
+        "checks/check_export_history.py",
+        "checks/check_text_shortcuts.py"
+      ],
+      "coverage": "Desktop shortcut routing, toolbar hints, visibility filters, history and text-focus checks."
+    },
+    {
+      "id": "PARITY-037",
+      "rule": "EDIT-01",
+      "name": "Additive and subtractive selection",
+      "given": "Selected objects, control points and groups",
+      "when": "Shift-click, Ctrl-click, Shift-box-select and Ctrl-box-select",
+      "then": "Shift adds selection members and Ctrl removes them. Boxes require full object containment and respect Group Mode. Repeated additions or removals are idempotent. Ctrl-drag retains transform snapping",
+      "checks": [
+        "checks/check_multi_selection.py",
+        "checks/check_grouping.py",
+        "checks/check_object_drag_modifiers.py"
+      ],
+      "coverage": "Desktop click, box containment, group expansion and transform-modifier checks."
+    },
+    {
+      "id": "PARITY-038",
+      "rule": "GUIDE-01",
+      "name": "Free angle editing and rendering",
+      "given": "An AngleGuide with two arms and a middle point",
+      "when": "Edit angle, drag each point with Ctrl/global/local modes and inspect hover/right angles",
+      "then": "Preserve point identities, translate arms with middle, use exact geometry for square markers and retain independent history",
+      "checks": [
+        "checks/check_angle_guides.py",
+        "checks/check_angle_guide_controls.py",
+        "checks/check_angle_point_properties.py",
+        "checks/check_angle_guide_hover.py",
+        "checks/check_angle_right_marker.py"
+      ],
+      "coverage": "Desktop regression coverage for the named behavior; browser execution and exhaustive combinations are not claimed."
+    },
+    {
+      "id": "PARITY-039",
+      "rule": "GUIDE-02",
+      "name": "Guide label offsets",
+      "given": "Linear and angular annotations with centered or moved labels",
+      "when": "Drag/nudge/reset labels, copy/paste, save/load and export",
+      "then": "Only textOffset changes; undo/cancel restore it and automatic crops include remote labels",
+      "checks": [
+        "checks/check_guide_labels.py",
+        "checks/check_local_transforms.py",
+        "checks/check_selected_hit_priority.py"
+      ],
+      "coverage": "Desktop regression coverage for the named behavior; browser execution and exhaustive combinations are not claimed."
+    },
+    {
+      "id": "PARITY-040",
+      "rule": "SIZE-01",
+      "name": "Linked size and pivot-aware Position",
+      "given": "Single or mixed objects with Size and Position fields",
+      "when": "Edit linked/unlinked sizes, deselect, enter rotation mode and move the pivot",
+      "then": "Use per-type link defaults, preserve ratios, reset panel choices on selection changes and follow pivot only in rotation mode",
+      "checks": [
+        "checks/check_linked_size.py",
+        "checks/check_properties_panel.py",
+        "checks/check_rotation_pivots.py",
+        "checks/check_reference_image.py"
+      ],
+      "coverage": "Desktop regression coverage for the named behavior; browser execution and exhaustive combinations are not claimed."
+    },
+    {
+      "id": "PARITY-041",
+      "rule": "NUM-01",
+      "name": "Bounded arithmetic entry",
+      "given": "Decimal, integer, imperial, live-preview and mixed editors",
+      "when": "Commit arithmetic, relative shorthand, malformed expressions and code-like input",
+      "then": "Respect units, precision, bounds, deferred expression commits and parser limits without executing code",
+      "checks": [
+        "checks/check_number_expressions.py",
+        "checks/check_drag_spinboxes.py",
+        "checks/check_mixed_property_display.py"
+      ],
+      "coverage": "Desktop regression coverage for the named behavior; browser execution and exhaustive combinations are not claimed."
+    },
+    {
+      "id": "PARITY-042",
+      "rule": "ART-01",
+      "name": "Fixed SVG details and compound children",
+      "given": "Authored bounds, fixed IDs and fixedSize compound children",
+      "when": "Scale nonuniformly above/below nominal size, flip, decompose and export",
+      "then": "Retain midpoint anchors/world sizes, shrink uniformly below nominal and use actual child collision/contact geometry",
+      "checks": [
+        "checks/check_furnishing_fixed.py",
+        "checks/check_compound_fixed_size.py",
+        "checks/check_furnishing_svg_bounds.py",
+        "checks/check_compound_collisions.py",
+        "checks/check_connected_furnishings.py"
+      ],
+      "coverage": "Desktop regression coverage for the named behavior; browser execution and exhaustive combinations are not claimed."
+    },
+    {
+      "id": "PARITY-043",
+      "rule": "EXPORT-03",
+      "name": "Optimized PNG",
+      "given": "PNG-compatible export controls and an existing destination file",
+      "when": "Select Optimized PNG, export with alpha/print density, switch modes and simulate encoder failure",
+      "then": "Use PNG preview/scale and .png, preserve density/alpha through quantization, undo selector changes and preserve destination on error",
+      "checks": [
+        "checks/check_optimized_png.py",
+        "checks/check_export_scale_modes.py",
+        "checks/check_export_history.py"
+      ],
+      "coverage": "Desktop regression coverage for the named behavior; browser execution and exhaustive combinations are not claimed."
+    },
+    {
+      "id": "PARITY-044",
+      "rule": "EXPORT-03",
+      "name": "Oversized bounded previews",
+      "given": "Output dimensions exceed preview raster budgets",
+      "when": "Navigate PNG/SVG preview, vary zoom/crop and switch solid objects",
+      "then": "Retain budgeted overview/detail rasters and doorway clipping while enforcing independent file limits",
+      "checks": [
+        "checks/check_large_export_preview.py",
+        "checks/check_raster_budget.py",
+        "checks/check_export_png_clipping.py",
+        "checks/check_export_solid_cache.py"
+      ],
+      "coverage": "Desktop regression coverage for the named behavior; browser execution and exhaustive combinations are not claimed."
+    },
+    {
+      "id": "PARITY-045",
+      "rule": "EXPORT-03",
+      "name": "SVG paint and occlusion parity",
+      "given": "Styled furnishings, materials and overlapping geometry",
+      "when": "Recolor selected roles, consolidate equivalent layers and switch solid objects",
+      "then": "Preserve fills, occlusion, normalized text/dashes and seamless material coverage while avoiding unrelated rebuilds",
+      "checks": [
+        "checks/check_svg_preview_layers.py",
+        "checks/check_svg_preview_masks.py",
+        "checks/check_svg_material_fills.py",
+        "checks/check_svg_furnishing_fills.py",
+        "checks/check_furnishing_lettering_scale.py",
+        "checks/check_furnishing_dashes.py",
+        "checks/check_export_occlusion_parity.py",
+        "checks/check_export_color_performance.py"
+      ],
+      "coverage": "Desktop regression coverage for the named behavior; browser execution and exhaustive combinations are not claimed."
+    },
+    {
+      "id": "PARITY-046",
+      "rule": "LAYOUT-01",
+      "name": "Exclusive reference image editing",
+      "given": "A visible or initially unloaded reference branch",
+      "when": "Toggle B, reopen Alt+B, replace the image, transform and cancel",
+      "then": "Use native browsing, exclusive target handles, inactive scene contrast, pivot-aware Position and restore previous properties state",
+      "checks": [
+        "checks/check_reference_image.py",
+        "checks/check_reference_calibration.py"
+      ],
+      "coverage": "Desktop regression coverage for the named behavior; browser execution and exhaustive combinations are not claimed."
+    },
+    {
+      "id": "PARITY-047",
+      "rule": "LAYOUT-01",
+      "name": "Two-point calibration",
+      "given": "Reference image editing active",
+      "when": "Click-click or drag to pick points, Ctrl-snap, confirm Enter and select one-use units",
+      "then": "Keep first image feature fixed during uniform calibration; Adaptive Metric defaults to meters; cancel preserves appropriate temporary state",
+      "checks": [
+        "checks/check_reference_calibration.py"
+      ],
+      "coverage": "Desktop regression coverage for the named behavior; browser execution and exhaustive combinations are not claimed."
+    },
+    {
+      "id": "PARITY-048",
+      "rule": "MEASURE-01",
+      "name": "Nominal imperial placement and auto sizing",
+      "given": "Metric source sizes and existing scene objects",
+      "when": "Switch units, customize imperial defaults/auto sizes, search explicit metric dimensions and place objects",
+      "then": "New objects match nominal readouts; existing geometry stays fixed; overrides remain exact and metric searches use authored dimensions",
+      "checks": [
+        "checks/check_nominal_placement_sizes.py",
+        "checks/check_imperial_auto_sizes.py",
+        "checks/check_furnishing_search.py"
+      ],
+      "coverage": "Desktop regression coverage for the named behavior; browser execution and exhaustive combinations are not claimed."
+    },
+    {
+      "id": "PARITY-049",
+      "rule": "LAYOUT-01",
+      "name": "Catalog layout sorting and quicksearch",
+      "given": "Furnishing catalog with categories and both layouts",
+      "when": "Toggle persistent grid/list state, sort/reverse by category/name/width/length/area and navigate quicksearch",
+      "then": "Reuse catalog items, rank whole names before keywords/partials and wrap keyboard navigation",
+      "checks": [
+        "checks/check_furnishing_list_view.py",
+        "checks/check_furnishing_sort.py",
+        "checks/check_furnishing_search.py",
+        "checks/check_furnishing_quick_search.py"
+      ],
+      "coverage": "Desktop regression coverage for the named behavior; browser execution and exhaustive combinations are not claimed."
+    },
+    {
+      "id": "PARITY-050",
+      "rule": "FILE-05",
+      "name": "Locate and resolve missing assets",
+      "given": "A recovered project with missing standalone or compound furnishings",
+      "when": "Click report entries, edit/delete/undo while report remains open and save/reopen",
+      "then": "Show original missing names/error artwork, frame surrounding context, refresh modeless list and clear recovery-copy state after saving",
+      "checks": [
+        "checks/check_recovery_locate.py",
+        "checks/check_recovery_coalescing.py",
+        "checks/check_project_recovery.py",
+        "checks/check_missing_compounds.py"
+      ],
+      "coverage": "Desktop regression coverage for the named behavior; browser execution and exhaustive combinations are not claimed."
+    },
+    {
+      "id": "PARITY-051",
+      "rule": "EDIT-01",
+      "name": "Errored asset transport restrictions",
+      "given": "Selection includes an errored asset or unresolved child",
+      "when": "Copy/cut/paste or Shift duplicate by translation, rotation and nudge",
+      "then": "Block the entire errored transport selection without blocking ordinary movement or removal",
+      "checks": [
+        "checks/check_errored_asset_clipboard.py"
+      ],
+      "coverage": "Desktop regression coverage for the named behavior; browser execution and exhaustive combinations are not claimed."
+    },
+    {
+      "id": "PARITY-052",
+      "rule": "FILE-01",
+      "name": "Application window state ownership",
+      "given": "Projects from another monitor and a saved app session",
+      "when": "Load projects/startup templates and restore session",
+      "then": "Only app session owns monitor/outer geometry/maximized state; projects retain panel layout",
+      "checks": [
+        "checks/check_window_app_state.py",
+        "checks/check_session_recovery.py",
+        "checks/check_startup_projects.py"
+      ],
+      "coverage": "Desktop regression coverage for the named behavior; browser execution and exhaustive combinations are not claimed."
+    },
+    {
+      "id": "PARITY-053",
+      "rule": "FILE-05",
+      "name": "Close versus New Project",
+      "given": "Open project with reference image/export overrides and a startup template",
+      "when": "Close Project, then create New Project",
+      "then": "Close clears scene/reference/export/visibility to a clean empty project; New loads startup template",
+      "checks": [
+        "checks/check_close_project.py",
+        "checks/check_startup_projects.py",
+        "checks/check_projects.py"
+      ],
+      "coverage": "Desktop regression coverage for the named behavior; browser execution and exhaustive combinations are not claimed."
+    },
+    {
+      "id": "PARITY-054",
+      "rule": "VIS-01",
+      "name": "Fresh-profile defaults and resilient icons",
+      "given": "No session/startup preferences and an unavailable UI icon",
+      "when": "Initialize app or reset factory settings",
+      "then": "Default to Heather UI/Magnetite Canvas, 200 mm third wall preset and walls-only ambient measurements; missing icons warn without fatal launch",
+      "checks": [
+        "checks/check_new_wall_settings.py",
+        "checks/check_wall_preset_compatibility.py",
+        "checks/check_theme_collection.py",
+        "checks/check_missing_ui_icons.py"
+      ],
+      "coverage": "Desktop regression coverage for the named behavior; browser execution and exhaustive combinations are not claimed."
+    },
+    {
+      "id": "PARITY-055",
+      "rule": "DIALOG-01",
+      "name": "Native browsing and inactive menu icons",
+      "given": "Open/save/export/reference browsing and disabled Paste",
+      "when": "Open native pickers and inspect inactive actions",
+      "then": "Keep OS file explorer and preserve disabled icon artwork; texture tooltips identify source filenames",
+      "checks": [
+        "checks/check_header_menus.py",
+        "checks/check_selection_context_bounds.py",
+        "checks/check_texture_mapping.py"
+      ],
+      "coverage": "Desktop regression coverage for the named behavior; browser execution and exhaustive combinations are not claimed."
+    },
+    {
+      "id": "PARITY-056",
+      "rule": "EDIT-01",
+      "name": "Centered opening endpoint resize",
+      "given": "Door or window supported by a wall",
+      "when": "Shift-drag an endpoint, cancel and commit",
+      "then": "Move the opposite endpoint equally in reverse without extrusion; supporting-wall constraints remain active",
+      "checks": [
+        "checks/check_opening_center_resize.py",
+        "checks/check_object_drag_modifiers.py"
+      ],
+      "coverage": "Desktop regression coverage for the named behavior; browser execution and exhaustive combinations are not claimed."
+    },
+    {
+      "id": "PARITY-057",
+      "rule": "HELP-01",
+      "name": "Help viewer input and layout",
+      "given": "Modeless Help window showing a long page",
+      "when": "Navigate history with icon/device commands, wheel over margins, autoscroll and inspect inline code",
+      "then": "Use separate window and reading-column backgrounds, window-edge scrollbar, current typography and isolated navigation",
+      "checks": [
+        "checks/check_help_viewer.py",
+        "checks/check_help_autoscroll.py",
+        "checks/check_help_code.py",
+        "checks/check_help_line_breaks.py",
+        "checks/check_help_typography.py",
+        "checks/check_help_animation.py"
+      ],
+      "coverage": "Desktop regression coverage for the named behavior; browser execution and exhaustive combinations are not claimed."
+    },
+    {
+      "id": "PARITY-058",
+      "rule": "FILE-01",
+      "name": "Guide session-selection recovery",
+      "given": "A saved session with guide middle/label selections and ordinary endpoint/body selections",
+      "when": "Close/reopen, then try a session with an object-incompatible handle index",
+      "then": "Restore valid and mixed selections without changing geometry; reject invalid handles before applying the incoming scene",
+      "checks": [
+        "checks/check_session_guide_selection.py",
+        "checks/check_session_recovery.py",
+        "checks/check_persistence_validation.py"
+      ],
+      "coverage": "Real close/reopen, restored edits and undo, per-type negative validation and atomic invalid-state rejection."
+    },
+    {
+      "id": "PARITY-059",
+      "rule": "SETTINGS-01",
+      "name": "Measurement split-selector composition",
+      "given": "Settings Measurements page at different widths",
+      "when": "Inspect label/selector/reset positions and use labels, track and wheel",
+      "then": "Keep two distinct columns, align discrete choices to their vertical detents, map two-position indices to modes 0/2 and retain separate visibility controls",
+      "checks": [
+        "checks/check_parity_layouts.py",
+        "checks/check_measurement_settings.py",
+        "checks/check_structural_measurements.py"
+      ],
+      "coverage": "Current geometry at two sizes, input routing, mode semantics and rendering."
+    },
+    {
+      "id": "PARITY-060",
+      "rule": "BUILD-01",
+      "name": "Wall Tool specialized layout",
+      "given": "Build sidebar at narrow and wide widths",
+      "when": "Inspect shape choices/divider/presets/material and change width or material",
+      "then": "Keep shape column separate from width and material, align artwork/captions to preset travel, configure new walls independently of selected walls and wrap object palettes",
+      "checks": [
+        "checks/check_parity_layouts.py",
+        "checks/check_new_wall_settings.py",
+        "checks/check_build_wrapping.py"
+      ],
+      "coverage": "Current geometry at two widths, default independence, palette wrapping and selector input."
+    },
+    {
+      "id": "PARITY-061",
+      "rule": "EXPORT-UI-01",
+      "name": "Export specialized composition",
+      "given": "Export at standard and wide sidebar widths",
+      "when": "Scroll all sections and switch PNG, SVG and Optimized PNG between Digital and Architectural",
+      "then": "Keep header and action pinned, preserve section/amount-row composition and show only format-appropriate resolution, PPI and Composite controls",
+      "checks": [
+        "checks/check_parity_panel_layouts.py",
+        "checks/check_export_settings.py",
+        "checks/check_export_scale_modes.py",
+        "checks/check_export_dropdowns.py",
+        "checks/check_export_button.py",
+        "checks/check_export_history.py",
+        "checks/check_export_measurement_transitions.py"
+      ],
+      "coverage": "Desktop layout and behavior checks for the named cases; browser runs and exhaustive conditional combinations are not claimed."
+    },
+    {
+      "id": "PARITY-062",
+      "rule": "PROPERTIES-01",
+      "name": "Object Properties specialized composition",
+      "given": "Furnishing, control-point and label selections",
+      "when": "Inspect paired Position and Size rows, change selection and edit properties",
+      "then": "Preserve object identity, equal paired fields, centered link, per-type defaults, conditional controls and proportional labels without an unlink option",
+      "checks": [
+        "checks/check_parity_panel_layouts.py",
+        "checks/check_properties_panel.py",
+        "checks/check_linked_size.py",
+        "checks/check_angle_point_properties.py",
+        "checks/check_fireplace_dimension_conventions.py"
+      ],
+      "coverage": "Desktop layout and behavior checks for the named cases; browser runs and exhaustive conditional combinations are not claimed."
+    },
+    {
+      "id": "PARITY-063",
+      "rule": "REFERENCE-01",
+      "name": "Reference Image settings composition and restoration",
+      "given": "A loaded visible reference image and a previous properties selection",
+      "when": "Enter image settings, transform or edit fields, then cancel or leave",
+      "then": "Use the replacement heading, path/opacity/paired properties layout, exclusive transforms and previous properties-state restoration",
+      "checks": [
+        "checks/check_parity_panel_layouts.py",
+        "checks/check_reference_image.py",
+        "checks/check_linked_size.py"
+      ],
+      "coverage": "Desktop layout and behavior checks for the named cases; browser runs and exhaustive conditional combinations are not claimed."
+    },
+    {
+      "id": "PARITY-064",
+      "rule": "CALIBRATE-01",
+      "name": "Reference calibration workflow and prompt",
+      "given": "Active visible reference image",
+      "when": "Place points by click or drag, adjust with Ctrl snapping, confirm with one-use units or cancel",
+      "then": "Retain standard hints, hover/cursors and guides, settings-style distance and right-anchored units; scale about the first point only on valid confirmation",
+      "checks": [
+        "checks/check_parity_panel_layouts.py",
+        "checks/check_reference_calibration.py"
+      ],
+      "coverage": "Desktop layout and behavior checks for the named cases; browser runs and exhaustive conditional combinations are not claimed."
+    },
+    {
+      "id": "PARITY-065",
+      "rule": "FILE-01",
+      "name": "Consistent furnishing asset status and Null colors",
+      "given": "Missing top-level assets, nested missing children, missing images, recovered fallback artwork and a built-in north arrow",
+      "when": "Open or restore, inspect properties, copy/duplicate and render PNG/SVG repeatedly",
+      "then": "Retain original keys, report real asset faults consistently, exclude built-ins, keep exports quiet and all Null foreground error-colored even when selected",
+      "checks": [
+        "checks/check_furnishing_asset_consistency.py",
+        "checks/check_furnishing_theme.py",
+        "checks/check_project_recovery.py",
+        "checks/check_recovery_locate.py",
+        "checks/check_errored_asset_clipboard.py"
+      ],
+      "coverage": "Desktop cross-surface integration, session restoration, PNG/SVG output and semantic foreground colors; browser verification remains pending."
+    },
+    {
+      "id": "PARITY-066",
+      "rule": "EDIT-02",
+      "name": "Exact coincident furnishing warnings",
+      "given": "Visible furnishings with the same original definition, oriented endpoints, width and flips",
+      "when": "Overlap exactly, reorder paint layers, hide, move apart and undo",
+      "then": "Keep the rear copy normal, tint front copies with the advisory warning role and retain valid placement and clipboard behavior",
+      "checks": [
+        "checks/check_duplicate_furnishing_export.py",
+        "checks/check_contained_walls.py"
+      ],
+      "coverage": "Desktop warning state, dirty redraw and undo, PNG/SVG clean-scene equivalence and bounded snapshot configuration; browser runs remain pending."
+    },
+    {
+      "id": "PARITY-067",
+      "rule": "EXPORT-04",
+      "name": "Omit editor warnings and Null from exported artwork",
+      "given": "Coincident furnishings, contained walls, Null placeholders and healthy compound siblings",
+      "when": "Render PNG/SVG and bounded overview/detail snapshots",
+      "then": "Match the cleaned scene, retain healthy compound children and leave editor records and undo state unchanged",
+      "checks": [
+        "checks/check_duplicate_furnishing_export.py",
+        "checks/check_contained_walls.py"
+      ],
+      "coverage": "Desktop warning state, dirty redraw and undo, PNG/SVG clean-scene equivalence and bounded snapshot configuration; browser runs remain pending."
+    },
+    {
+      "id": "PARITY-068",
+      "rule": "SNAP-01",
+      "name": "Accurate editing-canvas pan preparation reuse",
+      "given": "Stable furnishing and wall geometry at different display scales",
+      "when": "Pan with whole-device-pixel and fractional motion, then change geometry, visibility or paint layers",
+      "then": "Reuse camera-independent furnishing extents and cull whole wall contours without changing camera motion, joins, clipping or cached/direct pixels",
+      "checks": [
+        "checks/check_pan_preparation.py",
+        "checks/check_pan_wall_outline.py",
+        "checks/check_pan_wall_patches.py",
+        "checks/check_pan_dpi.py",
+        "checks/check_pan_dirty_regions.py",
+        "checks/check_pan_lifecycle.py",
+        "checks/check_door_pan_reentry.py"
+      ],
+      "coverage": "Desktop reuse/invalidation, five DPR values, dirty-region accuracy and gesture lifecycle; CPU timings are diagnostic observations, not native frame-rate guarantees."
+    },
+    {
+      "id": "PARITY-069",
+      "rule": "SNAP-01",
+      "name": "Pan input and repaint pacing",
+      "given": "A screen refresh rate and a burst of middle-drag mouse inputs",
+      "when": "Deliver fractional moves, delay a frame deadline, release or interrupt the drag",
+      "then": "Update camera coordinates immediately, combine repaint requests at refresh-based deadlines, skip obsolete slots and stop all pending pan ticks on exit",
+      "checks": [
+        "checks/check_pan_frame_pacing.py",
+        "checks/check_pan_lifecycle.py",
+        "checks/check_render_diagnostics.py"
+      ],
+      "coverage": "Desktop input bursts, fractional accuracy, refresh/fallback deadlines, interrupted-gesture cleanup and timestamp/paint telemetry. Native presentation still requires live measurement."
+    },
+    {
+      "id": "PARITY-070",
+      "rule": "SNAP-01",
+      "name": "Held drag and box selection edge panning",
+      "given": "An active canvas transform, box selection, wall draw, reference/calibration point drag or catalogue placement",
+      "when": "Hold the pointer near or beyond a visible canvas edge, then return inside, release, cancel or deactivate",
+      "then": "Pan continuously with equal axial and diagonal speed, retain world anchors and existing modifiers including box selection add/remove, stop immediately on exit, and retain one edit per geometry gesture without edits for selection",
+      "checks": [
+        "checks/check_drag_edge_pan.py",
+        "checks/check_drag_edge_pan_reference.py"
+      ],
+      "coverage": "Desktop timer-driven following, edge directions, normalized diagonal speed and outward acceleration/cap, box selection world anchors and add/remove, constraints, resize anchors, history, cancellation, reference/calibration filters and native catalogue dragging."
+    },
+    {
+      "id": "PARITY-071",
+      "rule": "FILE-05",
+      "name": "Open dropped plan files",
+      "given": "A single local plan file dragged over the main window, canvas or sidebar controls",
+      "when": "Drop the file, accepting or cancelling the normal project replacement prompt",
+      "then": "Use normal project loading and recovery, preserve the current project when cancelled, and reject remote URLs, directories, other extensions and multiple files",
+      "checks": ["checks/check_project_file_drop.py"]
+    },
+    {
+      "id": "PARITY-072",
+      "rule": "FILE-06",
+      "name": "Inspect current scene problems",
+      "given": "An open plan with missing assets, acknowledged recovery geometry errors or existing placement warnings",
+      "when": "Open Edit > Check for Problems, locate targets, repair or delete an entry, and undo or redo",
+      "then": "Use a live modeless list and presentation-only error outlines, share recovery validation/repair proposals, retain navigation context, and keep actions undoable without deleting unrelated grouped objects or stale selections",
+      "checks": ["checks/check_scene_problems.py", "checks/check_geometry_recovery.py", "checks/check_recovery_locate.py", "checks/check_header_menus.py"]
+    },
+    {
+      "id": "PARITY-073",
+      "rule": "FILE-06",
+      "name": "Potential wall issues and safe repairs",
+      "given": "Regular walls nearly on axes, nearly perpendicular at joins, slightly off grid or with nearby disconnected endpoints",
+      "when": "Inspect Potential issues, navigate, auto-repair a suggestion and undo or redo",
+      "then": "Use conservative world-space tolerances and a stable captured grid, distinguish warnings from errors, carry shared endpoints and attached openings, and reject new invalid geometry or collisions without changing history",
+      "checks": ["checks/check_potential_issues.py", "checks/check_scene_problems.py"]
+    },
+    {
+      "id": "PARITY-074",
+      "rule": "FILE-06",
+      "name": "Ignore intentional potential issues",
+      "given": "Potential issues for intentional geometry in the current plan",
+      "when": "Ignore an entry or category, recheck, save/reopen or restore ignored suggestions",
+      "then": "Persist geometry-specific dismissals in project/session settings, retain confirmed problems, reveal changed geometry again and allow restoring all ignored suggestions without geometry changes",
+      "checks": ["checks/check_ignored_potential_issues.py", "checks/check_potential_issues.py"]
+    },
+    {
+      "id": "PARITY-075",
+      "rule": "EXPORT-01",
+      "name": "Command-line export with saved settings",
+      "given": "A saved plan with Export-tab overrides and optional crop bounds",
+      "when": "Export PNG or SVG with a digital density and optional explicit bounding box",
+      "then": "Match the Export tab's saved appearance and inherited settings, give CLI density and bounds precedence, auto-crop when no saved or explicit bounds exist, read legacy borders, reject removed -auto/-ruler options, and leave the input file unchanged",
+      "checks": ["checks/check_export_cli_settings.py", "checks/check_export_plan.py"]
+    }
+  ],
+  "reviewed": "2026-10-23"
+}

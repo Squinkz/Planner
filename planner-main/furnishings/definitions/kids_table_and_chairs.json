@@ -1,0 +1,77 @@
+{
+    "name": "Kid's Table and Chairs",
+    "category": [
+        "Bedroom",
+        "Living Room",
+        "Dining Room"
+    ],
+    "children": [
+        {
+            "furnishing": "chair_kids",
+            "x": -355.0,
+            "y": 0.0,
+            "width": 350.0,
+            "length": 350.0,
+            "angle": 270.0,
+            "zIndex": 0,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "chair_kids",
+            "x": 0.0,
+            "y": 355.0,
+            "width": 350.0,
+            "length": 350.0,
+            "angle": 180.0,
+            "zIndex": 1,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "chair_kids",
+            "x": 355.0,
+            "y": 0.0,
+            "width": 350.0,
+            "length": 350.0,
+            "angle": 90.0,
+            "zIndex": 2,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "chair_kids",
+            "x": 0.0,
+            "y": -355.0,
+            "width": 350.0,
+            "length": 350.0,
+            "angle": 0.0,
+            "zIndex": 3,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "table_kids",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 600.0,
+            "length": 600.0,
+            "angle": 0.0,
+            "zIndex": 4
+        }
+    ],
+    "keywords": [
+        "table",
+        "chairs",
+        "seats",
+        "seating",
+        "set",
+        "child",
+        "children",
+        "kids",
+        "toddler",
+        "junior",
+        "nursery",
+        "playroom",
+        "play",
+        "craft",
+        "drawing",
+        "activity"
+    ]
+}

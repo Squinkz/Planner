@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   stroke-width="1"
+   viewBox="0 0 120 60"
+   preserveAspectRatio="none"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="coffee_table.svg"
+   width="120"
+   height="60"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   vector-effect="non-scaling-stroke"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="3.8643386"
+     inkscape:cx="39.592804"
+     inkscape:cy="8.1514596"
+     inkscape:window-width="2560"
+     inkscape:window-height="1336"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <title
+     id="title1">Circle</title>
+  <ellipse
+     fill="#ffffff"
+     stroke="#000000"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     id="circle1"
+     cy="30"
+     cx="60"
+     rx="60"
+     ry="30"
+     style="display:none;stroke-width:1;vector-effect:non-scaling-stroke" />
+  <ellipse
+     fill="#ffffff"
+     stroke="#000000"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     id="circle1-8"
+     cy="30"
+     cx="60"
+     rx="51.541393"
+     ry="24.470148"
+     style="display:none;stroke-width:1;vector-effect:non-scaling-stroke" />
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Circle</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     style="display:inline;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;vector-effect:non-scaling-stroke"
+     id="rect1"
+     width="120"
+     height="60"
+     x="0"
+     y="0"
+     ry="6.3421311" />
+  <rect
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     style="display:inline;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;vector-effect:non-scaling-stroke"
+     id="rect2"
+     width="109.14897"
+     height="49.343082"
+     x="5.2965479"
+     y="5.5948143" />
+  <g
+     id="planner-fixed">
+    <g
+       id="g2"
+       transform="matrix(3.7795276,0,0,3.7795276,125.68379,-35.030833)"
+       style="display:inline">
+      <path
+         id="rect14-4"
+         style="display:inline;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1;vector-effect:non-scaling-stroke"
+         d="m -5.3176097,24.527441 2.0543762,-7.667036 -5.111351,-1.369582 -2.0543765,7.667036 z"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke" />
+      <path
+         id="rect14-2-54"
+         style="display:inline;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1;vector-effect:non-scaling-stroke"
+         d="M -5.6674487,23.885907 -3.886973,17.241081 -8.0247384,16.13237 -9.8052142,22.777196 Z"
+         sodipodi:nodetypes="ccccc"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke" />
+      <path
+         id="rect14-2-9-9"
+         style="display:inline;fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1;vector-effect:non-scaling-stroke"
+         d="m -5.7647667,22.301873 1.2540246,-4.680083 -3.1641702,-0.847837 -1.2540246,4.680083 z"
+         sodipodi:nodetypes="ccccc"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke" />
+      <path
+         id="rect14-2-9-2-5"
+         style="display:inline;fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1;vector-effect:non-scaling-stroke"
+         d="M -6.020708,23.257059 -5.8837487,22.74592 -7.4658386,22.322 -7.6027979,22.833139 Z"
+         sodipodi:nodetypes="ccccc"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke" />
+    </g>
+    <g
+       id="g3"
+       transform="matrix(3.7795276,0,0,3.7795276,155.23703,-32.241356)">
+      <path
+         id="rect14-0"
+         style="display:inline;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1;vector-effect:non-scaling-stroke"
+         d="m -14.607244,22.079025 -2.054377,-7.667037 -5.11135,1.369582 2.054377,7.667037 z"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke" />
+      <path
+         id="rect14-2-5"
+         style="display:inline;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1;vector-effect:non-scaling-stroke"
+         d="m -15.230981,21.698359 -1.780476,-6.644827 -4.137765,1.108711 1.780476,6.644827 z"
+         sodipodi:nodetypes="ccccc"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke" />
+      <path
+         id="rect14-2-9-3"
+         style="display:inline;fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1;vector-effect:non-scaling-stroke"
+         d="m -17.087387,16.717389 -0.273916,-1.022269 -3.164169,0.847837 0.273916,1.022269 z"
+         sodipodi:nodetypes="ccccc"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke" />
+      <path
+         id="rect14-2-9-2-1"
+         style="display:inline;fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1;vector-effect:non-scaling-stroke"
+         d="m -15.851337,21.330391 -0.136959,-0.511139 -1.58209,0.423919 0.13696,0.511139 z"
+         sodipodi:nodetypes="ccccc"
+         stroke-width="1"
+         vector-effect="non-scaling-stroke" />
+    </g>
+  </g>
+</svg>

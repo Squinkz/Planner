@@ -1,0 +1,46 @@
+{
+    "name": "Dark Canvas",
+    "type": "canvas",
+    "labelFont": "Noto Sans", // Canvas label font family name, not a font filename.
+    "colors": {
+        // Colors use #RRGGBB or #AARRGGBB (alpha first).
+
+        // Canvas and object colors
+        "canvas": "#0e0e0e", // Canvas background and furnishing artwork background.
+        "grid": "#ffffff", // Grid ink; brightness also follows grid intensity settings.
+        "objectOutline": "#d1d8dd", // Object and furnishing outlines, canvas label text, and visible tree entries.
+        "wallOutline": "#a5b0b8", // Wall and pillar outlines.
+        "wallFill": "#20262b", // Wall and pillar fill.
+        "materialPattern": "#697680", // Material hatch and pattern ink.
+
+        // Canvas selection
+        "selectionOutline": "#72b8ff", // Selected object outlines and control handles.
+        "selectionFill": "#243947", // Selected wall and pillar fill.
+        "groupSelectionOutline": "#a6d5ff", // Grouped selection outlines and handles.
+        "groupSelectionFill": "#304b60", // Grouped wall and pillar selection fill.
+        "stairSelectionFill": "#14222d", // Selected stair fill.
+        "stairGroupSelectionFill": "#203747", // Grouped stair selection fill.
+        "selectionBoxFill": "#2372b8ff", // Translucent box-selection fill.
+
+        // Measurements and rulers
+        "measurementLine": "#87949e", // Dimension lines, ticks, and extension lines.
+        "rulerBackground": "#222222", // Viewport ruler background.
+        "rulerMajorTick": "#8a969f", // Major ruler ticks.
+        "rulerMinorTick": "#56616a", // Minor ruler ticks.
+        "rulerText": "#b8c1c8", // Ruler numbers, unit labels, and canvas measurement readouts.
+
+        // Canvas overlays and feedback
+        "overlayFill": "#e60e0e0e", // Background behind canvas tooltips and readouts.
+        "exportOutsideShade": "#41000000", // Translucent dimming outside the export bounds in the viewport preview.
+        "performanceText": "#ff6060", // FPS and rendering performance readout.
+        "invalidOutline": "#697680", // Placement previews and invalid geometry outlines.
+        "warningFill": "#3b2024", // Fill for collision or invalid-placement warnings.
+        "warningOutline": "#ff6464", // Collision and invalid-placement warning outlines.
+        "errorBorder": "#713939", // Viewport error-message border.
+        "errorFill": "#f0231414", // Viewport error-message background.
+        "errorText": "#ff8080", // Viewport error-message text.
+
+        // Missing furnishing artwork
+        "missing": "#ff6060" // Placeholder ink for missing furnishing artwork.
+    }
+}

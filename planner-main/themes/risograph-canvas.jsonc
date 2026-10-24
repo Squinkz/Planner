@@ -1,0 +1,35 @@
+// A playful two-ink print palette: indigo drafting with raspberry and mint accents.
+{
+    "name": "Risograph Canvas",
+    "type": "canvas",
+    "labelFont": "Drafting Small Caps",
+    "extends": "Light Canvas",
+    "colors": {
+        "canvas": "#f8f1df",
+        "grid": "#a998b5",
+        "objectOutline": "#34336a",
+        "wallOutline": "#454079",
+        "wallFill": "#e1d9de",
+        "materialPattern": "#9390b5",
+        "selectionOutline": "#a94168",
+        "selectionFill": "#efd0d3",
+        "groupSelectionOutline": "#247b70",
+        "groupSelectionFill": "#cbe3cf",
+        "stairSelectionFill": "#f2dfdb",
+        "stairGroupSelectionFill": "#dcead8",
+        "selectionBoxFill": "#23a94168",
+        "measurementLine": "#8d5679",
+        "rulerBackground": "#eae0d4",
+        "rulerMajorTick": "#827292",
+        "rulerMinorTick": "#b4a4ba",
+        "rulerText": "#56436d",
+        "overlayFill": "#f0f8f1df",
+        "invalidOutline": "#aaa0b7",
+        "warningFill": "#f4d1b4",
+        "warningOutline": "#a34d26",
+        "errorBorder": "#b76070",
+        "errorFill": "#f0f9dfe1",
+        "errorText": "#a03555",
+        "missing": "#a94168"
+    }
+}

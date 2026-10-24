@@ -1,0 +1,28 @@
+// Deep navy blueprint paper with luminous ice-blue drafting lines.
+{
+    "name": "Deep Blueprint Canvas",
+    "type": "canvas",
+    "extends": "Blueprint Canvas",
+    "colors": {
+        "canvas": "#071b30",
+        "grid": "#5788b0",
+        "objectOutline": "#deefff",
+        "wallOutline": "#e7f3ff",
+        "wallFill": "#102d48",
+        "materialPattern": "#638aaf",
+        "selectionOutline": "#57d9ff",
+        "selectionFill": "#12465f",
+        "groupSelectionOutline": "#ffd29a",
+        "groupSelectionFill": "#45454b",
+        "stairSelectionFill": "#123c55",
+        "stairGroupSelectionFill": "#333d49",
+        "selectionBoxFill": "#2357d9ff",
+        "measurementLine": "#92b7d6",
+        "rulerBackground": "#061525",
+        "rulerMajorTick": "#8eb3d0",
+        "rulerMinorTick": "#446687",
+        "rulerText": "#bfd9ef",
+        "overlayFill": "#ed061525",
+        "invalidOutline": "#638aaf"
+    }
+}

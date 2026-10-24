@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   stroke-width="1"
+   viewBox="0 0 180 80"
+   preserveAspectRatio="none"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="desk_exec.svg"
+   width="180"
+   height="80"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   vector-effect="non-scaling-stroke"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#494949"
+     inkscape:zoom="5.6523288"
+     inkscape:cx="72.536474"
+     inkscape:cy="46.794872"
+     inkscape:window-width="2560"
+     inkscape:window-height="1336"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <rect
+     style="stroke-width:1;vector-effect:non-scaling-stroke"
+     x="4"
+     y="31.137608"
+     width="49"
+     height="48.862392"
+     fill="#ffffff"
+     stroke="#000000"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     id="rect1-8"
+     ry="2.8245339"
+     rx="2.8245337" />
+  <rect
+     style="stroke-width:1;vector-effect:non-scaling-stroke"
+     x="127"
+     y="35.560562"
+     width="49"
+     height="44.439438"
+     fill="#ffffff"
+     stroke="#000000"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     id="rect1-8-5"
+     ry="2.8245339"
+     rx="2.8245337" />
+  <rect
+     x="0"
+     y="0"
+     width="180"
+     height="78"
+     fill="#ffffff"
+     stroke="#000000"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     id="rect1"
+     ry="0"
+     rx="0"
+     style="display:inline;stroke:#000000;stroke-opacity:1;stroke-width:1;vector-effect:non-scaling-stroke" />
+  <rect
+     x="60"
+     y="49"
+     width="60"
+     height="25"
+     fill="#ffffff"
+     stroke="#000000"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     id="rect1-1"
+     ry="2.0641513"
+     rx="2.0641513"
+     style="display:inline;stroke:#000000;stroke-width:1;stroke-dasharray:none;stroke-opacity:1;vector-effect:non-scaling-stroke" />
+  <path
+     stroke-width="1"
+     d="m 159.9999,22.499952 c 0,1.38067 -1.11928,2.499952 -2.49995,2.499952 C 156.11928,24.999904 155,23.880622 155,22.499952 155,21.119282 156.11928,20 157.49995,20 c 1.38067,0 2.49995,1.119282 2.49995,2.499952"
+     class="C1"
+     vector-effect="non-scaling-stroke"
+     id="planner-fixed-1"
+     style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:1;stroke-opacity:1;vector-effect:non-scaling-stroke" />
+  <path
+     stroke-width="1"
+     d="m 55.4999,41.999952 c 0,1.38067 -1.11928,2.499952 -2.49995,2.499952 -1.38067,0 -2.49995,-1.119282 -2.49995,-2.499952 0,-1.38067 1.11928,-2.499952 2.49995,-2.499952 1.38067,0 2.49995,1.119282 2.49995,2.499952"
+     class="C1"
+     vector-effect="non-scaling-stroke"
+     id="planner-fixed-2"
+     style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:1;stroke-opacity:1;vector-effect:non-scaling-stroke" />
+</svg>

@@ -1,0 +1,26 @@
+{
+    "name": "Water Heater",
+    "image": "water_heater",
+    "width": 600,
+    "length": 600,
+    "icon": null,
+    "category": "Utility",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "geyser",
+        "tank",
+        "waterheater",
+        "water",
+        "heating",
+        "hot",
+        "cylinder",
+        "storage",
+        "heater",
+        "appliance",
+        "plumbing",
+        "domestic",
+        "dhw",
+        "boiler"
+    ]
+}

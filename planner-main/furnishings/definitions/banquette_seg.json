@@ -1,0 +1,26 @@
+{
+    "name": "Banquette Segment",
+    "image": "banquette_segment",
+    "width": 600,
+    "length": 600,
+    "category": [
+        "Dining Room",
+        "Kitchen"
+    ],
+    "keywords": [
+        "banquette",
+        "bench",
+        "booth",
+        "seating",
+        "seat",
+        "breakfast",
+        "nook",
+        "dinette",
+        "kitchen",
+        "dining",
+        "upholstered",
+        "segment",
+        "module",
+        "extension"
+    ]
+}

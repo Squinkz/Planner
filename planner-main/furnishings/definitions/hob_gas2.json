@@ -1,0 +1,28 @@
+{
+    "name": "Cooktop Gas 2",
+    "image": "hob_gas2",
+    "width": 491,
+    "length": 250,
+    "icon": null,
+    "category": "Kitchen",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "hob",
+        "cooktop",
+        "stove",
+        "stovetop",
+        "burner",
+        "burners",
+        "plate",
+        "cooking",
+        "food",
+        "appliance",
+        "kitchen",
+        "gas",
+        "flame",
+        "two",
+        "double",
+        "compact"
+    ]
+}

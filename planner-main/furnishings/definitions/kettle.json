@@ -1,0 +1,23 @@
+{
+    "name": "Kettle",
+    "image": "kettle",
+    "width": 200,
+    "length": 200,
+    "icon": null,
+    "category": "Kitchen",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "kettle",
+        "electric",
+        "water",
+        "boiling",
+        "boil",
+        "tea",
+        "coffee",
+        "beverage",
+        "drinks",
+        "appliance",
+        "countertop"
+    ]
+}

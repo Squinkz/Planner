@@ -1,0 +1,30 @@
+{
+    "name": "Dryer Built-in",
+    "image": "dryer_built",
+    "width": 600,
+    "length": 600,
+    "icon": null,
+    "category": "Utility",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "dryer",
+        "tumbledryer",
+        "tumble",
+        "drying",
+        "machine",
+        "washing",
+        "clothes",
+        "clothing",
+        "laundry",
+        "appliance",
+        "linen",
+        "built",
+        "builtin",
+        "integrated",
+        "fitted",
+        "undercounter",
+        "under",
+        "counter"
+    ]
+}

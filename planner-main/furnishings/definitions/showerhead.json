@@ -1,0 +1,20 @@
+{
+    "name": "Shower Head",
+    "image": "showerhead",
+    "width": 450,
+    "length": 600,
+    "category": "Bathroom",
+    "keywords": [
+        "shower",
+        "tray",
+        "base",
+        "enclosure",
+        "cubicle",
+        "stall",
+        "pan",
+        "showering",
+        "wet",
+        "sanitaryware",
+        "plumbing"
+    ]
+}

@@ -1,0 +1,178 @@
+{
+  "format": "Planner color popup traces",
+  "version": 1,
+  "initial": {
+    "visible": true,
+    "armed": false
+  },
+  "traces": [
+    {
+      "id": "travel-before-entry",
+      "steps": [
+        {
+          "event": "move",
+          "position": "outside",
+          "heldButtons": [],
+          "expected": {
+            "outcome": "open",
+            "armed": false
+          }
+        },
+        {
+          "event": "press",
+          "position": "outside",
+          "heldButtons": [
+            "left"
+          ],
+          "expected": {
+            "outcome": "accepted",
+            "armed": false
+          }
+        }
+      ]
+    },
+    {
+      "id": "enter-leave",
+      "steps": [
+        {
+          "event": "move",
+          "position": "inside",
+          "heldButtons": [],
+          "expected": {
+            "outcome": "open",
+            "armed": true
+          }
+        },
+        {
+          "event": "move",
+          "position": "outside",
+          "heldButtons": [],
+          "expected": {
+            "outcome": "accepted",
+            "armed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "drag-release-rearm",
+      "steps": [
+        {
+          "event": "move",
+          "position": "inside",
+          "heldButtons": [],
+          "expected": {
+            "outcome": "open",
+            "armed": true
+          }
+        },
+        {
+          "event": "press",
+          "position": "inside",
+          "heldButtons": [
+            "left"
+          ],
+          "expected": {
+            "outcome": "open",
+            "armed": true
+          }
+        },
+        {
+          "event": "move",
+          "position": "outside",
+          "heldButtons": [
+            "left"
+          ],
+          "expected": {
+            "outcome": "open",
+            "armed": true
+          }
+        },
+        {
+          "event": "release",
+          "position": "outside",
+          "heldButtons": [],
+          "expected": {
+            "outcome": "open",
+            "armed": false
+          }
+        },
+        {
+          "event": "move",
+          "position": "outside",
+          "heldButtons": [],
+          "expected": {
+            "outcome": "open",
+            "armed": false
+          }
+        },
+        {
+          "event": "move",
+          "position": "inside",
+          "heldButtons": [],
+          "expected": {
+            "outcome": "open",
+            "armed": true
+          }
+        },
+        {
+          "event": "move",
+          "position": "outside",
+          "heldButtons": [],
+          "expected": {
+            "outcome": "accepted",
+            "armed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "right-cancel",
+      "steps": [
+        {
+          "event": "move",
+          "position": "inside",
+          "heldButtons": [],
+          "expected": {
+            "outcome": "open",
+            "armed": true
+          }
+        },
+        {
+          "event": "right-press",
+          "position": "inside",
+          "heldButtons": [
+            "right"
+          ],
+          "expected": {
+            "outcome": "cancelled",
+            "armed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "escape-cancel",
+      "steps": [
+        {
+          "event": "move",
+          "position": "inside",
+          "heldButtons": [],
+          "expected": {
+            "outcome": "open",
+            "armed": true
+          }
+        },
+        {
+          "event": "escape",
+          "position": "inside",
+          "heldButtons": [],
+          "expected": {
+            "outcome": "cancelled",
+            "armed": true
+          }
+        }
+      ]
+    }
+  ]
+}

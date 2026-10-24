@@ -1,0 +1,33 @@
+{
+    "name": "Dishwasher Built-in",
+    "image": "dishwasher_built",
+    "width": 600,
+    "length": 600,
+    "icon": null,
+    "category": "Kitchen",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "dish",
+        "dishes",
+        "dishwasher",
+        "washer",
+        "wash",
+        "washing",
+        "dishwashing",
+        "machine",
+        "cleaning",
+        "appliance",
+        "kitchen",
+        "crockery",
+        "cutlery",
+        "built",
+        "builtin",
+        "integrated",
+        "fitted",
+        "undercounter",
+        "under",
+        "counter",
+        "scullery"
+    ]
+}

@@ -1,0 +1,25 @@
+{
+    "name": "Dumbbell Rack",
+    "image": "dumbbell_rack",
+    "width": 1500,
+    "length": 600,
+    "icon": null,
+    "category": "Gym",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "dumbbell",
+        "dumbell",
+        "dumb",
+        "bell",
+        "rack",
+        "weights",
+        "weight",
+        "storage",
+        "strength",
+        "training",
+        "workout",
+        "exercise",
+        "fitness"
+    ]
+}

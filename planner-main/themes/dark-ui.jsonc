@@ -1,0 +1,42 @@
+{
+    "name": "Dark UI",
+    "type": "ui",
+    "colors": {
+        // Colors use #RRGGBB or #AARRGGBB (alpha first).
+
+        // Text colors
+        "text": "#e7e9ee", // UI text and widget labels; canvas labels use objectOutline.
+        "mutedText": "#b8b8b8", // Secondary UI text, placeholders, and shortcut hints.
+        "activeText": "#ffffff", // Text on active or highlighted UI controls.
+        "disabled": "#9a9a9a", // Disabled UI text and control paint.
+        "treeDisabledText": "#777777", // Hidden entries in the visibility tree.
+        "treeEmptyText": "#a5adb3", // Visibility categories containing no objects.
+
+        // UI surfaces and borders
+        "windowBackground": "#191919", // Window and panel backgrounds.
+        "controlBackground": "#282828", // Buttons, menus, dropdown arrow buttons, and ruler unit corners.
+        "fieldBackground": "#282828", // Editable text, numeric fields, and dropdown values.
+        "hoverBackground": "#303030", // Control background on mouse hover.
+        "pressedBackground": "#222222", // Control background while pressed.
+        "activeBackground": "#5f5f5f", // Checked controls, menu selections, and input text selection.
+        "activeHoverBackground": "#4f4f4f", // Selected controls on mouse hover.
+        "disabledBackground": "#151515", // Disabled control backgrounds.
+        "border": "#343434", // UI dividers, group-box borders, and the outer ruler frame.
+        "menuBorder": "#3d3d3d", // Popup menu borders.
+
+        // UI controls and icons
+        "sliderHandle": "#d0d0d0", // Slider handles.
+        "scrollbarHandle": "#404040", // Scrollbar handles.
+        "icon": "#e3e3e3", // Normal UI icon paint.
+        "iconDisabled": "#565656", // Disabled UI icon paint.
+        "shadow": "#000000", // Shadow fills in the label and counter tool icons.
+
+        // Dialog message icons and window icons
+        "warning": "#d5a24a", // Large warning icon inside message dialogs.
+        "error": "#ff5c5c", // Large error icon inside message dialogs.
+        "info": "#4aa3ff", // Large information icon inside message dialogs.
+        "warningTitle": "#f5a623", // Warning dialog window icon; does not color heading text.
+        "errorTitle": "#e53935", // Error dialog window icon; does not color heading text.
+        "infoTitle": "#2f80ed" // Information dialog window icon; does not color heading text.
+    }
+}

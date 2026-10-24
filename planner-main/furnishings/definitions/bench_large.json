@@ -1,0 +1,27 @@
+{
+    "name": "Bench Large",
+    "image": "bench_large",
+    "width": 1800,
+    "length": 450,
+    "category": [
+        "Dining Room",
+        "Entry",
+        "Outdoor"
+    ],
+    "keywords": [
+        "bench",
+        "seat",
+        "seating",
+        "dining",
+        "table",
+        "entry",
+        "hallway",
+        "foyer",
+        "porch",
+        "patio",
+        "garden",
+        "outdoor",
+        "large",
+        "long"
+    ]
+}

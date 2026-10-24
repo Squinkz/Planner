@@ -1,0 +1,24 @@
+{
+    "name": "Clothes Rail",
+    "image": "clothes_rail",
+    "width": 1200,
+    "length": 500,
+    "category": [
+        "Bedroom",
+        "Utility"
+    ],
+    "keywords": [
+        "clothes",
+        "clothing",
+        "garment",
+        "garments",
+        "rail",
+        "rack",
+        "hanging",
+        "hanger",
+        "wardrobe",
+        "closet",
+        "dressing",
+        "storage"
+    ]
+}

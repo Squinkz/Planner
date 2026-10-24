@@ -1,0 +1,28 @@
+// Charcoal, toasted wood and a warm copper-orange selection.
+{
+    "name": "Dark Fire UI",
+    "type": "ui",
+    "extends": "Dark UI",
+    "colors": {
+        "text": "#f1e7dc",
+        "mutedText": "#c4b3a3",
+        "activeText": "#fff8ef",
+        "windowBackground": "#211b18",
+        "controlBackground": "#302721",
+        "fieldBackground": "#392e27",
+        "hoverBackground": "#45352a",
+        "pressedBackground": "#211a15",
+        "activeBackground": "#b94c1a",
+        "activeHoverBackground": "#a34016",
+        "disabledBackground": "#241e1a",
+        "border": "#514034",
+        "menuBorder": "#6a4a35",
+        "sliderHandle": "#f0a063",
+        "scrollbarHandle": "#72513c",
+        "icon": "#ead5bd",
+        "iconDisabled": "#756252",
+        "treeEmptyText": "#baa38d",
+        "info": "#f0a063",
+        "infoTitle": "#ef9b55"
+    }
+}

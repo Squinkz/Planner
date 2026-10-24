@@ -1,0 +1,270 @@
+{
+  "format": "Planner Project",
+  "version": 1,
+  "scene": {
+    "objects": [
+      {
+        "type": "Furnishing",
+        "id": 1,
+        "measurementHidden": false,
+        "first": [
+          0.0,
+          -900.0
+        ],
+        "second": [
+          0.0,
+          900.0
+        ],
+        "width": 1300.0,
+        "definition": "parity-compound",
+        "behindCounters": false,
+        "flipHorizontal": false,
+        "flipVertical": false,
+        "children": [
+          {
+            "type": "Furnishing",
+            "measurementHidden": false,
+            "first": [
+              0.0,
+              -650.0
+            ],
+            "second": [
+              0.0,
+              650.0
+            ],
+            "width": 1300.0,
+            "definition": "table_dining_round_6",
+            "behindCounters": false,
+            "flipHorizontal": false,
+            "flipVertical": false
+          },
+          {
+            "type": "Furnishing",
+            "measurementHidden": false,
+            "first": [
+              3.061616997868383e-14,
+              900.0
+            ],
+            "second": [
+              -3.061616997868383e-14,
+              400.0
+            ],
+            "width": 450.0,
+            "definition": "chair_dining",
+            "behindCounters": false,
+            "flipHorizontal": false,
+            "flipVertical": false
+          },
+          {
+            "type": "Furnishing",
+            "measurementHidden": false,
+            "first": [
+              0.0,
+              -900.0
+            ],
+            "second": [
+              0.0,
+              -400.0
+            ],
+            "width": 450.0,
+            "definition": "chair_dining",
+            "behindCounters": false,
+            "flipHorizontal": false,
+            "flipVertical": false
+          }
+        ]
+      }
+    ],
+    "groups": [],
+    "hidden": []
+  },
+  "settings": {
+    "wallWidth": 240.0,
+    "wallMaterial": "Generic",
+    "wallShape": "line",
+    "doorType": "Door",
+    "windowType": "Window",
+    "snapEnabled": true,
+    "snap": {
+      "grid": true,
+      "vertices": true,
+      "midpoints": true,
+      "alignment": true
+    },
+    "connectedVertices": true,
+    "connectedObjects": false,
+    "groupMode": true,
+    "localTransforms": false,
+    "visibility": {
+      "World": true,
+      "Walls": true,
+      "Doors": true,
+      "Windows": true,
+      "Fireplaces": true,
+      "Elevators": true,
+      "Stairs": true,
+      "Counters": true,
+      "Railings": true,
+      "Furnishings": true,
+      "Labels": true,
+      "Arrows": true,
+      "Measurement guides": true,
+      "North arrows": true
+    },
+    "showGrid": true,
+    "showMeasurements": true,
+    "measurementPrecision": "Medium",
+    "buildSettings": {
+      "wallWidths": [
+        8.0,
+        12.0,
+        16.0,
+        24.0
+      ],
+      "openingSizes": {
+        "Door": 90.0,
+        "SlidingDoor": 90.0,
+        "PocketDoor": 90.0,
+        "BarnDoor": 90.0,
+        "BifoldDoor": 120.0,
+        "OpenDoorway": 90.0,
+        "Window": 120.0,
+        "SilledWindow": 120.0,
+        "CasementWindow": 60.0
+      },
+      "miscSizes": {
+        "Stair": 100.0,
+        "Counter": 60.0,
+        "Railing": 8.0,
+        "Pillar": 30.0,
+        "Column": 30.0,
+        "Fireplace": 120.0,
+        "Elevator": 120.0
+      }
+    },
+    "viewportSettings": {
+      "overall": 1.0,
+      "major": 0.169,
+      "minor": 0.083,
+      "origin": 0.305
+    },
+    "lineworkSettings": {
+      "baseWidth": 4.0,
+      "walls": 1.0,
+      "architectural": 0.5,
+      "furnishings": 0.25,
+      "dimensions": 0.25
+    },
+    "measurementSettings": {
+      "doors": 0,
+      "windows": 0,
+      "stairs": 0,
+      "counters": 0
+    },
+    "measurementVisibility": {
+      "walls": true,
+      "stairs": true,
+      "counters": true,
+      "railings": true,
+      "elevators": true
+    },
+    "collisionSettings": {
+      "walls": true,
+      "architectural": true,
+      "furnishings": true
+    },
+    "railingSpacings": {
+      "minimum": 90.0,
+      "maximum": 150.0,
+      "target": 120.0
+    },
+    "stairStepSizes": {
+      "minimum": 25.0,
+      "maximum": 30.0
+    },
+    "unitsMode": "Millimeters"
+  },
+  "view": {
+    "zoom": 1,
+    "pan": [
+      0.0,
+      0.0
+    ]
+  },
+  "ui": {
+    "geometry": "AdnQywADAAAAAAABAAAAFwAABcwAAAOeAAAAAwAAABkAAAXKAAADnAAAAAAAAAAAAyAAAAADAAAAGQAABcoAAAOc",
+    "maximized": false,
+    "size": [
+      1480,
+      900
+    ],
+    "mainSplitter": [
+      1000,
+      448
+    ],
+    "propertiesSplitter": [
+      504,
+      252
+    ],
+    "propertiesCollapsed": false,
+    "propertiesRestoreHeight": null,
+    "exportSections": {
+      "Canvas": false,
+      "Border": false,
+      "Grid": false,
+      "Line Weight": false,
+      "Measurements": false,
+      "Composite": false,
+      "Visibility": false
+    }
+  },
+  "furnishingDefinitions": {
+    "parity-compound": {
+      "name": "Parity dining compound",
+      "category": "Dining Room",
+      "keywords": [],
+      "width": 1300.0,
+      "length": 1800.0,
+      "svg": "<ns0:svg xmlns:ns0=\"http://www.w3.org/2000/svg\" xmlns:ns1=\"http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd\" xmlns:ns2=\"http://www.inkscape.org/namespaces/inkscape\" viewBox=\"-650.0 -900.0 1300.0 1800.0\" preserveAspectRatio=\"none\"><ns0:g transform=\"translate(0 0) rotate(0)\"><ns0:g transform=\"translate(-650.0 -650.0) scale(13.0 13.0) translate(-0.0 -0.0)\"><ns0:g stroke-width=\"1\" vector-effect=\"non-scaling-stroke\" data-furnishing-viewbox=\"0.0 0.0 100.0 100.0\">\n  <ns0:title>Circle</ns0:title>\n  <ns0:circle style=\"stroke-width:1;vector-effect:non-scaling-stroke\" cx=\"50\" cy=\"50\" r=\"50\" fill=\"#ffffff\" stroke=\"#000000\" stroke-width=\"1\" vector-effect=\"non-scaling-stroke\" />\n</ns0:g></ns0:g></ns0:g><ns0:g transform=\"translate(0 -650) rotate(-180)\"><ns0:g transform=\"translate(-225.0 -250.0) scale(10.0 10.0) translate(-0.0 -0.0)\"><ns0:g stroke-width=\"1\" version=\"1.1\" id=\"child1_svg2\" ns1:docname=\"chair.svg\" ns2:version=\"1.4 (86a8ad7, 2024-10-11)\" vector-effect=\"non-scaling-stroke\" data-furnishing-viewbox=\"0.0 0.0 45.0 50.0\">\n  <ns0:defs id=\"child1_defs2\" />\n  <ns1:namedview id=\"child1_namedview2\" pagecolor=\"#505050\" bordercolor=\"#eeeeee\" borderopacity=\"1\" ns2:showpageshadow=\"0\" ns2:pageopacity=\"0\" ns2:pagecheckerboard=\"0\" ns2:deskcolor=\"#d1d1d1\" ns2:zoom=\"6.5496108\" ns2:cx=\"-46.338632\" ns2:cy=\"4.1987228\" ns2:window-width=\"2560\" ns2:window-height=\"1336\" ns2:window-x=\"-8\" ns2:window-y=\"-8\" ns2:window-maximized=\"1\" ns2:current-layer=\"svg2\" />\n  <ns0:title id=\"child1_title1\">Chair</ns0:title>\n  <ns0:g fill=\"#ffffff\" stroke=\"#000000\" stroke-width=\"1\" stroke-linejoin=\"round\" id=\"child1_g2\" vector-effect=\"non-scaling-stroke\">\n    <ns0:path stroke-width=\"1\" vector-effect=\"non-scaling-stroke\" id=\"child1_rect1\" style=\"vector-effect:non-scaling-stroke;stroke-width:1\" d=\"m 11,9.4035014 h 22.5 c 3.878,0 6.353056,3.1763436 7,6.9999996 L 45,43 c 0.646944,3.823656 -3.122,7 -7,7 H 7 C 3.122,50 -0.57674842,46.834872 0,43 L 4,16.403501 C 4.5767484,12.568629 7.122,9.4035014 11,9.4035014 Z\" ns1:nodetypes=\"sssssssss\" />\n    <ns0:path stroke-width=\"1\" vector-effect=\"non-scaling-stroke\" id=\"child1_rect2\" style=\"vector-effect:non-scaling-stroke;stroke-width:1\" d=\"m 45,2.4546512 v 3.7273863 c 0,2.2160001 -1.784,4.0000005 -4,4.0000005 H 4 c -2.216,0 -4,-1.7840004 -4,-4.0000005 V 2.4546512 c 0,-3.27286825 45,-3.27286825 45,0 z\" ns1:nodetypes=\"csssscc\" />\n  </ns0:g>\n</ns0:g></ns0:g></ns0:g><ns0:g transform=\"translate(0 650) rotate(0)\"><ns0:g transform=\"translate(-225.0 -250.0) scale(10.0 10.0) translate(-0.0 -0.0)\"><ns0:g stroke-width=\"1\" version=\"1.1\" id=\"child2_svg2\" ns1:docname=\"chair.svg\" ns2:version=\"1.4 (86a8ad7, 2024-10-11)\" vector-effect=\"non-scaling-stroke\" data-furnishing-viewbox=\"0.0 0.0 45.0 50.0\">\n  <ns0:defs id=\"child2_defs2\" />\n  <ns1:namedview id=\"child2_namedview2\" pagecolor=\"#505050\" bordercolor=\"#eeeeee\" borderopacity=\"1\" ns2:showpageshadow=\"0\" ns2:pageopacity=\"0\" ns2:pagecheckerboard=\"0\" ns2:deskcolor=\"#d1d1d1\" ns2:zoom=\"6.5496108\" ns2:cx=\"-46.338632\" ns2:cy=\"4.1987228\" ns2:window-width=\"2560\" ns2:window-height=\"1336\" ns2:window-x=\"-8\" ns2:window-y=\"-8\" ns2:window-maximized=\"1\" ns2:current-layer=\"svg2\" />\n  <ns0:title id=\"child2_title1\">Chair</ns0:title>\n  <ns0:g fill=\"#ffffff\" stroke=\"#000000\" stroke-width=\"1\" stroke-linejoin=\"round\" id=\"child2_g2\" vector-effect=\"non-scaling-stroke\">\n    <ns0:path stroke-width=\"1\" vector-effect=\"non-scaling-stroke\" id=\"child2_rect1\" style=\"vector-effect:non-scaling-stroke;stroke-width:1\" d=\"m 11,9.4035014 h 22.5 c 3.878,0 6.353056,3.1763436 7,6.9999996 L 45,43 c 0.646944,3.823656 -3.122,7 -7,7 H 7 C 3.122,50 -0.57674842,46.834872 0,43 L 4,16.403501 C 4.5767484,12.568629 7.122,9.4035014 11,9.4035014 Z\" ns1:nodetypes=\"sssssssss\" />\n    <ns0:path stroke-width=\"1\" vector-effect=\"non-scaling-stroke\" id=\"child2_rect2\" style=\"vector-effect:non-scaling-stroke;stroke-width:1\" d=\"m 45,2.4546512 v 3.7273863 c 0,2.2160001 -1.784,4.0000005 -4,4.0000005 H 4 c -2.216,0 -4,-1.7840004 -4,-4.0000005 V 2.4546512 c 0,-3.27286825 45,-3.27286825 45,0 z\" ns1:nodetypes=\"csssscc\" />\n  </ns0:g>\n</ns0:g></ns0:g></ns0:g></ns0:svg>",
+      "compoundCenter": [
+        0.0,
+        0.0
+      ],
+      "components": [
+        {
+          "definition": "table_dining_round_6",
+          "x": 0,
+          "y": 0,
+          "angle": 0,
+          "width": 1300.0,
+          "length": 1300.0,
+          "zIndex": 0,
+          "flipHorizontal": false,
+          "flipVertical": false
+        },
+        {
+          "definition": "chair_dining",
+          "x": 0,
+          "y": 650,
+          "angle": 180,
+          "width": 450.0,
+          "length": 500.0,
+          "zIndex": 1,
+          "flipHorizontal": false,
+          "flipVertical": false
+        },
+        {
+          "definition": "chair_dining",
+          "x": 0,
+          "y": -650,
+          "angle": 0,
+          "width": 450.0,
+          "length": 500.0,
+          "zIndex": 2,
+          "flipHorizontal": false,
+          "flipVertical": false
+        }
+      ]
+    }
+  }
+}

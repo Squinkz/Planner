@@ -1,0 +1,25 @@
+{
+    "name": "Sink Single",
+    "image": "sink_single",
+    "width": 600,
+    "length": 500,
+    "category": [
+        "Kitchen",
+        "Utility"
+    ],
+    "keywords": [
+        "sink",
+        "basin",
+        "bowl",
+        "washup",
+        "washing",
+        "up",
+        "dishes",
+        "dishwashing",
+        "kitchen",
+        "plumbing",
+        "single",
+        "one",
+        "scullery"
+    ]
+}

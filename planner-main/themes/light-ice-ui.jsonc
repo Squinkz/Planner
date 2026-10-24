@@ -1,0 +1,29 @@
+// Cool mist-grey surfaces and crisp blue highlights.
+{
+    "name": "Light Ice UI",
+    "type": "ui",
+    "extends": "Light UI",
+    "colors": {
+        "text": "#2e343b",
+        "mutedText": "#606870",
+        "activeText": "#19344d",
+        "windowBackground": "#e9ebed",
+        "controlBackground": "#dadee2",
+        "fieldBackground": "#f8f9fa",
+        "hoverBackground": "#cdd3d9",
+        "pressedBackground": "#bbc4cd",
+        "activeBackground": "#9fc8e7",
+        "activeHoverBackground": "#8bb8db",
+        "disabledBackground": "#e0e3e6",
+        "border": "#acb4bc",
+        "menuBorder": "#929da7",
+        "sliderHandle": "#3274b4",
+        "scrollbarHandle": "#a3aeb8",
+        "icon": "#424f5b",
+        "iconDisabled": "#a8b0b8",
+        "treeDisabledText": "#9da6ae",
+        "treeEmptyText": "#737f89",
+        "info": "#286da9",
+        "infoTitle": "#286da9"
+    }
+}

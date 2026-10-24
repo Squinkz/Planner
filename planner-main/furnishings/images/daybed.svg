@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   stroke-width="1"
+   viewBox="0 0 97.5 200"
+   preserveAspectRatio="none"
+   version="1.1"
+   id="svg2"
+   sodipodi:docname="daybed.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   width="97.5"
+   height="200"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/" vector-effect="non-scaling-stroke">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="namedview2"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="4"
+     inkscape:cx="21"
+     inkscape:cy="67.375"
+     inkscape:window-width="2560"
+     inkscape:window-height="1336"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2" />
+  <title
+     id="title1">Single bed</title>
+  <rect
+     stroke-width="1"
+     x="0"
+     y="0"
+     width="97.5"
+     height="200"
+     vector-effect="non-scaling-stroke"
+     id="rect1"
+     style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-opacity:1" />
+  <path
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     id="rect2-2"
+     style="display:inline;vector-effect:non-scaling-stroke;fill:none;stroke:#000000;stroke-width:1"
+     d="m 48.25,19.634563 v 39.25 c 0,4.63975 -3.73525,8.375 -8.375,8.375 0,0 -6.065123,-1 -9.125,-1 -3.059877,0 -9.125,1 -9.125,1 -4.249404,1.862752 -8.375,-3.73525 -8.375,-8.375 v -39.25 c 0,-4.63975 3.73525,-8.375 8.375,-8.375 0,0 6.065123,1 9.125,1 3.059877,0 9.125,-1 9.125,-1 4.532166,-0.993352 8.375,3.73525 8.375,8.375 z"
+     sodipodi:nodetypes="sssassssass" />
+  <path
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     id="rect2-2-4"
+     style="display:inline;vector-effect:non-scaling-stroke;fill:none;stroke:#000000;stroke-width:1"
+     d="m 48.25,80.25876 v 39.25 c 0,4.63975 -3.73525,8.375 -8.375,8.375 0,0 -6.065123,-1 -9.125,-1 -3.059877,0 -9.125,1 -9.125,1 -4.249404,1.86275 -8.375,-3.73525 -8.375,-8.375 v -39.25 c 0,-4.63975 3.73525,-8.375 8.375,-8.375 0,0 6.065123,1 9.125,1 3.059877,0 9.125,-1 9.125,-1 4.532166,-0.993352 8.375,3.73525 8.375,8.375 z"
+     sodipodi:nodetypes="sssassssass" />
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Single bed</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <rect
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     style="vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1"
+     id="rect2"
+     width="93.75"
+     height="7.5"
+     x="3.75"
+     y="0" />
+  <rect
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     style="vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1"
+     id="rect2-0"
+     width="97.5"
+     height="7.5249939"
+     x="1.110223e-16"
+     y="192.47501" />
+  <rect
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     style="vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1"
+     id="rect2-09"
+     width="200"
+     height="7.5"
+     x="0"
+     y="-7.5"
+     transform="rotate(90)" />
+  <path
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     id="rect2-2-8"
+     style="display:inline;vector-effect:non-scaling-stroke;fill:none;stroke:#000000;stroke-width:1"
+     d="m 48.25,140.85797 v 39.25 c 0,4.63975 -3.73525,8.375 -8.375,8.375 0,0 -6.065123,-1 -9.125,-1 -3.059877,0 -9.125,1 -9.125,1 -4.249404,1.86275 -8.375,-3.73525 -8.375,-8.375 v -39.25 c 0,-4.63975 3.73525,-8.375 8.375,-8.375 0,0 6.065123,1 9.125,1 3.059877,0 9.125,-1 9.125,-1 4.532166,-0.99335 8.375,3.73525 8.375,8.375 z"
+     sodipodi:nodetypes="sssassssass" />
+  <path
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     id="rect2-2-4-2-4-8"
+     style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1"
+     d="m 43.181716,151.11314 c 0,0 -3.818165,-5.23208 -6.099036,-7.51295 -2.280872,-2.28087 -7.512953,-6.09904 -7.512953,-6.09904 -3.602208,-2.92427 -3.280807,-8.56323 -1e-6,-11.84404 0,0 4.995796,-3.58157 7.159458,-5.74524 2.163663,-2.16366 5.745241,-7.15945 5.745241,-7.15945 1.687617,-4.32195 8.563241,-3.2808 11.84404,0 0,0 3.817858,5.23237 6.098739,7.51325 2.280882,2.28088 7.513251,6.09874 7.513251,6.09874 3.602327,2.92412 3.280798,8.56324 0,11.84404 0,0 -4.995804,3.58158 -7.159459,5.74524 -2.163661,2.16366 -5.745241,7.15945 -5.745241,7.15945 -2.502323,3.90714 -8.56324,3.2808 -11.844039,0 z"
+     sodipodi:nodetypes="sassassassass" />
+  <path
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     id="rect2-2-4-2-4-8-4"
+     style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1"
+     d="m 29.651601,62.555821 c 0,0 5.170351,-3.901348 7.414454,-6.218402 2.244102,-2.317056 5.978113,-7.609528 5.978113,-7.609528 2.86629,-3.648512 8.509668,-3.41733 11.842525,-0.189411 0,0 3.661005,4.937881 5.858999,7.066665 2.197985,2.128785 7.250412,5.630013 7.250412,5.630013 4.348386,1.618285 3.417324,8.50968 0.18941,11.842525 0,0 -5.170646,3.901046 -7.414759,6.218111 -2.244112,2.317066 -5.977808,7.609821 -5.977808,7.609821 -2.866138,3.648629 -8.509679,3.417321 -11.842526,0.189409 0,0 -3.661014,-4.937888 -5.858999,-7.066666 -2.197984,-2.128783 -7.250412,-5.630012 -7.250412,-5.630012 -3.946657,-2.43952 -3.417323,-8.509679 -0.189409,-11.842525 z"
+     sodipodi:nodetypes="sassassassass" />
+</svg>

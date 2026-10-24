@@ -1,0 +1,24 @@
+{
+    "name": "Shoe Rack",
+    "image": "shoe_rack",
+    "width": 800,
+    "length": 350,
+    "category": [
+        "Entry",
+        "Bedroom"
+    ],
+    "keywords": [
+        "shoe",
+        "shoes",
+        "footwear",
+        "rack",
+        "shelves",
+        "shelving",
+        "storage",
+        "organiser",
+        "organizer",
+        "mudroom",
+        "entry",
+        "hallway"
+    ]
+}

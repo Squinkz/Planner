@@ -1,0 +1,21 @@
+{
+    "name": "Sanitary Bin",
+    "image": "bin_sanitary",
+    "width": 200,
+    "length": 200,
+    "icon": null,
+    "category": "Bathroom",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "bin",
+        "sanitary",
+        "hygiene",
+        "disposal",
+        "waste",
+        "rubbish",
+        "trash",
+        "bathroom",
+        "menstrual"
+    ]
+}

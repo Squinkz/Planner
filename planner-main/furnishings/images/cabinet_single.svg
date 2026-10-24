@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   stroke-width="1"
+   viewBox="0 0 30 37.5"
+   preserveAspectRatio="none"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="cabinet_single.svg"
+   width="30"
+   height="37.5"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   vector-effect="non-scaling-stroke"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#494949"
+     inkscape:zoom="16"
+     inkscape:cx="13.5625"
+     inkscape:cy="9.71875"
+     inkscape:window-width="2560"
+     inkscape:window-height="1336"
+     inkscape:window-x="2552"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <path vector-effect="non-scaling-stroke" stroke-width="1"
+     id="planner-fixed"
+     style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1"
+     d="m 20,5 h 8 V 0 h -8 z"
+     sodipodi:nodetypes="ccccc" />
+  <path vector-effect="non-scaling-stroke" stroke-width="1"
+     id="rect1"
+     style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1"
+     transform="scale(1,-1)"
+     d="m 0,-37.5 h 30 v 35 H 0 Z"
+     sodipodi:nodetypes="ccccc" />
+  <path
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     style="vector-effect:non-scaling-stroke;fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7"
+     d="M 0,5 H 30"
+     id="path1"
+     sodipodi:nodetypes="cc" />
+  <path vector-effect="non-scaling-stroke" stroke-width="1"
+     id="planner-bounds"
+     style="display:none;vector-effect:non-scaling-stroke;fill:#ca3737;fill-opacity:1;stroke-miterlimit:7.7;stroke-width:1"
+     transform="scale(1,-1)"
+     d="m 0,-37.5 h 30 v 35 H 0 Z"
+     sodipodi:nodetypes="ccccc" />
+</svg>

@@ -1,0 +1,31 @@
+{
+    "name": "Freezer Chest Small",
+    "image": "freezer_chest_s",
+    "width": 700,
+    "length": 600,
+    "icon": null,
+    "category": [
+        "Kitchen",
+        "Utility"
+    ],
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "freezer",
+        "frozen",
+        "freeze",
+        "freezing",
+        "food",
+        "cold",
+        "refrigeration",
+        "storage",
+        "appliance",
+        "small",
+        "compact",
+        "chest",
+        "horizontal",
+        "deep",
+        "top",
+        "loading"
+    ]
+}

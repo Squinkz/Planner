@@ -1,0 +1,28 @@
+// Heather's mid-tone workspace with an equally subtle blue cast.
+{
+    "name": "Periwinkle UI",
+    "type": "ui",
+    "extends": "Neutral UI",
+    "colors": {
+        "text": "#212325",
+        "mutedText": "#2c2f32",
+        "activeText": "#1b2127",
+        "disabled": "#74787d",
+        "treeDisabledText": "#898e94",
+        "treeEmptyText": "#62666b",
+        "windowBackground": "#b8bbbf",
+        "controlBackground": "#a8acb1",
+        "fieldBackground": "#d9dce0",
+        "hoverBackground": "#9a9fa4",
+        "pressedBackground": "#8b9197",
+        "activeBackground": "#adb5bf",
+        "activeHoverBackground": "#9ca6b2",
+        "disabledBackground": "#bdc0c4",
+        "border": "#898f95",
+        "menuBorder": "#787e85",
+        "sliderHandle": "#464b51",
+        "scrollbarHandle": "#8c9298",
+        "icon": "#2a2d30",
+        "iconDisabled": "#90959b"
+    }
+}

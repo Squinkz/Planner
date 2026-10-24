@@ -1,0 +1,25 @@
+{
+    "name": "Trashcan",
+    "image": "bin_kitchen",
+    "width": 350,
+    "length": 350,
+    "icon": null,
+    "category": [
+        "Kitchen",
+        "Utility"
+    ],
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "bin",
+        "trashcan",
+        "dustbin",
+        "rubbish",
+        "trash",
+        "garbage",
+        "waste",
+        "refuse",
+        "recycling",
+        "kitchen"
+    ]
+}

@@ -1,0 +1,29 @@
+{
+    "name": "Refrigerator Compact",
+    "image": "fridge",
+    "width": 600,
+    "length": 600,
+    "icon": null,
+    "category": "Kitchen",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "fridge",
+        "refrigerator",
+        "refrigeration",
+        "refrigerated",
+        "cooling",
+        "cold",
+        "food",
+        "storage",
+        "appliance",
+        "chiller",
+        "freestanding",
+        "standalone",
+        "compact",
+        "small",
+        "bar",
+        "mini",
+        "minibar"
+    ]
+}

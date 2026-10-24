@@ -1,0 +1,26 @@
+{
+    "name": "Broom Closet",
+    "image": "broom_closet",
+    "width": 600,
+    "length": 500,
+    "icon": null,
+    "category": [
+        "Utility",
+        "Kitchen"
+    ],
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "broom",
+        "cupboard",
+        "closet",
+        "cabinet",
+        "cleaning",
+        "mop",
+        "vacuum",
+        "pantry",
+        "storage",
+        "tall",
+        "utility"
+    ]
+}

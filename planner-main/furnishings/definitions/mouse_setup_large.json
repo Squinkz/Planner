@@ -1,0 +1,29 @@
+{
+    "name": "Mouse Setup Large",
+    "category": "Office",
+    "children": [
+        {
+            "furnishing": "mousepad_l",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 400.0,
+            "length": 350.0,
+            "angle": 0.0,
+            "zIndex": 0,
+            "flipHorizontal": false,
+            "flipVertical": false
+        },
+        {
+            "furnishing": "mouse",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 65.0,
+            "length": 120.0,
+            "angle": 0.0,
+            "zIndex": 1,
+            "flipHorizontal": false,
+            "flipVertical": false,
+            "fixedSize": true
+        }
+    ]
+}

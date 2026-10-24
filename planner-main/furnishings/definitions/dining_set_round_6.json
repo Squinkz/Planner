@@ -1,0 +1,99 @@
+{
+    "name": "Dining Set Round 6",
+    "category": [
+        "Dining Room",
+        "Kitchen"
+    ],
+    "children": [
+        {
+            "furnishing": "chair_dining",
+            "x": -0.0,
+            "y": 586.076952,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 0.0,
+            "zIndex": 0,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "chair_dining",
+            "x": -507.557529,
+            "y": 293.038476,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 60.0,
+            "zIndex": 1,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "chair_dining",
+            "x": -507.557529,
+            "y": -293.038476,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 120.0,
+            "zIndex": 2,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "chair_dining",
+            "x": 0.0,
+            "y": -586.076952,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 180.0,
+            "zIndex": 3,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "chair_dining",
+            "x": 507.557529,
+            "y": -293.038476,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 240.0,
+            "zIndex": 4,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "chair_dining",
+            "x": 507.557529,
+            "y": 293.038476,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 300.0,
+            "zIndex": 5,
+            "fixedSize": true
+        },
+        {
+            "furnishing": "table_dining_round_6",
+            "x": -0.0,
+            "y": 0.0,
+            "width": 1300.0,
+            "length": 1300.0,
+            "angle": 0.0,
+            "zIndex": 6
+        }
+    ],
+    "keywords": [
+        "dining",
+        "dinner",
+        "table",
+        "chairs",
+        "seats",
+        "seating",
+        "seater",
+        "person",
+        "set",
+        "suite",
+        "kitchen",
+        "eating",
+        "meals",
+        "breakfast",
+        "dinette",
+        "six",
+        "round",
+        "circular",
+        "arrangement"
+    ]
+}

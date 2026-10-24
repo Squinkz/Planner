@@ -1,0 +1,224 @@
+{
+  "baseline": "2026-10-17",
+  "python": "3.14.3",
+  "pyside": "6.11.1",
+  "qt": "6.11.1",
+  "platform": "offscreen",
+  "baseStyle": "Fusion",
+  "styleClass": "QStyleSheetStyle",
+  "screen": [
+    800,
+    800
+  ],
+  "logicalDpi": 96.0,
+  "font": "Noto Sans",
+  "captures": [
+    {
+      "name": "build",
+      "description": "Build, selected wall, properties and toolbar",
+      "image": "build.png",
+      "metrics": "build.json"
+    },
+    {
+      "name": "build-tools-full",
+      "description": "Complete Build palette including Misc and Annotations below the fold",
+      "image": "build-tools-full.png",
+      "metrics": "build-tools-full.json"
+    },
+    {
+      "name": "furnish",
+      "description": "Furnishing palette, captions, categories and search",
+      "image": "furnish.png",
+      "metrics": "furnish.json"
+    },
+    {
+      "name": "visibility",
+      "description": "Visibility hierarchy and properties layout",
+      "image": "visibility.png",
+      "metrics": "visibility.json"
+    },
+    {
+      "name": "export-png-digital",
+      "description": "PNG, Digital; Canvas/Border/Grid expanded",
+      "image": "export-png-digital.png",
+      "metrics": "export-png-digital.json"
+    },
+    {
+      "name": "export-png-architectural",
+      "description": "PNG, Architectural; Canvas/Border/Grid expanded",
+      "image": "export-png-architectural.png",
+      "metrics": "export-png-architectural.json"
+    },
+    {
+      "name": "export-svg-digital",
+      "description": "SVG, Digital; Canvas/Border/Grid expanded",
+      "image": "export-svg-digital.png",
+      "metrics": "export-svg-digital.json"
+    },
+    {
+      "name": "export-svg-architectural",
+      "description": "SVG, Architectural; Canvas/Border/Grid expanded",
+      "image": "export-svg-architectural.png",
+      "metrics": "export-svg-architectural.json"
+    },
+    {
+      "name": "composite-disabled",
+      "description": "Vignette off and texture None: labels and controls disabled",
+      "image": "composite-disabled.png",
+      "metrics": "composite-disabled.json"
+    },
+    {
+      "name": "composite-enabled",
+      "description": "Vignette enabled and first available texture; control ranges/defaults",
+      "image": "composite-enabled.png",
+      "metrics": "composite-enabled.json"
+    },
+    {
+      "name": "export-section-canvas",
+      "description": "Complete Export Canvas section",
+      "image": "export-section-canvas.png",
+      "metrics": "export-section-canvas.json"
+    },
+    {
+      "name": "export-section-border",
+      "description": "Complete Export Border section",
+      "image": "export-section-border.png",
+      "metrics": "export-section-border.json"
+    },
+    {
+      "name": "export-section-grid",
+      "description": "Complete Export Grid section",
+      "image": "export-section-grid.png",
+      "metrics": "export-section-grid.json"
+    },
+    {
+      "name": "export-section-line-weight",
+      "description": "Complete Export Line Weight section",
+      "image": "export-section-line-weight.png",
+      "metrics": "export-section-line-weight.json"
+    },
+    {
+      "name": "export-section-measurements",
+      "description": "Complete Export Measurements section",
+      "image": "export-section-measurements.png",
+      "metrics": "export-section-measurements.json"
+    },
+    {
+      "name": "export-section-composite",
+      "description": "Complete Export Composite section",
+      "image": "export-section-composite.png",
+      "metrics": "export-section-composite.json"
+    },
+    {
+      "name": "export-section-visibility",
+      "description": "Complete Export Visibility section",
+      "image": "export-section-visibility.png",
+      "metrics": "export-section-visibility.json"
+    },
+    {
+      "name": "color-picker",
+      "description": "HSV/RGB/hex content; popup positioning and dismissal are tested separately",
+      "image": "color-picker.png",
+      "metrics": "color-picker.json"
+    },
+    {
+      "name": "dropdown",
+      "description": "Styled material dropdown, initial top scroll",
+      "image": "dropdown.png",
+      "metrics": "dropdown.json"
+    },
+    {
+      "name": "file-menu",
+      "description": "Menu row spacing, separators, shortcut alignment and disabled Revert",
+      "image": "file-menu.png",
+      "metrics": "file-menu.json"
+    },
+    {
+      "name": "settings-0",
+      "description": "Settings: Build",
+      "image": "settings-0.png",
+      "metrics": "settings-0.json"
+    },
+    {
+      "name": "settings-1",
+      "description": "Settings: Measurements",
+      "image": "settings-1.png",
+      "metrics": "settings-1.json"
+    },
+    {
+      "name": "settings-2",
+      "description": "Settings: Appearance",
+      "image": "settings-2.png",
+      "metrics": "settings-2.json"
+    },
+    {
+      "name": "settings-build-1",
+      "description": "Settings Build: Walls",
+      "image": "settings-build-1.png",
+      "metrics": "settings-build-1.json"
+    },
+    {
+      "name": "settings-build-2",
+      "description": "Settings Build: Doors",
+      "image": "settings-build-2.png",
+      "metrics": "settings-build-2.json"
+    },
+    {
+      "name": "settings-build-3",
+      "description": "Settings Build: Windows",
+      "image": "settings-build-3.png",
+      "metrics": "settings-build-3.json"
+    },
+    {
+      "name": "settings-build-4",
+      "description": "Settings Build: Misc",
+      "image": "settings-build-4.png",
+      "metrics": "settings-build-4.json"
+    },
+    {
+      "name": "controls",
+      "description": "Shared buttons, fields, arrow treatment and sliders",
+      "image": "controls.png",
+      "metrics": "controls.json"
+    },
+    {
+      "name": "controls-hover",
+      "description": "First button hovered; checked and disabled siblings unchanged",
+      "image": "controls-hover.png",
+      "metrics": "controls-hover.json"
+    },
+    {
+      "name": "controls-pressed",
+      "description": "First button pressed; checked and disabled siblings unchanged",
+      "image": "controls-pressed.png",
+      "metrics": "controls-pressed.json"
+    },
+    {
+      "name": "dialog-sizing",
+      "description": "Message minimum size and button placement; status icons covered by popup check",
+      "image": "dialog-sizing.png",
+      "metrics": "dialog-sizing.json"
+    },
+    {
+      "name": "build-light",
+      "description": "Same layout with independent light UI/canvas palettes",
+      "image": "build-light.png",
+      "metrics": "build-light.json"
+    }
+  ],
+  "sources": {
+    "planner_app/ui/widgets.py": "e861086d28a6b3fa599217259bd16b068fe79a6bbdef67cde9e6c9b135f3eb4a",
+    "planner_app/ui/sidebar.py": "52edf0dbaa85ee3caa69842c67dc8a36f8a77f965481c7372b9b9c5b74f6474a",
+    "planner_app/ui/header.py": "f20a097e71e5ee9ebd9f70768a84acfb9cad77ca558f86d835bc8281747a3a68",
+    "planner_app/ui/export_panel.py": "90114a4856fcfa41a4c089086a5337898b99012be480982fd798b9b2048b07d0",
+    "planner_app/ui/color_picker.py": "e4fef4a7eb262fc500f3aa54098805848022f281a6429e4f8a5a3b14c82f1ef1",
+    "planner_app/ui/context_submenu.py": "a68b14d72ee3d40a06011e80e8683c522080ad3df7db26a72f125224c8822c38",
+    "planner_app/ui/dialogs.py": "ecc0db572923da6dfac4c885d41c2d6290f7e170131fc00a434fb5ef9efb14e0",
+    "planner_app/ui/main_window.py": "f09039b845215413612dff7a785478be9c5613f30f23957be803798a1e53cadd",
+    "planner_app/graphics/theme.py": "34dc5f272f6e4e4ade3247296e6dab7639e342f909679109a010e2ab35049d90",
+    "planner_app/graphics/palette.py": "1851c493edad207d215e057a665cbf87cb52eda619309b281786eb73ef9bec8b",
+    "planner_app/viewport/interaction.py": "2a03775815f11b15c643e58ad349fd222d91d4f60721de6332ed3feff05d070a",
+    "planner_app/viewport/furnishing_handles.py": "bd87a480ccb11de2e064be23129df37701a7d313fea2f63a5d98073148cea515",
+    "planner_app/project_codec.py": "c7eb1b5746ca236c56186231773bff8317fb8f84aec0b4487665e5511d314a4f"
+  }
+}

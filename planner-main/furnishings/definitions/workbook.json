@@ -1,0 +1,26 @@
+{
+    "name": "Open Workbook",
+    "image": "workbook",
+    "width": 300,
+    "length": 210,
+    "icon": null,
+    "category": [
+        "Office",
+        "Bedroom"
+    ],
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "workbook",
+        "book",
+        "notebook",
+        "exercise",
+        "journal",
+        "writing",
+        "homework",
+        "study",
+        "stationery",
+        "school",
+        "open"
+    ]
+}

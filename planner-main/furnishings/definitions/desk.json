@@ -1,0 +1,23 @@
+{
+    "name": "Desk Computer",
+    "image": "desk",
+    "width": 1200,
+    "length": 600,
+    "category": [
+        "Office",
+        "Bedroom"
+    ],
+    "keywords": [
+        "desk",
+        "writing",
+        "work",
+        "workstation",
+        "station",
+        "computer",
+        "study",
+        "workspace",
+        "homework",
+        "table",
+        "surface"
+    ]
+}

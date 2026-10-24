@@ -1,0 +1,28 @@
+{
+    "name": "Dishwasher",
+    "image": "dishwasher",
+    "width": 600,
+    "length": 600,
+    "icon": null,
+    "category": "Kitchen",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "dish",
+        "dishes",
+        "dishwasher",
+        "washer",
+        "wash",
+        "washing",
+        "dishwashing",
+        "machine",
+        "cleaning",
+        "appliance",
+        "kitchen",
+        "crockery",
+        "cutlery",
+        "freestanding",
+        "standalone",
+        "scullery"
+    ]
+}

@@ -1,0 +1,29 @@
+{
+  "repository": "https://github.com/T-R3x3r/simplehouseplanner",
+  "commit": "b9b9c928d9678d03e4d8ef91f36a66268e0c7a10",
+  "commitTimestamp": "2026-10-09T01:44:27+02:00",
+  "reviewed": "2026-10-17",
+  "reviewMethod": "Read-only source comparison and desktop Qt probes; browser app not executed",
+  "files": {
+    "package.json": "4b54ba7cb315940d89d3b9a0cec44b7623fd61f40f2a1b9dd3f1be21b1aee525",
+    "src/main.tsx": "3ca7a4bd5b9cf5421cb875fcb37d776fcd727c03ae3df75ce710bbccf12cd198",
+    "src/App.tsx": "d8c583902e25fbe2d1b57cff759c067f4d63867e98013c1b3c2a4ddbf514fea4",
+    "src/style.css": "b3295c8730e593d2bfb161af139a688af236b02079cc132285bc96faccdda1a5",
+    "src/ui/controls.tsx": "47117122027abe2c6cbdbceaf5d15a4a597d0dda3845cd2dffe4e924308b45db",
+    "src/ui/SettingNumber.tsx": "23176c240505769a2fb146dbe3e405eabdc7cc6d150100185e9094ac8dbc1aeb",
+    "src/ui/ColorPicker.tsx": "ec421b04ad376a2d3aee9181d2e3a342c46cff4161f82a81ef97c38554083910",
+    "src/ui/MaterialSelect.tsx": "9374beada745063925df4e71ebed25bc880e0e5603391d2c81a04cb561c26fce",
+    "src/ui/MaterialMenu.tsx": "a4e7ea53edafb5c0a2de5165b4b470fc1e901e28c616dddb645927b9f61b30ea",
+    "src/ui/Visibility.tsx": "2f367f012a85a927763ed3de182052fe4de8dab8798d64932cd2c741e1c971ef",
+    "src/ui/Settings.tsx": "7c3901c298e0960dac47a9d24f088673a2dd0b2e8b54d8baedf7147a73eaf815",
+    "src/ui/ExportPanel.tsx": "eff2343f6048c238506426983d5d1b5f66566664802cb78b8f6b926e8365545f",
+    "src/ui/Properties.tsx": "273b13b5f6a4ca14fc01a94a8a3c5e0a5de3236b48b51c8320569d92d3505e5e",
+    "src/ui/Build.tsx": "72525beac708f0fdafa69b6e333b056df97f710db689b5aa75b5e6b65b1976c0",
+    "src/editor/Viewport.tsx": "4ea3ea7b3f98f4c1c38dfb8f703085c92c45ce77a46a4c20d543a1809be64957",
+    "src/editor/interaction.ts": "a9eb90b56a961caf9fda42bcdc495b7583d39a1751719db52c85cf405ba63d0b",
+    "src/render/assets.ts": "768587c699da020bb7f65c79ecb3c9bd08e92f5bcad68537f0efc6883f3ceed3",
+    "src/render/drawing.ts": "6533d96b395957b8c7047b98bffc4bdf23909b82bc193a613cdf65c27c8762df",
+    "docs/PARITY.md": "4ea8bc07376d001476b9737f8fba63255e2a69264546f6273622ccaf7b51fae7",
+    "docs/WEB_PORT.md": "8297810a1f50bdea67db87326bb3a0364c974f2d091ccf5cb7e7546465aa9ac0"
+  }
+}

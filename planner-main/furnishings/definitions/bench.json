@@ -1,0 +1,25 @@
+{
+    "name": "Bench",
+    "image": "bench",
+    "width": 1500,
+    "length": 450,
+    "category": [
+        "Dining Room",
+        "Entry",
+        "Outdoor"
+    ],
+    "keywords": [
+        "bench",
+        "seat",
+        "seating",
+        "dining",
+        "table",
+        "entry",
+        "hallway",
+        "foyer",
+        "porch",
+        "patio",
+        "garden",
+        "outdoor"
+    ]
+}

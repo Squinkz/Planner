@@ -1,0 +1,21 @@
+Planner third-party notices
+===========================
+
+Planner copyright (c) 2026 Dieter Stassen.
+
+The temporary Planner About logo is copied from Stacker's blue artwork,
+copyright (c) 2026 Dieter Stassen, pending replacement with Planner artwork.
+
+PySide6 and shiboken6 provide Qt bindings. Their distributed license choices
+include LGPL-3.0-only, GPL-2.0-only and GPL-3.0-only. Refer to the license files
+provided with the Qt/PySide distribution for complete terms and notices.
+
+Material Symbols / Material Icons artwork is from Google, under Apache-2.0.
+The GitHub logo is a trademark of GitHub, Inc., used to link to the author's profile.
+
+Bundled Noto Sans: copyright 2022 The Noto Project Authors, SIL Open Font License 1.1.
+Its complete notice follows in the Licenses window, from assets/fonts/OFL.txt.
+
+UPNG.js: copyright (c) 2017 Photopea, MIT License.
+Pako: copyright (C) 2014-2017 Vitaly Puzrin and Andrei Tuputcyn, MIT and Zlib notices.
+Their bundled complete notices also follow in the Licenses window.

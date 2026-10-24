@@ -1,0 +1,23 @@
+{
+    "name": "Floor Drain",
+    "image": "drain",
+    "width": 150,
+    "length": 150,
+    "category": [
+        "Bathroom",
+        "Utility"
+    ],
+    "keywords": [
+        "drain",
+        "floor",
+        "waste",
+        "trap",
+        "drainage",
+        "cover",
+        "grate",
+        "grating",
+        "shower",
+        "wet",
+        "plumbing"
+    ]
+}

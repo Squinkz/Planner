@@ -1,0 +1,35 @@
+// Pale cyan paper with teal ink: a light, reversed blueprint.
+{
+    "name": "Cyan Blueprint Canvas",
+    "type": "canvas",
+    "extends": "Light Canvas",
+    "colors": {
+        "canvas": "#e7f6f7",
+        "grid": "#5b939e",
+        "objectOutline": "#164755",
+        "wallOutline": "#235d69",
+        "wallFill": "#c0e1e5",
+        "materialPattern": "#699ca5",
+        "selectionOutline": "#007386",
+        "selectionFill": "#a9dce2",
+        "groupSelectionOutline": "#9a5728",
+        "groupSelectionFill": "#ead5b9",
+        "stairSelectionFill": "#c8e9ec",
+        "stairGroupSelectionFill": "#f0e0c8",
+        "selectionBoxFill": "#23007386",
+        "measurementLine": "#497d88",
+        "rulerBackground": "#d2e9eb",
+        "rulerMajorTick": "#477a86",
+        "rulerMinorTick": "#90b8bf",
+        "rulerText": "#285965",
+        "overlayFill": "#f0e7f6f7",
+        "invalidOutline": "#749da5",
+        "warningFill": "#f3d4cb",
+        "warningOutline": "#a93b32",
+        "errorBorder": "#b76d5f",
+        "errorFill": "#f0fae4dc",
+        "errorText": "#94362c",
+        "missing": "#a93b32"
+    },
+    "labelFont": "D-DIN Condensed"
+}

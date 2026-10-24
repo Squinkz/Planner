@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   stroke-width="1"
+   viewBox="0 0 90 60"
+   preserveAspectRatio="none"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="ottoman_large.svg"
+   width="90"
+   height="60"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   vector-effect="non-scaling-stroke"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="10.93"
+     inkscape:cx="37.236962"
+     inkscape:cy="20.448307"
+     inkscape:window-width="2560"
+     inkscape:window-height="1336"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <title
+     id="title1">Beveled square</title>
+  <rect
+     x="0"
+     y="0"
+     width="90"
+     height="60"
+     rx="15.553522"
+     fill="#ffffff"
+     stroke="#000000"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
+     id="rect1"
+     ry="15.553522"
+     style="display:inline;vector-effect:non-scaling-stroke;stroke-width:1" />
+  <g
+     id="g1">
+    <path
+       stroke-width="1"
+       vector-effect="non-scaling-stroke"
+       style="vector-effect:non-scaling-stroke;fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1"
+       d="M 36.25,12.5 18.75,30"
+       id="path2-8"
+       sodipodi:nodetypes="cc" />
+    <path
+       stroke-width="1"
+       vector-effect="non-scaling-stroke"
+       style="display:inline;vector-effect:non-scaling-stroke;fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1"
+       d="m 18.75,12.5 35,35"
+       id="path2-9-3"
+       sodipodi:nodetypes="cc" />
+    <path
+       stroke-width="1"
+       vector-effect="non-scaling-stroke"
+       style="display:inline;vector-effect:non-scaling-stroke;fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1"
+       d="m 71.25,12.5 -35,35"
+       id="path2-8-0-8"
+       sodipodi:nodetypes="cc" />
+    <path
+       stroke-width="1"
+       vector-effect="non-scaling-stroke"
+       style="display:inline;vector-effect:non-scaling-stroke;fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1"
+       d="M 53.75,12.5 71.25,30"
+       id="path2-9-9"
+       sodipodi:nodetypes="cc" />
+    <path
+       stroke-width="1"
+       vector-effect="non-scaling-stroke"
+       style="display:inline;vector-effect:non-scaling-stroke;fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1"
+       d="m 36.25,12.5 35,35"
+       id="path2-9-3-3"
+       sodipodi:nodetypes="cc" />
+    <path
+       stroke-width="1"
+       vector-effect="non-scaling-stroke"
+       style="vector-effect:non-scaling-stroke;fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1"
+       d="M 71.25,30 53.75,47.5"
+       id="path2-8-0-8-7"
+       sodipodi:nodetypes="cc" />
+    <path
+       stroke-width="1"
+       vector-effect="non-scaling-stroke"
+       style="vector-effect:non-scaling-stroke;fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1"
+       d="m 18.75,30 17.5,17.5"
+       id="path2-9-3-4"
+       sodipodi:nodetypes="cc" />
+    <path
+       stroke-width="1"
+       vector-effect="non-scaling-stroke"
+       style="display:inline;vector-effect:non-scaling-stroke;fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1"
+       d="m 53.75,12.5 -35,35"
+       id="path2-8-0-8-6"
+       sodipodi:nodetypes="cc" />
+  </g>
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Beveled square</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <circle
+     stroke-width="1"
+     cx="36.25"
+     cy="30"
+     r="2.5"
+     vector-effect="non-scaling-stroke"
+     id="planner-fixed-8"
+     style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-opacity:1;fill-opacity:1" />
+  <circle
+     stroke-width="1"
+     cx="36.25"
+     cy="12.5"
+     r="2.5"
+     vector-effect="non-scaling-stroke"
+     id="planner-fixed-9"
+     style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-opacity:1;fill-opacity:1" />
+  <circle
+     stroke-width="1"
+     cx="36.25"
+     cy="47.5"
+     r="2.5"
+     vector-effect="non-scaling-stroke"
+     id="planner-fixed-7"
+     style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-opacity:1;fill-opacity:1" />
+  <circle
+     stroke-width="1"
+     cx="30"
+     cy="-53.75"
+     r="2.5"
+     vector-effect="non-scaling-stroke"
+     id="planner-fixed-5"
+     style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-opacity:1;fill-opacity:1"
+     transform="rotate(90)" />
+  <circle
+     stroke-width="1"
+     cx="30"
+     cy="-18.75"
+     r="2.5"
+     vector-effect="non-scaling-stroke"
+     id="planner-fixed-11"
+     style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-opacity:1;fill-opacity:1"
+     transform="rotate(90)" />
+  <circle
+     stroke-width="1"
+     cx="12.5"
+     cy="-53.75"
+     r="2.5"
+     vector-effect="non-scaling-stroke"
+     id="planner-fixed-4"
+     style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-opacity:1;fill-opacity:1"
+     transform="rotate(90)" />
+  <circle
+     stroke-width="1"
+     cx="12.5"
+     cy="-18.75"
+     r="2.5"
+     vector-effect="non-scaling-stroke"
+     id="planner-fixed-10"
+     style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-opacity:1;fill-opacity:1"
+     transform="rotate(90)" />
+  <circle
+     stroke-width="1"
+     cx="47.5"
+     cy="-53.75"
+     r="2.5"
+     vector-effect="non-scaling-stroke"
+     id="planner-fixed-6"
+     style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-opacity:1;fill-opacity:1"
+     transform="rotate(90)" />
+  <circle
+     stroke-width="1"
+     cx="47.5"
+     cy="-18.75"
+     r="2.5"
+     vector-effect="non-scaling-stroke"
+     id="planner-fixed-12"
+     style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-opacity:1;fill-opacity:1"
+     transform="rotate(90)" />
+  <circle
+     stroke-width="1"
+     cx="30"
+     cy="-71.25"
+     r="2.5"
+     vector-effect="non-scaling-stroke"
+     id="planner-fixed-2"
+     style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-opacity:1;fill-opacity:1"
+     transform="rotate(90)" />
+  <circle
+     stroke-width="1"
+     cx="12.5"
+     cy="-71.25"
+     r="2.5"
+     vector-effect="non-scaling-stroke"
+     id="planner-fixed-3"
+     style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-opacity:1;fill-opacity:1"
+     transform="rotate(90)" />
+  <circle
+     stroke-width="1"
+     cx="47.5"
+     cy="-71.25"
+     r="2.5"
+     vector-effect="non-scaling-stroke"
+     id="planner-fixed-1"
+     style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-opacity:1;fill-opacity:1"
+     transform="rotate(90)" />
+</svg>

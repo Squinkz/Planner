@@ -1,0 +1,28 @@
+{
+    "name": "Sedan",
+    "image": "sedan",
+    "width": 2200,
+    "length": 4600,
+    "icon": null,
+    "category": [
+        "Outdoor",
+        "Utility"
+    ],
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "car",
+        "sedan",
+        "saloon",
+        "automobile",
+        "auto",
+        "vehicle",
+        "motorcar",
+        "transport",
+        "parking",
+        "garage",
+        "driveway",
+        "carport",
+        "outdoor"
+    ]
+}

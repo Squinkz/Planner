@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="64"
+   height="64"
+   viewBox="0 0 64 64"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="north-arrow.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#292929"
+     inkscape:zoom="11.313709"
+     inkscape:cx="8.3085043"
+     inkscape:cy="35.841473"
+     inkscape:window-width="2560"
+     inkscape:window-height="1336"
+     inkscape:window-x="2552"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <path
+     style="fill:#000000;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:11.7"
+     d="M 14.363106,54.093666 30.361396,14.009552 32,14.760853 v 29.187979 z"
+     id="path2"
+     sodipodi:nodetypes="ccccc"
+     inkscape:label="fill"
+     data-theme-fill="fieldBackground" />
+  <path
+     id="path1-8-8-1-8"
+     style="display:none;fill:#ffffff;stroke-width:0.851866;stroke-miterlimit:7.7"
+     d="M 27.447839,6.9880728 V 17.258719 h 1.941657 v -4.833343 c -0.01918,-0.489025 -0.04278,-0.978448 -0.07154,-1.467473 l -0.05823,-1.4674728 h 0.05823 l 4.472298,7.7682888 h 2.761911 V 6.9880728 H 34.59553 v 4.8616282 c 0.0096,0.479436 0.02408,0.954367 0.04326,1.424214 l 0.05823,1.40924 H 34.65376 L 30.194775,6.9880728 Z"
+     sodipodi:nodetypes="ccccccccccccccccc" />
+  <path
+     d="M 32,6.9880736 12.172614,57.011928 32,45.009492 51.827386,57.011928 Z M 30.338523,15.689192 V 44.072748 L 15.538836,53.03347 Z"
+     style="fill:#ffffff;stroke-width:0.851866;stroke-miterlimit:7.7"
+     id="path1" />
+</svg>

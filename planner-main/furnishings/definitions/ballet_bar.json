@@ -1,0 +1,24 @@
+{
+    "name": "Ballet Bar",
+    "image": "ballet_bar",
+    "width": 1000,
+    "length": 120,
+    "icon": null,
+    "category": "Gym",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "ballet",
+        "barre",
+        "bar",
+        "dance",
+        "dancing",
+        "dancer",
+        "stretching",
+        "exercise",
+        "fitness",
+        "studio",
+        "support",
+        "rail"
+    ]
+}

@@ -1,0 +1,21 @@
+{
+    "name": "Magazine",
+    "image": "magazine",
+    "width": 200,
+    "length": 300,
+    "category": [
+        "Living Room",
+        "Bedroom",
+        "Office"
+    ],
+    "keywords": [
+        "magazine",
+        "reading",
+        "publication",
+        "periodical",
+        "journal",
+        "catalogue",
+        "catalog",
+        "decor"
+    ]
+}

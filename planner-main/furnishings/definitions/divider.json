@@ -1,0 +1,24 @@
+{
+    "name": "Room Divider",
+    "image": "room_divider",
+    "width": 500,
+    "length": 60,
+    "category": [
+        "Living Room",
+        "Bedroom",
+        "Office"
+    ],
+    "keywords": [
+        "divider",
+        "partition",
+        "screen",
+        "privacy",
+        "folding",
+        "fold",
+        "panel",
+        "room",
+        "separation",
+        "freestanding",
+        "dressing"
+    ]
+}

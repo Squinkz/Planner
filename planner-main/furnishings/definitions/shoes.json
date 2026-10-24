@@ -1,0 +1,22 @@
+{
+    "name": "Pair of Shoes",
+    "image": "shoes",
+    "width": 250,
+    "length": 300,
+    "category": [
+        "Entry",
+        "Bedroom"
+    ],
+    "keywords": [
+        "shoe",
+        "shoes",
+        "footwear",
+        "pair",
+        "trainers",
+        "sneakers",
+        "takkies",
+        "boots",
+        "slippers",
+        "clothing"
+    ]
+}
