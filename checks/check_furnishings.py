@@ -149,12 +149,15 @@ def Main():
     window.sidebarPanel.grab().save(str(Path(__file__).resolve().parent.parent / "screenshots" / "furnishings-sidebar.png"))
     v.grab().save(str(Path(__file__).resolve().parent.parent / "screenshots" / "furnishings-preview.png"))
     # Walls cover furnishing previews and selected furnishing borders.
+    # Isolate occlusion from the wall's collision warning, which intentionally
+    # changes its appearance when an intersecting furnishing is present.
+    v.collisionSettings = dict.fromkeys(v.collisionSettings, False)
     v.walls = [Wall(QtCore.QPointF(-2000, 0), QtCore.QPointF(2000, 0), 200)]
     covered = v.grab().toImage()
     v.furnishings = []
     baseline = v.grab().toImage()
     sample = v.WorldToViewport(QtCore.QPointF(0, 0)).toPoint()
-    assert covered.pixelColor(sample) == baseline.pixelColor(sample)
+    assert covered.pixelColor(sample) == baseline.pixelColor(sample), (covered.pixelColor(sample).name(), baseline.pixelColor(sample).name())
     v.furnishings = [desk]
     v.walls = []
     v.DeleteSelected()

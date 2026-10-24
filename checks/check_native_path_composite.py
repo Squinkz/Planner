@@ -76,7 +76,9 @@ def Main():
              Arrow(p(-1000, 500), p(2000, 2700), 80),
              Stair(p(0, -1000), p(0, -3000), 900),
              Counter(p(500, 2500), p(2500, 2500), 600)]
-    openings = [Door(walls[0], .2, .4), Fireplace(walls[1], .3, .6)]
+    # Keep openings above the 10-pixel expanded hit area added after this frozen
+    # reference. Tiny-opening selection is covered by check_problem_duplicate_repair.
+    openings = [Door(walls[0], .2, .5), Fireplace(walls[1], .3, .7)]
     views = [DrawingViewport(), ReferenceViewport()()]
     for case in range(3):
         for view in views:

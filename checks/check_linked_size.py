@@ -141,6 +141,8 @@ def Main():
         main.sidebarTabs.setCurrentWidget(main.visibilityPage)
         reference = main.referenceImage
         assert reference.Load(path)
+        main.SetViewOption("editReferenceImage")
+        assert reference.active
         assert reference.sizeLinkButton.isChecked()
         width, height = reference.state["width"], reference.state["height"]
         reference.fields["width"].setValue(width * 2)
