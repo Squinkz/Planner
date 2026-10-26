@@ -41,6 +41,9 @@ class ExportHistoryMixin:
             self.exportUndoHistory.append((before, after))
             del self.exportUndoHistory[:-100]
             self.exportRedoHistory.clear()
+            activity = getattr(self.mainWindow, "activityLog", None)
+            if activity is not None:
+                activity.ExportEdited(self.exportUndoHistory[-1])
         self.exportHistoryState = after
 
     def RecordExportHistory(self):
@@ -51,6 +54,9 @@ class ExportHistoryMixin:
             self.exportUndoHistory.append((self.exportHistoryState, after))
             del self.exportUndoHistory[:-100]
             self.exportRedoHistory.clear()
+            activity = getattr(self.mainWindow, "activityLog", None)
+            if activity is not None:
+                activity.ExportEdited(self.exportUndoHistory[-1])
         self.exportHistoryState = after
 
     def RestoreExportHistory(self, state):
@@ -82,13 +88,19 @@ class ExportHistoryMixin:
     def UndoExport(self):
         self.EndExportGesture()
         if self.exportUndoHistory:
-            before, after = self.exportUndoHistory.pop()
-            self.RestoreExportHistory(before)
-            self.exportRedoHistory.append((before, after))
+            pair = self.exportUndoHistory.pop()
+            self.RestoreExportHistory(pair[0])
+            self.exportRedoHistory.append(pair)
+            activity = getattr(self.mainWindow, "activityLog", None)
+            if activity is not None:
+                activity.Travel(pair, False, "Export")
 
     def RedoExport(self):
         self.EndExportGesture()
         if self.exportRedoHistory:
-            before, after = self.exportRedoHistory.pop()
-            self.RestoreExportHistory(after)
-            self.exportUndoHistory.append((before, after))
+            pair = self.exportRedoHistory.pop()
+            self.RestoreExportHistory(pair[1])
+            self.exportUndoHistory.append(pair)
+            activity = getattr(self.mainWindow, "activityLog", None)
+            if activity is not None:
+                activity.Travel(pair, True, "Export")

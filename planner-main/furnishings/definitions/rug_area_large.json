@@ -1,11 +1,31 @@
 {
-    "name": "Area Rug Large",
+    "name": "Rug Area Large",
     "image": "rug_area",
     "width": 2900,
     "length": 2000,
     "icon": null,
-    "category": "Living Room",
+    "category": [
+        "Living Room",
+        "Bedroom",
+        "Dining Room"
+    ],
     "inherits": null,
     "children": [],
-    "keywords": []
+    "keywords": [
+        "rug",
+        "carpet",
+        "carpeting",
+        "mat",
+        "floor",
+        "floorcovering",
+        "textile",
+        "soft",
+        "furnishing",
+        "decor",
+        "area",
+        "rectangular",
+        "rectangle",
+        "large",
+        "oversized"
+    ]
 }

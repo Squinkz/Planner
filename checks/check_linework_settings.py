@@ -12,6 +12,7 @@ from PySide6 import QtCore, QtGui, QtTest, QtWidgets
 from planner import MainWindow
 from planner_app.project_codec import DecodeProject
 from planner_app.preferences import lineworkDefaults
+from planner_app.ui.widgets import SectionHeading
 
 
 def Main():
@@ -53,10 +54,16 @@ def Main():
     panel.tabs.setCurrentIndex(2)
     headings = {label.text() for label in panel.viewportPage.findChildren(QtWidgets.QLabel)}
     assert {"Theme", "Grid", "Line Weight"} <= headings
-    for label in panel.viewportPage.findChildren(QtWidgets.QLabel):
-        if label.text() in ("Theme", "Grid", "Line Weight"):
-            assert label.alignment() == QtCore.Qt.AlignmentFlag.AlignCenter
-    assert not any(frame.frameShape() == QtWidgets.QFrame.Shape.HLine for frame in panel.buildPage.findChildren(QtWidgets.QFrame))
+    app.processEvents()
+    for heading in panel.viewportPage.findChildren(SectionHeading):
+        assert heading.objectName() == "sectionHeading"
+        heading.layout().activate()
+        caption = heading.titleLabel.parentWidget()
+        assert abs(caption.geometry().center().x() - heading.rect().center().x()) <= 1
+        assert len([frame for frame in heading.findChildren(QtWidgets.QFrame)
+                    if frame.frameShape() == QtWidgets.QFrame.Shape.HLine]) == 2
+    assert {"Auto Tread Depth", "Collisions", "Auto Railing Sizing"} <= {
+        heading.titleLabel.text() for heading in panel.buildPage.findChildren(SectionHeading)}
     for key, slider in panel.lineworkSliders.items():
         assert (slider.minimum(), slider.maximum()) == ((1000, 4000) if key == "baseWidth" else (0, 2000))
         slider.setValue(3500 if key == "baseWidth" else 1250)

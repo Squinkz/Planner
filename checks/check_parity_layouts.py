@@ -39,7 +39,9 @@ def Main():
                          for form in page.findChildren(QtWidgets.QFormLayout)
                          if form.labelForField(panel.wallMeasurementModeField) is not None)
         assert modeLabel.text() == "Mode"
-        for key, slider in panel.measurementSliders.items():
+        for tabIndex, (key, slider) in enumerate(panel.measurementSliders.items()):
+            panel.measurementSplitTabs.setCurrentIndex(tabIndex)
+            app.processEvents()
             sliderRect = QtCore.QRect(slider.mapTo(page, QtCore.QPoint()), slider.size())
             assert modeBottom < sliderRect.top()
             reset = panel.measurementResetButtons[key]

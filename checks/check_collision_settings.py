@@ -30,13 +30,19 @@ def Main():
     assert all(field.isChecked() for field in panel.collisionFields.values())
     for rowIndex, field in enumerate(panel.collisionFields.values()):
         layout = field.parentWidget().layout()
-        assert layout.itemAtPosition(rowIndex, 0).widget() is field
-        assert layout.itemAtPosition(rowIndex, 0).alignment() & QtCore.Qt.AlignmentFlag.AlignRight
-        label = layout.itemAtPosition(rowIndex, 1).widget()
-        assert label.text() and not label.icon().isNull()
-        assert layout.itemAtPosition(rowIndex, 1).alignment() & QtCore.Qt.AlignmentFlag.AlignLeft
+        assert isinstance(layout, QtWidgets.QFormLayout)
+        assert layout.getWidgetPosition(field) == (rowIndex, QtWidgets.QFormLayout.ItemRole.FieldRole)
+        label = layout.labelForField(field)
+        assert label.accessibleName()
+        icon, caption = label.findChildren(QtWidgets.QLabel)
+        assert caption.text() == label.accessibleName() and not icon.pixmap().isNull()
+        assert icon.size() == QtCore.QSize(18, 18) and label.layout().spacing() == 6
         layout.activate()
-        assert abs(field.geometry().right() - (field.parentWidget().width() / 2 - 7)) <= 1
+        label.layout().activate()
+        assert caption.width() >= caption.sizeHint().width(), (caption.text(), caption.width(), caption.sizeHint().width())
+        assert caption.geometry().right() < label.width()
+        assert label.geometry().right() < field.geometry().left()
+        assert abs(label.geometry().center().y() - field.geometry().center().y()) <= 1
         label.click()
         assert not field.isChecked()
         label.click()

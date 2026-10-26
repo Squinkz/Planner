@@ -105,6 +105,8 @@ A web implementation should implement equivalent styles in its help stylesheet.
   2, 1.5, 1.25, 1.1, 1 and 1. Top margins are 32, 28, 24, 20, 18 and 18;
   bottom margins are 20, 14, 10, 8, 8 and 8. The first document heading has
   no top margin. Heading line boxes are at least 1.25 times their font size.
+  Levels 1 and 2 have a 1 px horizontal rule, 5 px below the text block, using
+  the text color at 30% opacity. Level 3 has neither a rule nor an underline.
 - Inline code: fixed-pitch font at 12 pt and semibold (600), with horizontal
   padding and a tinted background. Fenced code retains the 11 pt body size.
 - List items: body line spacing and a 6-pixel bottom margin; preserve numbering,
@@ -121,6 +123,10 @@ A web implementation should implement equivalent styles in its help stylesheet.
 - Tables: no outer border or cell gridlines. Cell padding is 8 on every side,
   cell spacing is 0; table top/bottom margins are 8/16. Cell paragraphs have
   no top/bottom margin. Preserve the imported header emphasis and column alignment.
+  An entirely empty header row is removed once during styling, without removing
+  empty body rows. Required empty document blocks beside tables use a 1 px line
+  and zero margins, preventing an extra paragraph-sized gap after headings.
+  A table following a heading retains at least that heading's bottom margin.
 
 Qt applies native QTextBlockFormat, QTextCharFormat and QTextTableFormat values;
 it does not rewrite Markdown into custom HTML or use a custom parser. Minimum

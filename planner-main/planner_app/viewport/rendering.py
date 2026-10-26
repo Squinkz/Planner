@@ -20,13 +20,13 @@ from planner_app.graphics import palette
 from planner_app.graphics.linework import LinePen
 from planner_app.graphics.furnishings import DrawFurnishing, SelectedFurnishingRenderer, FurnishingArtworkBounds, FurnishingRenderer
 from planner_app.paths import furnishingsDirectory
-from planner_app.graphics.symbols import DrawOpeningSymbol, DrawStairSymbol, DrawStairArrows
+from planner_app.graphics.symbols import DrawOpeningSymbol, DrawStairSymbol, DrawStairArrows, WallOpeningPolygons
 from planner_app.geometry.stair_annotations import StairArrowRuns
 from planner_app.graphics.arrows import ArrowPaths, ConnectedArrowDirections, ConnectedArrowCorners
 from planner_app.models import OpenDoorway, Door, SwingingDoor, DoubleDoor, Furnishing, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, SlidingDoor, MeasurementGuide, BoundaryLine, DashedLine, SolidLine, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Label, Window, NorthArrow, Fireplace
 from planner_app.units import MetricUnit, FormatLength, PropertyUnit, GridUnit, imperialModes
 from planner_app.graphics.measurement_text import MeasurementTextPath
-from planner_app.geometry.measurement_stacks import BuildMeasurementStacks
+from planner_app.geometry.measurement_stacks import BuildMeasurementStacks, VisibleWallDimensionSpans, StackedDimensionLengths
 from .geometry import CollisionPass
 from .diagnostics import MeasurePaint
 from .edit_cache import EditPaintCacheMixin
@@ -100,7 +100,7 @@ class RenderingMixin(EditPaintCacheMixin):
                              self.zoom, self.basePixelsPerMillimeter, self.rulerSize, self.showGrid, self.unitsMode,
                              tuple(self.gridIntensities.items()), self.font().toString(), tuple(themeColors.items()),
                              self.referenceImage.revision if self.referenceImage is not None else 0,
-                             self.roomDetection.Check())
+                             self.roomDetection.Check(), self.floors)
             backgroundChanged = backgroundKey != self.viewportBackgroundKey
             frameBytes = math.ceil(self.width() * ratio) * math.ceil(self.height() * ratio) * 4
             frameFitsBudget = frameBytes <= min(self.viewportSceneByteLimit, self.viewportRasterByteLimit)
@@ -576,10 +576,10 @@ class RenderingMixin(EditPaintCacheMixin):
                 overlayRect = QtCore.QRectF(0, 0, textRect.width() + 24, textRect.height() + 20)
                 overlayRect.moveCenter(QtCore.QPointF(drawingRect.center().x(),
                                                       drawingRect.bottom() - 16 - overlayRect.height() / 2))
-                painter.setPen(QtGui.QPen(QtGui.QColor(themeColors["errorBorder"]), 1))
-                painter.setBrush(QtGui.QColor(themeColors["errorFill"]))
+                painter.setPen(QtGui.QPen(QtGui.QColor(themeColors["errorBorder" if self.clipboardErrorIsError else "objectOutline"]), 1))
+                painter.setBrush(QtGui.QColor(themeColors["errorFill" if self.clipboardErrorIsError else "overlayFill"]))
                 painter.drawRoundedRect(overlayRect, 5, 5)
-                painter.setPen(QtGui.QColor(themeColors["errorText"]))
+                painter.setPen(QtGui.QColor(themeColors["errorText" if self.clipboardErrorIsError else "rulerText"]))
                 painter.drawText(overlayRect.adjusted(12, 10, -12, -10), textFlags, self.clipboardError)
                 painter.restore()
             painter.save()
@@ -1039,36 +1039,15 @@ class RenderingMixin(EditPaintCacheMixin):
         doorwayOpenings.setFillRule(QtCore.Qt.FillRule.WindingFill)
         openingClipRect = drawingRect.adjusted(-2, -2, 2, 2)
         for opening in visibleWindows:
-            if isinstance(opening, (Door, SwingingDoor, DoubleDoor, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway, Fireplace)):
-                firstPoint = self.WorldToViewport(opening.firstVertex)
-                secondPoint = self.WorldToViewport(opening.secondVertex)
-                direction = secondPoint - firstPoint
-                length = math.hypot(direction.x(), direction.y())
-                if length > 1e-10:
-                    openingHalfWidth = (opening.parentWall.width if isinstance(opening, Fireplace) else opening.width) * pixelsPerMillimeter / 2
-                    normal = QtCore.QPointF(-direction.y(), direction.x()) / length * (openingHalfWidth + self.lineWidths["walls"])
-                    if isinstance(opening, PocketDoor):
-                        midpoint = (firstPoint + secondPoint) / 2
-                        openingEnd = secondPoint if opening.hingeAtSecond else firstPoint
-                        pocketEnd = firstPoint if opening.hingeAtSecond else secondPoint
-                        pocketNormal = QtCore.QPointF(-direction.y(), direction.x()) / length * (openingHalfWidth * .4)
-                        spans = ((openingEnd, midpoint, normal),) if isinstance(opening, BarnDoor) else ((openingEnd, midpoint, normal), (midpoint, pocketEnd, pocketNormal))
-                        for start, end, halfWidth in spans:
-                            polygon = QtGui.QPolygonF([start + halfWidth, end + halfWidth,
-                                                      end - halfWidth, start - halfWidth])
-                            for path in (doorwayClip, doorwayOpenings):
-                                if self.isPanning and path is doorwayClip and not polygon.boundingRect().intersects(openingClipRect):
-                                    continue
-                                path.addPolygon(polygon)
-                                path.closeSubpath()
-                    else:
-                        polygon = QtGui.QPolygonF([firstPoint + normal, secondPoint + normal,
-                                                  secondPoint - normal, firstPoint - normal])
-                        for path in (doorwayClip, doorwayOpenings):
-                            if self.isPanning and path is doorwayClip and not polygon.boundingRect().intersects(openingClipRect):
-                                continue
-                            path.addPolygon(polygon)
-                            path.closeSubpath()
+            # Actual wall cuts end at the square-capped jambs. Do not enlarge
+            # them along with the separate stair occlusion clearance below.
+            for polygon in WallOpeningPolygons(opening, self.WorldToViewport(opening.firstVertex),
+                                                self.WorldToViewport(opening.secondVertex), pixelsPerMillimeter, self.lineWidths["walls"]):
+                for path in (doorwayClip, doorwayOpenings):
+                    if self.isPanning and path is doorwayClip and not polygon.boundingRect().intersects(openingClipRect):
+                        continue
+                    path.addPolygon(polygon)
+                    path.closeSubpath()
         painter.setClipPath(doorwayClip, QtCore.Qt.ClipOperation.IntersectClip)
         materialKey = prepared.get("materials")
         if materialKey is None:
@@ -1368,7 +1347,18 @@ class RenderingMixin(EditPaintCacheMixin):
                     occlusion = Paths.Union(occlusion, stroke(walls))
                 # Door openings remove the wall fill and stroke above, so
                 # stair outlines remain visible inside those same openings.
-                openings = QtGui.QTransform().translate(-origin.x(), -origin.y()).map(doorwayOpenings)
+                openings = QtGui.QPainterPath()
+                openings.setFillRule(QtCore.Qt.FillRule.WindingFill)
+                for opening in visibleWindows:
+                    first = QtCore.QPointF(opening.firstVertex.x(), -opening.firstVertex.y()) * pixelsPerMillimeter
+                    second = QtCore.QPointF(opening.secondVertex.x(), -opening.secondVertex.y()) * pixelsPerMillimeter
+                    # A cut exactly tangent to the stroke's outer edge can make
+                    # Qt's subtraction fill an enclosed room at certain scales.
+                    # Cross that edge fully, keeping the jamb endpoints fixed.
+                    for polygon in WallOpeningPolygons(opening, first, second, pixelsPerMillimeter,
+                                                        self.lineWidths["walls"], outlineClearance = boundaryWidth / 2):
+                        openings.addPolygon(polygon)
+                        openings.closeSubpath()
                 if not openings.isEmpty():
                     occlusion = Paths.Difference(occlusion, openings)
                 self.stairWallClipKey, self.stairWallOcclusion = wallClipKey, occlusion
@@ -1616,6 +1606,8 @@ class RenderingMixin(EditPaintCacheMixin):
                              else self.SelectionEntries())
         measurementSelectedIds = {id(obj) for obj, index in renderedSelection if self.IsObjectVisible(obj)}
         if not drawMeasurements and not measurementSelectedIds and not visibleGuides:
+            self.sceneMeasurements = (None, [], [])
+            self.selectionMeasurements = []
             return
         stableMeasurements = (self.dragStart is None and not self.isDragging and self.pendingWall is None and not self.pendingShapeWalls
                               and self.furnishingHandleDrag is None and not self.guiDragActive
@@ -1640,8 +1632,10 @@ class RenderingMixin(EditPaintCacheMixin):
         if measurementKey is not None and cachedMeasurements is not None and cachedMeasurements[0] == measurementKey:
             dimensions = cachedMeasurements[1]
             stackedDimensions = cachedMeasurements[2]
+            selectionDimensions = self.selectionMeasurements
         else:
             stackedDimensions = []
+            selectionDimensions = []
             selectedBodies = {id(obj) for obj, index in renderedSelection if index is None and self.IsObjectVisible(obj)}
             groupedSelectedIds = set()
             groupDimensions = []
@@ -1657,19 +1651,19 @@ class RenderingMixin(EditPaintCacheMixin):
                 groupDimensions.extend((corners[index], corners[(index + 1) % 4], members) for index in range(4))
             combinedPath = self.ConnectedWallPath(visibleWalls)
             counterDimensions = (self.ConnectedCounterPath(visibleCounters, True)[1]
-                                 if visibleCounters and (drawMeasurements and self.measurementVisibility["counters"]
-                                 or any(id(obj) in measurementSelectedIds for obj in visibleCounters)) else [])
+                                 if visibleCounters and drawMeasurements and self.measurementVisibility["counters"] else [])
             stairDimensions = (self.StairDimensions(visibleStairs)
-                               if visibleStairs and (drawMeasurements and self.measurementVisibility["stairs"]
-                               or any(id(obj) in measurementSelectedIds for obj in visibleStairs)) else [])
+                               if visibleStairs and drawMeasurements and self.measurementVisibility["stairs"] else [])
             railingDimensions = (self.ConnectedRailingPath(visibleRailings, True)[1]
-                                 if visibleRailings and (drawMeasurements and self.measurementVisibility["railings"]
-                                 or any(id(obj) in measurementSelectedIds for obj in visibleRailings)) else [])
+                                 if visibleRailings and drawMeasurements and self.measurementVisibility["railings"] else [])
             dimensions = [(guide.firstVertex, guide.secondVertex, [guide]) for guide in visibleGuides
-                          if not isinstance(guide, AngleGuide) and id(guide) not in groupedSelectedIds
-                          and (not isinstance(guide, BoundaryLine) or id(guide) in measurementSelectedIds)]
+                          if not isinstance(guide, (AngleGuide, BoundaryLine)) and not guide.measurementHidden]
             stacked = self.wallMeasurementMode == "Exterior stacked"
             exteriorOnly = self.wallMeasurementMode != "All"
+            # Opening visibility is a world policy in every wall mode. Selecting
+            # a hidden opening adds an overlay, never a cut in this chain.
+            dimensionOpenings = [opening for opening in visibleWindows
+                                 if not opening.measurementHidden and not opening.parentWall.measurementHidden]
             measurementBoundary = combinedPath
             rooms = []
             if exteriorOnly:
@@ -1680,63 +1674,51 @@ class RenderingMixin(EditPaintCacheMixin):
                 toView = QtGui.QTransform(scale, 0, 0, -scale, origin.x(), origin.y())
                 measurementBoundary = toView.map(self.roomDetection.exteriorPath)
             splitSettings = dict(self.measurementSettings, doors = 0, windows = 0, stairs = 2, counters = 2) if stacked else None
-            wallDimensions = (self.WallDimensions(visibleWalls, measurementBoundary, visibleWindows,
+            wallDimensions = (self.WallDimensions(visibleWalls, measurementBoundary, dimensionOpenings,
                                                  cachedBoundary = not exteriorOnly, measurementSettings = splitSettings)
-                              if drawMeasurements and self.measurementVisibility["walls"] or
-                              any(id(obj) in measurementSelectedIds for obj in visibleWalls) else [])
+                              if drawMeasurements and self.measurementVisibility["walls"] else [])
+            wallDimensions = VisibleWallDimensionSpans(wallDimensions)
             if stacked and wallDimensions:
-                totals = self.WallDimensions(visibleWalls, measurementBoundary, visibleWindows,
+                totals = self.WallDimensions(visibleWalls, measurementBoundary, dimensionOpenings,
                                             measurementSettings = dict(self.measurementSettings, doors = 2, windows = 2, stairs = 2, counters = 2))
+                totals = VisibleWallDimensionSpans(totals)
                 wallDimensions, rows = BuildMeasurementStacks(totals, wallDimensions, visibleWalls, rooms, self.wallMeasurementReference)
                 for first, second, owners, tier in rows:
-                    owners = [obj for obj in owners if id(obj) not in groupedSelectedIds
-                              and (not isinstance(obj, Pillar) or id(obj) not in measurementSelectedIds)
-                              and (not obj.measurementHidden or id(obj) in measurementSelectedIds)]
-                    if owners and (drawMeasurements and self.measurementVisibility["walls"]
-                                   or any(id(obj) in measurementSelectedIds for obj in owners)):
+                    owners = [obj for obj in owners if not obj.measurementHidden]
+                    if owners:
                         stackedDimensions.append((first, second, owners, tier))
             for category, spans in (("walls", wallDimensions), ("railings", railingDimensions),
                                     ("stairs", stairDimensions), ("counters", counterDimensions)):
-                for first, second, owners in spans:
-                    # Pillars use their complete bounds below while selected,
-                    # including sides hidden inside adjoining wall geometry.
-                    owners = [obj for obj in owners if id(obj) not in groupedSelectedIds
-                              and (not isinstance(obj, Pillar) or id(obj) not in measurementSelectedIds)]
-                    if not owners:
-                        continue
-                    if (drawMeasurements and self.measurementVisibility[category]
-                            or any(id(obj) in measurementSelectedIds for obj in owners)):
-                        dimensions.append((first, second, owners))
-            measuredIds = {id(obj) for first, second, owners in dimensions for obj in owners}
+                if drawMeasurements and self.measurementVisibility[category]:
+                    dimensions.extend((first, second, visibleOwners) for first, second, owners in spans
+                                      if (visibleOwners := [obj for obj in owners if not obj.measurementHidden]))
             if drawMeasurements and self.measurementVisibility["walls"] and not exteriorOnly:
                 for column in visibleWalls:
-                    if isinstance(column, Column) and id(column) not in measurementSelectedIds:
+                    if isinstance(column, Column) and not column.measurementHidden:
                         corners = self.ObjectCorners(column)
                         dimensions.extend((corners[index], corners[(index + 1) % len(corners)], [column]) for index in range(len(corners)))
+            # Selection dimensions are a separate overlay. They cannot suppress,
+            # split, unhide or reassign ownership in the world dimensions above.
             for obj in {id(obj): obj for obj, index in renderedSelection}.values():
-                if id(obj) not in measurementSelectedIds or id(obj) in groupedSelectedIds or isinstance(obj, (MeasurementGuide, Elevator)):
+                if id(obj) not in measurementSelectedIds or id(obj) in groupedSelectedIds or isinstance(obj, (AngleGuide, Elevator)):
                     continue
-                if isinstance(obj, (Window, Furnishing, Label, Pillar)):
-                    corners = self.ObjectCorners(obj)
-                    dimensions.extend((corners[index], corners[(index + 1) % len(corners)], [obj]) for index in range(len(corners)))
+                if isinstance(obj, MeasurementGuide):
+                    if isinstance(obj, BoundaryLine) or obj.measurementHidden:
+                        selectionDimensions.append((obj.firstVertex, obj.secondVertex, [obj]))
                 elif isinstance(obj, Arrow):
-                    dimensions.append((obj.firstVertex, obj.secondVertex, [obj]))
-                elif id(obj) not in measuredIds:
-                    if type(obj) is Wall and exteriorOnly:
-                        continue
-                    # An object entirely inside joined geometry still needs its
-                    # own dimensions when selected, even without exposed edges.
+                    selectionDimensions.append((obj.firstVertex, obj.secondVertex, [obj]))
+                else:
                     corners = self.ObjectCorners(obj)
                     if not corners:
                         continue
-                    indices = range(len(corners)) if isinstance(obj, (Stair, Counter)) else (0, 2)
-                    dimensions.extend((corners[index], corners[(index + 1) % len(corners)], [obj]) for index in indices)
-            dimensions.extend(groupDimensions)
-            dimensions = [(first, second, visibleOwners) for first, second, owners in dimensions
-                          if (visibleOwners := [obj for obj in owners if not obj.measurementHidden or id(obj) in measurementSelectedIds])]
+                    indices = (range(len(corners)) if isinstance(obj, (Window, Furnishing, Label, Pillar, Stair, Counter)) else (0, 2))
+                    selectionDimensions.extend((corners[index], corners[(index + 1) % len(corners)], [obj]) for index in indices)
+            selectionDimensions.extend(groupDimensions)
+            self.selectionMeasurements = selectionDimensions
             self.sceneMeasurements = (measurementKey, dimensions, stackedDimensions) if stableMeasurements else None
         targetPainter = painter
         unusedDivisor, measurementUnit = GridUnit(self.GridSteps()[0], self.unitsMode)
+        stackedLengths = StackedDimensionLengths(dimensions, stackedDimensions, self.unitsMode, self.measurementPrecision)
         picture = None
         candidate = QtGui.QPicture() if stableMeasurements and retainCommands else None
         with ExitStack() as painterScope:
@@ -1752,9 +1734,12 @@ class RenderingMixin(EditPaintCacheMixin):
             for guide in visibleGuides:
                 if isinstance(guide, AngleGuide) and (not guide.measurementHidden or id(guide) in measurementSelectedIds):
                     self.DrawAngleGuide(painter, guide, id(guide) in highlightedIds)
-            for firstVertex, secondVertex, owners, tier in chain(
-                    ((first, second, owners, 0) for first, second, owners in dimensions), stackedDimensions):
-                isSelected = any(id(wall) in highlightedIds and id(wall) not in invalidWalls and id(wall) not in invalidCounterIds for wall in owners)
+            for firstVertex, secondVertex, owners, tier, overlay, displayLength in chain(
+                    ((first, second, owners, 0, False, None) for first, second, owners in dimensions),
+                    ((first, second, owners, tier, False, length) for (first, second, owners, tier), length in zip(stackedDimensions, stackedLengths)),
+                    ((first, second, owners, 0, True, None) for first, second, owners in selectionDimensions)):
+                isSelected = (overlay or all(isinstance(obj, MeasurementGuide) for obj in owners)) and any(
+                    id(obj) in highlightedIds and id(obj) not in invalidWalls and id(obj) not in invalidCounterIds for obj in owners)
                 selectedColor = next((self.SelectionColor(wall) for wall in owners
                                       if id(wall) in highlightedIds and id(wall) not in invalidWalls and id(wall) not in invalidCounterIds), themeColors["selectionOutline"])
                 firstPoint = self.WorldToViewport(firstVertex)
@@ -1782,7 +1767,7 @@ class RenderingMixin(EditPaintCacheMixin):
                     dimensionStart = firstPoint + normal * offset
                     dimensionEnd = secondPoint + normal * offset
                     labelPosition = (dimensionStart + dimensionEnd) / 2
-                    label = FormatLength(QtCore.QLineF(firstVertex, secondVertex).length(), self.unitsMode,
+                    label = FormatLength(QtCore.QLineF(firstVertex, secondVertex).length() if displayLength is None else displayLength, self.unitsMode,
                                          adaptive = measurementUnit, includeUnit = False, precision = self.measurementPrecision)
                     labelPath = (MeasurementTextPath(label, painter.font().toString(), painter.device().logicalDpiY())
                                  if self.unitsMode in imperialModes else None)
@@ -1923,7 +1908,7 @@ class RenderingMixin(EditPaintCacheMixin):
         # Choose a metric 1/2/5 interval with enough room for ruler labels.
         majorStep, minorStep = self.GridSteps()
         roomClip = QtGui.QPainterPath()
-        if drawGrid and not markingsOnly and not getattr(self, "exportRender", False):
+        if drawGrid and self.floors:
             cachedRooms = self.roomDetection.path
             if not cachedRooms.isEmpty():
                 transform = QtGui.QTransform().translate(origin.x(), origin.y()).scale(pixelsPerMillimeter, -pixelsPerMillimeter)

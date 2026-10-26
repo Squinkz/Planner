@@ -81,4 +81,21 @@ The probes open isolated test windows and exercise editing, panning, zooming, re
 
 Reports include CPU/event-loop diagnostics, Windows working-set and private-byte samples, and raster/artwork counts. The workload uses 200 walls and 20 doors; compare results under consistent workload and environment settings.
 
-Dated audit reports, benchmark outputs and repair records in this directory preserve the conditions and observations of their individual runs. This guide describes the current diagnostic workflow.
+Dated audit reports, benchmark outputs and repair records under `diagnostics/`
+preserve the conditions and observations of their individual runs. This guide
+describes the current diagnostic workflow.
+
+## Angled-room opening clips
+
+Stair wall occlusion includes wall fills and strokes, with door and fireplace
+openings removed. Exactly tangent opening cuts can cause Qt path subtraction
+to fill an enclosed room at particular zoom levels. Build the cached opening
+cuts relative to the world origin and give through-wall cuts clearance beyond
+the outer stroke. Keep their jamb endpoints fixed. The visible wall cut still
+uses its original half-stroke allowance, so adjoining walls do not gain notches.
+Pocket recesses retain their narrower cut.
+
+`check_angled_room_occlusion.py` exercises the original failure on a synthetic
+angled enclosure, all opening variants, zoom/pan changes, floor shading, other
+object layers and PNG/SVG rendering. `check_stair_occlusion_cache.py` retains
+exact mask checks and verifies that camera translation does not rebuild the mask.

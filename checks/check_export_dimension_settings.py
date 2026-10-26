@@ -28,6 +28,43 @@ def Main():
         main.ShowSettings()
         settings = main.settingsWindow
         settings.hide()
+        # Export inherits units without creating an override. Build defaults
+        # stay in project units even with a different export override active.
+        for projectUnits, exportUnits, suffix, values in (
+                ("Inches", "Millimeters", " in", (8, 40, 48)),
+                ("Centimeters", "Inches", " cm", (20, 90, 100))):
+            settings.SetUnitsMode(projectUnits)
+            main.sidebarTabs.setCurrentWidget(export)
+            assert v.unitsMode == export.unitsField.currentText() == projectUnits
+            assert "unitsMode" not in export.overrides
+            export.unitsField.setCurrentText(exportUnits)
+            overrides = copy.deepcopy(export.overrides)
+            settings.RefreshSizeUnits()
+            settings.RefreshStepSizing()
+            assert all(field.suffix() == suffix for field in settings.sizeFields.values())
+            assert all(field.suffix() == suffix for field in settings.stepSizingFields.values())
+            assert all(field.suffix() == suffix for field in settings.railingSizingFields.values())
+            for key, value in zip((0, "Door", "Stair"), values):
+                settings.sizeFields[key].setValue(value)
+                assert settings.sizeFields[key].value() == value
+                assert settings.sizeFields[key].suffix() == suffix
+                expected = round(value * (25.4 if projectUnits == "Inches" else 10), 6)
+                if projectUnits == "Inches":
+                    assert v.imperialDefaultSizes[str(key)] == expected
+                else:
+                    actual = (v.wallPresetWidths[key] if isinstance(key, int) else
+                              v.miscDefaultSizes[key] if key == "Stair" else v.openingDefaultSizes[key])
+                    assert actual * 10 == expected
+            assert export.overrides == overrides and v.unitsMode == exportUnits
+            settings.buildResetButtons["Door"].click()
+            assert settings.sizeFields["Door"].value() == (36 if projectUnits == "Inches" else 90)
+            assert settings.sizeFields["Door"].suffix() == suffix
+            settings.sizeFields["Door"].setValue(values[1])
+            assert export.overrides == overrides and v.unitsMode == exportUnits
+            main.sidebarTabs.setCurrentIndex(0)
+            assert v.unitsMode == projectUnits and v.DefaultPlacementSize("Door") == values[1] * (25.4 if projectUnits == "Inches" else 10)
+            export.ResetOverride("unitsMode")
+        settings.SetUnitsMode("Millimeters")
         main.sidebarTabs.setCurrentWidget(export)
         export.sectionButtons["Measurements"].setChecked(True)
         QtWidgets.QApplication.processEvents()
@@ -54,12 +91,13 @@ def Main():
         headings = {label.text(): label for label in contents.findChildren(QtWidgets.QLabel)
                     if label.text() in ("Measure", "Walls")}
         assert set(headings) == {"Measure", "Walls"}
-        ordered = [export.unitsField, headings["Measure"], tree, headings["Walls"],
+        ordered = [export.unitsField, export.precisionField, headings["Measure"], tree, headings["Walls"],
                    export.wallMeasurementModeField, export.wallReferenceField]
         QtWidgets.QApplication.processEvents()
         assert all(first.mapTo(contents, first.rect().bottomLeft()).y() < second.mapTo(contents, QtCore.QPoint()).y()
                    for first, second in zip(ordered, ordered[1:]))
-        assert not hasattr(export, "precisionField") and not hasattr(export, "measurementSliders")
+        assert [export.measurementSplitTabs.tabText(index) for index in range(export.measurementSplitTabs.count())] == ["Doors", "Windows", "Stairs", "Counters"]
+        assert not export.measurementSplitWidget.isVisible()
         contents.grab().save(str(Path(__file__).resolve().parents[1] / "diagnostics/export-dimension-settings.png"))
         assert export.projectView["wallMeasurementMode"] == settings.wallMeasurementModeField.currentText() == "All"
         assert export.projectView["wallMeasurementReference"] == settings.wallReferenceField.currentText() == "Wall faces"

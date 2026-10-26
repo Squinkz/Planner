@@ -249,6 +249,10 @@ class DragSlider(QtWidgets.QSlider):
 
     def mouseMoveEvent(self, event):
         if self.dragOffset is not None:
+            if not event.buttons() & QtCore.Qt.MouseButton.LeftButton:
+                self.dragOffset = self.dragAnchor = None
+                self.setSliderDown(False)
+                return
             self.SetValueAt(event.position())
             event.accept()
             return
@@ -276,7 +280,7 @@ class DragSlider(QtWidgets.QSlider):
         super().keyPressEvent(event)
 
     def event(self, event):
-        if (event.type() in (QtCore.QEvent.Type.Hide, QtCore.QEvent.Type.UngrabMouse)
+        if (event.type() in (QtCore.QEvent.Type.Hide, QtCore.QEvent.Type.UngrabMouse, QtCore.QEvent.Type.WindowDeactivate)
                 or event.type() == QtCore.QEvent.Type.EnabledChange and not self.isEnabled()):
             if getattr(self, "dragOffset", None) is not None:
                 self.dragOffset = None
@@ -321,6 +325,13 @@ class WallWidthSelector(QtWidgets.QWidget):
             centers.append(self.slider.x() + handle.center().x())
         return centers
 
+    def event(self, event):
+        if (event.type() in (QtCore.QEvent.Type.Hide, QtCore.QEvent.Type.WindowDeactivate, QtCore.QEvent.Type.UngrabMouse)
+                and getattr(self, "pressX", None) is not None):
+            self.pressX = None
+            self.dragging = False
+        return super().event(event)
+
     def paintEvent(self, event):
         with QtGui.QPainter(self) as painter:
             painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
@@ -351,6 +362,10 @@ class WallWidthSelector(QtWidgets.QWidget):
 
     def mouseMoveEvent(self, event):
         if self.pressX is not None:
+            if not event.buttons() & QtCore.Qt.MouseButton.LeftButton:
+                self.pressX = None
+                self.dragging = False
+                return
             if self.dragging:
                 centers = self.PresetCenters()
                 localX = self.mapFromGlobal(event.globalPosition().toPoint()).x()
@@ -628,12 +643,29 @@ class DragSpinBox(UnitSpinBox):
             return ""
         return super().textFromValue(value)
 
+    def EndDrag(self, cancelled):
+        dragging = self.dragging
+        self.dragging = False
+        self.pressPosition = None
+        self.lineEdit().unsetCursor()
+        if dragging:
+            self.dragFinished.emit(cancelled)
+
+    def event(self, event):
+        if (event.type() in (QtCore.QEvent.Type.Hide, QtCore.QEvent.Type.WindowDeactivate, QtCore.QEvent.Type.UngrabMouse)
+                and getattr(self, "pressPosition", None) is not None):
+            self.EndDrag(True)
+        return super().event(event)
+
     def eventFilter(self, watched, event):
         if watched is self.lineEdit() and not self.isReadOnly():
             if event.type() == QtCore.QEvent.Type.MouseButtonPress and event.button() == QtCore.Qt.MouseButton.LeftButton:
                 self.pressPosition = event.globalPosition()
                 self.lastDragX = event.globalPosition().x()
             elif event.type() == QtCore.QEvent.Type.MouseMove and self.pressPosition is not None:
+                if not event.buttons() & QtCore.Qt.MouseButton.LeftButton:
+                    self.EndDrag(True)
+                    return False
                 if not self.dragging and abs(event.globalPosition().x() - self.pressPosition.x()) >= QtWidgets.QApplication.startDragDistance():
                     self.interpretText()
                     self.dragValue = self.value()
@@ -650,36 +682,40 @@ class DragSpinBox(UnitSpinBox):
                     self.setValue(self.dragValue)
                     return True
             elif event.type() == QtCore.QEvent.Type.MouseButtonRelease and event.button() == QtCore.Qt.MouseButton.LeftButton:
-                self.pressPosition = None
-                if self.dragging:
-                    self.dragging = False
-                    self.lineEdit().unsetCursor()
-                    self.dragFinished.emit(False)
+                dragging = self.dragging
+                self.EndDrag(False)
+                if dragging:
                     return True
             elif event.type() == QtCore.QEvent.Type.KeyPress and event.key() == QtCore.Qt.Key.Key_Escape and self.dragging:
-                self.dragging = False
-                self.pressPosition = None
-                self.lineEdit().unsetCursor()
-                self.dragFinished.emit(True)
+                self.EndDrag(True)
                 return True
+            elif (event.type() in (QtCore.QEvent.Type.FocusOut, QtCore.QEvent.Type.Hide,
+                                   QtCore.QEvent.Type.WindowDeactivate, QtCore.QEvent.Type.UngrabMouse)
+                  and self.pressPosition is not None):
+                self.EndDrag(True)
         return super().eventFilter(watched, event)
 
 
-class WindowButton(QtWidgets.QPushButton):
-    def __init__(self, parent = None, objectType = "window"):
-        super().__init__(parent)
-        label = objectType.replace("-", " ").title()
-        self.setAccessibleName(label)
-        self.setObjectName("openingIconButton")
-        self.setStyleSheet(BuildCanvasStyle())
-        self.setFixedSize(48, 48)
-        self.setIconSize(QtCore.QSize(40, 40))
-        self.setCursor(QtCore.Qt.CursorShape.OpenHandCursor)
-        self.setIcon(UiIcon("objects/" + objectType))
-        self.objectType = objectType
-        self.pressPosition = None
-        self.setToolTip(label.capitalize())
+class PaletteDragButton(QtWidgets.QPushButton):
+    def mouseReleaseEvent(self, event):
+        if event.button() == QtCore.Qt.MouseButton.LeftButton:
+            self.pressPosition = None
+        super().mouseReleaseEvent(event)
 
+    def mouseMoveEvent(self, event):
+        if not event.buttons() & QtCore.Qt.MouseButton.LeftButton:
+            self.pressPosition = None
+        super().mouseMoveEvent(event)
+
+    def event(self, event):
+        if (event.type() in (QtCore.QEvent.Type.Hide, QtCore.QEvent.Type.WindowDeactivate, QtCore.QEvent.Type.UngrabMouse)
+                and getattr(self, "pressPosition", None) is not None):
+            self.pressPosition = None
+            self.setDown(False)
+        return super().event(event)
+
+
+class ObjectDragButtonMixin:
     def mousePressEvent(self, event):
         self.pressPosition = event.position().toPoint() if event.button() == QtCore.Qt.MouseButton.LeftButton else None
         super().mousePressEvent(event)
@@ -700,6 +736,8 @@ class WindowButton(QtWidgets.QPushButton):
             self.pressPosition = None
             self.setDown(False)
             viewport = self.window().viewport
+            if self.objectType.startswith("wall-"):
+                viewport.CancelInteraction()
             viewport.guiDragActive = True
             viewport.guiDragCancelled = False
             viewport.guiDragKind = self.objectType
@@ -709,6 +747,9 @@ class WindowButton(QtWidgets.QPushButton):
             finally:
                 viewport.guiDragActive = False
                 viewport.guiDragKind = None
+            if self.objectType.startswith("wall-"):
+                viewport.pendingWall = None
+                viewport.pendingShapeWalls = []
             viewport.doorOrientationLocked = False
             viewport.alignmentGuides = []
             viewport.counterPreview = None
@@ -719,6 +760,39 @@ class WindowButton(QtWidgets.QPushButton):
             viewport.update()
             return
         super().mouseMoveEvent(event)
+
+
+class WindowButton(ObjectDragButtonMixin, PaletteDragButton):
+    def __init__(self, parent = None, objectType = "window"):
+        super().__init__(parent)
+        label = "North Marker" if objectType == "north-arrow" else objectType.replace("-", " ").title()
+        self.setAccessibleName(label)
+        self.setObjectName("openingIconButton")
+        self.setStyleSheet(BuildCanvasStyle())
+        self.setFixedSize(48, 48)
+        self.setIconSize(QtCore.QSize(40, 40))
+        self.setCursor(QtCore.Qt.CursorShape.OpenHandCursor)
+        self.setIcon(UiIcon("objects/" + objectType))
+        self.objectType = objectType
+        self.pressPosition = None
+        self.setToolTip(label.capitalize())
+
+
+class WallToolButton(ObjectDragButtonMixin, QtWidgets.QToolButton):
+    def __init__(self, shape, parent = None):
+        super().__init__(parent)
+        self.objectType = "wall-" + shape
+        self.pressPosition = None
+
+    def mouseReleaseEvent(self, event):
+        self.pressPosition = None
+        super().mouseReleaseEvent(event)
+
+    def event(self, event):
+        if event.type() in (QtCore.QEvent.Type.Hide, QtCore.QEvent.Type.WindowDeactivate, QtCore.QEvent.Type.UngrabMouse):
+            self.pressPosition = None
+            self.setDown(False)
+        return super().event(event)
 
 
 class FurnishingIconLayout(QtWidgets.QLayout):
@@ -815,7 +889,7 @@ class FurnishingIconLayout(QtWidgets.QLayout):
         return rows * cellHeight + (rows - 1) * 12
 
 
-class FurnishingButton(QtWidgets.QPushButton):
+class FurnishingButton(PaletteDragButton):
     def __init__(self, definition):
         super().__init__()
         self.definition = definition

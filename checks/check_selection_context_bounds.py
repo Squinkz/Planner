@@ -31,7 +31,7 @@ def Main():
         assert v.HitTest(center) == (second, None)
         QtTest.QTest.mouseClick(v, QtCore.Qt.MouseButton.RightButton, pos = center.toPoint())
         labels = [action.defaultWidget().accessibleName() for action in v.objectContextMenu.actions() if not action.isSeparator()]
-        assert labels == ["Subdivide Wall", "Material", "Flip Horizontal", "Flip Vertical", "Hide dimensions", "Group selected", "Transform", "Cut", "Copy", "Delete"]
+        assert labels == ["Subdivide Wall", "Material", "Flip Horizontal", "Flip Vertical", "Hide Dimension", "Group selected", "Transform", "Cut", "Copy", "Delete"]
         assert len(v.SelectionEntries()) == 2
         v.objectContextMenu.hide()
         # The same gap allows moving the selected group without clearing selection.
@@ -50,7 +50,7 @@ def Main():
         assert v.HitTest(center) == (stair, None)
         v.ShowObjectContextMenu(center, v.mapToGlobal(center.toPoint()))
         labels = [action.defaultWidget().accessibleName() for action in v.objectContextMenu.actions() if not action.isSeparator()]
-        assert labels == ["Flip Horizontal", "Flip Vertical", "Hide dimensions", "Group selected", "Transform", "Cut", "Copy", "Delete"] and len(v.SelectionEntries()) == 2, labels
+        assert labels == ["Flip Horizontal", "Flip Vertical", "Hide Dimension", "Group selected", "Transform", "Cut", "Copy", "Delete"] and len(v.SelectionEntries()) == 2, labels
         v.objectContextMenu.hide()
         outside = v.WorldToViewport(point(0, 900))
         assert v.HitTest(outside) == (None, None)

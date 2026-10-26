@@ -40,14 +40,15 @@ def Main():
         main.show()
         app.processEvents()
         viewport = main.viewport
+        viewport.wallMeasurementMode = "All"
         for field, iconName in (("swing", "flip_v"), ("hinge", "flip_h"), ("measurement", "measure")):
             assert main.doorFields[field].icon().pixmap(18, 18).toImage() == UiIcon(iconName).pixmap(18, 18).toImage()
         for field, iconName in (("flipHorizontal", "flip_h"), ("flipVertical", "flip_v")):
             assert main.furnishingFlipFields[field].icon().pixmap(18, 18).toImage() == UiIcon(iconName).pixmap(18, 18).toImage()
         viewport.snapEnabled = False
         point = QtCore.QPointF
-        generic = ["Flip Horizontal", "Flip Vertical", "Hide dimensions", None, "Transform", None, "Cut", "Copy", None, "Delete"]
-        groupGeneric = ["Flip Horizontal", "Flip Vertical", "Hide dimensions", None, "Group selected", None] + generic[4:]
+        generic = ["Flip Horizontal", "Flip Vertical", "Hide Dimension", None, "Transform", None, "Cut", "Copy", None, "Delete"]
+        groupGeneric = ["Flip Horizontal", "Flip Vertical", "Hide Dimension", None, "Group selected", None] + generic[4:]
         parent = Wall(point(-1800, 0), point(1800, 0))
         viewport.walls = [parent]
         assert OpenMenu(viewport, point(0, 900)) == ["Paste"]
@@ -121,7 +122,7 @@ def Main():
         # Right-clicking an unselected object switches the context to that object.
         viewport.SetSelection([(viewport.windows[0], None)])
         second = viewport.windows[1]
-        assert OpenMenu(viewport, (second.firstVertex + second.secondVertex) / 2) == ["Flip Facing", "Flip Dimension"] + generic
+        assert OpenMenu(viewport, (second.firstVertex + second.secondVertex) / 2) == ["Flip Facing", "Flip Dimension"] + generic[2:]
         assert viewport.SelectionEntries() == [(second, None)]
         viewport.objectContextMenu.hide()
         viewport.windows = []

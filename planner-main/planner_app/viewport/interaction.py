@@ -308,6 +308,14 @@ class InteractionMixin:
     def UpdateInteraction(self, position, modifiers):
         self.axisConstraintOrigin = None
         self.axisConstraintDirection = None
+        if self.guiDragActive and self.guiDragKind in ("wall-line", "wall-square", "wall-circle"):
+            if self.hoverPosition is not None:
+                mime = QtCore.QMimeData()
+                mime.setData("application/x-planner-" + self.guiDragKind, self.guiDragKind.encode())
+                event = QtGui.QDragMoveEvent(self.hoverPosition.toPoint(), QtCore.Qt.DropAction.CopyAction, mime,
+                                            QtCore.Qt.MouseButton.LeftButton, modifiers)
+                self.dragMoveEvent(event)
+            return
         if self.rightClickStart is not None:
             if (position - self.rightClickStart).manhattanLength() < QtWidgets.QApplication.startDragDistance():
                 return

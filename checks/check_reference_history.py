@@ -21,7 +21,7 @@ def Main():
         image = QtGui.QImage(200, 100, QtGui.QImage.Format.Format_RGB32)
         image.fill("red")
         assert image.save(str(path)) and reference.Load(path)
-        assert not reference.active and not v.undoHistory
+        assert reference.active and not v.undoHistory
         main.SetViewOption("editReferenceImage")
         assert reference.active
         v.snapEnabled = False

@@ -6,7 +6,8 @@
     "icon": null,
     "category": [
         "Office",
-        "Living Room"
+        "Living Room",
+        "Bedroom"
     ],
     "inherits": null,
     "children": [],
@@ -20,6 +21,8 @@
         "library",
         "storage",
         "reading",
-        "study"
+        "study",
+        "bookrack",
+        "book"
     ]
 }

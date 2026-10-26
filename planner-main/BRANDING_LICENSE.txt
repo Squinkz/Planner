@@ -5,7 +5,7 @@ Copyright (c) 2026 Dieter Stassen. All rights reserved except as granted below.
 
 These terms apply to Planner's original logo, application icon, and other
 artwork explicitly designated as Planner branding and owned by Dieter Stassen.
-They include assets/planner.svg (currently temporary artwork), application icons
+They include assets/planner.svg, application icons
 derived from it, and replacement official logo/application-icon artwork supplied
 under this notice. These works are not licensed under the GNU GPL or the
 Planner Original Graphics License.

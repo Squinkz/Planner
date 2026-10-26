@@ -1,4 +1,4 @@
-"""Selection overrides measurement visibility, splitting, and obstruction."""
+"""Selection overlays stay independent from ambient visibility and geometry."""
 import os
 import sys
 from pathlib import Path
@@ -82,17 +82,19 @@ def Main():
     v.isPanning = True
     assert len(RenderLabels(v)) == 8
     v.isPanning = False
-    # Actual groups use only their combined bounds, including mixed object classes.
+    # Groups use combined selection bounds without replacing ambient dimensions.
     v.groupModeEnabled = True
     v.objectGroups = [(stair, counter)]
     v.unitsMode = "Meters"
     for show in (False, True):
         v.showMeasurements = show
         v.measurementVisibility = dict.fromkeys(v.measurementVisibility, show)
+        v.DeselectAll()
+        ambient = RenderLabels(v)
         v.SetSelection([(stair, None)])
         labels = RenderLabels(v)
-        assert sorted(labels) == ["1", "1", "1.6", "1.6"], labels
-        # Reusing cached dimensions does not restore member annotations.
+        assert sorted(labels) == sorted(ambient + ["1", "1", "1.6", "1.6"]), labels
+        # Reusing cached dimensions keeps both layers stable.
         assert RenderLabels(v) == labels
     v.groupModeEnabled = False
     v.SetSelection([(stair, None)])
@@ -136,8 +138,8 @@ def Main():
         v.showMeasurements = False
         v.measurementVisibility = dict.fromkeys(v.measurementVisibility, False)
     v.unitsMode, v.measurementPrecision = originalUnits, originalPrecision
-    # Door and structural splitting must disappear and return without changing
-    # the settings, including already-cached measurement components.
+    # Selecting a wall cannot change door/structural splitting, including warm
+    # component caches. Its full-length dimensions belong only to the overlay.
     wall = Wall(point(), point(4000, 0))
     other = Wall(point(0, 3000), point(1000, 3000))
     cutter = Counter(point(1500, 420), point(2500, 420), 600)
@@ -151,7 +153,9 @@ def Main():
     assert len(baseline) > 4
     v.SetSelection([(wall, None)])
     selected = v.WallDimensions([wall, other], path, cachedBoundary = True)
-    assert sorted(round(QtCore.QLineF(first, second).length()) for first, second, owners in selected) == [1000, 1000, 4000, 4000]
+    assert selected == baseline
+    RenderLabels(v)
+    assert sorted(round(QtCore.QLineF(first, second).length()) for first, second, owners in v.selectionMeasurements) == [4000, 4000]
     v.DeselectAll()
     assert v.WallDimensions([wall, other], path, cachedBoundary = True) == baseline
     # Wall/furniture obstruction must not remove selected stair/counter sides.
@@ -164,7 +168,9 @@ def Main():
         assert len(baseline) == 5
         v.SetSelection([(obj, None)])
         selected = v.StairDimensions([obj]) if cls is Stair else v.ConnectedCounterPath([obj])[1]
-        assert len(selected) == 4
+        assert selected == baseline
+        RenderLabels(v)
+        assert len(v.selectionMeasurements) == 4
         v.DeselectAll()
         assert (v.StairDimensions([obj]) if cls is Stair else v.ConnectedCounterPath([obj])[1]) == baseline
     # Fully merged walls still have dimensions while selected.

@@ -128,6 +128,10 @@ def Main():
                 for key in ("doors", "windows", "stairs", "counters"):
                     view.measurementSettings[key] = (case + frame) % 3
                 view.SetSelection([(walls[0], None)] if frame == 2 else [(openings[0], None)] if openings and frame == 3 else [])
+                if isinstance(view, ReferenceViewport):
+                    # Frozen code used selection to alter world splits. Compare
+                    # its unselected geometry with the current ambient builder.
+                    view.SetSelection([])
                 view.hiddenObjects = objects[-1:] if frame == 4 else []
                 view.hiddenObjectIds = {id(obj) for obj in view.hiddenObjects}
                 path = view.ConnectedWallPath(walls)
@@ -143,8 +147,7 @@ def Main():
             assert results[0] == results[1], ("component", name, frame)
             assert direct[0] == direct[1], ("direct", name, frame)
             count += 1
-    # A warm disconnected pass collects selection once, rather than once per
-    # component. Neither planning nor its records survive as a new scene cache.
+    # World dimensions never consult selection, even for disconnected passes.
     actual = views[0]
     walls = [Wall(p(i * 2500, 0), p(i * 2500 + 1800, 0), 240) for i in range(60)]
     actual.walls, actual.windows = walls, [Door(wall, .2, .4) for wall in walls]
@@ -154,7 +157,7 @@ def Main():
     from unittest.mock import patch
     with patch.object(actual, "SelectionEntries", wraps = actual.SelectionEntries) as reads:
         actual.WallDimensions(walls, path, cachedBoundary = True)
-        assert reads.call_count == 1, reads.call_count
+        assert reads.call_count == 0, reads.call_count
     for view in views:
         view.close()
     print(f"PASS: {count} frozen saved/mixed scene frames, warm/direct measurements, owner order and cache bounds")

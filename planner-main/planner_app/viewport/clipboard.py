@@ -30,8 +30,12 @@ class ClipboardMixin:
         entries = self.SelectionEntries()
         return bool(entries) and not self.ObjectsHaveAssetErrors(obj for obj, index in entries)
 
-    def ShowClipboardError(self, message):
+    def ShowClipboardError(self, message, isError = True):
         self.clipboardError = message
+        self.clipboardErrorIsError = isError
+        activity = getattr(self, "activityLog", None)
+        if activity is not None:
+            activity.Message(message, isError)
         if message:
             self.clipboardErrorTimer.start(5000)
         else:

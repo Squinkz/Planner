@@ -1,5 +1,8 @@
 """Optimized PNG encoding, print density and third-option export integration."""
 import os
+import json
+import io
+from contextlib import redirect_stdout
 import sys
 import tempfile
 from pathlib import Path
@@ -8,9 +11,12 @@ from unittest.mock import patch
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "planner-main"))
 from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6.QtQml import QJSEngine
 from planner import MainWindow, Wall
 from planner_app.optimized_png import EncodeOptimizedPng
 from planner_app.graphics.theme import ApplyApplicationTheme
+from planner_app.graphics import palette
+from planner_app.export_worker import ExportJobEncoder, RunExportWorker
 
 
 def Main():
@@ -46,6 +52,26 @@ def Main():
     assert decoded.pixelColor(5, 5).alpha() == 128
     assert decoded.pixelColor(40, 5) == image.pixelColor(40, 5)
     assert decoded.dotsPerMeterX() == 11811 and decoded.dotsPerMeterY() == 11811
+
+    # Cover multiple binary transfer chunks and a partial final chunk.
+    # Pixels on both sides of the boundary and at the tail must remain intact.
+    chunked = QtGui.QImage(257, 257, QtGui.QImage.Format.Format_RGBA8888)
+    chunked.fill(QtGui.QColor("#123456"))
+    chunked.setPixelColor(64, 191, QtGui.QColor("#654321"))
+    chunked.setPixelColor(65, 191, QtGui.QColor("#654321"))
+    chunked.setPixelColor(256, 256, QtGui.QColor("#abcdef"))
+    lengths = []
+    class TransferEngine(QJSEngine):
+        def toScriptValue(self, value):
+            if isinstance(value, QtCore.QByteArray):
+                lengths.append(value.size())
+            return super().toScriptValue(value)
+    with patch("planner_app.optimized_png.QJSEngine", TransferEngine):
+        chunkedBytes = EncodeOptimizedPng(chunked)
+    assert len(lengths) > 1 and max(lengths) <= 192 * 1024
+    assert sum(lengths) == chunked.sizeInBytes()
+    chunkedDecoded = QtGui.QImage.fromData(chunkedBytes, "PNG").convertToFormat(chunked.format())
+    assert chunkedDecoded == chunked
 
     with tempfile.TemporaryDirectory() as directory:
         main = MainWindow()
@@ -88,10 +114,18 @@ def Main():
         # Encoding failure must leave the existing destination intact.
         panel.folderField.setText(str(path.parent))
         panel.fileNameField.setText(path.name)
+        failedPath = Path(directory) / "failed.tmp"
+        job = {"render": panel.RenderArguments("png"), "optimized": True, "stagingPath": str(failedPath),
+               "style": app.style().objectName(), "uiTheme": palette.activeUITheme,
+               "canvasTheme": palette.activeCanvasTheme, "colors": dict(palette.themeColors), "labelFont": palette.labelFont}
+        jobPath = Path(directory) / "failed-job.json"
+        jobPath.write_text(json.dumps(job, cls = ExportJobEncoder), encoding = "utf-8")
+        output = io.StringIO()
         with patch("planner_app.optimized_png.EncodeOptimizedPng", side_effect = RuntimeError("Encoding failed")):
-            with patch.object(main, "ShowAppMessage", return_value = QtWidgets.QMessageBox.StandardButton.Yes) as message:
-                panel.Export()
-                assert message.call_args.args[:2] == ("Export Failed", "Encoding failed")
+            with redirect_stdout(output):
+                assert RunExportWorker(jobPath) == 1
+        assert '"error": "Encoding failed"' in output.getvalue()
+        assert not failedPath.exists()
         assert path.read_bytes() == data
         main.MarkProjectClean()
         main.close()

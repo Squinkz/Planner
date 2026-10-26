@@ -23,8 +23,9 @@ def CaptureMatrix():
         v.setUpdatesEnabled(False)
         v.unitsMode = "Millimeters"
         v.showMeasurements = True
+        v.wallMeasurementMode = "All"
         v.measurementVisibility = {key: True for key in v.measurementVisibility}
-        v.measurementSettings = {key: 1 for key in v.measurementSettings}
+        v.measurementSettings = {"doors": 1, "windows": 1, "stairs": 2, "counters": 2}
         result["buildDefaultsCentimeters"] = {"wallWidths": list(v.wallPresetWidths),
             "openings": dict(v.openingDefaultSizes), "misc": dict(v.miscDefaultSizes)}
         for name in objectTypes:

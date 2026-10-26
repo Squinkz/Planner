@@ -16,6 +16,13 @@
         "washstand",
         "vanity",
         "sanitaryware",
-        "plumbing"
+        "plumbing",
+        "vessel",
+        "countertop",
+        "counter",
+        "top",
+        "above",
+        "raised",
+        "bowl"
     ]
 }

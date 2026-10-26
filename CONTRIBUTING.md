@@ -14,7 +14,8 @@ See [development](docs/DEVELOPMENT.md), [architecture](docs/ARCHITECTURE.md),
 
 Keep runtime code and bundled resources in `planner-main/`. Tests and fixtures
 belong in `checks/`, reusable developer utilities in `tools/`, and developer
-documentation in `docs/`. `demos/` is reserved for future demonstration material.
+documentation in `docs/`. `demos/` holds editable demonstration plans and can
+also accommodate future demonstration material.
 Diagnostics, temporary files and generated screenshots are local output.
 
 Use PascalCase function names, camelCase variables and spaces around operators

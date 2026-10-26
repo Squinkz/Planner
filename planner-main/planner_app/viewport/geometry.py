@@ -18,7 +18,7 @@ from planner_app.geometry.footprints import (WallBody, RectangleFootprint, Colum
     PolygonAxes, FireplaceFootprint)
 from planner_app.geometry.measurements import (MergeMeasurementSegments, FindMeasurementOwners,
     PrepareMeasurementPolygons, ExposedMeasurementSpans, MeasurementOpening,
-    PlanMeasurementComponents, BuildOpeningDimensions)
+    PlanMeasurementComponents, BuildOpeningDimensions, EffectiveWallSplitSettings)
 from planner_app.geometry.stair_annotations import StairInsetLines
 from planner_app.graphics.arrows import ArrowPaths, ConnectedArrowDirections, ConnectedArrowCorners
 from planner_app.graphics.path_operations import Paths
@@ -419,6 +419,7 @@ class GeometryMixin:
         # Control points precede line bodies, including annotations drawn inside
         # walls. Otherwise an active endpoint can hover visibly but clicking its
         # position selects the line crossing it instead.
+        vertexMargin = hitMargin + max(.0001, 16 * math.ulp(worldPosition.x()), 16 * math.ulp(worldPosition.y()))
         vertexWalls = sorted(orderedWalls, key = lambda obj: 0 if obj is self.selectedWall else 1 if id(obj) in selectedIds else 2)
         for wall in vertexWalls:
             if isinstance(wall, (Pillar, Fireplace)) or isinstance(wall, Counter) and id(wall) not in selectedIds:
@@ -427,9 +428,10 @@ class GeometryMixin:
                 # Unselected wall endpoints hidden beneath a pillar remain hidden.
                 continue
             for vertexIndex, vertex in enumerate(ObjectControlPoints(wall)):
-                if abs(vertex.x() - worldPosition.x()) > hitMargin or abs(vertex.y() - worldPosition.y()) > hitMargin:
+                if abs(vertex.x() - worldPosition.x()) > vertexMargin or abs(vertex.y() - worldPosition.y()) > vertexMargin:
                     continue
-                if QtCore.QLineF(position, self.WorldToViewport(vertex)).length() <= self.vertexSnapRange:
+                delta = position - self.WorldToViewport(vertex)
+                if math.hypot(delta.x(), delta.y()) <= self.vertexSnapRange:
                     return wall, vertexIndex
         for guide in orderedWalls:
             if not isinstance(guide, BoundaryLine):
@@ -1400,7 +1402,7 @@ class GeometryMixin:
 
     def WallDimensions(self, walls, boundaryPath, openings = None, cachedBoundary = False,
                        measureCaps = False, blockers = (), measurementSettings = None):
-        settings = self.measurementSettings if measurementSettings is None else measurementSettings
+        settings = EffectiveWallSplitSettings(self.measurementSettings if measurementSettings is None else measurementSettings, getattr(self, "wallMeasurementMode", "All"))
         cutters = []
         if walls and type(walls[0]) in (Wall, Pillar, Column, Railing):
             if not hasattr(self, "measurementCutterWorkspaces"):
@@ -1436,20 +1438,17 @@ class GeometryMixin:
         origin = self.WorldToViewport(QtCore.QPointF())
         transform = QtGui.QTransform().translate(origin.x(), origin.y()).scale(self.zoom, self.zoom)
         dimensions = []
-        hasSelection = hasattr(self, "SelectionEntries")
-        selectedIds = {id(obj) for obj, index in self.SelectionEntries()} if hasSelection and measurementSettings is None else set()
+        # World dimensions never depend on the selection overlay.
         plans = PlanMeasurementComponents(((id(wall) for wall in members) for geometryKey, members, path in components),
-                                          (id(door.parentWall) for door in doors), selectedIds)
+                                          (id(door.parentWall) for door in doors), ())
         settingsKey = tuple(sorted(settings.items()))
-        for (geometryKey, members, path), (doorIndices, selectedKeys) in zip(components, plans):
+        for (geometryKey, members, path), (doorIndices, unusedSelectedKeys) in zip(components, plans):
             componentDoors = [doors[index] for index in doorIndices]
             doorKey = tuple((id(door), type(door), door.firstFraction, door.secondFraction,
                              getattr(door, "hingeAtSecond", None), getattr(door, "swingsOutwards", None),
                              getattr(door, "panelsFlipped", None), door.measurementFlipped,
                              (door.depth, door.depthOffset) if isinstance(door, Fireplace) else None) for door in componentDoors)
             key = (geometryKey, doorKey, settingsKey, measureCaps, blockerKey, cutterKey)
-            if hasSelection:
-                key += (selectedKeys,)
             cached = self.wallDimensionComponentCache.pop(key, None)
             if cached is None:
                 cached = self.BuildWallDimensions(members, transform.map(path), componentDoors,
@@ -1465,9 +1464,7 @@ class GeometryMixin:
 
     def BuildWallDimensions(self, walls, boundaryPath, openings = None, cachedBoundary = False,
                             measureCaps = False, blockers = (), cutters = (), measurementSettings = None):
-        settings = self.measurementSettings if measurementSettings is None else measurementSettings
-        selectedIds = {id(obj) for obj, index in self.SelectionEntries()} if hasattr(self, "SelectionEntries") and measurementSettings is None else set()
-        selectionKey = frozenset(id(wall) for wall in walls if id(wall) in selectedIds)
+        settings = EffectiveWallSplitSettings(self.measurementSettings if measurementSettings is None else measurementSettings, getattr(self, "wallMeasurementMode", "All"))
         doors = list(self.windows if openings is None else openings)
         wallKey = tuple((id(wall), wall.firstVertex.x(), wall.firstVertex.y(), wall.secondVertex.x(),
                          wall.secondVertex.y(), wall.width, wall.firstMiter, wall.secondMiter) for wall in walls)
@@ -1498,7 +1495,7 @@ class GeometryMixin:
         cutterKey = tuple(tuple((point.x(), point.y()) for point in polygon) for polygon in cutters)
         cacheKey = (wallKey, doorKey, tuple(door.measurementFlipped for door in doors),
                     tuple(boundaryKey), tuple(sorted(settings.items())),
-                    measureCaps, blockerKey, cutterKey, selectionKey)
+                    measureCaps, blockerKey, cutterKey)
         if cacheKey == self.dimensionCacheKey:
             return self.dimensionCache
         previousKey = self.dimensionCacheKey
@@ -1607,9 +1604,6 @@ class GeometryMixin:
                 ownerSpans[spanIdentity] = (ownerKey, tuple(owners))
                 # Walls measure long sides; counters also measure exposed end caps.
                 if owners:
-                    if any(id(owner) in selectedIds for owner in owners):
-                        dimensions.append((first, second, owners))
-                        continue
                     ownerDoors = [doors[index] for index in sorted({index for owner in owners
                                   for index in doorsByWall.get(id(owner), ())})]
                     spanKey = (ownerKey, tuple(openingKeys[id(door)] for door in ownerDoors), settingsKey, cutterKey)
@@ -1666,9 +1660,6 @@ class GeometryMixin:
             preparedBlockers = PrepareMeasurementPolygons([[(point.x(), point.y()) for point in polygon]
                                                            for polygon in blockers if len(polygon) >= 3])
             for first, second, owners in dimensions:
-                if any(id(owner) in selectedIds for owner in owners):
-                    exposedDimensions.append((first, second, owners))
-                    continue
                 spans = ExposedMeasurementSpans((first.x(), first.y()), (second.x(), second.y()), preparedBlockers)
                 exposedDimensions.extend((QtCore.QPointF(*start), QtCore.QPointF(*end), owners) for start, end in spans)
             dimensions = exposedDimensions

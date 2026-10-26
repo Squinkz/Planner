@@ -12,6 +12,12 @@ Current defaults are 100/150/200/300 mm; old projects/templates can still displa
 the captured values. See the current [interaction contract](../INTERACTIONS.md)
 and preset regression checks for default and persistence behavior.
 
+The captured Measurements/Visibility labels and layouts also predate the current
+Dimensions/World names, dimension trees, wall mode/reference controls and
+project-versus-export ownership rules. They are historical images, not current
+layout requirements. Use [LAYOUTS.md](../LAYOUTS.md) and its executable checks for
+the implemented Options, Export and Object Properties arrangements.
+
 Offscreen content captures omit OS frames and do not capture the mouse cursor.
 See `manifest.json` for environment/source hashes, and each JSON for measured control/layout properties.
 

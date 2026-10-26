@@ -8,7 +8,7 @@ from planner_app.graphics.palette import themeColors
 from planner_app.garbage_collection import ConfigureGarbageCollection
 from .appearance import AppearanceMixin
 from .app_preferences import AppPreferencesMixin
-from .widgets import FurnishingButton, WindowButton
+from .widgets import FurnishingButton, WindowButton, DragSpinBox, DragSlider
 from .header import HeaderMixin
 from .properties import PropertiesMixin
 from .sidebar import SidebarMixin
@@ -18,6 +18,7 @@ from .dialogs import DialogsMixin
 from .furnishing_catalog import FurnishingCatalogMixin
 from planner_app.viewport.widget import DrawingViewport
 from .reference_image import ReferenceImageController
+from planner_app.activity_log import ActivityLog
 
 
 class MainWindow(AppPreferencesMixin, AppearanceMixin, FurnishingCatalogMixin, DialogsMixin, SessionMixin, ProjectsMixin, HeaderMixin, SidebarMixin, PropertiesMixin, QtWidgets.QMainWindow):
@@ -91,6 +92,8 @@ class MainWindow(AppPreferencesMixin, AppearanceMixin, FurnishingCatalogMixin, D
         self.setCentralWidget(centralWidget)
         QtWidgets.QApplication.instance().installEventFilter(self)
         self.RefreshControlCursors(self)
+        self.activityLog = ActivityLog(self)
+        self.viewport.activityLog = self.activityLog
         self.InitializeProject()
         self.InitializeSession()
 
@@ -117,6 +120,66 @@ class MainWindow(AppPreferencesMixin, AppearanceMixin, FurnishingCatalogMixin, D
             control.setCursor(shape if control.isEnabled() else QtCore.Qt.CursorShape.ArrowCursor)
 
     def eventFilter(self, watched, event):
+        # Modifier releases can arrive in a different Planner window from their
+        # presses. Track modifiers before dialogs or reference tools consume them.
+        eventType = event.type()
+        if (eventType in (QtCore.QEvent.Type.KeyPress, QtCore.QEvent.Type.KeyRelease)
+                and isinstance(watched, QtWidgets.QWidget)
+                and event.key() in (QtCore.Qt.Key.Key_Alt, QtCore.Qt.Key.Key_Control, QtCore.Qt.Key.Key_Shift)):
+            if event.isAutoRepeat():
+                event.accept()
+                return True
+            flag = {QtCore.Qt.Key.Key_Alt: QtCore.Qt.KeyboardModifier.AltModifier,
+                    QtCore.Qt.Key.Key_Control: QtCore.Qt.KeyboardModifier.ControlModifier,
+                    QtCore.Qt.Key.Key_Shift: QtCore.Qt.KeyboardModifier.ShiftModifier}[event.key()]
+            modifiers = event.modifiers() | flag if eventType == QtCore.QEvent.Type.KeyPress else event.modifiers() & ~flag
+            self.RefreshHeldModifiers(modifiers)
+        elif (eventType in (QtCore.QEvent.Type.MouseMove, QtCore.QEvent.Type.MouseButtonPress,
+                            QtCore.QEvent.Type.MouseButtonRelease, QtCore.QEvent.Type.Wheel)
+              and isinstance(watched, QtWidgets.QWidget)):
+            # Native dialogs can swallow a release. The next pointer event gives
+            # the actual modifier state before a toolbar click changes snapping.
+            # Some drag events omit Ctrl/Shift even while Qt still reports the
+            # keys held. Preserve that input path; real pointer input also
+            # refreshes Qt's modifier cache after a native dialog lost a release.
+            modifiers = event.modifiers() | (QtWidgets.QApplication.keyboardModifiers() & (
+                QtCore.Qt.KeyboardModifier.ControlModifier | QtCore.Qt.KeyboardModifier.ShiftModifier))
+            if (eventType == QtCore.QEvent.Type.MouseMove
+                    and (self.viewport.dragStart is not None or self.viewport.pendingWall is not None
+                         or self.referenceImage.drag is not None or self.referenceImage.calibration.draggedPoint is not None)):
+                # Keep the established held-Ctrl fallback for drag events that
+                # omit modifier flags. Releases are tracked across all windows;
+                # a lost window/capture cancels the drag before idle resync.
+                if self.viewport.controlHeld:
+                    modifiers |= QtCore.Qt.KeyboardModifier.ControlModifier
+            if (self.altHeld != bool(modifiers & QtCore.Qt.KeyboardModifier.AltModifier)
+                    or self.viewport.controlHeld != bool(modifiers & QtCore.Qt.KeyboardModifier.ControlModifier)
+                    or self.shiftHeld != bool(modifiers & QtCore.Qt.KeyboardModifier.ShiftModifier)):
+                self.RefreshHeldModifiers(modifiers)
+            if eventType == QtCore.QEvent.Type.MouseMove and watched is self.viewport:
+                v = self.viewport
+                calibration = self.referenceImage.calibration
+                mouseDrag = (v.dragStart is not None or v.boxStart is not None or v.guideTextDrag is not None
+                             or self.referenceImage.drag is not None or calibration.draggedPoint is not None
+                             or calibration.placementPress is not None or v.exportOverlay.dragEdge is not None
+                             or v.exportOverlay.dragRuler is not None)
+                button = v.wallDrawButton or QtCore.Qt.MouseButton.LeftButton
+                if ((mouseDrag or v.pendingWall is not None) and not event.buttons() & button
+                        or v.rightClickStart is not None and not event.buttons() & QtCore.Qt.MouseButton.RightButton):
+                    self.CancelHeldInput()
+        if watched is self.viewport and eventType == QtCore.QEvent.Type.UngrabMouse:
+            v = self.viewport
+            calibration = self.referenceImage.calibration
+            if (v.isPanning or v.dragStart is not None or v.pendingWall is not None or v.boxStart is not None
+                    or v.rightClickStart is not None or self.referenceImage.drag is not None
+                    or calibration.draggedPoint is not None or calibration.placementPress is not None
+                    or v.exportOverlay.dragEdge is not None or v.exportOverlay.dragRuler is not None):
+                self.CancelHeldInput()
+        if eventType == QtCore.QEvent.Type.ApplicationDeactivate:
+            self.CancelHeldInput()
+            self.RefreshHeldModifiers(QtCore.Qt.KeyboardModifier.NoModifier)
+        elif watched is self and eventType in (QtCore.QEvent.Type.WindowDeactivate, QtCore.QEvent.Type.Hide):
+            self.CancelHeldInput()
         if (event.type() in (QtCore.QEvent.Type.DragEnter, QtCore.QEvent.Type.DragMove, QtCore.QEvent.Type.Drop)
                 and isinstance(watched, QtWidgets.QWidget) and watched.window() is self
                 and event.mimeData().hasUrls()):
@@ -146,8 +209,6 @@ class MainWindow(AppPreferencesMixin, AppearanceMixin, FurnishingCatalogMixin, D
                 self.viewport.StopDragPan()
             return True
         eventType = event.type()
-        if watched is self and eventType in (QtCore.QEvent.Type.WindowDeactivate, QtCore.QEvent.Type.Hide):
-            self.viewport.StopDragPan()
         if (eventType in (QtCore.QEvent.Type.ShortcutOverride, QtCore.QEvent.Type.KeyPress)
                 and isinstance(watched, QtWidgets.QWidget) and watched.window() is self
                 and event.key() == QtCore.Qt.Key.Key_Space
@@ -368,43 +429,6 @@ class MainWindow(AppPreferencesMixin, AppearanceMixin, FurnishingCatalogMixin, D
                         self.viewport.setFocus()
                 event.accept()
                 return True
-        if (eventType in (QtCore.QEvent.Type.KeyPress, QtCore.QEvent.Type.KeyRelease)
-                and isinstance(watched, QtWidgets.QWidget) and watched.window() is self
-                and event.key() == QtCore.Qt.Key.Key_Control and not event.isAutoRepeat()):
-            self.viewport.controlHeld = eventType == QtCore.QEvent.Type.KeyPress
-            if self.viewport.lastInteractionPosition is not None:
-                modifiers = event.modifiers()
-                if self.viewport.controlHeld:
-                    modifiers |= QtCore.Qt.KeyboardModifier.ControlModifier
-                else:
-                    modifiers &= ~QtCore.Qt.KeyboardModifier.ControlModifier
-                self.viewport.UpdateInteraction(self.viewport.lastInteractionPosition, modifiers)
-        if (eventType in (QtCore.QEvent.Type.KeyPress, QtCore.QEvent.Type.KeyRelease)
-                and isinstance(watched, QtWidgets.QWidget) and watched.window() in (self, self.snapMenu)
-                and event.key() == QtCore.Qt.Key.Key_Shift):
-            modifiers = event.modifiers()
-            if eventType == QtCore.QEvent.Type.KeyPress:
-                modifiers |= QtCore.Qt.KeyboardModifier.ShiftModifier
-            else:
-                modifiers &= ~QtCore.Qt.KeyboardModifier.ShiftModifier
-            self.viewport.UpdateMode(modifiers)
-            if self.viewport.dragStart is not None and self.viewport.lastInteractionPosition is not None:
-                self.viewport.UpdateInteraction(self.viewport.lastInteractionPosition, modifiers)
-        if (eventType in (QtCore.QEvent.Type.KeyPress, QtCore.QEvent.Type.KeyRelease)
-                and isinstance(watched, QtWidgets.QWidget) and watched.window() in (self, self.snapMenu)
-                and event.key() == QtCore.Qt.Key.Key_Alt and not event.isAutoRepeat()):
-            self.altHeld = eventType == QtCore.QEvent.Type.KeyPress
-            self.RefreshSnapState(event.modifiers())
-        if eventType == QtCore.QEvent.Type.ApplicationDeactivate:
-            self.viewport.StopDragPan()
-            if self.viewport.isPanning:
-                self.viewport.EndPan()
-            if self.viewport.openingPlacementMode is not None:
-                self.viewport.EndOpeningMode()
-            self.altHeld = False
-            self.viewport.controlHeld = False
-            self.RefreshSnapState(QtCore.Qt.KeyboardModifier.NoModifier)
-            self.viewport.UpdateMode(QtCore.Qt.KeyboardModifier.NoModifier)
         if (eventType in (QtCore.QEvent.Type.ShortcutOverride, QtCore.QEvent.Type.KeyPress)
                 and isinstance(watched, QtWidgets.QWidget) and watched.window() in (self, self.editMenu)
                 and not any(isinstance(widget, (QtWidgets.QLineEdit, QtWidgets.QAbstractSpinBox,
@@ -431,6 +455,48 @@ class MainWindow(AppPreferencesMixin, AppearanceMixin, FurnishingCatalogMixin, D
                 button.style().polish(button)
                 button.update()
 
+    def RefreshHeldModifiers(self, modifiers):
+        self.altHeld = bool(modifiers & QtCore.Qt.KeyboardModifier.AltModifier)
+        self.shiftHeld = bool(modifiers & QtCore.Qt.KeyboardModifier.ShiftModifier)
+        self.viewport.controlHeld = bool(modifiers & QtCore.Qt.KeyboardModifier.ControlModifier)
+        self.viewport.UpdateMode(modifiers)
+        self.RefreshSnapState(modifiers)
+
+    def CancelHeldInput(self):
+        v = self.viewport
+        self.referenceImage.CancelDrag()
+        calibration = self.referenceImage.calibration
+        if calibration.draggedPoint is not None:
+            calibration.EndPointDrag(True)
+        if calibration.placementPress is not None:
+            calibration.placementPress = None
+            v.releaseMouse()
+        v.CancelInteraction()
+        if v.guiDragActive:
+            v.CancelGuiDrag()
+        exportDrag = v.exportOverlay.dragEdge is not None or v.exportOverlay.dragRuler is not None
+        v.exportOverlay.dragEdge = v.exportOverlay.dragRuler = None
+        v.exportOverlay.dragMoved = False
+        if exportDrag:
+            self.exportPanel.EndExportGesture()
+        self.propertiesDividerDragging = False
+        self.wallWidthSelector.pressX = None
+        self.wallWidthSelector.dragging = False
+        if self.propertiesCollapsed:
+            self.propertiesPanel.setFixedHeight(self.propertiesHeadingHeight)
+        for field in self.findChildren(DragSpinBox):
+            field.EndDrag(True)
+        for slider in self.findChildren(DragSlider):
+            slider.dragOffset = slider.dragAnchor = None
+            slider.setSliderDown(False)
+        if self.settingsWindow is not None:
+            self.settingsWindow.measurementDragging = None
+        for button in self.findChildren(QtWidgets.QAbstractButton):
+            if isinstance(button, (WindowButton, FurnishingButton)):
+                button.pressPosition = None
+            if button.isDown():
+                button.setDown(False)
+
     def SetSnapping(self, enabled):
         if enabled and not any(checkBox.isChecked() for checkBox in self.snapOptions.values()):
             checkBox = self.snapOptions["grid"]
@@ -445,7 +511,8 @@ class MainWindow(AppPreferencesMixin, AppearanceMixin, FurnishingCatalogMixin, D
     def RefreshSnapState(self, modifiers = None):
         # The button reflects temporary Alt inversion without changing the saved choice.
         blocker = QtCore.QSignalBlocker(self.snapButton)
-        self.snapButton.setChecked(self.viewport.snapEnabled != self.altHeld)
+        self.snapButton.setChecked((self.viewport.snapEnabled != self.altHeld)
+                                   and any(button.isChecked() for button in self.snapOptions.values()))
         del blocker
         if modifiers is None:
             modifiers = QtWidgets.QApplication.keyboardModifiers()

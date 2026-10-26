@@ -3,6 +3,8 @@ import copy
 import os
 import sys
 import tempfile
+import re
+from xml.etree import ElementTree
 from pathlib import Path
 from unittest.mock import patch
 
@@ -86,10 +88,36 @@ def Main():
                                  outputFormat = "svg", projectData = data, applyTheme = False)
         panel.typeField.setCurrentIndex(panel.typeField.findData("SVG"))
         svgPath = panel.OutputPath()
+        # Choosing the format is now a persisted project edit. Export itself
+        # must preserve the settings after that choice.
+        before = copy.deepcopy(main.BuildProjectData(includeHistory = False))
         main.exportButton.click()
         renderer = QtSvg.QSvgRenderer(str(svgPath))
         assert renderer.isValid() and renderer.defaultSize() == expected.size()
-        assert svgPath.read_bytes() == expectedSvg, "SVG did not use the chosen export units"
+        actualSvg = svgPath.read_bytes()
+        actualRoot, expectedRoot = ElementTree.fromstring(actualSvg), ElementTree.fromstring(expectedSvg)
+        actualElements, expectedElements = list(actualRoot.iter()), list(expectedRoot.iter())
+        assert len(actualElements) == len(expectedElements)
+        expectedParents = {child: parent for parent in expectedRoot.iter() for child in parent}
+        for actual, expectedElement in zip(actualElements, expectedElements):
+            assert actual.tag == expectedElement.tag and actual.text == expectedElement.text
+            actualAttributes, expectedAttributes = dict(actual.attrib), dict(expectedElement.attrib)
+            if actualAttributes.get("d") != expectedAttributes.get("d"):
+                # Qt rounds unhinted ruler glyph outlines to 1/64 px differently
+                # in a fresh process. Only those text outlines get this allowance;
+                # every other attribute, scene path, command and position is exact.
+                parent = expectedParents[expectedElement]
+                assert parent.get("stroke") == "none" and parent.get("font-size") == "10.6667"
+                actualPath, expectedPath = actualAttributes.pop("d"), expectedAttributes.pop("d")
+                tokens = r"[-+]?(?:\d*\.\d+|\d+)(?:[eE][-+]?\d+)?|[A-Za-z]"
+                actualTokens, expectedTokens = re.findall(tokens, actualPath), re.findall(tokens, expectedPath)
+                assert len(actualTokens) == len(expectedTokens)
+                for actualToken, expectedToken in zip(actualTokens, expectedTokens):
+                    if expectedToken.isalpha():
+                        assert actualToken == expectedToken
+                    else:
+                        assert abs(float(actualToken) - float(expectedToken)) <= .0161
+            assert actualAttributes == expectedAttributes, "SVG changed export geometry, appearance or units"
         assert b"<image" not in svgPath.read_bytes(), "SVG contains raster content"
         assert panel.CaptureView() == view
         assert main.BuildProjectData(includeHistory = False) == before

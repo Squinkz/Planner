@@ -17,6 +17,7 @@ def Main():
     main.show()
     app.processEvents()
     viewport = main.viewport
+    viewport.wallMeasurementMode = "All"  # Component reuse, independently of room/stack aggregation.
     point = QtCore.QPointF
     viewport.snapEnabled = False
     viewport.connectedEnabled = viewport.connectedVerticesEnabled = True

@@ -24,6 +24,9 @@ def Main():
     # Native scroll areas expose viewport() as a method, not a Planner canvas.
     editor = QtWidgets.QPlainTextEdit()
     editor.show()
+    # Settle the editor's queued window-activation events before simulating a
+    # drag. A real deactivation intentionally cancels the canvas interaction.
+    app.processEvents()
     assert callable(editor.viewport)
     assert not gc.isenabled()
     guiThread = threading.get_ident()
@@ -61,6 +64,7 @@ def Main():
         assert future.result(timeout = 5) != guiThread
     assert not finalizedThreads, "Background allocations collected GUI wrappers"
     collector.lastFullCollection -= 31
+    assert window.viewport.dragStart is not None
     collector.Collect()
     assert not finalizedThreads, "Collection should wait until dragging ends"
     window.viewport.dragStart = None

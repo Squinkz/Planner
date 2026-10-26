@@ -9,7 +9,7 @@ Build your dream; Design your space - Make your house a Home.
 - [Furnishings and custom arrangements](furnishings.md)
 - [Reference image](reference.md)
 - [Toolbar Buttons](toolbar.md)
-- [Units, measurements and visibility](measurements.md)
+- [Units, dimensions and visibility](dimensions.md)
 - [Appearance and color controls](appearance.md)
 - [Projects and recovery](projects.md)
 - [Exporting and printing](export.md)

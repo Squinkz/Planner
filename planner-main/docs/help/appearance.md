@@ -41,6 +41,6 @@ The **Line Weight** options allow you to set a base line weight for canvas items
 
 [> Next: Projects and recovery](projects.md)
 
-[< Previous: Units, measurements and visibility](measurements.md)
+[< Previous: Units, dimensions and visibility](dimensions.md)
 
 [Back to Help](README.md)

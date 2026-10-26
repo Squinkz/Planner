@@ -20,6 +20,9 @@
         "waste",
         "refuse",
         "recycling",
-        "kitchen"
+        "kitchen",
+        "wastebin",
+        "garbagecan",
+        "can"
     ]
 }

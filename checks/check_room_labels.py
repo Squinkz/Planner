@@ -168,7 +168,7 @@ def Main():
                 output = RenderPlan(path, 100, bounds = [-3000, -3000, 6000, 6000], projectData = data,
                                     outputFormat = format, applyTheme = False, useExportSettings = True)
                 assert output if format == "png" else QtSvg.QSvgRenderer(output).isValid()
-        assert observed and all(value == (14440000, "Millimeters") for value in observed)
+        assert observed and all(value == (14440000, data["settings"]["unitsMode"]) for value in observed)
         observed.clear()
         data["settings"].setdefault("exportSettings", {})["unitsMode"] = "Feet and Inches"
         with patch.object(RenderingMixin, "DrawLabels", DrawLabels):

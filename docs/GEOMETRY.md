@@ -2,10 +2,15 @@
 
 Source module paths below are relative to `planner_app/`.
 
-This package contains geometry that can run without Qt, an application window,
-scene models, fonts or a renderer. Its imports must remain standard-library-only
-or refer to other modules within this package. `check_geometry_core.py` enforces
-this boundary in a separate Python process with site packages disabled.
+The portable core in this package runs without Qt, an application window, scene
+models, fonts or a renderer. Those core modules import only the standard library
+and other portable modules. `check_geometry_core.py` exercises that subset in a
+separate Python process with site packages disabled.
+
+The package also contains desktop adapters added for room dimensions and stairs:
+`measurement_stacks.py` uses Qt points and scene walls, and `stair_annotations.py`
+uses Qt points/paths. They are not part of the headless import contract. A future
+port must reproduce their geometry without importing them into the portable core.
 
 ## Data contracts
 
@@ -277,11 +282,22 @@ previous frame's moved objects may extend beyond the current selection.
 
 ## Measurement orchestration
 
-`PlanMeasurementComponents` prepares ordered opening indices and selected-owner
-keys for disconnected components from explicit numeric/opaque keys. Group once by
+`PlanMeasurementComponents` prepares ordered opening indices for disconnected
+components from explicit numeric/opaque keys. The world-dimension adapter passes
+an empty selection set. Group once by
 parent; keep source ordering and duplicate opening entries while deduplicating
 component members. The adapter resolves indices back to desktop objects and keeps
-the existing component-cache keys, selection behavior and LRU limits.
+component caches and their LRU limits independently of selection.
+
+World dimension builders never consult selection or bypass opening splits and
+architectural blockers for selected owners. `DrawSceneMeasurements` retains
+ambient spans separately from `selectionMeasurements`, which contains object
+and group overlays. Hidden openings are excluded before chain construction in
+every wall mode. Selecting them does not reintroduce those cuts. The selected
+overlay remains visible independently of ambient settings and is excluded from
+exports. `check_selection_dimension_overlay.py` and `check_selected_measurements.py`
+cover this separation; frozen geometry checks compare selected current views
+against unselected reference geometry.
 
 `MeasurementOpening` snapshots numeric opening geometry plus explicit mode/side,
 pocket-hinge and fireplace policy. Desktop classification resolves model types;
@@ -289,6 +305,24 @@ the core never imports models. `BuildOpeningDimensions` coordinates cutter spans
 opening interruptions, one-sided measurements, hidden-opening modes and fireplace
 face offsets before assembling dimensions with the existing numeric span kernel.
 The native length/midpoint are explicit inputs to preserve backend rounding.
+Only openings active on the measured side may own opening spans. Inactive
+openings cannot acquire dimensions through unrelated cutters. The shared
+`dimension_policy` adapter queries potential ambient spans with explicit split
+settings to determine action eligibility, without mutating visibility flags or
+selection. Exterior normalizes legacy facing-side splitting to Split through
+`EffectiveWallSplitSettings`, ignoring object facing and dimension-side flags.
+All-mode preferences remain stored when merely switching modes. Only All mode
+offers Flip Dimension; stacked eligibility uses its effective split-all settings.
+
+Stacked label rounding proceeds from the innermost chain outward. Quantize each
+inner span to the canvas precision in integer millimeter or fractional-inch
+ticks, then sum those ticks for the room and overall labels. Every complete
+upper span therefore equals the sum of its displayed lower spans. Endpoint
+positions and raw dimension lengths remain exact and unchanged. This shared
+rendering path covers the editing canvas, preview, PNG and SVG; active export
+units are respected. Selection overlays and unstacked labels retain ordinary
+independent formatting. `check_stacked_dimension_rounding.py` covers all units
+and precisions, rotated/reversed chains, both wall references and PNG/SVG output.
 
 Records are prepared lazily per opening on a span cache miss, shared only within
 that build. Component plans are local to one call. No new retained scene cache,
@@ -332,7 +366,7 @@ Other parts of `viewport/geometry.py` still depend on Qt and shared viewport sta
 Extract cohesive calculations incrementally, taking explicit numeric inputs and
 returning numeric results. Retain performance caches at an appropriate owner,
 with explicit inputs/revisions. Do not move widget references, painter paths,
-palette globals or implicit access to viewport attributes into this package.
+palette globals or implicit access to viewport attributes into its portable core.
 
 Remaining candidates include scene target collection/placement transactions,
 group selection/attachment orchestration, Qt contour flattening, remaining native

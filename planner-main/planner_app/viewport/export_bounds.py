@@ -348,7 +348,7 @@ class ExportBoundsOverlay(QtCore.QObject):
                                 v.showGrid, tuple(v.gridIntensities.items()), v.gridOrigin, v.unitsMode, v.wallStyle,
                                 tuple(v.collisionSettings.items()), tuple(v.stairStepSizes.items()),
                                 tuple(v.railingSpacings.items()), tuple((kind, tuple(values.items())) for kind, values in v.imperialAutoSizes.items()), v.autoSizingUnitsMode,
-                                colorAlpha, v.solidObjects),
+                                colorAlpha, v.floors, v.solidObjects),
                                appearanceRevision = v.renderChanges.appearance - self.colorAppearanceRevisions if vectorColors else None)
         if self.outputFormat == "svg":
             v.rasterCacheBudget.Clear("detail", "format-switch")
@@ -641,7 +641,7 @@ class ExportBoundsOverlay(QtCore.QObject):
         # The bounded overview and detail share an unselected, export-styled view.
         for name in ("walls", "windows", "furnishings", "labels", "objectGroups", "hiddenObjectIds", "visibility",
                      "showGrid", "gridOrigin", "showMeasurements", "measurementPrecision", "measurementVisibility", "measurementSettings", "wallMeasurementMode", "wallMeasurementReference", "collisionSettings",
-                     "stairStepSizes", "railingSpacings", "imperialAutoSizes", "autoSizingUnitsMode", "unitsMode", "wallStyle", "solidObjects", "lineworkSettings", "lineWidths", "gridIntensities",
+                     "stairStepSizes", "railingSpacings", "imperialAutoSizes", "autoSizingUnitsMode", "unitsMode", "wallStyle", "solidObjects", "floors", "lineworkSettings", "lineWidths", "gridIntensities",
                      "furnishingDefinitions", "furnishingRenderers", "materialBrushes", "warningMaterialBrushes", "groupedMaterialBrushes"):
             setattr(source, name, getattr(v, name))
         source.setFont(v.font())

@@ -22,7 +22,7 @@ def CheckField(field, root):
                 row, column, rowSpan, columnSpan = grid.getItemPosition(index)
                 label = grid.itemAtPosition(row, column - 1).widget()
                 break
-    assert label is not None and label.text() and not field.text(), field.accessibleName()
+    assert label is not None and (label.text() or label.accessibleName()) and not field.text(), field.accessibleName()
     labelRect = QtCore.QRect(label.mapTo(root, QtCore.QPoint()), label.size())
     option = QtWidgets.QStyleOptionButton()
     option.initFrom(field)
@@ -58,13 +58,30 @@ def Main():
         for name in ("Canvas", "Grid", "Composite"):
             export.sectionButtons[name].setChecked(True)
         QtWidgets.QApplication.processEvents()
-        for field in (export.solidObjectsField, export.showGridField, export.enableVignetteField):
+        exportChecks = (export.solidObjectsField, export.floorsField, export.showGridField, export.enableVignetteField)
+        for field in exportChecks:
             CheckField(field, export)
             before = field.isChecked()
             field.click()
             assert field.isChecked() != before
             field.click()
             assert field.isChecked() == before
+        for width in (320, 440, 600):
+            main.mainSplitter.setSizes([main.width() - width, width])
+            QtWidgets.QApplication.processEvents()
+            positions = []
+            for field in exportChecks:
+                label = CheckField(field, export)
+                option = QtWidgets.QStyleOptionButton()
+                option.initFrom(field)
+                option.rect = field.rect()
+                indicator = field.style().subElementRect(QtWidgets.QStyle.SubElement.SE_CheckBoxIndicator, option, field)
+                center = field.mapTo(export, indicator.center()).x()
+                positions.append(center)
+                labelRight = label.mapTo(export, label.rect().topRight()).x()
+                gap = field.mapTo(export, indicator.topLeft()).x() - labelRight - 1
+                assert 24 <= gap <= 28, (width, field.accessibleName(), gap)
+            assert max(positions) - min(positions) <= 1, (width, positions)
         assert isinstance(export.measurementVisibilityTree, QtWidgets.QTreeWidget)
         assert export.measurementVisibilityItems["all"].childCount() == 4
         assert isinstance(export.visibilityTree, QtWidgets.QTreeWidget)

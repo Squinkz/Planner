@@ -199,8 +199,9 @@ def Main():
         assert image.pixelColor(400, 577) == roomFill
         assert image.pixelColor(200, 577) == canvas
         v.showGrid = True
-        # Export remains unaffected by this editor-only preview.
+        # Floor shading can be disabled without changing the grid or enclosure.
         v.exportRender = True
+        v.floors = False
         image = QtGui.QImage(1000, 900, QtGui.QImage.Format.Format_ARGB32_Premultiplied)
         image.fill(canvas)
         v.gridOrigin = (0, 0)
@@ -208,6 +209,7 @@ def Main():
             v.DrawGridBackground(painter, rect, origin, scale, gridOnly = True)
         assert image == images[0]
         v.exportRender = False
+        v.floors = True
         detector.path = cached
         v.windows = []
         v.walls = []
@@ -221,7 +223,7 @@ def Main():
     rooms, count = DetectRooms(walls, FootprintGeometry(1.0))
     assert count == 100
     print(f"Room detection: 100 crossing-wall rooms in {(perf_counter() - started) * 1000:.1f} ms")
-    print("Rooms: enclosures/partitions/islands/gaps, wall-only invalidation, debounce, cached paint and editor-only canvas shading passed")
+    print("Rooms: enclosures/partitions/islands/gaps, wall-only invalidation, cached paint and optional floor shading passed")
 
 
 if __name__ == "__main__":

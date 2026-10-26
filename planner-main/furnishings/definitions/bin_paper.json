@@ -21,6 +21,9 @@
         "garbage",
         "waste",
         "refuse",
-        "recycling"
+        "recycling",
+        "wastebin",
+        "garbagecan",
+        "can"
     ]
 }

@@ -91,7 +91,8 @@ def Main():
             for y in range(-3200, 3500, 350):
                 position = views[0].WorldToViewport(p(x, y))
                 actual, expected = [view.HitTest(position) for view in views]
-                assert actual[0] is expected[0] and actual[1] == expected[1], (case, x, y)
+                assert actual[0] is expected[0] and actual[1] == expected[1], (case, x, y,
+                    type(actual[0]).__name__, actual[1], type(expected[0]).__name__, expected[1])
         for first in walls + openings:
             for second in walls + openings:
                 assert views[0].JoinedObjectsOverlap(first, second) == views[1].JoinedObjectsOverlap(first, second)

@@ -23,7 +23,8 @@ To build a Windows executable with editable external resources, see
 - [checks/](checks/README.md): regression tests and synthetic fixtures.
 - [tools/](tools/README.md): reusable developer utilities.
 - [docs/](docs/README.md): development and implementation documentation.
-- `demos/`: reserved for future demonstrations; none are bundled yet.
+- `demos/`: editable demonstration plans, currently a prewar rowhouse and a
+  three-bedroom apartment.
 
 Run checks with `python checks/run_checks.py`. Test output goes to ignored
 workspace directories, outside the application. See [Contributing](CONTRIBUTING.md).

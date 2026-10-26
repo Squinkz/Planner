@@ -41,8 +41,11 @@ def Main():
         with patch.object(QtWidgets.QFileDialog, "getExistingDirectory", return_value = str(Path(folder))):
             panel.browseButton.click()
         panel.typeField.setCurrentIndex(panel.typeField.findData("SVG"))
-        assert panel.fileNameField.text() == "render.svg" and panel.typeField.currentData() == "SVG"
+        assert panel.fileNameField.text() == "render" and panel.typeField.currentData() == "SVG"
         assert panel.browseButton.text() == "" and not panel.browseButton.icon().isNull()
+        # Keep this inheritance fixture free of explicit export preferences.
+        # File-type persistence has its own round-trip coverage.
+        panel.overrides.pop("fileType", None)
         original = copy.deepcopy(main.ProjectSettings())
         # Destinations are now project settings. Establish the clean baseline
         # after the fixture has chosen its folder and filename.
@@ -177,12 +180,13 @@ def Main():
         assert all(palette.themeColors[role] == color for role, color in originalOutlines.items())
         # Leave no extra overrides behind for the inheritance assertions below.
         panel.overrides.pop("showGrid", None)
+        panel.overrides.pop("fileType", None)
         panel.ApplyView(panel.ResolvedView())
         panel.RefreshControls()
         panel.sectionButtons["Canvas"].click()
         panel.sectionButtons["Grid"].click()
-        assert panel.CaptureView() == view | {"unitsMode": "Millimeters"} and main.ProjectSettings() == original
-        assert panel.unitsField.currentText() == "Millimeters" and "unitsMode" not in panel.overrides
+        assert panel.CaptureView() == view and main.ProjectSettings() == original
+        assert panel.unitsField.currentText() == view["unitsMode"] and "unitsMode" not in panel.overrides
         main.RefreshProjectDirty()
         assert not main.projectDirty
         panel.unitsField.setCurrentText("Centimeters")
@@ -260,7 +264,7 @@ def Main():
         legacy["settings"].pop("exportSettings")
         legacy["ui"].pop("exportSections")
         main.ApplyProject(DecodeProject(legacy, main.viewport.furnishingDefinitions), None)
-        assert panel.overrides == {} and panel.CaptureView() == view | {"unitsMode": "Millimeters"}
+        assert panel.overrides == {} and panel.CaptureView() == view
         assert not any(button.isChecked() for button in panel.sectionButtons.values())
         assert "exportSettings" not in main.ProjectSettings()
         for bad in ({"showGrid": 1}, {"lineworkSettings": {"walls": -1}},

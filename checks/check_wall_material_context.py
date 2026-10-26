@@ -26,7 +26,7 @@ def Main():
     v.ShowObjectContextMenu(position, v.mapToGlobal(position.toPoint()))
     parent = v.objectContextMenu
     buttons = [action.defaultWidget() for action in parent.actions() if not action.isSeparator()]
-    assert [button.accessibleName() for button in buttons] == ["Subdivide Wall", "Material", "Flip Horizontal", "Flip Vertical", "Hide dimensions", "Group selected", "Transform", "Cut", "Copy", "Delete"]
+    assert [button.accessibleName() for button in buttons] == ["Subdivide Wall", "Material", "Flip Horizontal", "Flip Vertical", "Hide Dimension", "Group selected", "Transform", "Cut", "Copy", "Delete"]
     QtGui.QCursor.setPos(buttons[1].mapToGlobal(buttons[1].rect().center()))
     QtTest.QTest.mouseMove(buttons[1], buttons[1].rect().center())
     app.processEvents()

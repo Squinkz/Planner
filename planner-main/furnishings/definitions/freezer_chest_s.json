@@ -26,6 +26,8 @@
         "horizontal",
         "deep",
         "top",
-        "loading"
+        "loading",
+        "deepfreeze",
+        "deep-freeze"
     ]
 }

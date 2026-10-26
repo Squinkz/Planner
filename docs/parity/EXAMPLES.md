@@ -57,8 +57,9 @@ are expected outputs, not a generic JSON event interpreter.
 
 ## Object render corpus
 
-[Manifest](reference/rendering/manifest.json) contains 32 cases: every one of the
-23 model types at 100 px/m, seven furnishing details at 250 px/m, and Washer SVG
+[Manifest](reference/rendering/manifest.json) contains 42 cases: every one of the
+31 model types at 100 px/m, seven furnishing details at 250 px/m, two window-well
+examples (PNG and SVG), and Washer SVG
 exports in digital and architectural 1:100 modes. Each case includes the exact
 `.plan`, crop in millimeters, theme, scale, output dimensions and a PNG. SVG cases
 also include the exported vector file and a raster preview. The named bounds are
@@ -91,6 +92,9 @@ are enabled in millimeters with both opening sides visible. The single-object
 seeds intentionally avoid selection handles and unrelated scene occlusion. Use
 the earlier [UI gallery](reference/GALLERY.md) for selected/hovered controls and
 panel layout, and the workflow projects for multi-object scene state.
+The object-render gallery explicitly disables floor shading to retain its frozen
+geometry/text comparisons. Export floor inheritance, shading and persistence are
+covered separately by `check_export_floors.py`.
 
 ## Replay, comparison and updating references
 
@@ -135,6 +139,7 @@ for stable links; its current catalog definition is `sink_drainer_dbl2`
 
 These are test-only generators. They isolate startup/session/preferences in a
 temporary folder and do not rewrite furnishing definitions or application code.
-The existing gallery and new corpus were captured at different points on the
-same day; each has its own manifest and scope. New examples add coverage rather
-than silently replacing the earlier controls reference.
+The original gallery and later object/workflow corpus have separate manifests
+and capture histories. New examples add coverage rather than silently replacing
+the earlier controls reference. Current layout and interaction prose supersedes
+historical labels, defaults and widget arrangements in those images.

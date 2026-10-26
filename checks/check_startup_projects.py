@@ -104,6 +104,9 @@ def Main():
             assert not main.SaveStartupFile() and not startup.exists()
         with patch.object(main, "ShowAppMessage", return_value = QtWidgets.QMessageBox.StandardButton.Save):
             assert main.SaveStartupFile()
+        assert v.clipboardError == "Startup file saved." and not v.clipboardErrorIsError
+        v.ShowClipboardError("Session recovery could not be saved.")
+        assert v.clipboardErrorIsError
         assert main.projectPath == originalPath and main.projectDirty == originalDirty
         template = json.loads(startup.read_text(encoding = "utf-8"))
         savedStartupBytes = startup.read_bytes()

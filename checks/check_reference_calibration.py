@@ -28,7 +28,7 @@ def Main():
         app.processEvents()
         v, reference = main.viewport, main.referenceImage
         main.sidebarTabs.setCurrentWidget(main.visibilityPage)
-        assert reference.Load(path) and not reference.active
+        assert reference.Load(path) and reference.active
         reference.Show()
         assert reference.active
         reference.state.update(center = [250, -100], width = 2000, height = 1000, angle = 37)

@@ -40,7 +40,8 @@ def Main():
         panel = main.settingsWindow
         field = panel.wallMeasurementModeField
         assert field.currentText() == v.wallMeasurementMode == "Exterior stacked"
-        assert panel.wallMeasurementHeading.text() == "Walls" and panel.wallMeasurementHeading.font().bold()
+        assert panel.wallMeasurementHeading.titleLabel.text() == "Walls"
+        assert panel.wallMeasurementHeading.objectName() == "sectionHeading"
         field.setCurrentText("All")
         assert [field.itemText(index) for index in range(field.count())] == ["All", "Exterior", "Exterior stacked"]
         assert field.model().item(2).isEnabled()

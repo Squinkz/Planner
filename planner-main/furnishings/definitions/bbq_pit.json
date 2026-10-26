@@ -1,0 +1,32 @@
+{
+    "name": "Barbecue Pit",
+    "image": "bbq_pit",
+    "width": 900,
+    "length": 900,
+    "category": [
+        "Outdoor"
+    ],
+    "keywords": [
+        "braai",
+        "bbq",
+        "barbeque",
+        "cook",
+        "grill",
+        "fire",
+        "firepit",
+        "barbecue",
+        "barbecuing",
+        "barbequing",
+        "braaier",
+        "grilling",
+        "cooking",
+        "outdoor",
+        "patio",
+        "garden",
+        "charcoal",
+        "coals",
+        "pit",
+        "hearth",
+        "open"
+    ]
+}

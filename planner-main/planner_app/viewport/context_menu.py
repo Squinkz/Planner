@@ -1,4 +1,5 @@
 """Object menus with generic commands and shared class-specific actions."""
+from planner_app.dimension_policy import AvailableDimensionActions
 from planner_app.models import Elevator
 
 from PySide6 import QtCore, QtGui
@@ -104,38 +105,24 @@ class ContextMenuMixin:
                 options = [("Flip Facing", "swingsOutwards", "flip_v"), ("Flip Slide Direction", "hingeAtSecond", "flip_h")]
             elif objectType is PocketDoor:
                 options = [("Flip Pocket Side", "hingeAtSecond", "flip_h")]
-            if objectType in (Door, DoubleDoor, SlidingDoor, BarnDoor, Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow):
-                measurementClass = "windows" if objectType in (Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow) else "doors"
-                if (self.showMeasurements and self.measurementVisibility["walls"]
-                        and self.measurementSettings[measurementClass] == 1
-                        and any(not obj.measurementHidden for obj in objects)):
-                    options.append(("Flip Dimension", "measurementFlipped", "Measurements"))
+            if any(AvailableDimensionActions(self, obj).canFlip for obj in objects):
+                options.append(("Flip Dimension", "measurementFlipped", "Measurements"))
             if options:
                 for label, command, iconName in options:
                     button = AddMenuButton(menu, label, iconName = UiIcon(iconName) if iconName.startswith("flip_") else iconName)
                     button.clicked.connect(lambda checked = False, command = command, objects = objects:
                                            self.ApplyObjectContextAction(objects, command))
-        for label, command, icon in (("Flip Horizontal", "flipHorizontal", "flip_h"),
-                                      ("Flip Vertical", "flipVertical", "flip_v")):
-            button = AddMenuButton(menu, label, iconName = UiIcon(icon))
-            axis = "vertical" if command == "flipHorizontal" else "horizontal"
-            button.setToolTip("Mirror across the selection's " + axis + " axis, or each object's local " + axis + " axis in Local mode")
-            button.clicked.connect(lambda checked = False, command = command, objects = objects:
-                                   self.ApplyObjectContextAction(objects, command))
-        measurementEnabled = False
-        if isinstance(hitObject, (Stair, Counter, Railing)):
-            category = "stairs" if isinstance(hitObject, Stair) else "counters" if isinstance(hitObject, Counter) else "railings"
-            measurementEnabled = self.measurementVisibility[category]
-        elif type(hitObject) in (Wall, Pillar, Column) or isinstance(hitObject, Fireplace):
-            measurementEnabled = self.measurementVisibility["walls"]
-        elif isinstance(hitObject, Window):
-            category = "doors" if isinstance(hitObject, (Door, SwingingDoor, DoubleDoor, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway)) else "windows"
-            measurementEnabled = self.measurementVisibility["walls"] and self.measurementSettings[category] != 2
-        elif isinstance(hitObject, MeasurementGuide) and not isinstance(hitObject, BoundaryLine):
-            measurementEnabled = True
-        if self.showMeasurements and measurementEnabled:
+        if not (len(objects) == 1 and isinstance(objects[0], Window)):
+            for label, command, icon in (("Flip Horizontal", "flipHorizontal", "flip_h"),
+                                          ("Flip Vertical", "flipVertical", "flip_v")):
+                button = AddMenuButton(menu, label, iconName = UiIcon(icon))
+                axis = "vertical" if command == "flipHorizontal" else "horizontal"
+                button.setToolTip("Mirror across the selection's " + axis + " axis, or each object's local " + axis + " axis in Local mode")
+                button.clicked.connect(lambda checked = False, command = command, objects = objects:
+                                       self.ApplyObjectContextAction(objects, command))
+        if AvailableDimensionActions(self, hitObject).canHide:
             hide = not hitObject.measurementHidden
-            button = AddMenuButton(menu, "Hide dimensions" if hide else "Show dimensions", iconName = "View")
+            button = AddMenuButton(menu, "Hide Dimension" if hide else "Show Dimension", iconName = "View")
             button.clicked.connect(lambda checked = False, obj = hitObject, hide = hide:
                                    self.ApplyObjectContextAction([obj], "measurementHidden", hide))
         selectedIds = {id(obj) for obj in objects}
@@ -168,6 +155,10 @@ class ContextMenuMixin:
         menu.popup(globalPosition)
 
     def ApplyObjectContextAction(self, objects, command, value = None):
+        if command == "measurementFlipped":
+            objects = [obj for obj in objects if AvailableDimensionActions(self, obj).canFlip]
+            if not objects:
+                return False
         if command in ("front", "back"):
             self.MoveFurnishingLayer(objects, command == "front")
             return

@@ -26,7 +26,7 @@ def Main():
     before = viewport.CaptureState()
     history = len(viewport.undoHistory)
     buttons = [main.doorButton, main.openDoorwayButton, main.stairButton, main.counterButton,
-               main.labelButton, next(iter(main.furnishingButtons.values()))]
+               main.labelButton, next(iter(main.furnishingButtons.values())), *main.wallToolButtons.values()]
     for index, button in enumerate(buttons):
         def ExecDrag(drag, actions):
             assert viewport.guiDragActive and not viewport.guiDragCancelled
@@ -42,7 +42,8 @@ def Main():
                 app.sendEvent(viewport, event)
             assert viewport.guiDragCancelled
             assert all(preview is None for preview in (viewport.windowDropPreview, viewport.inactiveOpeningPreview,
-                                                       viewport.furnishingPreview, viewport.counterPreview, viewport.labelPreview))
+                                                       viewport.furnishingPreview, viewport.counterPreview, viewport.labelPreview, viewport.pendingWall))
+            assert not viewport.pendingShapeWalls
             move = QtGui.QDragMoveEvent(position.toPoint(), action, mime, left, modifiers)
             viewport.dragMoveEvent(move)
             drop = QtGui.QDropEvent(position, action, mime, left, modifiers)

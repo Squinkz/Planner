@@ -785,9 +785,9 @@ if(G>r)r=G;i++}while(i<y){A[i<<1]=0;A[(i<<1)+1]=0;i++}return r}return v}();
 				bpl = Math.ceil(depth*nw/8);
 				var nimg = new Uint8Array(bpl*nh);
 				var inj = inds[j];
-				for(var y=0; y<nh; y++) {  var i=y*bpl, ii=y*nw;
-					if     (depth==8) for(var x=0; x<nw; x++) nimg[i+(x)   ]   =  (inj[ii+x]             );
-					else if(depth==4) for(var x=0; x<nw; x++) nimg[i+(x>>1)]  |=  (inj[ii+x]<<(4-(x&1)*4));
+				if(depth==8) nimg.set(inj);
+				else for(var y=0; y<nh; y++) {  var i=y*bpl, ii=y*nw;
+					if     (depth==4) for(var x=0; x<nw; x++) nimg[i+(x>>1)]  |=  (inj[ii+x]<<(4-(x&1)*4));
 					else if(depth==2) for(var x=0; x<nw; x++) nimg[i+(x>>2)]  |=  (inj[ii+x]<<(6-(x&3)*2));
 					else if(depth==1) for(var x=0; x<nw; x++) nimg[i+(x>>3)]  |=  (inj[ii+x]<<(7-(x&7)*1));
 				}
@@ -1141,23 +1141,21 @@ if(G>r)r=G;i++}while(i<y){A[i<<1]=0;A[(i<<1)+1]=0;i++}return r}return v}();
 		return nimg[i]*e[0] + nimg[i+1]*e[1] + nimg[i+2]*e[2] + nimg[i+3]*e[3];
 	}
 	function stats(nimg, i0, i1){
-		var R = [0,0,0,0,  0,0,0,0,  0,0,0,0,  0,0,0,0];
-		var m = [0,0,0,0];
+		var r00=0, r01=0, r02=0, r03=0, r11=0, r12=0, r13=0, r22=0, r23=0, r33=0;
+		var m0=0, m1=0, m2=0, m3=0;
 		var N = (i1-i0)>>2;
 		for(var i=i0; i<i1; i+=4)
 		{
 			var r = nimg[i]*(1/255), g = nimg[i+1]*(1/255), b = nimg[i+2]*(1/255), a = nimg[i+3]*(1/255);
 			//var r = nimg[i], g = nimg[i+1], b = nimg[i+2], a = nimg[i+3];
-			m[0]+=r;  m[1]+=g;  m[2]+=b;  m[3]+=a;
+			m0+=r;  m1+=g;  m2+=b;  m3+=a;
 			
-			R[ 0] += r*r;  R[ 1] += r*g;  R[ 2] += r*b;  R[ 3] += r*a;  
-						   R[ 5] += g*g;  R[ 6] += g*b;  R[ 7] += g*a; 
-										  R[10] += b*b;  R[11] += b*a;  
-														 R[15] += a*a;  
+			r00 += r*r;  r01 += r*g;  r02 += r*b;  r03 += r*a;
+			r11 += g*g;  r12 += g*b;  r13 += g*a;
+			r22 += b*b;  r23 += b*a;
+			r33 += a*a;
 		}
-		R[4]=R[1];  R[8]=R[2];  R[9]=R[6];  R[12]=R[3];  R[13]=R[7];  R[14]=R[11];
-		
-		return {R:R, m:m, N:N};
+		return {R:[r00,r01,r02,r03, r01,r11,r12,r13, r02,r12,r22,r23, r03,r13,r23,r33], m:[m0,m1,m2,m3], N:N};
 	}
 	function estats(stats){
 		var R = stats.R, m = stats.m, N = stats.N;

@@ -23,6 +23,8 @@
         "freestanding",
         "standalone",
         "upright",
-        "vertical"
+        "vertical",
+        "deepfreeze",
+        "deep-freeze"
     ]
 }

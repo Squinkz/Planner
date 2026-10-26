@@ -3,10 +3,7 @@
     "image": "desk_exec",
     "width": 1800,
     "length": 800,
-    "category": [
-        "Office",
-        "Bedroom"
-    ],
+    "category": "Office",
     "keywords": [
         "desk",
         "writing",

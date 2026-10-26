@@ -69,9 +69,22 @@ view field or inherit a new event framework.
 
 Export undo (`ui/export_history.py`) uses a different state/preview lifecycle and
 remains separate. Forcing it into scene-record history would add coupling rather
-than remove it. Likewise, signal delivery, dialogs, timers and widget wiring stay
+than remove it. Activity Log links to both journals while keeping their scopes
+separate. Its persistent descriptions do not extend undo retention or retain
+scene snapshots. See [Activity Log](ACTIVITY_LOG.md). Likewise, signal delivery,
+dialogs, timers and widget wiring stay
 in Qt. The code is left where it belongs; these notes describe the intentional
 boundaries.
+
+## Pointer target coordination
+
+Pointer target resolution is also a desktop adapter responsibility.
+`interaction.SelectionTarget` combines the scene hit with furnishing handles and
+multi-selection semantics, and is shared by hover, cursors, presses, double-clicks
+and context menus. A port needs the same priority outcome, not independent
+hover and click hit tests that can disagree. Reference-image editing and
+calibration intercept events in their exclusive modes before scene interaction.
+See HOVER-01 and `check_hover_click_targets.py`.
 
 ## Verification
 

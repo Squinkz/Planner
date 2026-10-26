@@ -1,0 +1,67 @@
+{
+  "reference": "Original UPNG quantizer and pako, before binary-transfer/native-compression optimizations. Random seed 123. IDAT fingerprint covers decompressed filtered pixels.",
+  "cases": [
+    {
+      "name": "rgba-gradient",
+      "width": 257,
+      "height": 193,
+      "mode": "rgba",
+      "expected": {
+        "chunks": {
+          "IHDR": "07e64ec5f3a959a68b5c07e4daf68f1a38a6ee491f8f6ad921fb7cb6c2596099",
+          "pHYs": "5b628f116c96eede2fdbb324c459120a8ca3db6a52cf4bc5a7f42f91ca1ee472",
+          "PLTE": "dd6c95eb880bc62f63879c9f10f3e7057a74717c718fffd433da95756bf94721",
+          "tRNS": "a40b73d2afd71cb7efb4d71ae7c0df66060cacba68ad23caebb4bdfb4bf753f0",
+          "IDAT": "4992455cd08801ded89565398a952263dc8f4e3e35f6467581be9f5a69a59812",
+          "IEND": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "pixels": "4aef83b7757c5ae30ead920d253992f0dcb56fae0077f527c2c12ab40cced8ab",
+        "dpi": [
+          11811,
+          11811
+        ]
+      }
+    },
+    {
+      "name": "opaque-gradient",
+      "width": 129,
+      "height": 133,
+      "mode": "opaque",
+      "expected": {
+        "chunks": {
+          "IHDR": "ed4842ee4b5702d07f4961ec6427dcef6250ecf6ee0518c4235a93301ebabd19",
+          "pHYs": "5b628f116c96eede2fdbb324c459120a8ca3db6a52cf4bc5a7f42f91ca1ee472",
+          "PLTE": "b38023d50be710f4fcb652a9df25307e6158bcaf21b813c7d4a0bd832a01ab77",
+          "IDAT": "4cf4f5074042ef2e1a4fa619967993278dec895c4bcf795ff033b6c061320e1d",
+          "IEND": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "pixels": "d2361b40ccc3c9c3c3edc9b2603280de4485ac59ef92869fb81a1842d5ea26c2",
+        "dpi": [
+          11811,
+          11811
+        ]
+      }
+    },
+    {
+      "name": "flat-palette",
+      "width": 67,
+      "height": 71,
+      "mode": "flat",
+      "expected": {
+        "chunks": {
+          "IHDR": "99fd5f29538a5df3c7faeafe362e266c82e37316fc11c59fecbc79e970564321",
+          "pHYs": "5b628f116c96eede2fdbb324c459120a8ca3db6a52cf4bc5a7f42f91ca1ee472",
+          "PLTE": "a920d8b6cea731b2c2a75d4b94662829f9d97aec72400032c7c1e8c9b5f0ad79",
+          "tRNS": "b319fe62351073a16a1e265bcbebfe7c2499e0341d7cf0594d926db97d6c332e",
+          "IDAT": "c38c968365b68c439cac9297d09cad22b14df65bd24a83c46e6e41927349aecc",
+          "IEND": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "pixels": "c7b40d2a584421f0d3b6f31fa2282d48cbd9becf7dd279ad9cf7506837c4660c",
+        "dpi": [
+          11811,
+          11811
+        ]
+      }
+    }
+  ]
+}

@@ -9,7 +9,9 @@ from planner_app.ui.session import AcquireSessionLock
 
 
 def Main():
-
+    if len(sys.argv) == 3 and sys.argv[1] == "--export-worker":
+        from planner_app.export_worker import RunExportWorker
+        return RunExportWorker(sys.argv[2])
     app = QtWidgets.QApplication(sys.argv)
     app.setApplicationName("Planner")
     if tuple(int(part) for part in QtCore.qVersion().split(".")[:3]) < (6, 11, 2):

@@ -54,8 +54,8 @@ for gesture rules, snapping, connected movement, groups and cancellation.
 | Fireplace | Width 1200; depth 500 or wall thickness, whichever is larger | Eight resize handles; width, length/depth, facing, material; no free rotation/pivot | Wall child; depth offset across wall |
 | Furnishing | From definition | Box; width, length, angle, horizontal/vertical flip | Independent; compound definitions retain child order |
 | Label | From text/font bounds at 32 points | Proportional box; text, point size, intensity; width/length presentation | Independent annotation |
-| Room label | Centered name at 32 points, area line at 55% of the name size | Label controls with Name and calculated Area; area follows the detected room under its center | Independent annotation in Labels visibility |
-| North arrow | 600 × 1000 | Box; width, length, angle | Independent annotation |
+| Room label | Centered name at 32 points, area line at 55% of the name size | Single-line Name, calculated Area, Units override and proportional Label controls; can be placed anywhere, with no area outside rooms | Independent annotation in Labels visibility |
+| North marker | 600 × 1000 | Box; width, length, angle, opacity | Independent annotation |
 | Arrow | Tail thickness 10 | Endpoints; length, solid tip, tip size, tail thickness, intensity, direction flip | Independent annotation |
 | Measurement guide | Zero body width | Endpoints; length, text offset | Independent annotation |
 | Boundary line | Zero body width | Endpoints; length, selected-only dimensions; dash-dot stroke | Independent annotation |
@@ -85,6 +85,11 @@ with the normal nominal imperial conversion for new objects. They appear in the
 Doors palette and visibility category. The D-key cycle appends Swinging Door
 after Open Doorway, preserving existing saved type choices. Coverage:
 `check_swinging_doors.py`, the object matrix and the frozen render corpus.
+
+Doorway wall cuts extend half the wall-outline stroke beyond the wall faces,
+matching square jamb caps. They must not notch adjoining wall outlines at
+opening endpoints. Coverage: `check_doorway_outline_junctions.py` checks canvas
+rotation/zoom and PNG/SVG output.
 
 Double doors pair two standard 90-degree door leaves with opposite outer hinges.
 Both leaves use half the opening span and share one facing direction. Only the
@@ -157,13 +162,24 @@ label only when selected. They share measurement-guide editing and annotation
 collision exclusion, but have their own visibility category. Exports omit their
 selected-only measurement labels. See [annotation behavior](ANNOTATIONS.md).
 
-Hide/Show dimensions belongs at the bottom of the object's top context-menu
+Hide Dimension/Show Dimension belongs at the bottom of the object's top context-menu
 section, before Transform. Offer it only when that class currently draws ambient
 measurements, including allowing an individually hidden measurement to be shown
-again. Flip Dimension additionally requires a supported type and facing-side
-mode. Global measurement disable also removes these controls from Properties.
-Individual hiding never suppresses selection dimensions. A selected group gets
-bounding-box dimensions, rather than dimensions on each member.
+again. Flip Dimension requires a supported directional opening and facing-side
+splitting in All mode. Exterior has binary Split/Do not split controls, ignores
+facing and dimension-side flags, and never offers Flip Dimension. Both visible
+and individually hidden openings retain Hide/Show when they can contribute to
+an exterior chain under the active split setting. Exterior stacked has no
+Flip action, but permits individual hiding and uses its effective split-all
+policy regardless of saved split preferences. Individually hidden dimensions
+retain Show Dimension but suppress Flip Dimension in context menus and Properties.
+A hidden parent chain, disabled wall
+category or disabled ambient master suppresses the opening's dimension actions.
+Standalone dimension guides remain independent of that master.
+Individual hiding never suppresses selection dimensions. Those dimensions are
+an overlay and cannot change world dimension chains. A selected group gets one
+bounding-box overlay instead of individual member overlays; the members' ambient
+dimensions remain unchanged.
 
 Physical objects use theme fills/outlines and the appropriate wall,
 architectural or furnishing line weight. Counters normally draw below furniture;
@@ -180,7 +196,7 @@ See the [rendering examples](EXAMPLES.md) for actual output and scale metadata.
 ## Collision policy is not placement validation
 
 The matrix's `collisionPolicy.enabledRows` are pair-policy booleans, in the same
-23-type order as `objects`. Profile bits are Walls=1, Architectural=2,
+31-type order as `objects`. Profile bits are Walls=1, Architectural=2,
 Furnishings=4. `footprintExclusionRows` independently identifies pairs excluded
 from footprint collision. A true policy entry does **not** mean every overlap
 is illegal: attachment, openings, junctions and valid movement impose additional
@@ -192,7 +208,7 @@ elevators use architectural validation and collide with physical blockers.
 Ordinary furnishings may overlap other furnishings and counters; they cannot
 pass through blocking walls when the relevant collision settings apply. Railing
 footprint exclusions differ from elevators. Labels, arrows, linear/angular guides
-and north arrows are nonphysical. Connected-object movement and collision
+and north markers are nonphysical. Connected-object movement and collision
 validation are separate concepts: overlap can connect a movement set without
 making two objects an invalid placement.
 

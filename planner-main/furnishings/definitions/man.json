@@ -4,8 +4,21 @@
     "width": 600,
     "length": 600,
     "icon": null,
-    "category": null,
+    "category": "Utility",
     "inherits": null,
     "children": [],
-    "keywords": []
+    "keywords": [
+        "man",
+        "person",
+        "people",
+        "human",
+        "adult",
+        "figure",
+        "silhouette",
+        "walking",
+        "pedestrian",
+        "occupant",
+        "scale",
+        "reference"
+    ]
 }

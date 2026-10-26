@@ -13,6 +13,7 @@ belong there. These pages also appear in the application's Help window.
 - [Licensing and redistribution](LICENSING.md)
 - [Releases and version numbers](RELEASING.md)
 - [Architecture and source layout](ARCHITECTURE.md)
+- [Activity Log and retained-history restoration](ACTIVITY_LOG.md)
 - [Portable numeric geometry contracts](GEOMETRY.md)
 - [Editing transactions and desktop adapter boundaries](EDITING_PORTS.md)
 - [Help authoring and viewer contract](HELP_AUTHORING.md)
@@ -26,7 +27,7 @@ the application. Paths in them identify resources under `planner-main/`.
 - [Furnishing definitions, compounds and SVG artwork](resources/FURNISHINGS.md)
 - [UI and canvas theme schemas](resources/THEMES.md)
 - [Normal maps, AO companions and filename defaults](resources/TEXTURES.md)
-- [UI icons, cursor assets and temporary About logo](resources/ASSETS.md)
+- [UI icons, cursor assets and About logo](resources/ASSETS.md)
 - [Font resources and rendering](resources/FONTS.md)
 
 ## Future ports and parity
@@ -37,6 +38,11 @@ It records implementation and acceptance requirements; it is not a second
 user manual.
 
 ## Documentation maintenance
+
+Technical contracts were reviewed against Alpha 0.1.1 on 26 October 2026.
+Current prose and executable checks take precedence over dated screenshot and
+source-review observations. The [scenario index](parity/cases.json) maps the
+current behavior to checks without replacing historical capture manifests.
 
 Keep technical documentation in this folder. The repository-root README
 is the entry point; bundled third-party package notes and license notices stay

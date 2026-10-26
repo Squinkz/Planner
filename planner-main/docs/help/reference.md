@@ -21,7 +21,7 @@ Once an image is loaded, it can be toggled on and off through the **View** menu,
 by pressing `B` or toggling the checkbox on the **World** tab.
 
 If you click away from the image after loading it, it will be locked from editing.
-To enable it again, press `Alt + B` or click the **Reference image** entry on the
+To enable it again, press `Alt + B`, click the entry in the **View** menu, or click the **Reference image** entry on the
 **World** tab without toggling it.
 
 ## Calibrate scale

@@ -183,6 +183,10 @@ def Main():
     assert not main.moveSpecialWindow.isVisible()
     v.SetSelection([(label, None)])
     assert v.MoveSpecial(0, 0, 360) is None
+    assert v.MoveSpecial(math.inf, 0, 0) == "Enter valid movement and angle values."
+    assert v.MoveSpecial(0, math.nan, 0) == "Enter valid movement and angle values."
+    v.SetSelection([])
+    assert v.MoveSpecial(1, 0, 0) == "Select an object to transform."
     main.close()
 
 

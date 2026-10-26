@@ -4,20 +4,27 @@
     "width": 300,
     "length": 350,
     "icon": null,
-    "category": "Kitchen",
+    "category": [
+        "Kitchen",
+        "Utility"
+    ],
     "inherits": null,
     "children": [],
     "keywords": [
         "cabinet",
         "cupboard",
         "storage",
-        "base",
         "kitchen",
-        "counter",
         "cabinetry",
         "cupboards",
         "single",
         "one",
-        "door"
+        "door",
+        "overhead",
+        "upper",
+        "wall",
+        "mounted",
+        "hanging",
+        "suspended"
     ]
 }

@@ -2,15 +2,16 @@
 from PySide6 import QtCore, QtGui, QtWidgets
 from planner_app.graphics.theme import HeaderIcon, gridIntensityDefaults
 from planner_app.graphics.icons import UiIcon
-from planner_app.preferences import lineworkDefaults, wallPresetNames, wallPresetWidths, openingDefaultSizes, miscDefaultSizes, measurementDefaults, stairStepSizeDefaults, railingSpacingDefaults
+from planner_app.preferences import lineworkDefaults, wallPresetNames, wallPresetWidths, openingDefaultSizes, miscDefaultSizes, stairStepSizeDefaults, railingSpacingDefaults
 from planner_app.units import MetricUnit, FormatLength, unitModes, measurementPrecisions, imperialModes
-from planner_app.ui.widgets import DownwardComboBox, DragSlider, UnitSpinBox, VisibilityItemDelegate
+from .wall_dimensions import WallDimensionControlsMixin
+from planner_app.ui.widgets import DownwardComboBox, DragSlider, UnitSpinBox, VisibilityItemDelegate, SectionHeading
 from planner_app.graphics.palette import themeColors, themeDefinitions
 from planner_app.graphics import palette
 from planner_app.placement_sizing import NominalPlacementSize
 
 
-class SettingsWindow(QtWidgets.QDialog):
+class SettingsWindow(WallDimensionControlsMixin, QtWidgets.QDialog):
     def __init__(self, mainWindow):
         super().__init__(mainWindow)
         self.mainWindow = mainWindow
@@ -27,6 +28,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.viewportPage = page
         pageLayout = QtWidgets.QVBoxLayout(page)
         pageLayout.setContentsMargins(16, 20, 16, 16)
+        pageLayout.setSpacing(8)
         form = QtWidgets.QFormLayout()
         form.setHorizontalSpacing(16)
         form.setVerticalSpacing(12)
@@ -34,12 +36,10 @@ class SettingsWindow(QtWidgets.QDialog):
         columns.setSpacing(24)
         leftColumn = QtWidgets.QVBoxLayout()
         rightColumn = QtWidgets.QVBoxLayout()
+        leftColumn.setSpacing(8)
+        rightColumn.setSpacing(8)
         for column, text in ((leftColumn, "Grid"), (rightColumn, "Line Weight")):
-            heading = QtWidgets.QLabel(text)
-            heading.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-            font = heading.font()
-            font.setBold(True)
-            heading.setFont(font)
+            heading = SectionHeading(text, text)
             column.addWidget(heading)
             if text == "Grid":
                 self.gridAppearanceHeading = heading
@@ -146,11 +146,8 @@ class SettingsWindow(QtWidgets.QDialog):
         rightColumn.addStretch(1)
         columns.addLayout(leftColumn, 1)
         columns.addLayout(rightColumn, 1)
-        heading = QtWidgets.QLabel("Theme")
-        heading.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        heading.setFont(font)
+        heading = SectionHeading("Theme", "Appearance")
         pageLayout.addWidget(heading)
-        pageLayout.addSpacing(18)
         themeChoices = QtWidgets.QHBoxLayout()
         themeChoices.setSpacing(24)
         self.uiThemeField = DownwardComboBox()
@@ -175,7 +172,7 @@ class SettingsWindow(QtWidgets.QDialog):
             row.addWidget(field, 1)
             themeChoices.addLayout(row, 1)
         pageLayout.addLayout(themeChoices)
-        pageLayout.addSpacing(12)
+        pageLayout.addSpacing(8)
         pageLayout.addLayout(columns)
         pageLayout.addStretch(1)
         scroll = QtWidgets.QScrollArea()
@@ -187,6 +184,8 @@ class SettingsWindow(QtWidgets.QDialog):
         self.sliders["overall"].setToolTip("Multiplies the intensity of major, minor and origin gridlines")
         self.BuildMeasurementTab()
         self.tabs.addTab(scroll, HeaderIcon("Appearance"), "Appearance")
+        for heading in self.findChildren(SectionHeading):
+            heading.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed)
         self.RefreshSizeUnits()
         self.confirmButtons = QtWidgets.QDialogButtonBox(QtWidgets.QDialogButtonBox.StandardButton.Ok)
         self.confirmButtons.accepted.connect(self.accept)
@@ -197,6 +196,14 @@ class SettingsWindow(QtWidgets.QDialog):
     def showEvent(self, event):
         super().showEvent(event)
         self.FitToContents()
+
+    def event(self, event):
+        if (event.type() in (QtCore.QEvent.Type.WindowDeactivate, QtCore.QEvent.Type.Hide)
+                and getattr(self, "measurementDragging", None) is not None):
+            slider = self.measurementSliders[self.measurementDragging]
+            self.measurementDragging = None
+            slider.setSliderDown(False)
+        return super().event(event)
 
     def FitToContents(self):
         self.ensurePolished()
@@ -238,8 +245,6 @@ class SettingsWindow(QtWidgets.QDialog):
         columns.addLayout(leftColumn, 1)
         columns.addLayout(rightColumn, 1)
         generalLayout.addLayout(columns)
-        font = page.font()
-        font.setBold(True)
         sizeForms = {}
         for name in ("Walls", "Doors", "Windows", "Misc"):
             sizePage = QtWidgets.QWidget()
@@ -326,9 +331,7 @@ class SettingsWindow(QtWidgets.QDialog):
             form.addRow(label, container)
             self.sizeFields[key] = field
             self.buildResetButtons[key] = reset
-        heading = QtWidgets.QLabel("Auto Tread Depth")
-        heading.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        heading.setFont(font)
+        heading = SectionHeading("Auto Tread Depth")
         leftColumn.addWidget(heading)
         stepSection = QtWidgets.QWidget()
         stepSection.setSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
@@ -365,10 +368,8 @@ class SettingsWindow(QtWidgets.QDialog):
             self.stepSizingFields[key] = field
             self.stepSizingResetButtons[key] = reset
         leftColumn.addWidget(stepSection)
-        leftColumn.addSpacing(16)
-        heading = QtWidgets.QLabel("Collisions")
-        heading.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        heading.setFont(font)
+        leftColumn.addSpacing(8)
+        heading = SectionHeading("Collisions")
         leftColumn.addWidget(heading)
         collisionSection = QtWidgets.QWidget()
         collisionLayout = QtWidgets.QFormLayout(collisionSection)
@@ -384,21 +385,29 @@ class SettingsWindow(QtWidgets.QDialog):
             field.setMinimumHeight(32)
             field.setChecked(self.mainWindow.viewport.collisionSettings[key])
             field.toggled.connect(lambda enabled, key = key: self.SetCollision(key, enabled))
-            label = QtWidgets.QToolButton()
-            label.setText(text)
+            label = QtWidgets.QPushButton()
+            label.setAccessibleName(text)
             label.setMinimumHeight(32)
-            label.setIcon(HeaderIcon(iconName))
-            label.setIconSize(QtCore.QSize(24, 24))
-            label.setToolButtonStyle(QtCore.Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
-            label.setStyleSheet("QToolButton { border: none; background: transparent; padding: 0; }")
+            label.setStyleSheet("QPushButton { border: none; background: transparent; padding: 0; }")
+            labelLayout = QtWidgets.QHBoxLayout(label)
+            labelLayout.setSizeConstraint(QtWidgets.QLayout.SizeConstraint.SetMinimumSize)
+            labelLayout.setContentsMargins(0, 0, 0, 0)
+            labelLayout.setSpacing(6)
+            icon = QtWidgets.QLabel()
+            icon.setFixedSize(18, 18)
+            icon.setPixmap(HeaderIcon(iconName).pixmap(18, 18))
+            caption = QtWidgets.QLabel(text)
+            caption.setMinimumHeight(32)
+            for widget in (icon, caption):
+                widget.setAttribute(QtCore.Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+                labelLayout.addWidget(widget)
+            labelLayout.addStretch(1)
             label.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
             label.clicked.connect(field.toggle)
             collisionLayout.addRow(label, field)
             self.collisionFields[key] = field
         leftColumn.addWidget(collisionSection)
-        heading = QtWidgets.QLabel("Auto Railing Sizing")
-        heading.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        heading.setFont(font)
+        heading = SectionHeading("Auto Railing Sizing")
         rightColumn.addWidget(heading)
         railingSection = QtWidgets.QWidget()
         railingSection.setSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Fixed)
@@ -461,36 +470,42 @@ class SettingsWindow(QtWidgets.QDialog):
     def RefreshStepSizing(self):
         self.RefreshRailingSizing()
         viewport = self.mainWindow.viewport
-        divisor, unit = MetricUnit(viewport.unitsMode, "cm")
+        panel = self.mainWindow.exportPanel
+        view = panel.projectView if not panel.applying else None
+        unitsMode = view["unitsMode"] if view is not None else viewport.unitsMode
+        divisor, unit = MetricUnit(unitsMode, "cm")
         limits = viewport.AutoSizingLimits("stairs")
         for key, field in self.stepSizingFields.items():
             value = limits[key]
-            default = NominalPlacementSize(stairStepSizeDefaults[key] * 10, viewport.unitsMode)
+            default = NominalPlacementSize(stairStepSizeDefaults[key] * 10, unitsMode)
             blocker = QtCore.QSignalBlocker(field)
             field.setDecimals(0 if unit == "mm" else 3 if unit in ("m", "ft", "in") else 1)
-            field.setRange(1 / divisor, max(100000, NominalPlacementSize(100000, viewport.unitsMode)) / divisor)
-            field.setSingleStep((25.4 if viewport.unitsMode in imperialModes else 10) / divisor)
+            field.setRange(1 / divisor, max(100000, NominalPlacementSize(100000, unitsMode)) / divisor)
+            field.setSingleStep((25.4 if unitsMode in imperialModes else 10) / divisor)
             field.setSuffix(" " + unit)
             field.setValue(value / divisor)
             del blocker
             self.stepSizingResetButtons[key].setEnabled(not QtCore.qFuzzyCompare(value, default))
-            self.stepSizingResetButtons[key].setToolTip(f"Reset to {FormatLength(default, viewport.unitsMode, 'cm')}")
+            self.stepSizingResetButtons[key].setToolTip(f"Reset to {FormatLength(default, unitsMode, 'cm')}")
 
     def RefreshRailingSizing(self):
         viewport = self.mainWindow.viewport
-        divisor, unit = MetricUnit(viewport.unitsMode, "cm")
+        panel = self.mainWindow.exportPanel
+        view = panel.projectView if not panel.applying else None
+        unitsMode = view["unitsMode"] if view is not None else viewport.unitsMode
+        divisor, unit = MetricUnit(unitsMode, "cm")
         limits = viewport.AutoSizingLimits("railings")
         for key, field in self.railingSizingFields.items():
-            default = NominalPlacementSize(railingSpacingDefaults[key] * 10, viewport.unitsMode)
+            default = NominalPlacementSize(railingSpacingDefaults[key] * 10, unitsMode)
             blocker = QtCore.QSignalBlocker(field)
             field.setDecimals(0 if unit == "mm" else 3 if unit in ("m", "ft", "in") else 1)
-            field.setRange(1 / divisor, max(100000, NominalPlacementSize(100000, viewport.unitsMode)) / divisor)
-            field.setSingleStep((25.4 if viewport.unitsMode in imperialModes else 10) / divisor)
+            field.setRange(1 / divisor, max(100000, NominalPlacementSize(100000, unitsMode)) / divisor)
+            field.setSingleStep((25.4 if unitsMode in imperialModes else 10) / divisor)
             field.setSuffix(" " + unit)
             field.setValue(limits[key] / divisor)
             del blocker
             self.railingSizingResetButtons[key].setEnabled(not QtCore.qFuzzyCompare(limits[key], default))
-            self.railingSizingResetButtons[key].setToolTip(f"Reset to {FormatLength(default, viewport.unitsMode, 'cm')}")
+            self.railingSizingResetButtons[key].setToolTip(f"Reset to {FormatLength(default, unitsMode, 'cm')}")
 
     def SetRailingSizing(self, key, value, canonical = False):
         panel = self.mainWindow.exportPanel
@@ -556,6 +571,9 @@ class SettingsWindow(QtWidgets.QDialog):
         self.measurementPage = page
         pageLayout = QtWidgets.QVBoxLayout(page)
         pageLayout.setContentsMargins(16, 20, 16, 16)
+        pageLayout.setSpacing(8)
+        self.unitsHeading = SectionHeading("Units", "Units")
+        pageLayout.addWidget(self.unitsHeading)
         unitsChoices = QtWidgets.QHBoxLayout()
         unitsChoices.setSpacing(48)
         self.unitsField = DownwardComboBox()
@@ -577,19 +595,15 @@ class SettingsWindow(QtWidgets.QDialog):
             row.addWidget(field, 1)
             unitsChoices.addLayout(row, 1)
         pageLayout.addLayout(unitsChoices)
-        pageLayout.addSpacing(12)
+        pageLayout.addSpacing(8)
         columns = QtWidgets.QHBoxLayout()
         columns.setSpacing(48)
         leftColumn = QtWidgets.QVBoxLayout()
-        leftColumn.setSpacing(24)
+        leftColumn.setSpacing(8)
         layout = QtWidgets.QVBoxLayout()
         columns.addLayout(leftColumn, 1)
         columns.addLayout(layout, 1)
-        self.measurementHeading = QtWidgets.QLabel("Measure")
-        self.measurementHeading.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        font = self.measurementHeading.font()
-        font.setBold(True)
-        self.measurementHeading.setFont(font)
+        self.measurementHeading = SectionHeading("Measure", "Measurements")
         leftColumn.addWidget(self.measurementHeading)
         self.measurementVisibilityTree = QtWidgets.QTreeWidget()
         tree = self.measurementVisibilityTree
@@ -618,9 +632,8 @@ class SettingsWindow(QtWidgets.QDialog):
         tree.itemChanged.connect(lambda item, column: self.SetMeasurementVisibility(
             item.data(0, QtCore.Qt.ItemDataRole.UserRole), item.checkState(0) != QtCore.Qt.CheckState.Unchecked))
         leftColumn.addWidget(tree)
-        self.gridHeading = QtWidgets.QLabel("Grid")
-        self.gridHeading.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        self.gridHeading.setFont(font)
+        leftColumn.addSpacing(8)
+        self.gridHeading = SectionHeading("Grid", "Grid")
         leftColumn.addWidget(self.gridHeading)
         self.showGridField = QtWidgets.QCheckBox()
         self.showGridField.setMinimumHeight(32)
@@ -631,107 +644,20 @@ class SettingsWindow(QtWidgets.QDialog):
         gridForm.setContentsMargins(0, 0, 0, 0)
         gridForm.setHorizontalSpacing(16)
         gridForm.addRow("Draw Grid", self.showGridField)
-        leftColumn.addWidget(gridRow)
         self.gridAppearanceButton = QtWidgets.QPushButton("Appearance")
         self.gridAppearanceButton.clicked.connect(lambda: self.tabs.setCurrentWidget(self.appearanceTab))
-        leftColumn.addWidget(self.gridAppearanceButton)
+        gridControls = QtWidgets.QHBoxLayout()
+        gridControls.setSpacing(16)
+        gridControls.addWidget(gridRow)
+        gridControls.addStretch(1)
+        gridControls.addWidget(self.gridAppearanceButton)
+        leftColumn.addLayout(gridControls)
         leftColumn.addStretch(1)
         self.mainWindow.viewport.settingsChanged.connect(self.RefreshMeasurementVisibility)
         pageLayout.addLayout(columns)
-        layout.setSpacing(24)
-        self.wallMeasurementHeading = QtWidgets.QLabel("Walls")
-        self.wallMeasurementHeading.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
-        font = self.wallMeasurementHeading.font()
-        font.setBold(True)
-        self.wallMeasurementHeading.setFont(font)
-        layout.addWidget(self.wallMeasurementHeading)
-        modeForm = QtWidgets.QFormLayout()
-        modeForm.setHorizontalSpacing(16)
-        self.wallMeasurementModeField = DownwardComboBox()
-        self.wallMeasurementModeField.setAccessibleName("Wall dimension mode")
-        self.wallMeasurementModeField.addItems(["All", "Exterior", "Exterior stacked"])
-        self.wallMeasurementModeField.setCurrentText(self.mainWindow.viewport.wallMeasurementMode)
-        self.wallMeasurementModeField.currentTextChanged.connect(self.SetWallMeasurementMode)
-        self.wallMeasurementModeLabel = QtWidgets.QLabel("Mode")
-        modeForm.addRow(self.wallMeasurementModeLabel, self.wallMeasurementModeField)
-        layout.addLayout(modeForm)
-        self.wallReferenceWidget = QtWidgets.QWidget()
-        referenceForm = QtWidgets.QFormLayout(self.wallReferenceWidget)
-        referenceForm.setContentsMargins(0, 0, 0, 0)
-        referenceForm.setHorizontalSpacing(16)
-        self.wallReferenceField = DownwardComboBox()
-        self.wallReferenceField.setAccessibleName("Wall reference")
-        self.wallReferenceField.addItems(["Centerline", "Wall faces"])
-        self.wallReferenceField.currentTextChanged.connect(self.SetWallReference)
-        referenceForm.addRow("Wall reference", self.wallReferenceField)
-        referenceWidth = referenceForm.labelForField(self.wallReferenceField).sizeHint().width()
-        self.wallMeasurementModeLabel.setMinimumWidth(referenceWidth)
-        layout.addWidget(self.wallReferenceWidget)
-        self.measurementSplitWidget = QtWidgets.QWidget()
-        splitLayout = QtWidgets.QVBoxLayout(self.measurementSplitWidget)
-        splitLayout.setContentsMargins(0, 0, 0, 0)
-        splitLayout.setSpacing(24)
-        layout.addWidget(self.measurementSplitWidget)
-        self.measurementSliders = {}
-        self.measurementResetButtons = {}
-        self.measurementDragging = None
-        self.measurementWheelDeltas = {key: 0 for key in measurementDefaults}
-        self.measurementModes = {"doors": (0, 1, 2), "windows": (0, 1, 2), "stairs": (0, 2), "counters": (0, 2)}
-        for key, title in (("doors", "Doors"), ("windows", "Windows"), ("stairs", "Stairs"), ("counters", "Counters")):
-            row = QtWidgets.QHBoxLayout()
-            row.setSpacing(16)
-            heading = QtWidgets.QLabel(title)
-            heading.setProperty("measurementHeadingKey", key)
-            font = heading.font()
-            font.setBold(True)
-            heading.setFont(font)
-            heading.setFixedWidth(70)
-            row.addWidget(heading)
-            slider = DragSlider(QtCore.Qt.Orientation.Vertical)
-            slider.setObjectName("measurementMode")
-            slider.ensurePolished()
-            slider.setFixedWidth(20)
-            slider.setRange(0, len(self.measurementModes[key]) - 1)
-            slider.setInvertedAppearance(True)
-            slider.setInvertedControls(True)
-            slider.setSingleStep(1)
-            slider.setPageStep(1)
-            slider.setFixedHeight(49 if key in ("stairs", "counters") else 112)
-            slider.setAccessibleName(f"{title} wall dimension splits")
-            value = self.mainWindow.viewport.measurementSettings[key]
-            slider.setValue(self.measurementModes[key].index(value))
-            row.addWidget(slider)
-            labelArea = QtWidgets.QWidget()
-            labels = QtWidgets.QVBoxLayout(labelArea)
-            labels.setContentsMargins(0, 0, 0, 0)
-            labels.setSpacing(0)
-            texts = ("Split wall dimensions", "Do not split wall dimensions") if key in ("stairs", "counters") else (
-                "Split all wall dimensions", "Split on facing side only", "Do not split wall dimensions")
-            for index, text in enumerate(texts):
-                label = QtWidgets.QLabel(text)
-                label.setProperty("measurementKey", key)
-                label.installEventFilter(self)
-                alignment = QtCore.Qt.AlignmentFlag.AlignTop if index == 0 else (
-                    QtCore.Qt.AlignmentFlag.AlignBottom if index == len(texts) - 1 else QtCore.Qt.AlignmentFlag.AlignVCenter)
-                labels.addWidget(label, 1, alignment)
-            for control in (slider, labelArea):
-                control.setProperty("measurementKey", key)
-                control.installEventFilter(self)
-            row.addWidget(labelArea, 1)
-            reset = QtWidgets.QPushButton()
-            reset.setObjectName("settingsIconButton")
-            reset.setIcon(UiIcon("refresh"))
-            reset.setIconSize(QtCore.QSize(24, 24))
-            reset.setFixedWidth(34)
-            reset.setMaximumHeight(32)
-            reset.setToolTip(f"Reset wall dimension splits for {title.lower()}")
-            reset.setEnabled(value != measurementDefaults[key])
-            reset.clicked.connect(lambda checked = False, key = key: self.SetMeasurementMode(key, measurementDefaults[key]))
-            row.addWidget(reset)
-            slider.valueChanged.connect(lambda value, key = key: self.SetMeasurementMode(key, self.measurementModes[key][value]))
-            self.measurementSliders[key] = slider
-            self.measurementResetButtons[key] = reset
-            splitLayout.addLayout(row)
+        layout.setSpacing(8)
+        self.BuildWallDimensionControls(layout, self.mainWindow.viewport.wallMeasurementMode,
+            self.mainWindow.viewport.measurementSettings, self.SetWallMeasurementMode, self.SetWallReference, self.SetMeasurementMode)
         self.RefreshMeasurementVisibility()
         layout.addStretch(1)
         scroll = QtWidgets.QScrollArea()
@@ -782,22 +708,35 @@ class SettingsWindow(QtWidgets.QDialog):
 
     def RefreshSizeUnits(self):
         v = self.mainWindow.viewport
-        divisor, unit = MetricUnit(v.unitsMode, "cm")
+        panel = self.mainWindow.exportPanel
+        view = panel.projectView if not panel.applying else None
+        unitsMode = view["unitsMode"] if view is not None else v.unitsMode
+        divisor, unit = MetricUnit(unitsMode, "cm")
         for key, field in self.sizeFields.items():
-            value = v.DefaultPlacementSize(key)
+            value = (v.wallPresetWidths[key] if isinstance(key, int) else
+                     v.miscDefaultSizes[key] if key in miscDefaultSizes else v.openingDefaultSizes[key])
+            value = NominalPlacementSize(value * 10, unitsMode)
+            if unitsMode in imperialModes:
+                value = v.imperialDefaultSizes.get(str(key), value)
             default = wallPresetWidths[key] if isinstance(key, int) else (openingDefaultSizes | miscDefaultSizes)[key]
-            default = NominalPlacementSize(default * 10, v.unitsMode)
+            default = NominalPlacementSize(default * 10, unitsMode)
             blocker = QtCore.QSignalBlocker(field)
             field.setDecimals(0 if unit == "mm" else 3 if unit in ("m", "ft", "in") else 1)
-            field.setRange(1 / divisor, max(100000, NominalPlacementSize(100000, v.unitsMode)) / divisor)
-            field.setSingleStep((25.4 if v.unitsMode in imperialModes else 10) / divisor)
+            field.setRange(1 / divisor, max(100000, NominalPlacementSize(100000, unitsMode)) / divisor)
+            field.setSingleStep((25.4 if unitsMode in imperialModes else 10) / divisor)
             field.setSuffix(" " + unit)
             field.setValue(value / divisor)
             del blocker
             self.buildResetButtons[key].setEnabled(value != default)
-            self.buildResetButtons[key].setToolTip(f"Reset to {FormatLength(default, v.unitsMode, 'cm')}")
+            self.buildResetButtons[key].setToolTip(f"Reset to {FormatLength(default, unitsMode, 'cm')}")
 
     def eventFilter(self, watched, event):
+        if (event.type() in (QtCore.QEvent.Type.WindowDeactivate, QtCore.QEvent.Type.Hide,
+                            QtCore.QEvent.Type.UngrabMouse)
+                and self.measurementDragging is not None):
+            slider = self.measurementSliders[self.measurementDragging]
+            self.measurementDragging = None
+            slider.setSliderDown(False)
         if (event.type() == QtCore.QEvent.Type.KeyPress and
                 event.key() in (QtCore.Qt.Key.Key_Return, QtCore.Qt.Key.Key_Enter) and
                 isinstance(watched, (QtWidgets.QAbstractSpinBox, QtWidgets.QLineEdit))):
@@ -805,40 +744,8 @@ class SettingsWindow(QtWidgets.QDialog):
             self.setFocus(QtCore.Qt.FocusReason.OtherFocusReason)
             event.accept()
             return True
-        key = watched.property("measurementKey")
-        if key in self.measurementSliders:
-            slider = self.measurementSliders[key]
-            if not slider.isEnabled():
-                return super().eventFilter(watched, event)
-            eventType = event.type()
-            if eventType == QtCore.QEvent.Type.Wheel:
-                delta = event.angleDelta().y()
-                if delta:
-                    self.measurementWheelDeltas[key] += delta
-                    steps = int(self.measurementWheelDeltas[key] / 120)
-                    self.measurementWheelDeltas[key] -= steps * 120
-                    slider.setValue(max(0, min(slider.maximum(), slider.value() - steps)))
-                elif event.pixelDelta().y():
-                    slider.setValue(max(0, min(slider.maximum(), slider.value() - (1 if event.pixelDelta().y() > 0 else -1))))
-                event.accept()
-                return True
-            if watched is slider:
-                return super().eventFilter(watched, event)
-            pressed = eventType == QtCore.QEvent.Type.MouseButtonPress and event.button() == QtCore.Qt.MouseButton.LeftButton
-            moved = eventType == QtCore.QEvent.Type.MouseMove and self.measurementDragging == key
-            released = (eventType == QtCore.QEvent.Type.MouseButtonRelease and
-                        event.button() == QtCore.Qt.MouseButton.LeftButton and self.measurementDragging == key)
-            if pressed or moved or released:
-                if pressed:
-                    self.measurementDragging = key
-                    slider.setFocus(QtCore.Qt.FocusReason.MouseFocusReason)
-                    slider.setSliderDown(True)
-                slider.SetValueAt(slider.mapFromGlobal(event.globalPosition().toPoint()))
-                if released:
-                    self.measurementDragging = None
-                    slider.setSliderDown(False)
-                event.accept()
-                return True
+        if self.HandleWallDimensionEvent(watched, event):
+            return True
         return super().eventFilter(watched, event)
 
     def SetWallReference(self, reference):
@@ -862,6 +769,7 @@ class SettingsWindow(QtWidgets.QDialog):
             return
         self.mainWindow.viewport.wallMeasurementMode = mode
         self.RefreshMeasurementVisibility()
+        self.mainWindow.RefreshProperties()
         self.mainWindow.viewport.update()
         self.mainWindow.ProjectSettingsChanged()
 
@@ -870,11 +778,10 @@ class SettingsWindow(QtWidgets.QDialog):
         if panel.projectView is not None and not panel.applying:
             panel.EditProjectSettings(lambda: self.SetMeasurementMode(key, value))
             return
-        blocker = QtCore.QSignalBlocker(self.measurementSliders[key])
-        self.measurementSliders[key].setValue(self.measurementModes[key].index(value))
-        del blocker
-        self.measurementResetButtons[key].setEnabled(value != measurementDefaults[key])
+        if self.mainWindow.viewport.wallMeasurementMode == "Exterior" and value == 1:
+            value = 0
         self.mainWindow.viewport.measurementSettings[key] = value
+        self.RefreshMeasurementVisibility()
         self.mainWindow.RefreshProperties()
         self.mainWindow.viewport.update()
         self.mainWindow.ProjectSettingsChanged()
@@ -887,26 +794,9 @@ class SettingsWindow(QtWidgets.QDialog):
         anyDimensions = any(measurementVisibility.values())
         wallDimensionsEnabled = showMeasurements and measurementVisibility["walls"]
         if hasattr(self, "wallMeasurementModeField"):
-            blocker = QtCore.QSignalBlocker(self.wallMeasurementModeField)
-            self.wallMeasurementModeField.setCurrentText(view["wallMeasurementMode"] if view is not None else v.wallMeasurementMode)
-            del blocker
-            self.wallMeasurementHeading.setEnabled(wallDimensionsEnabled)
-            self.wallMeasurementModeField.setEnabled(wallDimensionsEnabled)
-            self.wallMeasurementModeLabel.setEnabled(wallDimensionsEnabled)
-            stacked = (view["wallMeasurementMode"] if view is not None else v.wallMeasurementMode) == "Exterior stacked"
-            self.wallReferenceWidget.setVisible(stacked)
-            self.wallReferenceWidget.setEnabled(wallDimensionsEnabled)
-            self.measurementSplitWidget.setVisible(not stacked)
-            referenceBlocker = QtCore.QSignalBlocker(self.wallReferenceField)
-            self.wallReferenceField.setCurrentText(view["wallMeasurementReference"] if view is not None else v.wallMeasurementReference)
-            del referenceBlocker
-            splitsEnabled = wallDimensionsEnabled and not stacked
-            for key, slider in self.measurementSliders.items():
-                slider.setEnabled(splitsEnabled)
-                for widget in self.measurementPage.findChildren(QtWidgets.QWidget):
-                    if widget.property("measurementKey") == key or widget.property("measurementHeadingKey") == key:
-                        widget.setEnabled(splitsEnabled)
-                self.measurementResetButtons[key].setEnabled(splitsEnabled and v.measurementSettings[key] != measurementDefaults[key])
+            self.RefreshWallDimensionControls(view["wallMeasurementMode"] if view is not None else v.wallMeasurementMode,
+                view["wallMeasurementReference"] if view is not None else v.wallMeasurementReference,
+                view["measurementSettings"] if view is not None else v.measurementSettings, wallDimensionsEnabled)
         unitsBlocker = QtCore.QSignalBlocker(self.unitsField)
         self.unitsField.setCurrentText(view["unitsMode"] if view is not None else v.unitsMode)
         del unitsBlocker
@@ -964,6 +854,10 @@ class SettingsWindow(QtWidgets.QDialog):
         self.mainWindow.ProjectSettingsChanged()
 
     def SetDefaultSize(self, key, value, canonical = False):
+        panel = self.mainWindow.exportPanel
+        if panel.projectView is not None and not panel.applying:
+            panel.EditProjectSettings(lambda: self.SetDefaultSize(key, value, canonical))
+            return
         v = self.mainWindow.viewport
         if v.unitsMode in imperialModes and not canonical:
             divisor, unused = MetricUnit(v.unitsMode, "cm")

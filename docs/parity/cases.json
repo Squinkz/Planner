@@ -210,7 +210,9 @@
       "checks": [
         "checks/check_selected_hit_priority.py",
         "checks/check_canvas_cursors.py",
-        "checks/check_furnishing_selection_handles.py"
+        "checks/check_furnishing_selection_handles.py",
+        "checks/check_hover_click_targets.py",
+        "checks/check_line_vertex_priority.py"
       ],
       "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
     },
@@ -298,7 +300,7 @@
       "id": "PARITY-023",
       "rule": "MEASURE-01",
       "name": "Measurement eligibility",
-      "given": "Global/category measurements enabled, wall and label available",
+      "given": "All wall dimension mode, global/category dimensions enabled, wall and label available",
       "when": "Inspect menus/properties; hide wall measurement; select wall; disable category",
       "then": "Only eligible object gets top-section action; normal dimension hides, selected dimensions remain; disabled category removes controls",
       "checks": [
@@ -806,7 +808,7 @@
       "id": "PARITY-059",
       "rule": "SETTINGS-01",
       "name": "Measurement split-selector composition",
-      "given": "Settings Measurements page at different widths",
+      "given": "Options Dimensions page at different widths, with All or Exterior wall mode selected",
       "when": "Inspect label/selector/reset positions and use labels, track and wheel",
       "then": "Keep two distinct columns, align discrete choices to their vertical detents, map two-position indices to modes 0/2 and retain separate visibility controls",
       "checks": [
@@ -844,7 +846,8 @@
         "checks/check_export_dropdowns.py",
         "checks/check_export_button.py",
         "checks/check_export_history.py",
-        "checks/check_export_measurement_transitions.py"
+        "checks/check_export_measurement_transitions.py",
+        "checks/check_export_dimension_settings.py"
       ],
       "coverage": "Desktop layout and behavior checks for the named cases; browser runs and exhaustive conditional combinations are not claimed."
     },
@@ -895,7 +898,7 @@
       "id": "PARITY-065",
       "rule": "FILE-01",
       "name": "Consistent furnishing asset status and Null colors",
-      "given": "Missing top-level assets, nested missing children, missing images, recovered fallback artwork and a built-in north arrow",
+      "given": "Missing top-level assets, nested missing children, missing images, recovered fallback artwork and a built-in north marker",
       "when": "Open or restore, inspect properties, copy/duplicate and render PNG/SVG repeatedly",
       "then": "Retain original keys, report real asset faults consistently, exclude built-ins, keep exports quiet and all Null foreground error-colored even when selected",
       "checks": [
@@ -985,7 +988,9 @@
       "given": "A single local plan file dragged over the main window, canvas or sidebar controls",
       "when": "Drop the file, accepting or cancelling the normal project replacement prompt",
       "then": "Use normal project loading and recovery, preserve the current project when cancelled, and reject remote URLs, directories, other extensions and multiple files",
-      "checks": ["checks/check_project_file_drop.py"]
+      "checks": [
+        "checks/check_project_file_drop.py"
+      ]
     },
     {
       "id": "PARITY-072",
@@ -994,7 +999,12 @@
       "given": "An open plan with missing assets, acknowledged recovery geometry errors or existing placement warnings",
       "when": "Open Edit > Check for Problems, locate targets, repair or delete an entry, and undo or redo",
       "then": "Use a live modeless list and presentation-only error outlines, share recovery validation/repair proposals, retain navigation context, and keep actions undoable without deleting unrelated grouped objects or stale selections",
-      "checks": ["checks/check_scene_problems.py", "checks/check_geometry_recovery.py", "checks/check_recovery_locate.py", "checks/check_header_menus.py"]
+      "checks": [
+        "checks/check_scene_problems.py",
+        "checks/check_geometry_recovery.py",
+        "checks/check_recovery_locate.py",
+        "checks/check_header_menus.py"
+      ]
     },
     {
       "id": "PARITY-073",
@@ -1003,7 +1013,10 @@
       "given": "Regular walls nearly on axes, nearly perpendicular at joins, slightly off grid or with nearby disconnected endpoints",
       "when": "Inspect Potential issues, navigate, auto-repair a suggestion and undo or redo",
       "then": "Use conservative world-space tolerances and a stable captured grid, distinguish warnings from errors, carry shared endpoints and attached openings, and reject new invalid geometry or collisions without changing history",
-      "checks": ["checks/check_potential_issues.py", "checks/check_scene_problems.py"]
+      "checks": [
+        "checks/check_potential_issues.py",
+        "checks/check_scene_problems.py"
+      ]
     },
     {
       "id": "PARITY-074",
@@ -1012,7 +1025,10 @@
       "given": "Potential issues for intentional geometry in the current plan",
       "when": "Ignore an entry or category, recheck, save/reopen or restore ignored suggestions",
       "then": "Persist geometry-specific dismissals in project/session settings, retain confirmed problems, reveal changed geometry again and allow restoring all ignored suggestions without geometry changes",
-      "checks": ["checks/check_ignored_potential_issues.py", "checks/check_potential_issues.py"]
+      "checks": [
+        "checks/check_ignored_potential_issues.py",
+        "checks/check_potential_issues.py"
+      ]
     },
     {
       "id": "PARITY-075",
@@ -1021,7 +1037,10 @@
       "given": "A saved plan with Export-tab overrides and optional crop bounds",
       "when": "Export PNG or SVG with a digital density and optional explicit bounding box",
       "then": "Match the Export tab's saved appearance and inherited settings, give CLI density and bounds precedence, auto-crop when no saved or explicit bounds exist, read legacy borders, reject removed -auto/-ruler options, and leave the input file unchanged",
-      "checks": ["checks/check_export_cli_settings.py", "checks/check_export_plan.py"]
+      "checks": [
+        "checks/check_export_cli_settings.py",
+        "checks/check_export_plan.py"
+      ]
     },
     {
       "id": "PARITY-076",
@@ -1030,7 +1049,11 @@
       "given": "Exact copies of any architectural type, including stairs and railings, with collisions disabled",
       "when": "Inspect the canvas and problem list, move a copy or export PNG/SVG",
       "then": "Share duplicate detection across all types, name the actual type in the problem list, warn on front copies, export one copy and keep joined end-to-end constructions valid",
-      "checks": ["checks/check_architectural_duplicates.py", "checks/check_elevator_duplicate_warning.py", "checks/check_architectural_error_highlights.py"]
+      "checks": [
+        "checks/check_architectural_duplicates.py",
+        "checks/check_elevator_duplicate_warning.py",
+        "checks/check_architectural_error_highlights.py"
+      ]
     },
     {
       "id": "PARITY-077",
@@ -1039,8 +1062,205 @@
       "given": "A boundary annotation with two control points and optional moved label",
       "when": "Place, select, edit, copy, undo, save/reopen, restore a session or export it",
       "then": "Use measurement-guide editing with a dash-dot stroke, show its length only while selected, exclude hidden labels from hit targets, preserve its own visibility and nonphysical collision policy, and export only the line",
-      "checks": ["checks/check_boundary_lines.py", "checks/check_session_guide_selection.py", "checks/check_object_behavior_matrix.py", "checks/check_parity_rendering.py"]
+      "checks": [
+        "checks/check_boundary_lines.py",
+        "checks/check_session_guide_selection.py",
+        "checks/check_object_behavior_matrix.py",
+        "checks/check_parity_rendering.py"
+      ]
+    },
+    {
+      "id": "PARITY-078",
+      "rule": "MEASURE-01",
+      "name": "Editor master and dimension tree",
+      "given": "Walls-only dimensions and an expanded Options dimension tree",
+      "when": "Toggle Draw dimensions; disable all categories; restore a category or use M",
+      "then": "Master preserves choices, the empty Options root is read-only, children remain usable and M seeds walls only",
+      "checks": [
+        "checks/check_measurement_master_toggle.py",
+        "checks/check_measurement_settings.py"
+      ],
+      "coverage": "Current desktop regression coverage for the named behavior; historical screenshots and browser acceptance are separate evidence."
+    },
+    {
+      "id": "PARITY-079",
+      "rule": "SETTINGS-01",
+      "name": "Dimensions page and grid appearance shortcut",
+      "given": "Units and Canvas precision above Measure and Walls columns",
+      "when": "Collapse the tree, select Exterior stacked, toggle Draw Grid and click Appearance",
+      "then": "Tree children are Walls/Stairs/Counters/Railings; stacked replaces split selectors with Wall reference; Grid heading and Appearance shortcut remain separate; grid intensity controls follow project grid visibility",
+      "checks": [
+        "checks/check_measurement_settings.py",
+        "checks/check_parity_layouts.py",
+        "checks/check_checkbox_layouts.py"
+      ],
+      "coverage": "Current desktop regression coverage for the named behavior; historical screenshots and browser acceptance are separate evidence."
+    },
+    {
+      "id": "PARITY-080",
+      "rule": "MEASURE-01",
+      "name": "Exterior stacked wall references",
+      "given": "Enclosed rooms, openings, rotated or unequal-width walls and an overlapping partition assembly",
+      "when": "Switch All, Exterior and Exterior stacked; choose Centerline or Wall faces",
+      "then": "Exterior culls internal faces; stacked uses at most three nonredundant tiers; references measure axes or exposed faces, preserve actual opening widths and split at the combined partition faces",
+      "checks": [
+        "checks/check_exterior_measurements.py",
+        "checks/check_stacked_measurements.py",
+        "checks/check_room_measurement_stacks.py"
+      ],
+      "coverage": "Current desktop regression coverage for the named behavior; historical screenshots and browser acceptance are separate evidence."
+    },
+    {
+      "id": "PARITY-081",
+      "rule": "EXPORT-UI-01",
+      "name": "Export dimension overrides and project ownership",
+      "given": "Export active with project dimension settings and sparse export overrides",
+      "when": "Edit mode/reference/units/tree in Export, edit corresponding settings and grid/splits in Options, save and reopen",
+      "then": "Export uses Units, Measure tree, Walls and Mode/reference with no precision/splits; Options always edits project settings; explicit export overrides win; removing them restores inheritance",
+      "checks": [
+        "checks/check_export_dimension_settings.py",
+        "checks/check_export_measurement_shortcuts.py",
+        "checks/check_export_cli_settings.py"
+      ],
+      "coverage": "Current desktop regression coverage for the named behavior; historical screenshots and browser acceptance are separate evidence."
+    },
+    {
+      "id": "PARITY-082",
+      "rule": "SNAP-01",
+      "name": "Live room boundaries and tint",
+      "given": "Structural walls and a theme with roomFill",
+      "when": "Move a wall to enclose or open a room, pan, hide walls and move furnishings",
+      "then": "Room tint updates with exterior boundary classification during the same frame; stable geometry and camera changes reuse derived room paths; furniture does not rebuild rooms",
+      "checks": [
+        "checks/check_room_detection.py",
+        "checks/check_live_room_tint.py"
+      ],
+      "coverage": "Current desktop regression coverage for the named behavior; historical screenshots and browser acceptance are separate evidence."
+    },
+    {
+      "id": "PARITY-083",
+      "rule": "SNAP-01",
+      "name": "Room labels and unit overrides",
+      "given": "Room Label placed inside or outside an enclosure",
+      "when": "Edit its single-line name, move it between rooms, change project/export units and set its own unit override",
+      "then": "Centered name and derived area use the detected interior region; outside displays a placeholder; per-label units override project/export units without rewriting stored bounds",
+      "checks": [
+        "checks/check_room_labels.py"
+      ],
+      "coverage": "Current desktop regression coverage for the named behavior; historical screenshots and browser acceptance are separate evidence."
+    },
+    {
+      "id": "PARITY-084",
+      "rule": "GUIDE-04",
+      "name": "Weighted dashed and solid lines",
+      "given": "Dashed Line or Solid Line placed on the canvas, including inside a wall",
+      "when": "Change Weight after Length; select, drag, duplicate, save and export",
+      "then": "Default Objects weight derives class ink and thickness; selected dimensions select the body rather than a draggable label; eligible vertices outrank line bodies",
+      "checks": [
+        "checks/check_weighted_lines.py",
+        "checks/check_boundary_lines.py",
+        "checks/check_line_vertex_priority.py"
+      ],
+      "coverage": "Current desktop regression coverage for the named behavior; historical screenshots and browser acceptance are separate evidence."
+    },
+    {
+      "id": "PARITY-085",
+      "rule": "EDIT-01",
+      "name": "Shared linear subdivision and dissolution",
+      "given": "Wall, counter, stair, railing, arrow or straight guide with connected movement off",
+      "when": "Subdivide then drag the new junction; undo and dissolve same-class segments",
+      "then": "Both new junction endpoints are selected and move together; outer settings and arrow/stair direction survive; dissolution merges only a valid same-class pair",
+      "checks": [
+        "checks/check_linear_subdivision.py",
+        "checks/check_wall_subdivision.py",
+        "checks/check_wall_dissolve.py",
+        "checks/check_arrow_direction.py"
+      ],
+      "coverage": "Current desktop regression coverage for the named behavior; historical screenshots and browser acceptance are separate evidence."
+    },
+    {
+      "id": "PARITY-086",
+      "rule": "HOVER-01",
+      "name": "Resolved hover and click target",
+      "given": "Overlapping resize/rotation/pivot handles, control points and labels, with single or multi-selection",
+      "when": "Hover then click, double-click or open a context menu",
+      "then": "Active hover and cursor match the target acted on; selected handles paint last; blocked handles stay hidden; whole-object groups advertise group movement at endpoints",
+      "checks": [
+        "checks/check_hover_click_targets.py",
+        "checks/check_selected_hit_priority.py",
+        "checks/check_canvas_cursors.py"
+      ],
+      "coverage": "Current desktop regression coverage for the named behavior; historical screenshots and browser acceptance are separate evidence."
+    },
+    {
+      "id": "PARITY-087",
+      "rule": "EDIT-01",
+      "name": "Global and local mixed-selection reflection",
+      "given": "Furnishings, wall endpoints and attached openings selected together",
+      "when": "Flip horizontally or vertically with global then local transforms",
+      "then": "Global reflection uses the shared bounds and mirrors control points, local reflection uses each object axes/center; attachments remain valid and text stays readable",
+      "checks": [
+        "checks/check_selection_flips.py",
+        "checks/check_furnishing_flips.py"
+      ],
+      "coverage": "Current desktop regression coverage for the named behavior; historical screenshots and browser acceptance are separate evidence."
+    },
+    {
+      "id": "PARITY-088",
+      "rule": "EDIT-01",
+      "name": "Stair and counter end merging with landing graphics",
+      "given": "Touching sides and end-connected stair or counter runs",
+      "when": "Join end caps, add a landing, reverse directions and render",
+      "then": "Only end-connected runs merge; stair insets continue around landings and treads stop at them; compatible direction shafts continue with fixed-size heads",
+      "checks": [
+        "checks/check_run_end_merging.py",
+        "checks/check_stair_landing_annotations.py",
+        "checks/check_stair_arrowheads.py"
+      ],
+      "coverage": "Current desktop regression coverage for the named behavior; historical screenshots and browser acceptance are separate evidence."
+    },
+    {
+      "id": "PARITY-089",
+      "rule": "FILE-02",
+      "name": "Window wells and additional opening types",
+      "given": "Awning, Double Casement, Swinging Door and Double Door available in Build",
+      "when": "Place, flip, resize, save/reopen and render; enable wells on window types",
+      "then": "Door/window-specific controls and graphics retain their distinct behavior; window wells stay optional window state with depth/dashed fields and survive transports",
+      "checks": [
+        "checks/check_window_variants.py",
+        "checks/check_swinging_doors.py",
+        "checks/check_double_doors.py"
+      ],
+      "coverage": "Current desktop regression coverage for the named behavior; historical screenshots and browser acceptance are separate evidence."
+    },
+    {
+      "id": "PARITY-090",
+      "rule": "LAYOUT-01",
+      "name": "Grouped World and export visibility",
+      "given": "World visibility categories and an independent Reference Image root",
+      "when": "Collapse Objects/Annotations, toggle World or leaves, enter Export, save/reopen and restore session UI",
+      "then": "Both trees share Walls/Objects/Annotations branches; group checkboxes toggle descendants and display partial states without separate saved visibility flags; export overrides remain isolated and session restores World group expansion",
+      "checks": [
+        "checks/check_visibility_grouping.py",
+        "checks/check_visibility.py",
+        "checks/check_export_settings.py",
+        "checks/check_session_recovery.py"
+      ],
+      "coverage": "Desktop grouping, state, metadata and export-isolation checks; historical screenshots are not regenerated."
+    },
+    {
+      "id": "PARITY-091",
+      "rule": "ACTIVITY-01",
+      "name": "Persistent Activity Log",
+      "given": "Scene/reference and Export edits, notifications, recovery and detected issues",
+      "when": "Browse/filter, restore a retained state, undo/redo, branch, exceed undo retention and save/reopen",
+      "then": "Keep chronological descriptions independently of bounded journals; restore only retained states in their own scope; persist safe compressed metadata and deduplicate issue/message events",
+      "checks": [
+        "checks/check_activity_log.py",
+        "checks/check_activity_events.py"
+      ],
+      "coverage": "Desktop restoration, expiry/branch handling, settings and issue transitions, recovery/session persistence and safe decoding."
     }
   ],
-  "reviewed": "2026-10-23"
+  "reviewed": "2026-10-26"
 }

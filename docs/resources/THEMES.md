@@ -28,7 +28,7 @@ Canvas `labelFont` selects a font by its internal family name. For example, `D-D
 
 Planner registers `.ttf`, `.otf`, `.ttc` and `.otc` resources in `assets/fonts/` at startup; installed fonts are also available through Qt. Restart after adding a font.
 
-Canvas labels and north-arrow lettering use `labelFont`; the default is Noto Sans. UI text, rulers and measurements use Noto Sans. Imperial measurements use native fraction shaping where supported, or assembled fractions from the font's digits and slash. SVG exports outline text.
+Canvas labels and north-marker lettering use `labelFont`; the default is Noto Sans. UI text, rulers and measurements use Noto Sans. Imperial measurements use native fraction shaping where supported, or assembled fractions from the font's digits and slash. SVG exports outline text.
 
 ## Inheritance
 

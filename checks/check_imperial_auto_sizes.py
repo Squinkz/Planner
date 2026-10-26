@@ -79,6 +79,8 @@ def Main():
         assert RenderPlan(path, 50, (-1000, -1000, 6000, 6000), projectData = main.BuildProjectData(), applyTheme = False) is not None
         sourceLimits = v.AutoSizingLimits("stairs")
         main.sidebarTabs.setCurrentWidget(main.exportPanel)
+        assert v.unitsMode == "Inches"
+        main.exportPanel.unitsField.setCurrentText("Millimeters")
         assert v.unitsMode == "Millimeters" and v.AutoSizingLimits("stairs") == sourceLimits
         panel.SetStepSizing("minimum", 11.75)
         assert math.isclose(v.AutoSizingLimits("stairs")["minimum"], 11.75 * 25.4)

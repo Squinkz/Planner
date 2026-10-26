@@ -38,6 +38,7 @@ def Main():
             "showGrid": True, "viewportSettings": {"overall": .6, "minor": .2},
             "lineworkSettings": {"baseWidth": 2, "walls": .8},
             "measurementVisibility": {"walls": True}, "visibility": {"Walls": True},
+            "measurementPrecision": "High", "measurementSettings": {"doors": 0, "windows": 2}, "wallMeasurementMode": "All",
             "unitsMode": "Centimeters", "vignetteEnabled": True, "vignetteStrength": .4,
             "texture": "cardboard_t1_75_25_5_5.png", "textureAngle": 37,
             "textureScale": 1.3, "textureStrength": .3, "textureHighlights": .7,
@@ -112,6 +113,17 @@ def Main():
         noBorder = RenderPlan(planPath, 100)
         defaultImage = QtGui.QImage(str(outputPath.with_suffix(".png")))
         assert defaultImage.size() == noBorder.size() + QtCore.QSize(112, 112), "Missing settings lost the default reference-zone border"
+        # Missing unit overrides inherit the saved project units in both the UI
+        # and CLI/API path, including imperial dimension and ruler formatting.
+        data["settings"]["exportSettings"] = {"bounds": [0, 0, 6000, 4500], "border": "Ruler", "showGrid": True,
+                                              "canvasTheme": "Light Canvas", "visibility": {"Walls": True}}
+        main.ApplyProject(DecodeProject(data, v.furnishingDefinitions), planPath)
+        main.sidebarTabs.setCurrentWidget(panel)
+        assert panel.unitsField.currentText() == "Inches" and "unitsMode" not in panel.overrides
+        for kind in ("png", "svg"):
+            expected = panel.Render(kind)
+            actual = RenderPlan(planPath, 100, outputFormat = kind, projectData = data, useExportSettings = True)
+            assert actual == expected, f"Inherited project units differ between Export and CLI ({kind})"
     print("CLI saved settings: PNG/SVG UI parity, crop precedence, automatic crop, legacy borders and read-only input passed")
 
 

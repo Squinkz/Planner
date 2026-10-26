@@ -26,16 +26,24 @@ def Main():
     v = main.viewport
     point = QtCore.QPointF
     for key in ("stairs", "counters"):
+        panel.measurementSplitTabs.setCurrentIndex(list(panel.measurementSliders).index(key))
+        app.processEvents()
         slider = panel.measurementSliders[key]
         labels = [label for label in panel.measurementPage.findChildren(QtWidgets.QLabel)
                   if label.property("measurementKey") == key]
         assert len(labels) == 2 and slider.maximum() == 1 and slider.value() == 1
-        doorLabels = [label for label in panel.measurementPage.findChildren(QtWidgets.QLabel)
-                      if label.property("measurementKey") == "doors"]
-        referenceSpacing = doorLabels[1].mapTo(panel, doorLabels[1].rect().center()).y() - doorLabels[0].mapTo(panel, doorLabels[0].rect().center()).y()
-        actualSpacing = labels[1].mapTo(panel, labels[1].rect().center()).y() - labels[0].mapTo(panel, labels[0].rect().center()).y()
-        # Two and three label layouts distribute integer pixels differently with the bundled font.
-        assert abs(actualSpacing - referenceSpacing) <= 2, (actualSpacing, referenceSpacing, labels[0].height(), slider.height())
+        assert slider.isVisibleTo(panel) and slider.height() == 49
+        panel.tabs.currentWidget().ensureWidgetVisible(slider)
+        app.processEvents()
+        option = QtWidgets.QStyleOptionSlider()
+        slider.initStyleOption(option)
+        for index, label in enumerate(labels):
+            option.sliderPosition = option.sliderValue = index
+            handle = slider.style().subControlRect(QtWidgets.QStyle.ComplexControl.CC_Slider, option,
+                                                  QtWidgets.QStyle.SubControl.SC_SliderHandle, slider)
+            labelY = label.mapTo(panel, label.rect().center()).y()
+            handleY = slider.mapTo(panel, handle.center()).y()
+            assert abs(labelY - handleY) <= 4, (key, index, labelY, handleY)
         QtTest.QTest.mouseClick(labels[0], QtCore.Qt.MouseButton.LeftButton)
         assert v.measurementSettings[key] == 0
         QtTest.QTest.mousePress(labels[0], QtCore.Qt.MouseButton.LeftButton)

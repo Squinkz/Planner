@@ -35,6 +35,7 @@ class ProjectsMixin:
         self.MarkProjectClean()
         self.viewport.sceneChanged.connect(self.ProjectSceneChanged)
         self.viewport.settingsChanged.connect(self.ProjectSettingsChanged)
+        self.activityLog.settingsBaseline = self.activityLog.SettingsSnapshot()
 
     def ProjectSettings(self):
         v = self.viewport
@@ -42,11 +43,11 @@ class ProjectsMixin:
         settings = {"wallWidth": v.newWallWidth, "wallMaterial": v.newWallMaterial, "wallShape": v.wallShape,
                 "doorType": v.openingPlacementTypes["Door"][v.openingPlacementIndices["Door"]].__name__,
                 "windowType": v.openingPlacementTypes["Window"][v.openingPlacementIndices["Window"]].__name__,
-                "snapEnabled": self.snapButton.isChecked() and any(snap.values()), "snap": snap,
+                "snapEnabled": v.snapEnabled and any(snap.values()), "snap": snap,
                 "connectedVertices": v.connectedVerticesEnabled, "connectedObjects": v.connectedObjectsEnabled,
                 "groupMode": v.groupModeEnabled, "localTransforms": v.localTransforms, "visibility": dict(v.visibility),
                 "ignoredPotentialIssues": list(v.ignoredPotentialIssues),
-                "showGrid": v.showGrid, "showMeasurements": v.showMeasurements, "measurementPrecision": v.measurementPrecision,
+                "showGrid": v.showGrid, "floors": v.floors, "showMeasurements": v.showMeasurements, "measurementPrecision": v.measurementPrecision,
                 "buildSettings": {"wallWidths": list(v.wallPresetWidths), "openingSizes": dict(v.openingDefaultSizes),
                                   "miscSizes": dict(v.miscDefaultSizes),
                                   **({"imperialSizes": dict(v.imperialDefaultSizes)} if v.imperialDefaultSizes else {})},
@@ -96,13 +97,18 @@ class ProjectsMixin:
             self.encodedHistoryKey = key
         return self.encodedHistory
 
-    def BuildProjectData(self, includeHistory = True):
+    def BuildProjectData(self, includeHistory = True, includeActivity = True):
+        if includeActivity and self.activityLog.settingsTimer.isActive():
+            self.activityLog.FlushSettings()
         pan = self.exportPanel.projectPanOffset if self.exportPanel.projectPanOffset is not None else self.viewport.panOffset
         data = {"format": "Planner Project", "version": 1, "scene": EncodeScene(self.viewport),
                 "settings": self.ProjectSettings(),
                 "view": {"zoom": self.exportPanel.projectZoom if self.exportPanel.projectZoom is not None else self.viewport.zoom,
                          "pan": [pan.x(), pan.y()]},
                 "ui": self.ProjectUiState()}
+        activity = self.activityLog.Encode() if includeActivity else None
+        if activity is not None:
+            data["activityLog"] = activity
         if includeHistory:
             data["history"] = self.ProjectHistory()
         embedded = EncodeUsedFurnishings(self.viewport, includeHistory = includeHistory)
@@ -129,6 +135,7 @@ class ProjectsMixin:
                 self.viewport.ShowClipboardError("Startup file could not be loaded. Using factory defaults.")
             else:
                 decoded[5].pop("history", None)
+                decoded[5].pop("activityLog", None)
                 self.ApplyProject(decoded, None)
                 if repairs:
                     self.ReportRecoveredProject(self.startupPath, backupPath, repairs)
@@ -150,11 +157,11 @@ class ProjectsMixin:
         self.FinishProjectInteraction()
         self.viewport.EnsureObjectIds()
         from .session import WriteSessionFile
-        error = WriteSessionFile(self.startupPath, self.BuildProjectData(includeHistory = False))
+        error = WriteSessionFile(self.startupPath, self.BuildProjectData(includeHistory = False, includeActivity = False))
         if error:
             self.ShowAppMessage("Cannot Save Startup File", "Could not save startup.plan.", "error", informativeText = error)
             return False
-        self.viewport.ShowClipboardError("Startup file saved.")
+        self.viewport.ShowClipboardError("Startup file saved.", isError = False)
         return True
 
     def ProjectSceneChanged(self):
@@ -165,6 +172,7 @@ class ProjectsMixin:
 
     def ProjectSettingsChanged(self):
         if not self.projectLoading:
+            self.activityLog.SettingsChanged()
             self.exportPanel.RecordExportHistory()
             self.exportPanel.CaptureProjectChanges()
             self.projectTimer.start(0)
@@ -280,6 +288,8 @@ class ProjectsMixin:
 
     def ReportRecoveredProject(self, path, backupPath, repairs):
         self.recoverySourcePath, self.recoveryBackupPath = path, backupPath
+        for repair in repairs:
+            self.activityLog.Add("Recovery", repair)
         self.savedSceneSignature = self.savedSettingsSignature = bytes(32)
         self.RefreshProjectDirty()
         missingAssets = [repair for repair in repairs if repair.startswith(("Missing furnishing ", "Missing compound child ", "Unavailable furnishing artwork "))]
@@ -366,11 +376,17 @@ class ProjectsMixin:
         previousPath = self.projectPath
         previousSaved = self.savedSceneSignature, self.savedSettingsSignature
         previousRecovery = self.recoverySourcePath, self.recoveryBackupPath
+        previousActivityGeneration, previousActivityNext = self.activityLog.generation, self.activityLog.nextId
         definitions = self.viewport.localFurnishingDefinitions if self.viewport.projectFurnishingDefinitions else self.viewport.furnishingDefinitions
 
         def RestorePreviousProject():
+            attemptEntries = [entry for entry in self.activityLog.entries
+                              if self.activityLog.generation != previousActivityGeneration or entry["id"] >= previousActivityNext]
             try:
                 self.ApplyProject(DecodeProject(previousData, definitions), previousPath)
+                for entry in attemptEntries:
+                    if entry["kind"] in ("Application", "Blocked action"):
+                        self.activityLog.Add(entry["kind"], entry["summary"], entry["details"])
                 self.savedSceneSignature, self.savedSettingsSignature = previousSaved
                 self.recoverySourcePath, self.recoveryBackupPath = previousRecovery
                 self.RefreshProjectDirty()
@@ -540,8 +556,6 @@ class ProjectsMixin:
                 panel.RefreshSizeUnits()
                 for key, value in v.gridIntensities.items():
                     panel.SetGridIntensity(key, value)
-                for key, value in v.measurementSettings.items():
-                    panel.SetMeasurementMode(key, value)
                 panel.RefreshStepSizing()
                 panel.RefreshCollisions()
                 blocker = QtCore.QSignalBlocker(panel.unitsField)
@@ -550,6 +564,7 @@ class ProjectsMixin:
                 # Field synchronization can update the active preset; preserve the project's exact width.
                 v.newWallWidth = settings["wallWidth"]
             v.showGrid, v.showMeasurements = settings["showGrid"], settings["showMeasurements"]
+            v.floors = settings["floors"]
             v.measurementVisibility = dict(settings["measurementVisibility"])
             if self.settingsWindow is not None:
                 self.settingsWindow.RefreshMeasurementVisibility()
@@ -599,10 +614,12 @@ class ProjectsMixin:
                 self.SetPropertiesSplitterSizes(ui["propertiesSplitter"])
             self.exportPanel.overrides = settings.get("exportSettings", {})
             self.exportPanel.ResetExportHistory()
+            self.activityLog.Load(settings.get("activityLog"))
             self.exportPanel.SetActive(self.sidebarTabs.currentWidget() is self.exportPanel)
         finally:
             self.projectLoading = False
         self.MarkProjectClean()
+        self.activityLog.QueueIssues()
         self.viewport.update()
 
     def closeEvent(self, event):

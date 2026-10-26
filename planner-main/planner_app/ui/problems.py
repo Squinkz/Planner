@@ -88,6 +88,7 @@ class ProblemsWindow(QtWidgets.QDialog):
         self.refreshTimer.stop()
         main = self.parentWidget()
         self.problems = FindSceneProblems(main.viewport, gridStep = self.gridStep)
+        main.activityLog.ObserveIssues(self.problems, self.gridStep)
         for tabIndex, (section, potential) in enumerate((("Problems", False), ("Potential issues", True))):
             tree = self.trees[tabIndex]
             previous = tree.currentItem()
@@ -111,8 +112,8 @@ class ProblemsWindow(QtWidgets.QDialog):
                 for issue in issues:
                     obj = issue["object"]
                     name = getattr(obj, "definitionKey", obj.definition["key"]) if hasattr(obj, "definition") else type(obj).__name__
-                    if name == "MeasurementGuide":
-                        name = "Dimension guide"
+                    name = {"MeasurementGuide": "Dimension guide", "north-arrow": "North Marker",
+                            "NorthArrow": "North Marker"}.get(name, name)
                     child = QtWidgets.QTreeWidgetItem(parent, [f"{name} — Object {obj.objectId}"])
                     child.setToolTip(0, issue["description"])
                     child.setData(0, QtCore.Qt.ItemDataRole.UserRole, [issue])
@@ -169,7 +170,9 @@ class ProblemsWindow(QtWidgets.QDialog):
         if selected and all(issue.get("repairKind") == "duplicates" for issue in selected):
             v = self.parentWidget().viewport
             v.CancelInteraction()
-            RepairCoincidentObjects(v, selected)
+            if RepairCoincidentObjects(v, selected):
+                self.parentWidget().activityLog.Add("Repair", "Auto-repaired coincident objects",
+                    objects = [issue["object"].objectId for issue in selected], linkScene = True)
             self.RefreshObjects()
             return
         if len(selected) != 1:
@@ -184,6 +187,9 @@ class ProblemsWindow(QtWidgets.QDialog):
             return
         if issue.get("potential"):
             repaired, message = RepairPotentialIssue(v, issue)
+            self.parentWidget().activityLog.Add("Repair" if repaired else "Blocked action",
+                ("Auto-repaired: " if repaired else "Auto-repair blocked: ") + issue["label"],
+                message or "", [issue["object"].objectId], linkScene = repaired)
             self.RefreshObjects()
             if not repaired:
                 self.description.setText(message)
@@ -201,6 +207,7 @@ class ProblemsWindow(QtWidgets.QDialog):
             elif name == "center":
                 obj.centerFraction = value
         v.RecordEdit(before)
+        self.parentWidget().activityLog.Add("Repair", "Auto-repaired: " + issue["label"], objects = [obj.objectId], linkScene = True)
         v.selectionChanged.emit()
         self.RefreshObjects()
 
@@ -237,6 +244,7 @@ class ProblemsWindow(QtWidgets.QDialog):
     def RestoreIgnored(self):
         v = self.parentWidget().viewport
         if v.ignoredPotentialIssues:
+            self.parentWidget().activityLog.Add("Potential issues", "Restored ignored potential issues")
             v.ignoredPotentialIssues = []
             v.settingsChanged.emit()
         self.RefreshObjects()

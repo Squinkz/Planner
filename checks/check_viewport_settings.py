@@ -27,7 +27,7 @@ def Main():
     v = main.viewport
     assert main.headerButtons["Settings"].toolTip() == "Settings"
     assert settings.isVisible() and settings.isWindow() and not settings.isModal()
-    assert [settings.tabs.tabText(index) for index in range(settings.tabs.count())] == ["Build", "Measurements", "Appearance"]
+    assert [settings.tabs.tabText(index) for index in range(settings.tabs.count())] == ["Build", "Dimensions", "Appearance"]
     settings.tabs.setCurrentIndex(2)
     assert all(not button.isEnabled() and not button.icon().isNull() for button in settings.resetButtons.values())
     major, minor = v.GridSteps()

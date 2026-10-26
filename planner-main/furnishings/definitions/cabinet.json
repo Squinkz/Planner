@@ -4,7 +4,10 @@
     "width": 600,
     "length": 350,
     "icon": null,
-    "category": "Kitchen",
+    "category": [
+        "Kitchen",
+        "Utility"
+    ],
     "inherits": null,
     "children": [],
     "keywords": [
@@ -18,6 +21,8 @@
         "cupboards",
         "double",
         "two",
-        "door"
+        "door",
+        "floor",
+        "lower"
     ]
 }

@@ -42,8 +42,22 @@ with tempfile.TemporaryDirectory() as sessionFolder:
     # Full catalog theme changes, repeated session launches and integration renders
     # run substantially slower on hosted Windows workers than locally.
     timeouts = {"check_external_themes.py": 120, "check_furnishings_on_counters.py": 60,
+                "check_about_dialog.py": 60, "check_app_preferences.py": 60, "check_canvas_theme_refresh.py": 60,
                 "check_export_settings.py": 60, "check_export_solid_objects.py": 60,
-                "check_export_cli_settings.py": 60, "check_parity_rendering.py": 60,
+                "check_export_cli_settings.py": 120, "check_parity_rendering.py": 60,
+                "check_export_bounds.py": 60, "check_export_plan.py": 60,
+                "check_furnishing_list_view.py": 60,
+                "check_furnishing_quick_search.py": 60, "check_furnishing_sort.py": 60,
+                "check_help_typography.py": 60, "check_help_viewer.py": 60,
+                "check_linework_settings.py": 60,
+                "check_native_paths.py": 60, "check_pan_dpi.py": 60,
+                "check_session_recovery.py": 60,
+                "check_sparse_history.py": 60,
+                "check_viewport_settings.py": 60,
+                "check_stairs.py": 60, "check_startup_projects.py": 60, "check_user_furnishings.py": 60,
+                "check_export_button.py": 60, "check_export_progress.py": 60, "check_optimized_png.py": 60,
+                "check_export_floors.py": 60, "check_exterior_hidden_dimensions.py": 60,
+                "check_selection_dimension_overlay.py": 120,
                 "check_session_guide_selection.py": 60}
     for check in checks:
         print(f"Checking {check.name}", flush = True)

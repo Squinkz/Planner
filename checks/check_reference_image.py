@@ -39,7 +39,13 @@ def Main():
         item = main.referenceImageItem
         main.sidebarTabs.setCurrentWidget(main.visibilityPage)
         assert item.parent() is None and item.checkState(0) == QtCore.Qt.CheckState.Unchecked
+        assert main.visibilityTree.topLevelItem(0) is item
         assert reference.state is None and not reference.active
+        main.ShowViewMenu()
+        setupButton = main.menuButtons["Setup Reference Image"]
+        assert not setupButton.isEnabled()
+        main.viewMenu.hide()
+        app.processEvents()
         main.sidebarTabs.setCurrentIndex(0)
         v.setFocus()
         with patch.object(QtWidgets.QFileDialog, "getOpenFileName", side_effect = AssertionError("Alt+B must not load an image")):
@@ -59,20 +65,34 @@ def Main():
             main.viewOptions["referenceImage"].click()
             assert dialog.call_count == 1
         app.processEvents()
-        assert main.sidebarTabs.currentIndex() == 0 and not reference.active
+        assert main.sidebarTabs.currentWidget() is main.visibilityPage and reference.active
+        assert not main.propertiesCollapsed and reference.panel.isVisible()
         main.ShowViewMenu()
         assert not main.viewOptions["referenceImage"].iconLabel.pixmap().isNull()
+        assert setupButton.isEnabled()
         main.viewMenu.hide()
+        app.processEvents()
         assert main.viewOptions["referenceImage"].shortcutLabel.text() == "B"
         v.setFocus()
+        main.activateWindow()
+        app.processEvents()
         QtTest.QTest.keyClick(v, QtCore.Qt.Key.Key_B)
         assert not reference.state["visible"] and not reference.active
+        main.ShowViewMenu()
+        assert not setupButton.isEnabled()
+        main.viewMenu.hide()
         main.sidebarTabs.setCurrentIndex(0)
         with patch.object(QtWidgets.QFileDialog, "getOpenFileName", side_effect = AssertionError("Alt+B must leave disabled images alone")):
             QtTest.QTest.keyClick(v, QtCore.Qt.Key.Key_B, QtCore.Qt.KeyboardModifier.AltModifier)
         assert not reference.state["visible"] and not reference.active and main.sidebarTabs.currentIndex() == 0
         QtTest.QTest.keyClick(v, QtCore.Qt.Key.Key_B)
         assert reference.state["visible"] and not reference.active
+        main.ShowViewMenu()
+        assert setupButton.isEnabled()
+        setupButton.click()
+        assert reference.active and main.sidebarTabs.currentWidget() is main.visibilityPage
+        assert not main.viewMenu.isVisible()
+        reference.Hide()
         QtTest.QTest.keyClick(v, QtCore.Qt.Key.Key_B, QtCore.Qt.KeyboardModifier.AltModifier)
         assert reference.active
         originalPath = reference.pathField.text()

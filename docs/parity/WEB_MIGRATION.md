@@ -135,12 +135,22 @@ Observe singleStep/pageStep independently: a sample 0..100 range at 50 becomes
 other ranges/steps. A normalized 0..1 effect is not necessarily restricted to
 step .001 everywhere simply because another component uses that setting.
 
-Measurement mode is a **vertical selector**, with inverted appearance/controls,
+Wall dimension splitting uses **vertical selectors**, with inverted appearance/controls,
 single/page step 1 and labels alongside its positions. It is not an ordinary
 horizontal percentage slider. Its label area participates in dragging and wheel
 selection; a label click must not become a canvas command.
+Wall Mode itself is an ordinary dropdown (All, Exterior, Exterior stacked).
+Stacked mode hides/disables the split selectors and shows a single Wall reference
+dropdown (Centerline, Wall faces). Export exposes Mode and conditional Wall
+reference, but no split selectors or independent canvas precision.
 
 ## WEB-06: pointer capture changes event targeting, not pointer location
+
+Use one resolved target for hover feedback, cursor, click, double-click and
+context menus. Nearby furnishing handles can outrank an underlying control point
+or label; do not light the underlying target while starting another object's
+transform. Keep selected-handle paint order consistent with hit order. See
+HOVER-01 and `check_hover_click_targets.py` for the current overlap rules.
 
 Qt widgets normally keep receiving events through a mouse grab during a drag.
 Browser controls need equivalent pointer capture and cleanup. Captured events

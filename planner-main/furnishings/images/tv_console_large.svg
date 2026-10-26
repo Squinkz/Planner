@@ -9,10 +9,11 @@
    width="180"
    height="47.5"
    inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   vector-effect="non-scaling-stroke"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg" vector-effect="non-scaling-stroke">
+   xmlns:svg="http://www.w3.org/2000/svg">
   <defs
      id="defs1" />
   <sodipodi:namedview
@@ -29,7 +30,7 @@
      inkscape:cy="8.4442554"
      inkscape:window-width="2560"
      inkscape:window-height="1336"
-     inkscape:window-x="-8"
+     inkscape:window-x="2552"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
      inkscape:current-layer="svg1"
@@ -70,8 +71,10 @@
      vector-effect="non-scaling-stroke"
      id="g2-1"
      transform="matrix(0.13686584,0,0,0.0995388,90.031709,14.923522)"
-     style="stroke:#000000;stroke-opacity:1">
-    <path stroke-width="1" vector-effect="non-scaling-stroke"
+     style="display:none;stroke:#000000;stroke-opacity:1">
+    <path
+       stroke-width="1"
+       vector-effect="non-scaling-stroke"
        id="rect1-8-7"
        style="display:inline;vector-effect:non-scaling-stroke;stroke-width:1"
        d="m 428.36436,226.81084 h 19.57894 c 4.69603,0 8.47659,3.78056 8.47659,8.47659 v 83.51015 c 0,4.69603 -3.78056,8.47659 -8.47659,8.47659 h -19.57894 c -4.69603,0 -8.47659,-3.78056 -8.47659,-8.47659 v -83.51015 c 0,-4.69603 3.78056,-8.47659 8.47659,-8.47659 z"
@@ -84,15 +87,16 @@
      vector-effect="non-scaling-stroke"
      id="g2-1-2"
      transform="matrix(0.13686584,0,0,0.0995388,30.031709,14.923522)"
-     style="stroke:#000000;stroke-opacity:1">
-    <rect stroke-width="1"
+     style="display:none;stroke:#000000;stroke-opacity:1">
+    <rect
+       stroke-width="1"
        vector-effect="non-scaling-stroke"
        x="-18.49774"
        y="226.81084"
        width="36.532124"
        height="100.46333"
        id="rect1-8-7-7"
-       style="display:inline;stroke:#000000;stroke-width:1;stroke-opacity:1;vector-effect:non-scaling-stroke"
+       style="display:inline;vector-effect:non-scaling-stroke;stroke:#000000;stroke-width:1;stroke-opacity:1"
        ry="8.476594" />
   </g>
   <g
@@ -103,27 +107,37 @@
      id="g1"
      transform="matrix(0.13686584,0,0,0.0995388,2.5317087,5.0230598)"
      style="stroke:#000000;stroke-opacity:1">
-    <path stroke-width="1" vector-effect="non-scaling-stroke"
+    <path
+       stroke-width="1"
+       vector-effect="non-scaling-stroke"
        id="rect1"
        style="display:inline;vector-effect:non-scaling-stroke;stroke-width:1"
        d="M -18.49774,-50.463335 H 1296.6588 V 401.62169 h -292.257 V 377.00816 H 273.75926 v 24.61353 l -292.257,0 z"
        sodipodi:nodetypes="ccccccccc" />
   </g>
-  <path stroke-width="1" vector-effect="non-scaling-stroke"
+  <path
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
      style="fill:#000000;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;vector-effect:non-scaling-stroke"
      d="M 0,42.55 H 40"
      id="path2"
      sodipodi:nodetypes="cc" />
-  <path stroke-width="1" vector-effect="non-scaling-stroke"
+  <path
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
      style="fill:#000000;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;vector-effect:non-scaling-stroke"
      d="m 140,42.55 h 40"
      id="path2-3"
      sodipodi:nodetypes="cc" />
-  <path stroke-width="1" vector-effect="non-scaling-stroke"
+  <path
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
      style="fill:#000000;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;vector-effect:non-scaling-stroke"
      d="m 40,42.55 v 2.450001"
      id="path4" />
-  <rect stroke-width="1" vector-effect="non-scaling-stroke"
+  <rect
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
      style="display:none;fill:#9f7052;fill-opacity:1;stroke:none;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;vector-effect:non-scaling-stroke"
      id="planner-bounds"
      width="180"

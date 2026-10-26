@@ -19,6 +19,13 @@ def RecoverProject(data, definitions, defaults, chooseGeometry = None):
         return DecodeProject(data, definitions), []
     repaired = copy.deepcopy(data)
     notices = []
+    if "activityLog" in repaired:
+        from .activity_log import DecodeActivityLog
+        try:
+            DecodeActivityLog(repaired["activityLog"])
+        except ValueError:
+            repaired.pop("activityLog")
+            notices.append("Removed invalid activity log.")
     probe = {"format": "Planner Project", "version": 1,
              "scene": {"objects": [], "groups": [], "hidden": []}, "settings": copy.deepcopy(defaults["settings"])}
     probe["settings"]["exportSettings"] = {}

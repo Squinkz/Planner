@@ -9,6 +9,9 @@ def Main():
     result = subprocess.run(["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
                             cwd = root, capture_output = True, check = True)
     paths = sorted(set(result.stdout.decode("utf-8").split("\0")) - {""})
+    deleted = subprocess.run(["git", "ls-files", "--deleted", "-z"], cwd = root, capture_output = True, check = True)
+    deleted = set(deleted.stdout.decode("utf-8").split("\0")) - {""}
+    paths = [name for name in paths if name not in deleted]
     allowed = {"planner-main", "checks", "tools", "docs", "demos", ".github"}
     metadata = {".gitignore", ".gitattributes", "README.md", "CONTRIBUTING.md", "requirements-dev.txt",
                 "LICENSE", "LICENSE.txt", "CHANGELOG.md", "requirements-build.txt"}

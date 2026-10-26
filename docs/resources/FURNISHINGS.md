@@ -25,7 +25,7 @@ See the [user furnishing guide](../../planner-main/docs/help/furnishings.md) for
 | `children` | Compound components |
 | `keywords` | Search terms as a string or list of strings |
 
-Each definition receives defaults from `null.json`, then its explicit parent's resolved fields, then its own fields. Null supplies every supported field and the Miscellaneous category. Missing graphics use the Null square-and-X graphic. Validation warnings identify invalid definitions.
+Each definition receives defaults from `null.json`, then its explicit parent's resolved fields, then its own fields. Null supplies every supported field and the Miscellaneous category. Missing graphics use the Null placeholder graphic. Validation warnings identify invalid definitions.
 
 For example, `"category": ["Office", "Bedroom"]` displays a furnishing in both sections. Searches match every category and show each furnishing once. Categories are inherited when omitted; an explicit category replaces the inherited list. Empty categories default to Miscellaneous, and duplicate entries in a list are ignored.
 
@@ -124,6 +124,8 @@ Unresolved compound children retain their original furnishing keys while display
 
 For artwork with handles or other protrusions, add a rectangle with ID `planner-bounds` around the physical body. In Inkscape, draw the rectangle, set its ID in **Object Properties**, then hide it using the eye icon in the **Objects** panel. No XML editing is needed. Planner uses that rectangle for mapping the graphic to the definition's width and length, keeping artwork outside it visible. Selection handles, measurements, snapping and collision footprints retain the stated dimensions; palette previews and automatic export bounds include protrusions.
 
+The `planner-bounds` marker may be hidden directly or inside a hidden layer/group. Paths also work, including rectangles converted to paths. Planner uses the path's minimum and maximum extents as a rectangular dimension box, never as a clipping mask. The path does not have to be closed. Marker and ancestor transforms are supported; rotated markers use their axis-aligned bounds in SVG coordinates. Planner hides the marker even if it is visible in the source. Absent, duplicate, unsupported or empty markers fall back to the normal SVG bounds. `planner-fixed` details do not replace these dimension bounds. Keep the source page large enough for the full artwork to display in other SVG viewers.
+
 For details that should retain their physical size, give the object or group an
 ID `planner-fixed` or one starting with `planner-fixed-`, such as `planner-fixed-magazines`, in Inkscape's
 **Object Properties**. Its default physical size comes from the furnishing
@@ -134,8 +136,6 @@ Mark a group to retain an arrangement together; mark separate objects to let the
 midpoints spread apart. Nested markers use the outermost marked group. Marked
 text follows this physical sizing rule instead of ordinary furnishing lettering
 layout. Rotation, flips, compound children and exports preserve these rules.
-
-The marker may be hidden directly or inside a hidden layer/group. Paths also work, including rectangles converted to paths. Planner uses the path's minimum and maximum extents as a rectangular dimension box, never as a clipping mask. The path does not have to be closed. Marker and ancestor transforms are supported; rotated markers use their axis-aligned bounds in SVG coordinates. Planner hides the marker even if it is visible in the source. Absent, duplicate, unsupported or empty markers fall back to the normal SVG bounds. `planner-fixed` details do not replace these dimension bounds. Keep the source page large enough for the full artwork to display in other SVG viewers.
 
 Set `vector-effect="non-scaling-stroke"` on each stroked shape or path. This keeps outlines a consistent visual thickness as the furnishing is resized or the view is zoomed. Planner applies this property when loading graphics and sets their stroke width from the furnishing line-weight setting. Include it in source artwork so SVG previews also use this behavior.
 

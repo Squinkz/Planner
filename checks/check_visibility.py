@@ -40,7 +40,12 @@ def Main():
     assert main.referenceImageItem.parent() is None and main.referenceImageItem is not items["World"]
     assert main.referenceImageItem.checkState(0) == QtCore.Qt.CheckState.Unchecked
     assert [items["World"].child(i).text(0).split(" (")[0] for i in range(items["World"].childCount())] == [
-        "Walls", "Elevators", "Stairs", "Counters", "Railings", "Furnishings", "Labels", "Arrows", "Dimension guides", "Boundary lines", "Dashed lines", "Solid lines", "North arrows"]
+        "Walls", "Objects", "Annotations"]
+    assert [main.visibilityGroups["Objects"].child(i).text(0).split(" (")[0]
+            for i in range(main.visibilityGroups["Objects"].childCount())] == ["Elevators", "Stairs", "Counters", "Railings", "Furnishings"]
+    assert [main.visibilityGroups["Annotations"].child(i).text(0).split(" (")[0]
+            for i in range(main.visibilityGroups["Annotations"].childCount())] == [
+        "Labels", "Arrows", "Dimension guides", "Boundary lines", "Dashed lines", "Solid lines", "North markers"]
     assert [items["Walls"].child(i).text(0).split(" (")[0] for i in range(items["Walls"].childCount())] == ["Doors", "Windows", "Fireplaces"]
     assert items["World"].text(0) == "World (5 objects)"
     assert all(items[name].text(0) == f"{name} (1 object)" for name in ["Walls", "Doors", "Windows", "Stairs", "Furnishings"])

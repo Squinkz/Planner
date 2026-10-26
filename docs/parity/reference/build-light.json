@@ -1968,7 +1968,7 @@
     {
       "class": "WindowButton",
       "name": "openingIconButton",
-      "accessibleName": "North Arrow",
+      "accessibleName": "North Marker",
       "enabled": true,
       "bounds": [
         1277,
@@ -1977,7 +1977,7 @@
         48
       ],
       "cursor": "OpenHandCursor",
-      "tooltip": "North arrow",
+      "tooltip": "North marker",
       "font": {
         "family": "Noto Sans",
         "pointSize": 10.0,

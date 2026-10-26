@@ -143,10 +143,10 @@ class HeaderMixin:
         self.viewMenu.setObjectName("viewportContextMenu")
         self.viewMenu.setSeparatorsCollapsible(False)
         self.viewOptions = {}
-        for item in (("showGrid", "Draw Grid", "G"), None,
-                     ("referenceImage", "Reference Image", "B"), None,
-                     ("showMeasurements", "Toggle dimensions", "M"),
-                     None,
+        for item in (("showMeasurements", "Toggle dimensions", "M"),
+                     ("showGrid", "Draw Grid", "G"), None,
+                     ("referenceImage", "Reference Image", "B"),
+                     ("editReferenceImage", "Setup Reference Image", "Alt + B"), None,
                      ("viewportOnlyMode", "Maximize", "F"), None,
                      ("showTips", "Show tips", ""),
                      ("showFpsCounter", "Show FPS counter", "")):
@@ -154,6 +154,11 @@ class HeaderMixin:
                 self.viewMenu.addSeparator()
                 continue
             option, label, shortcutText = item
+            if option == "editReferenceImage":
+                button = AddMenuButton(self.viewMenu, label, shortcutText, iconName = UiIcon("image"))
+                button.clicked.connect(lambda checked = False: self.SetViewOption("editReferenceImage"))
+                self.menuButtons[label] = button
+                continue
             if option == "viewportOnlyMode":
                 button = AddMenuButton(self.viewMenu, label, shortcutText, iconName = "Maximize")
                 button.clicked.connect(lambda checked = False: self.SetViewOption("viewportOnlyMode"))
@@ -196,6 +201,10 @@ class HeaderMixin:
             shortcut = QtGui.QShortcut(QtGui.QKeySequence(shortcutText), self)
             shortcut.setAutoRepeat(False)
             shortcut.activated.connect(lambda option = option: self.SetViewOption(option))
+        self.viewMenu.addSeparator()
+        self.activityLogButton = AddMenuButton(self.viewMenu, "Activity Log", iconName = UiIcon("view_list"))
+        self.activityLogButton.clicked.connect(lambda checked = False: self.activityLog.Show())
+        self.menuButtons["Activity Log"] = self.activityLogButton
         self.referenceImageEditShortcut = QtGui.QShortcut(QtGui.QKeySequence("Alt+B"), self)
         self.referenceImageEditShortcut.setAutoRepeat(False)
         self.referenceImageEditShortcut.activated.connect(lambda: self.SetViewOption("editReferenceImage"))
@@ -267,9 +276,8 @@ class HeaderMixin:
 
     def ShowSettings(self):
         panel = self.exportPanel
-        if self.settingsWindow is None and panel.projectView is not None and not panel.applying:
-            panel.EditProjectSettings(self.ShowSettings)
-            return
+        if panel.projectView is not None or self.sidebarTabs.currentWidget() is panel:
+            self.sidebarTabs.setCurrentIndex(0)
         if self.settingsWindow is None:
             self.settingsWindow = SettingsWindow(self)
         self.settingsWindow.show()
@@ -277,6 +285,12 @@ class HeaderMixin:
         self.settingsWindow.activateWindow()
 
     def ShowViewMenu(self):
+        button = self.menuButtons["Setup Reference Image"]
+        enabled = bool(self.referenceImage.state and self.referenceImage.state["visible"])
+        button.setEnabled(enabled)
+        button.setCursor(QtCore.Qt.CursorShape.PointingHandCursor if enabled else QtCore.Qt.CursorShape.ArrowCursor)
+        mode = QtGui.QIcon.Mode.Normal if enabled else QtGui.QIcon.Mode.Disabled
+        button.iconLabel.setPixmap(UiIcon("image").pixmap(QtCore.QSize(18, 18), mode))
         view = self.exportPanel.ResolvedView() if self.exportPanel.projectView is not None else None
         for option, button in self.viewOptions.items():
             showMeasurements = view["showMeasurements"] if view is not None else self.viewport.showMeasurements

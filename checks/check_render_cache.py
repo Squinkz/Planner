@@ -13,6 +13,7 @@ def Main():
     app = QtWidgets.QApplication([])
     window = MainWindow()
     viewport = window.viewport
+    viewport.wallMeasurementMode = "All"  # Isolate the full-boundary cache from exterior/stack planning.
     window.show()
     app.processEvents()
     point = QtCore.QPointF

@@ -76,7 +76,14 @@ def Main():
         restored = MainWindow()
         restored.show()
         app.processEvents()
-        assert restored.sessionRestored and restored.BuildProjectData() == expected
+        assert restored.sessionRestored
+        actual = restored.BuildProjectData()
+        assert {key: value for key, value in actual.items() if key != "activityLog"} == {
+            key: value for key, value in expected.items() if key != "activityLog"}
+        from planner_app.activity_log import DecodeActivityLog
+        previousEntries = DecodeActivityLog(expected["activityLog"])["entries"]
+        assert restored.activityLog.entries[:len(previousEntries)] == previousEntries
+        assert any(entry["summary"] == "Restored previous session" for entry in restored.activityLog.entries)
         assert restored.viewport.vertexSnapEnabled and not restored.viewport.cornerSnapEnabled
         assert restored.windowTitle() == "Saved* - Planner" and restored.viewport.undoHistory
         assert restored.sidebarTabs.currentIndex() == 1

@@ -188,7 +188,9 @@ certify fractional-scale visual parity.
 Session UI recovery preserves whole-object and endpoint selections, AngleGuide
 middle index 2, and linear/angular label index 3. Validation checks the selected
 index against decoded objects before applying the scene. Only AngleGuide has a
-middle point; MeasurementGuide/BoundaryLine/AngleGuide have label selection. Invalid
+middle point; MeasurementGuide/BoundaryLine/DashedLine/SolidLine/AngleGuide accept
+label selection indices. Legacy boundary-style label indices remain loadable,
+although new clicks on their dimension labels select the body. Invalid
 indices, including booleans, are rejected. Missing object IDs retain the existing
 skip behavior. `check_session_guide_selection.py` exercises actual close/reopen
 cycles, mixed selections, usable restored handles, exact scene preservation and
@@ -224,7 +226,11 @@ expressions, linked Size/pivot Position, fixed SVG/compound details, optimized
 PNG and bounded previews, role-aware SVG recoloring/occlusion, reference image
 editing/calibration, imperial defaults, catalog ranking/sorting/layout, missing
 asset location and transport restrictions, app-owned window state, Close versus
-New, native browsing and help input. Each entry links executable desktop checks.
+New, native browsing and help input. It also covers live room tint and labels,
+window wells and new opening types, wall reference and stacked tiers, dimension
+tree layouts, project/export ownership, weighted lines, shared subdivision,
+mixed-selection reflections, landing graphics and resolved hover/click targeting.
+The current index has 90 scenarios. Each entry links executable desktop checks.
 Browser entries remain acceptance definitions requiring a browser run.
 
 Specialized layouts are specified in [LAYOUTS.md](LAYOUTS.md). Geometry checks
@@ -234,6 +240,13 @@ and the calibration prompt. Existing gesture checks cover the associated edits,
 restoration, one-use units, snapping, cancellation and anchored calibration.
 These checks supplement the dated gallery rather than claiming fresh screenshots
 or browser verification for every conditional combination.
+
+For the current dimension and interaction changes, run:
+
+```powershell
+python checks/run_checks.py check_measurement_master_toggle.py check_measurement_settings.py check_exterior_measurements.py check_stacked_measurements.py check_room_measurement_stacks.py check_export_dimension_settings.py
+python checks/run_checks.py check_hover_click_targets.py check_line_vertex_priority.py check_linear_subdivision.py check_selection_flips.py check_room_labels.py check_live_room_tint.py
+```
 
 The object matrix tests its class inventory against scene models. The portable
 index check requires these current rule families and validates desktop/browser

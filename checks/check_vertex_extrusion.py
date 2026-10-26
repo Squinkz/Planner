@@ -40,7 +40,12 @@ def Main():
             created = v.walls[-1]
             assert type(created) is cls and created.objectId != source.objectId
             assert source.firstVertex == original[0] and source.secondVertex == original[1]
-            assert created.firstVertex == anchor and QtCore.QLineF(created.secondVertex, target).length() < 1
+            # Directed runs keep the dragged endpoint's identity so extruding
+            # from the back does not reverse an arrow or staircase.
+            draggedIndex = index if isinstance(source, (Arrow, Stair)) else 1
+            createdVertices = (created.firstVertex, created.secondVertex)
+            assert createdVertices[1 - draggedIndex] == anchor
+            assert QtCore.QLineF(createdVertices[draggedIndex], target).length() < 1
             assert created.width == source.width and created.material == source.material
             if isinstance(source, Arrow):
                 assert (created.solidTip, created.tipSize, created.intensity) == (False, 120, .5)

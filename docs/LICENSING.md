@@ -40,7 +40,7 @@ granted by their licensors. Resolve unclear provenance before assigning a licens
 ## Branding
 
 [BRANDING_LICENSE.txt](../planner-main/BRANDING_LICENSE.txt) covers the original
-Planner logo and application icon, including the current temporary artwork and
+Planner logo and application icon, including the current artwork and
 future designated replacements. They may travel with complete, unmodified
 official Planner packages. They cannot be distributed separately or used on a
 modified distribution without written permission. Forks must replace/remove

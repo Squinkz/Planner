@@ -1,4 +1,4 @@
-"""North Arrow placement, furnishing handles, no collisions and project/export paths."""
+"""North Marker placement, furnishing handles, no collisions and project/export paths."""
 import os
 import sys
 from pathlib import Path
@@ -45,9 +45,9 @@ def Main():
     arrow = v.furnishings[0]
     assert isinstance(arrow, NorthArrow) and v.FurnishingFits(arrow)
     assert not v.ObjectsOverlap(arrow, v.walls[0]) and not v.JoinedObjectsOverlap(arrow, v.walls[0])
-    assert v.HitTest(point) == (arrow, None), "North Arrow was selected beneath the wall"
-    assert main.northArrowButton.toolTip() == "North arrow"
-    assert "North Arrow" in main.selectionLabel.text()
+    assert v.HitTest(point) == (arrow, None), "North Marker was selected beneath the wall"
+    assert main.northArrowButton.toolTip() == "North marker"
+    assert "North Marker" in main.selectionLabel.text()
     assert main.wallProperties.isVisible() and not main.labelProperties.isVisible()
     assert main.northArrowOpacityRow.isVisible() and arrow.intensity == 1
     historyCount = len(v.undoHistory)
@@ -121,7 +121,7 @@ def Main():
     main.ApplyProject(DecodeProject(main.BuildProjectData(), v.furnishingDefinitions), None)
     assert v.furnishings[0].intensity == .65
     v.Undo()
-    assert v.furnishings[0].intensity == .4, "Saved undo history lost North Arrow opacity"
+    assert v.furnishings[0].intensity == .4, "Saved undo history lost North Marker opacity"
     v.Redo()
     assert v.furnishings[0].intensity == .65
     v.Undo()
@@ -140,16 +140,16 @@ def Main():
     arrow.intensity = 0
     transparentPng = panel.Render("png")
     transparentSvg = panel.Render("svg")
-    assert transparentPng != png and transparentSvg != svg, "Exports ignored North Arrow opacity"
-    v.visibility["North arrows"] = False
-    assert panel.Render("png") == transparentPng, "Zero opacity did not hide the complete North Arrow"
-    v.visibility["North arrows"] = True
+    assert transparentPng != png and transparentSvg != svg, "Exports ignored North Marker opacity"
+    v.visibility["North markers"] = False
+    assert panel.Render("png") == transparentPng, "Zero opacity did not hide the complete North Marker"
+    v.visibility["North markers"] = True
     arrow.intensity = .4
     panel.solidObjectsField.setChecked(False)
-    assert panel.Render("png") != png, "Solid Objects did not change the North Arrow background"
-    v.visibility["North arrows"] = False
-    assert panel.Render("png") != png, "North Arrow did not draw above the wall"
-    v.visibility["North arrows"] = True
+    assert panel.Render("png") != png, "Solid Objects did not change the North Marker background"
+    v.visibility["North markers"] = False
+    assert panel.Render("png") != png, "North Marker did not draw above the wall"
+    v.visibility["North markers"] = True
     main.sidebarTabs.setCurrentWidget(main.visibilityPage)
     other = arrow.Clone()
     other.intensity = .8
@@ -187,7 +187,7 @@ def Main():
     image.save(str(Path(__file__).resolve().parent.parent / "diagnostics" / "north-arrow-preview.png"))
     app.clipboard().clear()
     main.close()
-    print("PASS: North Arrow drop, properties, handles, collisions, clipboard, undo, persistence and PNG/SVG")
+    print("PASS: North Marker drop, properties, handles, collisions, clipboard, undo, persistence and PNG/SVG")
 
 
 if __name__ == "__main__":

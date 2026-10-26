@@ -4,8 +4,33 @@
     "width": 2000,
     "length": 700,
     "icon": null,
-    "category": ["Living Room", "Entry"],
+    "category": [
+        "Entry",
+        "Bedroom",
+        "Kitchen"
+    ],
     "inherits": null,
     "children": [],
-    "keywords": []
+    "keywords": [
+        "rug",
+        "carpet",
+        "carpeting",
+        "mat",
+        "floor",
+        "floorcovering",
+        "textile",
+        "soft",
+        "furnishing",
+        "decor",
+        "runner",
+        "narrow",
+        "long",
+        "hallway",
+        "corridor",
+        "passage",
+        "entry",
+        "landing",
+        "small",
+        "compact"
+    ]
 }

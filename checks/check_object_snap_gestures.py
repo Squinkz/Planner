@@ -37,7 +37,7 @@ def Main():
         start = viewport.WorldToViewport(point(300, 0)).toPoint()
         # Hold Ctrl before mouse press, then move repeatedly without mouse flags.
         QtTest.QTest.keyPress(viewport, QtCore.Qt.Key.Key_Control)
-        QtTest.QTest.mousePress(viewport, left, none, start)
+        QtTest.QTest.mousePress(viewport, left, QtCore.Qt.KeyboardModifier.ControlModifier, start)
         assert viewport.selectedWall is source and viewport.selectedVertex is None
         for angle in (4, 19, 37, 56, 79, 104, 131, 168, 203, 247, 287, 331):
             radians = math.radians(angle)
@@ -57,7 +57,7 @@ def Main():
                     assert translation.y() == -(end.y() - start.y()) / .2
             assert QtCore.QLineF(source.secondVertex - source.firstVertex, point(1000, 0)).length() < .001
             assert abs(child.length - 400) < .001
-        QtTest.QTest.mouseRelease(viewport, left, none, end)
+        QtTest.QTest.mouseRelease(viewport, left, QtCore.Qt.KeyboardModifier.ControlModifier, end)
         QtTest.QTest.keyRelease(viewport, QtCore.Qt.Key.Key_Control)
         viewport.Undo()
         assert source.firstVertex == original

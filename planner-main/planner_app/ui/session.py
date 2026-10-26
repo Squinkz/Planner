@@ -82,7 +82,10 @@ class SessionWriter:
         try:
             project = dict(data["project"])
             chunks = []
-            for name in ("scene", "history"):
+            for name in ("scene", "history", "activityLog"):
+                if name not in project:
+                    self.chunks.pop(name, None)
+                    continue
                 source = project.pop(name)
                 cached = self.chunks.get(name)
                 # ProjectSceneData and ProjectHistory replace their encoded containers
@@ -138,7 +141,7 @@ class SessionMixin:
                 "tab": self.sidebarTabs.currentIndex(),
                 "treeScroll": self.visibilityTree.verticalScrollBar().value(),
                 "scroll": [area.verticalScrollBar().value() for area in self.findChildren(QtWidgets.QScrollArea)],
-                "expanded": {name: item.isExpanded() for name, item in self.visibilityItems.items()},
+                "expanded": {name: item.isExpanded() for name, item in (self.visibilityItems | self.visibilityGroups).items()},
                 "selection": [[obj.objectId, index] for obj, index in v.SelectionEntries()],
                 "rotationObject": getattr(v.furnishingRotationObject, "objectId", None)}
 
@@ -177,6 +180,8 @@ class SessionMixin:
         if self.projectTimer.isActive():
             self.projectTimer.stop()
             self.RefreshProjectDirty()
+        if self.activityLog.settingsTimer.isActive():
+            self.activityLog.FlushSettings()
         ui = self.SessionUiState()
         pan = self.exportPanel.projectPanOffset if self.exportPanel.projectPanOffset is not None else v.panOffset
         view = {"zoom": self.exportPanel.projectZoom if self.exportPanel.projectZoom is not None else v.zoom,
@@ -185,7 +190,7 @@ class SessionMixin:
                      self.savedSettingsSignature, v.sceneRevision, str(self.projectPath), json.dumps(ui, sort_keys = True),
                      view["zoom"], tuple(view["pan"]), tuple(sorted(v.gridIntensities.items())),
                      tuple(v.wallPresetWidths), tuple(sorted(v.openingDefaultSizes.items())),
-                     str(self.recoverySourcePath), str(self.recoveryBackupPath))
+                     str(self.recoverySourcePath), str(self.recoveryBackupPath), self.activityLog.revision)
         if signature == self.sessionSignature and self.sessionPath.exists():
             return True
         data = {"format": "Planner Session", "version": 1, "projectPath": str(self.projectPath) if self.projectPath else None,
@@ -198,6 +203,9 @@ class SessionMixin:
                 "project": {"format": "Planner Project", "version": 1, "scene": self.projectSceneData,
                             "settings": self.ProjectSettings(), "view": view,
                             "history": self.ProjectHistory(), "ui": self.ProjectUiState()}, "ui": ui}
+        activity = self.activityLog.Encode()
+        if activity is not None:
+            data["project"]["activityLog"] = activity
         embedded = EncodeUsedFurnishings(v)
         if embedded:
             data["project"]["furnishingDefinitions"] = embedded
@@ -307,7 +315,7 @@ class SessionMixin:
         self.propertiesRestoreHeight = restoreHeight
         self.SetPropertiesSplitterSizes(ui["propertiesSplitter"])
         self.sidebarTabs.setCurrentIndex(ui["tab"])
-        for name, item in self.visibilityItems.items():
+        for name, item in (self.visibilityItems | self.visibilityGroups).items():
             item.setExpanded(ui["expanded"].get(name, True))
         v = self.viewport
         objects = {obj.objectId: obj for obj in v.walls + v.windows + v.furnishings + v.labels}
@@ -326,6 +334,7 @@ class SessionMixin:
 
         QtCore.QTimer.singleShot(0, self, RestoreLayout)
         self.sessionRestored = True
+        self.activityLog.Add("Recovery", "Restored previous session")
         locateEntries = self.RecoveryObjectEntries()
         if locateEntries:
             self.ShowAppMessage("Missing Assets", "The restored session contains unavailable furnishing assets.", "warning",

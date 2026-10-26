@@ -15,11 +15,25 @@ def ReadReferenceImage(payload):
     reader = QtGui.QImageReader(buffer)
     reader.setAutoTransform(True)
     size = reader.size()
-    if size.width() <= 0 or size.height() <= 0 or max(size.width(), size.height()) > 32767 or size.width() * size.height() > 100000000:
-        raise ValueError("The reference image is invalid or exceeds the supported image dimensions.")
+    if size.width() <= 0 or size.height() <= 0:
+        raise ValueError("Cannot read the reference image's dimensions. The file may be damaged or use an unsupported format.\n\n" + reader.errorString())
+    if max(size.width(), size.height()) > 32767:
+        raise ValueError(f"The reference image is {size.width():,} × {size.height():,} pixels. "
+                         "The maximum width or height is 32,767 pixels.\n\nResize the image before loading it.")
+    if size.width() * size.height() > 100000000:
+        raise ValueError(f"The reference image is {size.width():,} × {size.height():,} pixels "
+                         f"({size.width() * size.height() / 1000000:,.1f} million pixels). "
+                         "The maximum is 100 million pixels.\n\nResize the image before loading it.")
     image = reader.read()
     if image.isNull():
-        raise ValueError("Cannot read reference image: " + reader.errorString())
+        error = reader.errorString()
+        allocationLimit = reader.allocationLimit()
+        if "allocat" in error.lower() or (allocationLimit > 0 and size.width() * size.height() * 4 > allocationLimit * 1024 * 1024):
+            limitText = f" The image decoder's memory limit is {allocationLimit:,} MiB." if allocationLimit > 0 else ""
+            raise ValueError(f"The reference image is {size.width():,} × {size.height():,} pixels "
+                             "and could not be loaded into memory." + limitText +
+                             "\n\nResize the image before loading it. A small file on disk can still require substantial memory when opened.")
+        raise ValueError("Cannot read reference image: " + error)
     return image
 
 

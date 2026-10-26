@@ -50,7 +50,9 @@ def Main():
         assert not export.scrollArea.isAncestorOf(main.exportButton)
         assert not export.scrollArea.isAncestorOf(export.scaleModeTabs)
         assert Rect(export.folderField, export).right() < Rect(export.browseButton, export).left()
-        assert Rect(export.folderField, export).left() == Rect(export.fileNameField, export).left() == 14
+        assert Rect(export.folderField, export).left() == 14
+        assert Rect(export.fileNameField, export).left() == Rect(export.typeField, export).left()
+        assert Rect(export.folderField, export).left() < Rect(export.fileNameField, export).left()
         assert Rect(export.fileNameField, export).right() == Rect(export.browseButton, export).right()
         assert Rect(export.folderField, export).bottom() < Rect(export.fileNameField, export).top()
         assert export.browseButton.size() == QtCore.QSize(44, 32)

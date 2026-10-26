@@ -20,7 +20,24 @@ def Main():
         main.projectPath = folder / "project.plan"
         (folder / "project.png").write_bytes(b"existing")
         main.sidebarTabs.setCurrentWidget(panel)
-        assert Path(panel.folderField.text()) == folder and panel.fileNameField.text() == "project_1.png"
+        assert Path(panel.folderField.text()) == folder and panel.fileNameField.text() == "project_1"
+        # Known export suffixes are optional and Type owns the final extension.
+        # Other dots belong to the name and must survive unchanged.
+        for kind, extension in (("PNG", ".png"), ("SVG", ".svg"), ("PNG_OPTIMIZED", ".png")):
+            panel.typeField.setCurrentIndex(panel.typeField.findData(kind))
+            for name, base in (("render", "render"), ("render.png", "render"), ("render.SVG", "render"),
+                               ("floor.v2", "floor.v2"), ("floor.v2.PNG", "floor.v2")):
+                panel.fileNameField.setText(name)
+                assert panel.OutputPath() == folder / (base + extension)
+                panel.FileNameEdited()
+                assert panel.fileNameField.text() == base and panel.exportFileName == base
+                panel.PopulatePath(force = True)
+                assert panel.fileNameField.text() == base
+        # Saved names from previous releases may still contain an extension.
+        panel.exportFileName = "legacy.v2.SVG"
+        panel.PopulatePath(force = True)
+        assert panel.fileNameField.text() == "legacy.v2"
+        panel.typeField.setCurrentIndex(panel.typeField.findData("PNG"))
         panel.fileNameField.setText("custom.png")
         panel.fileNameField.editingFinished.emit()
         panel.ResetExportHistory()
@@ -29,16 +46,16 @@ def Main():
         with patch.object(QtWidgets.QFileDialog, "getExistingDirectory", return_value = str(target)) as browse:
             panel.browseButton.click()
             assert Path(browse.call_args.args[2]) == folder
-        assert Path(panel.folderField.text()) == target and panel.fileNameField.text() == "custom.png"
+        assert Path(panel.folderField.text()) == target and panel.fileNameField.text() == "custom"
         assert panel.typeField.currentData() == "PNG" and len(panel.exportUndoHistory) == 1
         assert main.BrowseDirectory(forExport = True) == target
         v.Undo()
-        assert Path(panel.folderField.text()) == folder and panel.fileNameField.text() == "custom.png"
+        assert Path(panel.folderField.text()) == folder and panel.fileNameField.text() == "custom"
         v.Redo()
         assert panel.OutputPath() == target / "custom.png"
         panel.fileNameField.setText("another")
         panel.fileNameField.editingFinished.emit()
-        assert panel.fileNameField.text() == "another.png"
+        assert panel.fileNameField.text() == "another"
         v.Undo()
         assert panel.OutputPath() == target / "custom.png"
         v.Redo()
@@ -72,6 +89,7 @@ def Main():
         assert main.SaveProject()
         saved = main.BuildProjectData(includeHistory = False)
         assert saved["settings"]["exportFolder"] == str(target)
+        assert saved["settings"]["exportFileName"] == "finished"
         decoded, repairs = RecoverProject(saved, v.furnishingDefinitions, main.defaultProjectData)
         assert not repairs, repairs
         otherFolder = folder / "other project"
@@ -86,7 +104,7 @@ def Main():
         otherPath = main.projectPath
         assert main.OpenProject(folder / "project.plan")
         assert Path(panel.folderField.text()) == target
-        assert panel.fileNameField.text() == "finished.png"
+        assert panel.fileNameField.text() == "finished"
         typedFolder = folder / "typed output"
         typedFolder.mkdir()
         main.sidebarTabs.setCurrentWidget(panel)
@@ -103,7 +121,7 @@ def Main():
         assert Path(panel.folderField.text()) == otherFolder
         assert main.OpenProject(folder / "project.plan")
         assert Path(panel.folderField.text()) == typedFolder
-        assert panel.fileNameField.text() == "finished.png"
+        assert panel.fileNameField.text() == "finished"
     print("Export destinations: separate folder/name, native folder-only picker, extensions, undo/redo, cancellation and export passed")
 
 

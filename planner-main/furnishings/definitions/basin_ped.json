@@ -16,6 +16,9 @@
         "washstand",
         "vanity",
         "sanitaryware",
-        "plumbing"
+        "plumbing",
+        "pedestal",
+        "freestanding",
+        "standing"
     ]
 }

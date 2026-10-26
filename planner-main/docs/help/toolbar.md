@@ -23,7 +23,7 @@
 
 | | | | |
 |:---:|---:|:---|:---|
-| ![Group Toggle](images/icons/group_toggle.gif) | `Shift + Tab` | **Group Toggle** | Enable or disable grouped selection. |
+| ![Group Toggle](images/icons/group_toggle.gif) | `Ctrl + Tab` | **Group Toggle** | Enable or disable grouped selection. |
 | ![Add to Group](images/icons/group_add.png) | `Ctrl + G` | **Add to Group** | Create or add to a group using the current selection. |
 | ![Remove from Group](images/icons/group_remove.png) | `Alt + G` | **Remove from Group** | Remove the current selection from a group. |
 
@@ -37,7 +37,7 @@
 |:---:|---:|:---|:---|
 | ![Global/Local Transforms](images/icons/transforms.gif) | `Tab` | **Transform Toggle** | Use the canvas axes for global transforms or the object’s orientation for local transforms. |
 
-[> Next: Units, measurements and visibility](measurements.md)
+[> Next: Units, dimensions and visibility](dimensions.md)
 
 [< Previous: Reference image](reference.md)
 

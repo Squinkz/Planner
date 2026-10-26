@@ -19,7 +19,8 @@ the main window. Source paths below are relative to the application directory
 | `planner_app/project_codec.py` | Project serialization and validation |
 | `planner_app/project_history.py`, `history_edits.py` | Undo/redo storage and edits |
 | `planner_app/scene_changes.py` | Scene change tracking |
-| `planner_app/geometry/` | Qt-independent numeric geometry and ordered spatial queries |
+| `planner_app/room_detection.py` | Shared wall-boundary classification, enclosure paths and derived room areas |
+| `planner_app/geometry/` | Portable numeric core and explicitly Qt-dependent stair/dimension adapters |
 | `planner_app/export_bounds.py` | Export footprint bounds |
 | `planner_app/export_plan.py` | PNG/SVG rendering and module CLI |
 | `planner_app/crash_reporting.py` | Crash reports |
@@ -27,6 +28,8 @@ the main window. Source paths below are relative to the application directory
 | `planner_app/graphics/` | Palettes, fonts, icons, symbols and vector artwork |
 | `planner_app/ui/` | Window, sidebar, properties, settings, projects and recovery |
 | `planner_app/ui/export_panel.py` | Export controls, overrides and preview configuration |
+| `planner_app/ui/reference_image.py`, `reference_calibration.py` | Exclusive backdrop editing and two-point scale calibration |
+| `planner_app/ui/problems.py` | Modeless current-scene problem inspection, repair, location and ignored suggestions |
 | `planner_app/ui/help_viewer.py` | Native Markdown help rendering and navigation |
 | `planner_app/ui/about.py` | Standalone About splash and bundled license notices |
 | `docs/help/` | Bundled user guide, independent of the renderer |
@@ -47,6 +50,12 @@ Models hold object data and derived geometry. The catalog resolves furnishing de
 Walls host doors and windows. Pillars are rectangular wall subclasses with furnishing-style handles. Columns use curved footprints. Geometry code supplies footprints, joins, hit testing and measurement anchors.
 
 Project serialization validates object data and embeds the custom furnishing resources needed by a drawing. History records undoable scene edits. Clipboard operations use portable selection snapshots and validate placements as a transaction.
+
+`activity_log.py` records lightweight project activity independently from bounded
+undo retention. Its modeless browser lives in `ui/activity_log.py` and is opened
+from View > Activity Log. Restorable entries link to live scene or Export
+journals; persistence validates scene links against encoded edit fingerprints.
+See [Activity Log](ACTIVITY_LOG.md) for scope, lifecycle and validation rules.
 
 ## Viewport
 
@@ -71,6 +80,29 @@ Scene revisions identify changes relevant to geometry, rendering and interaction
 
 Set `PLANNER_VERIFY_RENDER_REVISIONS=1` to compare revision-keyed caches with value-based validation during development.
 
+`interaction.SelectionTarget` resolves the effective pointer target for hover,
+cursor, left press, double-click and context menus. `geometry.HitTest` supplies
+the underlying scene hit; furnishing handles can supersede it. Keep handle paint
+order and control-point/body priority consistent with that resolver. Selected
+whole-object groups resolve nearby endpoints to group movement, while explicit
+vertex selections keep vertex editing.
+
+Room detection reuses structural wall boundaries and revision keys for live tint,
+room-label area lookup and exterior dimension classification. Its derived paths
+and areas are not saved as scene objects. The desktop `geometry/measurement_stacks.py`
+and `geometry/stair_annotations.py` adapters depend on Qt, unlike the portable
+numeric core. Stacked dimensions support one/two/three tiers, wall-axis or
+wall-face references, and combined faces for overlapping partition assemblies.
+
+Options always edits the project settings. While Export is active, the export
+panel snapshots that project view, applies sparse overrides to the viewport,
+and restores the project view on exit. Dimension units, precision, mode/reference,
+splitting and visibility each support sparse export overrides. Project and Export
+share `ui/wall_dimensions.py` for the wall controls and their input/layout rules.
+Opening Options while Export is active first switches to Build and restores the
+project view. Export's dimension master sets all category overrides,
+whereas the editor master preserves remembered category choices.
+
 ## Appearance and text
 
 `graphics/palette.py` supplies named UI and canvas color roles. Theme loading resolves inheritance and applies the selected pair. Stylesheets and cached artwork use these roles.
@@ -79,13 +111,35 @@ UI icons and furnishing palette previews use UI colors. Canvas furnishing artwor
 
 Scene furnishing renderers load on demand. Color changes replace lightweight palette maps without parsing unused catalog entries. A bounded cache (128 entries, 8 MiB of source SVG) reuses parsed artwork, normalized dash patterns, lettering measurements and fixed-detail anchors by source contents, canvas font, nominal furnishing dimensions and line width; color variants do not accumulate in that cache. Per-size SVG variants retain at most 16 entries per renderer. Fixed-detail transforms use physical furnishing dimensions, independently of camera zoom; SVG exports bake the resulting transforms. Hit coverage includes physical dimensions in its cache identity when fixed details are present.
 
-Furnishing text is centered within its owning component and stays horizontal in the final drawing, with size capped by both the authored screen size and its proportion to the source artwork. The smallest singular scale of the component's text transform caps uniform lettering scale during zooming and nonuniform resizing. Compound SVGs retain component coordinate frames for this layout. Text transforms compensate for SVG and painter orientation, preserve drawing order and reuse a bounded cache of prepared renderers across painting and export.
+Furnishing text retains its authored glyph-center position within its owning component and stays horizontal in the final drawing, with size capped by both the authored screen size and its proportion to the source artwork. The smallest singular scale of the component's text transform caps uniform lettering scale during zooming and nonuniform resizing. Compound SVGs retain component coordinate frames for this layout. Text transforms compensate for SVG and painter orientation, preserve drawing order and reuse a bounded cache of prepared renderers across painting and export.
 
-Fonts in `assets/fonts/` register with Qt at startup. UI text, rulers and measurements use Noto Sans. Canvas labels and north-arrow lettering use the canvas theme's `labelFont`. Measurement text uses native fraction shaping, constructed fractions or fallback glyphs according to font support. SVG export converts text to outlines.
+Fonts in `assets/fonts/` register with Qt at startup. UI text, rulers and measurements use Noto Sans. Canvas labels and north-marker lettering use the canvas theme's `labelFont`. Measurement text uses native fraction shaping, constructed fractions or fallback glyphs according to font support. SVG export converts text to outlines.
 
 ## Export and recovery
 
 The Export tab configures a crop, scale and presentation overrides. PNG and SVG rendering share scene geometry, visibility and border drawing. PNG texture compositing applies normal-map lighting, then AO multiplication controlled by overall texture strength. AO sampling matches the normal map's dimensions. The vignette uses a fifth-order smoothstep transition.
+
+Saved GUI exports use `ui/export_progress.py` and `export_worker.py`. A modal,
+cancellable dialog runs a QProcess while keeping the editor event loop responsive.
+The worker receives an unsaved scene snapshot, resolved catalog, export arguments,
+palette and typography. It creates its own Qt application without showing widgets
+and never acquires the editor's session lock. Source and frozen builds dispatch
+the private `--export-worker` entry point before normal app startup. Preview
+rendering and the public CLI retain their existing paths.
+
+The worker reports preparation, rendering, encoding/optimization and saving stages.
+It writes to a temporary file beside the destination. Success atomically replaces
+the destination; cancellation kills the isolated process and removes temporary
+files. Errors preserve the destination and return to the normal export error UI.
+Reference-image payloads are excluded from the worker snapshot. Optimized PNG
+transfers RGBA pixels through Qt's QByteArray/ArrayBuffer conversion in 192 KiB
+chunks and returns encoded bytes through the same binary bridge, without base64.
+UPNG uses scalar statistics accumulators and bulk 8-bit index copies without
+changing the quantizer's sample or arithmetic order. Python's native zlib handles
+lossless deflation at pako's original compression level. Frozen seeded parity
+checks preserve palette, alpha, filtered pixels, decoded pixels and DPI while
+allowing the compressed stream to differ. Windows workers suppress system crash dialogs so native failures return
+to the parent's error UI instead of waiting for an inaccessible crash prompt.
 
 Preview borders are painted independently of the PNG scene snapshot or SVG scene data. Border-background changes invalidate border strips without rebuilding scene artwork. Color-picker events update the effective palette immediately and coalesce viewport repaint requests over 33 ms; accepting or cancelling stops pending requests and applies the final or restored settings. Saved SVG files still contain the complete border and scene.
 

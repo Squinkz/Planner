@@ -152,14 +152,18 @@ class ReferenceImageController:
                            if name != "visible" and before[0][name] != value}
                 if changes or before[1] != after[1]:
                     v = self.viewport
-                    v.undoHistory.append(ReferenceImageEdit(changes, (before[1], after[1])))
+                    edit = ReferenceImageEdit(changes, (before[1], after[1]))
+                    v.undoHistory.append(edit)
                     v.redoHistory.clear()
                     v.historyCoalesceKey = None
                     totalBytes = sum(edit.byteSize for edit in v.undoHistory)
                     while v.undoHistory and (len(v.undoHistory) > v.historyLimit or totalBytes > v.historyByteBudget):
                         totalBytes -= v.undoHistory.pop(0).byteSize
                     v.sceneRevision += 1
+                    self.mainWindow.activityLog.SceneEdited(edit)
                     v.sceneChanged.emit()
+            elif after[0] is not None:
+                self.mainWindow.activityLog.Add("Reference image", "Loaded Reference Image", after[0]["path"])
             self.historyState = after
 
     def RestoreHistory(self, edit, forward):
@@ -307,6 +311,7 @@ class ReferenceImageController:
         self.mainWindow.RememberBrowseFolder(path)
         self.SyncControls()
         self.Changed()
+        self.mainWindow.SetViewOption("editReferenceImage")
         return True
 
     def ToggleVisibility(self, enabled):

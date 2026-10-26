@@ -2,7 +2,7 @@
 
 Planner registers font resources in `assets/fonts/` with Qt at startup. Supported extensions are `.ttf`, `.otf`, `.ttc` and `.otc`. Restart the app after adding a font.
 
-Themes select the font's internal family name. `D-DINCondensed.ttf` provides **D-DIN Condensed**. Canvas labels and north-arrow lettering use the canvas theme's `labelFont`. Measurements use Noto Sans.
+Themes select the font's internal family name. `D-DINCondensed.ttf` provides **D-DIN Condensed**. Canvas labels and north-marker lettering use the canvas theme's `labelFont`. Measurements use Noto Sans.
 
 Noto Sans version 2.015, normal width, supplies UI text and rulers:
 

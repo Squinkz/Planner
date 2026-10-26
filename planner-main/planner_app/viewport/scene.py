@@ -74,9 +74,9 @@ class SceneEditingMixin:
     def MoveSpecial(self, x, y, angle, localOrigins = False):
         objects = list({id(obj): obj for obj, index in self.SelectionEntries()}.values())
         if not objects:
-            return "Select an object to move."
+            return "Select an object to transform."
         if not all(math.isfinite(value) for value in (x, y, angle)):
-            return "Enter finite movement and angle values."
+            return "Enter valid movement and angle values."
         if x == 0 and y == 0 and angle % 360 == 0:
             return None
         self.CancelInteraction()
@@ -793,12 +793,13 @@ class SceneEditingMixin:
         after = self.CaptureState()
         edit = SceneEdit.Between(before, after) if before is not None else None
         if edit is not None:
+            replacedEdit = None
             now = time.monotonic()
             if (coalesceKey is not None and coalesceKey == getattr(self, "historyCoalesceKey", None)
                     and now - getattr(self, "historyCoalesceTime", 0) <= 1.0 and self.undoHistory
                     and getattr(self, "historyCoalesceRevision", None) == self.sceneRevision):
                 original = self.undoHistory[-1].Apply(before, False, validate = True)
-                self.undoHistory.pop()
+                replacedEdit = self.undoHistory.pop()
                 edit = SceneEdit.Between(original, after)
             if edit is not None:
                 self.undoHistory.append(edit)
@@ -811,6 +812,9 @@ class SceneEditingMixin:
                 totalBytes -= self.undoHistory.pop(0).byteSize
             self.sceneRevision += 1
             self.historyCoalesceRevision = self.sceneRevision
+            activity = getattr(self, "activityLog", None)
+            if activity is not None:
+                activity.SceneEdited(edit, replacedEdit)
             self.sceneChanged.emit()
 
     def RestoreState(self, state):
@@ -957,6 +961,9 @@ class SceneEditingMixin:
             else:
                 self.RestoreState(edit.Apply(self.CaptureState(), False))
             self.redoHistory.append(edit)
+            activity = getattr(self, "activityLog", None)
+            if activity is not None:
+                activity.Travel(edit, False)
 
     def Redo(self):
         reference = getattr(self, "referenceImage", None)
@@ -977,6 +984,9 @@ class SceneEditingMixin:
             else:
                 self.RestoreState(edit.Apply(self.CaptureState(), True))
             self.undoHistory.append(edit)
+            activity = getattr(self, "activityLog", None)
+            if activity is not None:
+                activity.Travel(edit, True)
 
     def DissolveWalls(self, vertex, objectType = Wall):
         self.CancelInteraction()

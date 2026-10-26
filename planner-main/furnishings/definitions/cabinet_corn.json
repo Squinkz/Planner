@@ -4,7 +4,10 @@
     "width": 550,
     "length": 550,
     "icon": null,
-    "category": "Kitchen",
+    "category": [
+        "Kitchen",
+        "Utility"
+    ],
     "inherits": null,
     "children": [],
     "keywords": [
@@ -16,6 +19,8 @@
         "counter",
         "cabinetry",
         "cupboards",
-        "corner"
+        "corner",
+        "floor",
+        "lower"
     ]
 }

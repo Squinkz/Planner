@@ -22,6 +22,8 @@
         "standalone",
         "full",
         "size",
-        "tall"
+        "tall",
+        "icebox",
+        "cooler"
     ]
 }

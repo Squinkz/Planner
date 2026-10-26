@@ -1,4 +1,5 @@
 """Selection property controls, mixed values and atomic bulk edits."""
+from planner_app.dimension_policy import AvailableDimensionActions
 
 from planner_app.models import Elevator, AngleGuide, ObjectControlPoints, SetControlPoint
 
@@ -275,7 +276,7 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
         labelForm.addRow(intensityRow)
         toolsLayout.addWidget(self.labelProperties)
         self.labelProperties.hide()
-        self.northArrowOpacityRow, self.northArrowIntensitySlider, self.northArrowIntensityValue = self.BuildObjectOpacityRow(propertyRowHeight, "North arrow")
+        self.northArrowOpacityRow, self.northArrowIntensitySlider, self.northArrowIntensityValue = self.BuildObjectOpacityRow(propertyRowHeight, "North marker")
         toolsLayout.addWidget(self.northArrowOpacityRow)
         self.northArrowOpacityRow.hide()
         # Polish before fixing heights, so stylesheet metrics cannot resize only
@@ -611,12 +612,8 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
         self.doorProperties.setVisible(isWindow and not isinstance(wall, OpenDoorway))
         self.doorProperties.layout().setRowVisible(self.doorFields["swing"], isDoor or isinstance(wall, DoubleDoor) or isSlidingDoor or isBarnDoor or isBifoldDoor or type(wall) in (Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, Fireplace))
         self.doorProperties.layout().setRowVisible(self.doorFields["hinge"], isDoor or isSlidingDoor or isPocketDoor or isinstance(wall, (CasementWindow, SwingingDoor)))
-        measurementClass = "windows" if type(wall) in (Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow) else "doors"
         self.doorProperties.layout().setRowVisible(self.doorFields["measurement"],
-                                                   type(wall) in (Door, DoubleDoor, SlidingDoor, BarnDoor, Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow)
-                                                   and self.viewport.showMeasurements and self.viewport.measurementVisibility["walls"]
-                                                   and self.viewport.measurementSettings[measurementClass] == 1
-                                                   and any(not obj.measurementHidden for obj, index in entries))
+            isWindow and any(AvailableDimensionActions(self.viewport, obj).canFlip for obj, index in entries))
         sideLabel = self.doorProperties.layout().labelForField(self.doorFields["swing"])
         sideLabel.setText("Facing" if isBarnDoor or type(wall) in (Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, Fireplace) else "Panel side" if isSlidingDoor else "Swing direction")
         sideLabel.setMinimumWidth(sideLabel.sizeHint().width())
@@ -1181,9 +1178,7 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
             return
         before = self.viewport.CaptureState()
         if fieldName == "measurement":
-            measurementClass = "windows" if type(door) in (Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow) else "doors"
-            if (type(door) not in (Door, DoubleDoor, SlidingDoor, BarnDoor, Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow)
-                    or self.viewport.measurementSettings[measurementClass] != 1):
+            if not AvailableDimensionActions(self.viewport, door).canFlip:
                 return
             door.measurementFlipped = not door.measurementFlipped
         elif fieldName == "swing" and type(door) in (Window, Door, DoubleDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, BarnDoor, BifoldDoor, Fireplace):

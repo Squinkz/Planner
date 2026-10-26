@@ -130,7 +130,9 @@ def Main():
     assert lengths == [1000, 1500, 2300, 4800], lengths
     v.SetSelection([(railing, None)])
     selectedDimensions = v.ConnectedRailingPath([railing])[1]
-    assert sorted(round(QtCore.QLineF(first, last).length()) for first, last, owners in selectedDimensions) == [4800, 4800]
+    assert selectedDimensions == cutDimensions
+    v.grab()
+    assert sorted(round(QtCore.QLineF(first, last).length()) for first, last, owners in v.selectionMeasurements) == [4800, 4800]
     # Project-specific bounds and units drive both labels and editable fields.
     main.ShowSettings()
     panel = main.settingsWindow

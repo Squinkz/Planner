@@ -108,7 +108,8 @@ def Main():
                             ("queen mattress", {"bed_queen"}),
                             ("full size mattress", {"bed_double"}),
                             ("hot water cylinder", {"water_heater"}),
-                            ("computer peripheral", {"keyboard", "mouse", "mousepad", "mousepad_l", "mousepad_xl"}),
+                            ("computer peripheral", {"keyboard", "mouse", "deskpad_setup", "mouse_setup_large",
+                                                     "mousepad_setup_regular"}),
                             ("laundry appliance", {"washer", "dryer", "washer_built", "dryer_built",
                                                   "washer_dryer", "washer_dryer_built"}),
                             ("double bowl drainer", {"sink_drainer_dbl", "sink_drainer_dbl2"}),
@@ -121,8 +122,21 @@ def Main():
                             ("geyser", {"water_heater"}),
                             ("cot", {"crib", "bassinet"}),
                             ("parasol", {"umbrella_balcony", "umbrella_patio"}),
-                            ("wall coat hooks", {"peg_rail", "peg_rail_small", "peg_rail_large"})):
+                            ("wall coat hooks", {"peg_rail", "peg_rail_small", "peg_rail_large"}),
+                            ("barbecue", {"bbq_drum", "bbq_kettle", "bbq_pit"}),
+                            ("shower rose", {"showerhead"}),
+                            ("shower tray", {"shower_angled", "shower_quad", "shower_square1",
+                                             "shower_square2", "shower_square3"}),
+                            ("mouse pointing device", {"mouse", "mouse_setup_large", "mousepad_setup_regular",
+                                                       "deskpad_setup"}),
+                            ("double oven", {"oven_built_dbl"}),
+                            ("hallway runner", {"rug_runner", "rug_runner_large", "rug_runner_small"}),
+                            ("pedestrian", {"man"}),
+                            ("belfast", {"sink_farmhouse"})):
         assert {definition["key"] for definition in FindFurnishings(catalog, query, "Centimeters")} == expected, query
+    overheadCabinets = {"cabinet_trans", "cabinet_single_trans", "cabinet_corn_trans", "cabinet_corn2_trans"}
+    assert not overheadCabinets.intersection(item["key"] for item in FindFurnishings(catalog, "base cabinet", "Millimeters"))
+    assert overheadCabinets <= {item["key"] for item in FindFurnishings(catalog, "wall cupboard", "Millimeters")}
     main.show()
     main.sidebarTabs.setCurrentIndex(1)
     app.processEvents()

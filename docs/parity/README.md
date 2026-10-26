@@ -1,7 +1,7 @@
 # Planner parity specification
 
 This is the framework-independent reference for reproducing Planner's desktop
-behavior, appearance and project interchange. Original capture baseline: 17 October 2026. Current contracts reviewed 22 October 2026.
+behavior, appearance and project interchange. Original capture baseline: 17 October 2026. Current contracts reviewed 26 October 2026 for Alpha 0.1.1.
 It describes the implemented product, rather than a proposed redesign.
 
 Start here:
@@ -40,6 +40,13 @@ historical UI gallery.
 [Specialized UI layouts](LAYOUTS.md) specifies measurement split selectors, the
 Wall Tool, Export, Object Properties, Reference Image settings and the calibration
 workflow/prompt, including their unique rows and dependent widget states.
+
+Current dimension contracts include Options and Export trees, independent master
+toggle semantics, exterior/stacked tiers, wall reference and project/export
+override ownership. Room tint/labels, window wells and additional opening types,
+weighted lines, shared subdivision and resolved hover/click priority are covered
+by the current prose and the 90-scenario index. Dated captures are retained as
+historical evidence rather than silently regenerated for these changes.
 
 ## How to use this specification
 

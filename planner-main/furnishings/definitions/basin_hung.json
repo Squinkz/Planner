@@ -16,6 +16,11 @@
         "washstand",
         "vanity",
         "sanitaryware",
-        "plumbing"
+        "plumbing",
+        "wall",
+        "hung",
+        "mounted",
+        "suspended",
+        "floating"
     ]
 }

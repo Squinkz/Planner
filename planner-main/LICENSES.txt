@@ -30,9 +30,6 @@ by the licenses above retain copyright. Permission is granted to redistribute
 them within complete, unmodified official Planner packages, retaining notices.
 This does not restrict separately granted rights or third-party licenses.
 
-The temporary Planner About logo is copied from Stacker's blue artwork,
-copyright (c) 2026 Dieter Stassen, pending replacement with Planner artwork.
-
 PySide6 and shiboken6 provide Qt bindings. Their distributed license choices
 include LGPL-3.0-only, GPL-2.0-only and GPL-3.0-only. Refer to the license files
 provided with the Qt/PySide distribution for complete terms and notices.

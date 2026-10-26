@@ -16,6 +16,7 @@ def Main():
     main.show()
     app.processEvents()
     v = main.viewport
+    v.wallMeasurementMode = "All"  # Exercise facing-side flips independently of exterior-mode gating.
     point = QtCore.QPointF
 
     def MenuFor(obj):
@@ -38,32 +39,32 @@ def Main():
         return [action.defaultWidget().accessibleName() for action in v.objectContextMenu.actions() if not action.isSeparator()]
 
     for obj in (Label(), NorthArrow(), Furnishing(v.furnishingDefinitions["desk"]), Arrow(point(-1000, 0), point(1000, 0))):
-        assert "Hide dimensions" not in MenuFor(obj)
+        assert "Hide Dimension" not in MenuFor(obj)
         obj.measurementHidden = True
-        assert "Show dimensions" not in MenuFor(obj)
+        assert "Show Dimension" not in MenuFor(obj)
     for cls, category in ((Wall, "walls"), (Pillar, "walls"), (Column, "walls"),
                           (Stair, "stairs"), (Counter, "counters"), (Railing, "railings")):
         obj = cls(point(-1000, 0), point(1000, 0))
         v.measurementVisibility[category] = True
-        assert "Hide dimensions" in MenuFor(obj)
+        assert "Hide Dimension" in MenuFor(obj)
         obj.measurementHidden = True
-        assert "Show dimensions" in MenuFor(obj)
+        assert "Show Dimension" in MenuFor(obj)
         v.measurementVisibility[category] = False
-        assert "Show dimensions" not in MenuFor(obj)
+        assert "Show Dimension" not in MenuFor(obj)
         obj.measurementHidden = False
-        assert "Hide dimensions" not in MenuFor(obj)
+        assert "Hide Dimension" not in MenuFor(obj)
         v.measurementVisibility[category] = True
     wall = Wall(point(-2000, 0), point(2000, 0))
     for cls, category in ((Door, "doors"), (Window, "windows")):
         obj = cls(wall, .4, .6)
         for mode in (0, 1):
             v.measurementSettings[category] = mode
-            assert "Hide dimensions" in MenuFor(obj)
+            assert "Hide Dimension" in MenuFor(obj)
         v.measurementSettings[category] = 2
-        assert "Hide dimensions" not in MenuFor(obj)
+        assert "Hide Dimension" not in MenuFor(obj)
         v.measurementSettings[category] = 1
         v.measurementVisibility["walls"] = False
-        assert "Hide dimensions" not in MenuFor(obj)
+        assert "Hide Dimension" not in MenuFor(obj)
         assert "Flip Dimension" not in MenuFor(obj)
         assert not main.doorProperties.layout().isRowVisible(main.doorFields["measurement"])
         v.measurementVisibility["walls"] = True
@@ -71,10 +72,10 @@ def Main():
         for hidden in (False, True):
             obj.measurementHidden = hidden
             labels = MenuFor(obj)
-            assert not any(label in labels for label in ("Flip Dimension", "Hide dimensions", "Show dimensions"))
+            assert not any(label in labels for label in ("Flip Dimension", "Hide Dimension", "Show Dimension"))
             assert not main.doorProperties.layout().isRowVisible(main.doorFields["measurement"])
         v.showMeasurements = True
-        assert "Show dimensions" in MenuFor(obj)
+        assert "Show Dimension" in MenuFor(obj)
         assert "Flip Dimension" not in MenuFor(obj)
         assert not main.doorProperties.layout().isRowVisible(main.doorFields["measurement"])
         obj.measurementHidden = False
@@ -90,14 +91,14 @@ def Main():
     main.settingsWindow.SetMeasurementVisibility("walls", True)
     assert main.doorProperties.layout().isRowVisible(main.doorFields["measurement"])
     fireplace = Fireplace(wall, .4, .6)
-    assert "Hide dimensions" in MenuFor(fireplace)
+    assert "Hide Dimension" in MenuFor(fireplace)
     v.measurementVisibility["walls"] = False
-    assert "Hide dimensions" not in MenuFor(fireplace)
+    assert "Hide Dimension" not in MenuFor(fireplace)
     v.measurementVisibility["walls"] = True
     guide = MeasurementGuide(point(-1000, 0), point(1000, 0))
-    assert "Hide dimensions" in MenuFor(guide)
+    assert "Hide Dimension" in MenuFor(guide)
     v.showMeasurements = False
-    assert "Hide dimensions" not in MenuFor(guide)
+    assert "Hide Dimension" in MenuFor(guide)  # Standalone annotations still draw with ambient dimensions off.
     v.objectContextMenu.hide()
     main.close()
     app.processEvents()

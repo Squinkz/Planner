@@ -4,13 +4,25 @@
     "width": 1000,
     "length": 350,
     "icon": null,
-    "category": "Bedroom",
+    "category": [
+        "Bedroom",
+        "Utility"
+    ],
     "inherits": null,
     "children": [],
     "keywords": [
         "wardrobe",
-        "clothes",
+        "rail",
         "rod",
-        "closet"
+        "closet",
+        "clothes",
+        "clothing",
+        "garment",
+        "garments",
+        "hanger",
+        "hangers",
+        "hanging",
+        "storage",
+        "dressing"
     ]
 }

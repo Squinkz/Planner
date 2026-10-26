@@ -3,15 +3,30 @@
     "image": "sink_farmhouse",
     "width": 750,
     "length": 500,
-    "category": "Kitchen",
+    "category": [
+        "Kitchen",
+        "Utility"
+    ],
     "keywords": [
+        "sink",
+        "farmhouse",
         "apron",
         "butler",
+        "belfast",
         "basin",
-        "wash",
+        "bowl",
+        "washup",
+        "washing",
+        "up",
+        "dish",
         "dishes",
-        "scullery",
+        "dishwashing",
+        "crockery",
         "cutlery",
-        "silverware"
+        "silverware",
+        "scullery",
+        "kitchen",
+        "plumbing",
+        "deep"
     ]
 }

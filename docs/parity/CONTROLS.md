@@ -10,8 +10,8 @@ UI and canvas themes are independent. UI artwork uses UI roles; scene artwork
 uses canvas roles. Theme changes refresh existing icons, swatches, text and
 cached scene artwork, without requiring the user to recreate controls.
 Fresh profiles default to Heather UI and Magnetite Canvas. New projects enable
-wall measurements and disable stair, counter, railing and elevator measurements;
-saved choices override these defaults.
+wall dimensions and disable stair, counter and railing dimensions. Elevators
+have no dimension category. Saved choices override these defaults.
 
 | State | Generic button background/border | Text |
 | --- | --- | --- |
@@ -55,15 +55,28 @@ actions use 24 x 24 icons, zero padding and a 30 px minimum content height;
 they stay square at the shared property row height. Export/reference browse
 buttons use 26 x 26 icons in 44 x 32 buttons. Export's text button uses a 28 px icon.
 Settings reset buttons use 24 x 24 icons with zero padding in 34 x 32 controls.
-Settings object labels use 28 px artwork and collision labels use 24 px icons.
-Collision checkboxes share a right-aligned column immediately left of the
-section midpoint. Their icon/text labels share a left-aligned column on the
-right. Clicking the icon or text toggles the same checkbox.
+Settings object labels use 28 px artwork. Collision labels use the heading's
+18 px icon size and 6 px icon-to-text gap.
+Build collision options use label-left, checkbox-right form rows. Their icon/text
+labels remain clickable, and all three checkboxes share a column and 32 px row
+height. Options' Draw Grid and standalone Export checkboxes follow the same
+label-left/check-right convention. World, dimension and export visibility trees
+retain their hierarchical checkbox-before-label layout.
 Settings tab icons use 24 x 24 icons alongside their labels.
 
 Keep checked, pressed, hover, focus and disabled as distinct states. Retain
 tooltips, accessible names, field labels and keyboard operation. Do not let
 child labels intercept the enclosing menu/button's pointer events.
+
+Held controls must release their internal pressed/drag state when hidden,
+deactivated or deprived of mouse capture. Property scrub fields emit cancellation
+once and restore their cursor; normal properties/reference controllers roll back
+the scrub through that signal. Sliders and the wall preset selector retain their
+last chosen value while clearing their held state. Mouse moves without the
+required button also stop stale scrubs and selector drags. Split-selector label
+drags clear both their active category and slider-down state. Palette buttons
+clear pending drag origins on release, capture loss, hiding and deactivation.
+Coverage: `check_held_input.py`, `check_drag_spinboxes.py`, `check_measurement_settings.py`.
 
 ## SIZE-01: linked dimensions
 
@@ -192,8 +205,11 @@ Horizontal groove: 6 high, radius 3, `hoverBackground`; thumb: 16 wide,
 `disabledBackground`, disabled thumb uses `disabled`.
 
 Composite/grid/line controls pair sliders with numeric entry and reset buttons.
-The field and slider represent one value; resetting removes the override and
-restores the inherited/default value. Group continuous changes into one undo
+The field and slider represent one value. Reset uses the owning control's
+documented policy: color resets clear the override, while grid and line-weight
+resets write their factory values and texture resets use the selected texture's
+defaults. Do not assume that a reset always removes a sparse override.
+Group continuous export/property changes into one undo
 step. Disabled dependencies disable the label, slider, field and reset group.
 
 ### SLIDE-02: selector, position and amount semantics

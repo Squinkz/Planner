@@ -34,10 +34,11 @@ def Main():
     assert precisionBottom < panel.measurementHeading.mapTo(panel, QtCore.QPoint()).y()
     assert panel.unitsField.mapTo(panel, QtCore.QPoint()).y() == panel.precisionField.mapTo(panel, QtCore.QPoint()).y()
     assert panel.unitsField.mapTo(panel, QtCore.QPoint()).x() < panel.precisionField.mapTo(panel, QtCore.QPoint()).x()
-    assert panel.measurementHeading.text() == "Measure"
+    assert panel.measurementHeading.titleLabel.text() == "Measure"
     assert any(label.text() == "Canvas precision" and label.buddy() is panel.precisionField
                for label in panel.measurementPage.findChildren(QtWidgets.QLabel))
-    assert panel.gridHeading.text() == "Grid" and panel.gridHeading.font().bold()
+    assert panel.gridHeading.titleLabel.text() == "Grid"
+    assert panel.gridHeading.objectName() == panel.measurementHeading.objectName() == "sectionHeading"
     assert tree.mapTo(panel, tree.rect().bottomLeft()).y() < panel.gridHeading.mapTo(panel, QtCore.QPoint()).y()
     assert panel.gridHeading.mapTo(panel, panel.gridHeading.rect().bottomLeft()).y() < panel.showGridField.mapTo(panel, QtCore.QPoint()).y()
     panel.gridAppearanceButton.click()
@@ -89,12 +90,44 @@ def Main():
     main.SetViewOption("showMeasurements")
     assert panel.wallMeasurementModeField.isEnabled()
     assert v.measurementSettings == savedSplits and v.wallMeasurementMode == "All"
+    splitTabs = panel.measurementSplitTabs
+    assert [splitTabs.tabText(index) for index in range(splitTabs.count())] == ["Doors", "Windows", "Stairs", "Counters"]
+    assert splitTabs.currentIndex() == 0
+    splitHeights = {}
+    for index, key in enumerate(("doors", "windows", "stairs", "counters")):
+        splitTabs.setCurrentIndex(index)
+        app.processEvents()
+        assert panel.measurementSliders[key].isVisibleTo(splitTabs)
+        assert all(not slider.isVisibleTo(splitTabs) for other, slider in panel.measurementSliders.items() if other != key)
+        splitHeights[key] = splitTabs.height()
+        page = splitTabs.currentWidget()
+        slider = panel.measurementSliders[key]
+        assert page.rect().contains(slider.mapTo(page, slider.rect().topLeft()))
+        assert page.rect().contains(slider.mapTo(page, slider.rect().bottomRight()))
+    assert splitHeights["doors"] == splitHeights["windows"]
+    assert splitHeights["stairs"] == splitHeights["counters"]
+    assert splitHeights["doors"] - splitHeights["stairs"] == 112 - 49
+    splitTabs.setCurrentIndex(0)
+    panel.SetWallMeasurementMode("Exterior")
+    app.processEvents()
+    assert splitTabs.height() == splitHeights["stairs"]
+    panel.SetWallMeasurementMode("All")
+    app.processEvents()
+    assert splitTabs.height() == splitHeights["doors"]
+    splitTabs.setCurrentIndex(1)
+    panel.SetWallMeasurementMode("Exterior stacked")
+    assert not panel.measurementSplitWidget.isVisible()
+    panel.SetWallMeasurementMode("All")
+    assert splitTabs.currentIndex() == 1 and panel.measurementSplitWidget.isVisible()
     for key, slider in panel.measurementSliders.items():
         assert slider.minimum() == 0 and slider.maximum() == (1 if key in ("stairs", "counters") else 2) and slider.invertedAppearance()
     for key in ("doors", "windows"):
+        splitTabs.setCurrentIndex(0 if key == "doors" else 1)
         labels = [label for label in panel.measurementPage.findChildren(QtWidgets.QLabel)
                   if label.property("measurementKey") == key]
         slider = panel.measurementSliders[key]
+        panel.tabs.currentWidget().ensureWidgetVisible(slider)
+        app.processEvents()
         QtTest.QTest.mouseClick(labels[0], QtCore.Qt.MouseButton.LeftButton)
         assert slider.value() == 0
         QtTest.QTest.mousePress(labels[0], QtCore.Qt.MouseButton.LeftButton)

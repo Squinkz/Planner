@@ -1,0 +1,31 @@
+{
+    "name": "Rug Round Large",
+    "image": "rug_round",
+    "width": 2400,
+    "length": 2400,
+    "icon": null,
+    "category": [
+        "Living Room",
+        "Bedroom",
+        "Entry"
+    ],
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "rug",
+        "carpet",
+        "carpeting",
+        "mat",
+        "floor",
+        "floorcovering",
+        "textile",
+        "soft",
+        "furnishing",
+        "decor",
+        "round",
+        "circular",
+        "circle",
+        "large",
+        "oversized"
+    ]
+}

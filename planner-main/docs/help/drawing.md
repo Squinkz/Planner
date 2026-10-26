@@ -10,8 +10,8 @@
 
 ![Drawing a Wall](images/draw_wall.gif)
 
-Hold `Right-mouse` and drag anywhere on the canvas to draw a wall. Start a new wall at the control point of an
-existing wall to keep walls connected.
+Hold `Right-mouse` and drag anywhere on the canvas to draw a wall.
+Start a new wall at the control point of an existing wall to keep walls connected.
 
 Alternately, you can hold `Shift` while dragging the control point of an existing wall to extrude a new wall
 out from that point. The new wall will inherit the thickness and material of the old wall.

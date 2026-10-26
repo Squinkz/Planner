@@ -133,6 +133,7 @@ class DrawingViewport(GuideLabelsMixin, AngleGuidesMixin, VisibilityMixin, Group
         self.ignoredPotentialIssues = []
         self.groupModeEnabled = True
         self.clipboardError = ""
+        self.clipboardErrorIsError = True
         self.clipboardErrorTimer = QtCore.QTimer(self)
         self.clipboardErrorTimer.setSingleShot(True)
         self.clipboardErrorTimer.timeout.connect(lambda: self.ShowClipboardError(""))
@@ -306,6 +307,7 @@ class DrawingViewport(GuideLabelsMixin, AngleGuidesMixin, VisibilityMixin, Group
         self.dimensionBoundaryKey = None
         self.dimensionBoundaryValues = ()
         self.solidObjects = True
+        self.floors = True
         self.wallStyle = "Material"
         self.materialBrushes = {(material, selected): BuildWallBrush(selected = selected, material = material)
                                 for material in wallMaterials for selected in (False, True)}

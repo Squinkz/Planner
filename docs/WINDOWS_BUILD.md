@@ -10,7 +10,7 @@ py -3.14 -m venv build/windows-venv
 
 The build uses pinned PyInstaller/PySide6 versions. It creates the executable,
 copies external resources, runs an isolated packaged smoke test, then writes
-`dist/Planner-0.1.0-alpha-Windows.zip`. The filename uses the shared version in
+`dist/Planner-0.1.1-alpha-Windows.zip` for the current version. The filename uses the shared version in
 `planner-main/planner_app/version.py`, which also supplies the About dialog.
 The extracted directory is:
 

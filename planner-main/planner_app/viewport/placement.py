@@ -109,6 +109,23 @@ class PlacementMixin:
             fireplace.swingsOutwards = QtCore.QPointF.dotProduct(worldPosition - fireplace.parentWall.firstVertex, normal) > 0
         return fireplace
 
+    def FindWallToolPlacement(self, position, shape, modifiers):
+        center = self.ViewportToWorld(position)
+        size = NominalPlacementSize(1000, self.unitsMode)
+        if shape == "line":
+            corners = [center - QtCore.QPointF(size / 2, 0), center + QtCore.QPointF(size / 2, 0)]
+        elif shape == "square":
+            corners = [center + QtCore.QPointF(x, y) * size / 2 for x, y in ((-1, -1), (1, -1), (1, 1), (-1, 1))]
+        else:
+            phase = math.pi / 8 - math.pi / 2
+            corners = [center + QtCore.QPointF(math.cos(phase + index * math.tau / 8),
+                                              math.sin(phase + index * math.tau / 8)) * size for index in range(8)]
+        delta = self.SnapObjectMovement(corners + [center], QtCore.QPointF(), modifiers,
+                                       snapTargets = self.StairSnapTargets())
+        corners = [point + delta for point in corners]
+        return [Wall(first, second, self.newWallWidth, material = self.newWallMaterial)
+                for first, second in zip(corners, corners[1:] + ([] if shape == "line" else corners[:1]))]
+
     def FindArrowPlacement(self, position, modifiers, objectClass = Arrow):
         center = self.ViewportToWorld(position)
         if objectClass is AngleGuide:
@@ -636,6 +653,9 @@ class PlacementMixin:
         if self.guiDragCancelled:
             event.ignore()
             return
+        if any(event.mimeData().hasFormat("application/x-planner-wall-" + shape) for shape in ("line", "square", "circle")):
+            event.acceptProposedAction()
+            return
         if any(event.mimeData().hasFormat("application/x-planner-" + kind) for kind in ("arrow", "measurement-guide", "boundary-line", "dashed-line", "solid-line", "angle-guide", "railing", "pillar", "column", "elevator")):
             event.acceptProposedAction()
             return
@@ -669,6 +689,29 @@ class PlacementMixin:
             self.CancelGuiDrag()
         if self.guiDragCancelled:
             event.ignore()
+            return
+        wallShape = next((shape for shape in ("line", "square", "circle")
+                          if event.mimeData().hasFormat("application/x-planner-wall-" + shape)), None)
+        if wallShape is not None:
+            self.hoverPosition = event.position()
+            self.pendingWall = None
+            self.pendingShapeWalls = []
+            if self.DrawingRect().contains(event.position()):
+                walls = self.FindWallToolPlacement(event.position(), wallShape, event.modifiers())
+                if wallShape == "line":
+                    self.pendingWall = walls[0]
+                else:
+                    self.pendingShapeWalls = walls
+                    # The normal shape preview uses this diagonal to validate extent.
+                    points = [wall.firstVertex for wall in walls]
+                    self.pendingWall = Wall(QtCore.QPointF(min(point.x() for point in points), min(point.y() for point in points)),
+                                            QtCore.QPointF(max(point.x() for point in points), max(point.y() for point in points)),
+                                            self.newWallWidth, material = self.newWallMaterial)
+                event.acceptProposedAction()
+            else:
+                self.alignmentGuides = []
+                event.ignore()
+            self.update()
             return
         if any(event.mimeData().hasFormat("application/x-planner-" + kind) for kind in ("arrow", "measurement-guide", "boundary-line", "dashed-line", "solid-line", "angle-guide", "railing", "pillar", "column", "elevator")):
             self.hoverPosition = event.position()
@@ -791,6 +834,9 @@ class PlacementMixin:
         self.update()
 
     def dragLeaveEvent(self, event):
+        if self.guiDragKind in ("wall-line", "wall-square", "wall-circle"):
+            self.pendingWall = None
+            self.pendingShapeWalls = []
         self.counterPreview = None
         self.arrowPreview = None
         self.labelPreview = None
@@ -829,6 +875,28 @@ class PlacementMixin:
             return
         if self.guiDragCancelled:
             event.ignore()
+            return
+        wallShape = next((shape for shape in ("line", "square", "circle")
+                          if event.mimeData().hasFormat("application/x-planner-wall-" + shape)), None)
+        if wallShape is not None:
+            self.pendingWall = None
+            self.pendingShapeWalls = []
+            walls = (self.FindWallToolPlacement(event.position(), wallShape, event.modifiers())
+                     if self.DrawingRect().contains(event.position()) else [])
+            if walls and all(self.WallFits(wall) for wall in walls):
+                before = self.CaptureState()
+                self.walls.extend(walls)
+                for wall in walls:
+                    self.PropagateMiter(wall, 0)
+                    self.PropagateMiter(wall, 1)
+                self.SetSelection([(wall, None) for wall in walls])
+                self.RecordEdit(before)
+                self.setFocus()
+                event.acceptProposedAction()
+            else:
+                event.ignore()
+            self.alignmentGuides = []
+            self.update()
             return
         if any(event.mimeData().hasFormat("application/x-planner-" + kind) for kind in ("arrow", "measurement-guide", "boundary-line", "dashed-line", "solid-line", "angle-guide", "railing", "pillar", "column", "elevator")):
             self.arrowPreview = None

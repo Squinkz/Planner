@@ -16,3 +16,15 @@ Qt's `qt.qml.usedbeforedeclared` warnings without disabling logging.
 Licence notices are in UPNG-LICENSE,
 PAKO-LICENSE and the source headers. encode.js is Planner's transfer bridge.
 Encoding uses a 256-colour target and preserves image print density.
+The bridge transfers pixels in 192 KiB binary ArrayBuffer chunks through Qt's
+QByteArray conversion and returns encoded bytes through the same binary bridge.
+No base64 strings are used. Temporary chunk buffers are collected between calls.
+Planner replaces pako's deflate entry point with Python's native zlib at the same
+compression level. PNG filtering and palette decisions remain in UPNG.
+
+Local UPNG performance changes accumulate the same statistics in scalar locals
+before building the result arrays, and bulk-copy 8-bit palette indices using
+TypedArray.set. Sample order, floating-point arithmetic order, palette size and
+quantization decisions are unchanged. Frozen seeded comparisons check palette,
+alpha, filtered pixels, decoded pixels and print density. Deflate streams can
+differ, while their decompressed PNG data stays identical.

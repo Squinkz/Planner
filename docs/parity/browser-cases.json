@@ -601,8 +601,8 @@
     {
       "id": "WEB-PARITY-042",
       "rule": "WEB-11",
-      "name": "Measurement split-selector composition",
-      "given": "Settings Measurements page at different widths",
+      "name": "Wall dimension split-selector composition",
+      "given": "Options Dimensions page at different widths, with All or Exterior wall mode selected",
       "when": "Inspect label/selector/reset positions and use labels, track and wheel",
       "then": "Keep two distinct columns, align discrete choices to their vertical detents, map two-position indices to modes 0/2 and retain separate visibility controls",
       "qtObservations": [],
@@ -697,7 +697,7 @@
       "id": "WEB-PARITY-048",
       "rule": "WEB-14",
       "name": "Consistent furnishing asset status and Null colors",
-      "given": "Missing top-level assets, nested missing children, missing images, recovered fallback artwork and a built-in north arrow",
+      "given": "Missing top-level assets, nested missing children, missing images, recovered fallback artwork and a built-in north marker",
       "when": "Open or restore, inspect properties, copy/duplicate and render PNG/SVG repeatedly",
       "then": "Retain original keys, report real asset faults consistently, exclude built-ins, keep exports quiet and all Null foreground error-colored even when selected",
       "qtObservations": [],
@@ -794,7 +794,9 @@
       "when": "Run Check for Problems, locate, repair or delete targets and undo changes while the window remains open",
       "then": "Keep a live modeless list, highlight all affected objects without selecting them all, share recovery repair proposals, preserve undo and exclude inspection highlights from exports",
       "qtObservations": [],
-      "desktopChecks": ["checks/check_scene_problems.py"],
+      "desktopChecks": [
+        "checks/check_scene_problems.py"
+      ],
       "status": "requires-browser-run"
     },
     {
@@ -805,7 +807,9 @@
       "when": "Inspect the separate Potential issues section, navigate and auto-repair suggestions",
       "then": "Keep grid targets stable during navigation, use warning highlights and reviewable corrections, preserve junctions/openings and undo, and roll back repairs introducing hard validation errors",
       "qtObservations": [],
-      "desktopChecks": ["checks/check_potential_issues.py"],
+      "desktopChecks": [
+        "checks/check_potential_issues.py"
+      ],
       "status": "requires-browser-run"
     },
     {
@@ -816,7 +820,9 @@
       "when": "Ignore suggestions, save/reopen and change or restore their geometry",
       "then": "Keep unchanged geometry-specific dismissals with the plan, retain hard problems, restore warnings for changed geometry and provide Restore ignored",
       "qtObservations": [],
-      "desktopChecks": ["checks/check_ignored_potential_issues.py"],
+      "desktopChecks": [
+        "checks/check_ignored_potential_issues.py"
+      ],
       "status": "requires-browser-run"
     },
     {
@@ -827,9 +833,139 @@
       "when": "Place, select, edit, persist and export the annotation",
       "then": "Share measurement-guide editing, render a readable dash-dot stroke, display length only while selected and export the line without dimension text",
       "qtObservations": [],
-      "desktopChecks": ["checks/check_boundary_lines.py"],
+      "desktopChecks": [
+        "checks/check_boundary_lines.py"
+      ],
+      "status": "requires-browser-run"
+    },
+    {
+      "id": "WEB-PARITY-058",
+      "rule": "SETTINGS-01",
+      "name": "Dimension trees and conditional wall controls",
+      "given": "Options and Export dimensions UI",
+      "when": "Toggle categories and master, collapse branches and change wall mode",
+      "then": "Preserve the shared labels/rows and each master policy; show wall reference only for stacked mode; Export has no precision or split controls",
+      "qtObservations": [],
+      "desktopChecks": [
+        "checks/check_measurement_master_toggle.py",
+        "checks/check_export_dimension_settings.py",
+        "checks/check_measurement_settings.py"
+      ],
+      "status": "requires-browser-run"
+    },
+    {
+      "id": "WEB-PARITY-059",
+      "rule": "EXPORT-02",
+      "name": "Project and export setting ownership",
+      "given": "Export active with sparse dimension overrides",
+      "when": "Edit Options, edit Export, clear an override and leave Export",
+      "then": "Options changes the project view, explicit export overrides remain independent, clearing them restores inheritance and leaving Export restores project values",
+      "qtObservations": [],
+      "desktopChecks": [
+        "checks/check_export_dimension_settings.py",
+        "checks/check_export_history.py"
+      ],
+      "status": "requires-browser-run"
+    },
+    {
+      "id": "WEB-PARITY-060",
+      "rule": "MEASURE-01",
+      "name": "Stacked wall face and centerline dimensions",
+      "given": "Partitioned rooms, openings, unequal-width/angled walls and overlapping partition walls",
+      "when": "Select exterior stacked and switch wall reference",
+      "then": "Use up to three compact tiers, actual opening widths, accurate wall-axis intersections and exposed partition-assembly faces",
+      "qtObservations": [],
+      "desktopChecks": [
+        "checks/check_stacked_measurements.py",
+        "checks/check_room_measurement_stacks.py"
+      ],
+      "status": "requires-browser-run"
+    },
+    {
+      "id": "WEB-PARITY-061",
+      "rule": "SNAP-01",
+      "name": "Live enclosures and room label units",
+      "given": "An enclosure with roomFill and a Room Label",
+      "when": "Move a wall during a drag, move the label outside and override its units",
+      "then": "Tint updates with the same boundary classification; area is derived and absent outside rooms; explicit label units win over project/export units",
+      "qtObservations": [],
+      "desktopChecks": [
+        "checks/check_live_room_tint.py",
+        "checks/check_room_labels.py"
+      ],
+      "status": "requires-browser-run"
+    },
+    {
+      "id": "WEB-PARITY-062",
+      "rule": "GUIDE-04",
+      "name": "Weighted lines and shared subdivision",
+      "given": "Dashed/solid lines and other straight control-point objects",
+      "when": "Change Weight, subdivide and drag the new junction with connected modes off",
+      "then": "Resolve class styling from the selected weight and move both new junction endpoints together; do not allow independent boundary-style label drags",
+      "qtObservations": [],
+      "desktopChecks": [
+        "checks/check_weighted_lines.py",
+        "checks/check_linear_subdivision.py",
+        "checks/check_line_vertex_priority.py"
+      ],
+      "status": "requires-browser-run"
+    },
+    {
+      "id": "WEB-PARITY-063",
+      "rule": "HOVER-01",
+      "name": "Pointer target agreement",
+      "given": "Overlapping handles, vertices, labels and single/multi-selection",
+      "when": "Hover then click, double-click or open a context menu",
+      "then": "The active highlight, cursor and action share one target; hidden/blocked handles do not advertise an unavailable action",
+      "qtObservations": [],
+      "desktopChecks": [
+        "checks/check_hover_click_targets.py",
+        "checks/check_selected_hit_priority.py"
+      ],
+      "status": "requires-browser-run"
+    },
+    {
+      "id": "WEB-PARITY-064",
+      "rule": "EDIT-01",
+      "name": "Global mixed-selection reflection",
+      "given": "Mixed selected furnishings, control-point objects and wall attachments",
+      "when": "Use global and local horizontal/vertical flips",
+      "then": "Global flips mirror endpoints about the shared bounds, local flips use individual axes, and attachment validation is transactional",
+      "qtObservations": [],
+      "desktopChecks": [
+        "checks/check_selection_flips.py"
+      ],
+      "status": "requires-browser-run"
+    },
+    {
+      "id": "WEB-PARITY-065",
+      "rule": "FILE-02",
+      "name": "New openings and window wells",
+      "given": "Awning/double-casement windows and swinging/double doors",
+      "when": "Place, flip, resize, toggle wells, save/reopen and export",
+      "then": "Preserve type-specific controls, symmetric/double graphics and optional per-window well fields across transports",
+      "qtObservations": [],
+      "desktopChecks": [
+        "checks/check_window_variants.py",
+        "checks/check_swinging_doors.py",
+        "checks/check_double_doors.py"
+      ],
+      "status": "requires-browser-run"
+    },
+    {
+      "id": "WEB-PARITY-066",
+      "rule": "ACTIVITY-01",
+      "name": "Activity browser and retained-state restoration",
+      "given": "A project with edits, expired states, application messages and issue transitions",
+      "when": "Open View > Activity Log, search/select entries and use Restore to Here or Clear Log",
+      "then": "Use a non-modal virtualized browser, preserve descriptions beyond undo retention, separate scene/Export restoration and safely persist compressed log metadata",
+      "qtObservations": [],
+      "desktopChecks": [
+        "checks/check_activity_log.py",
+        "checks/check_activity_events.py"
+      ],
       "status": "requires-browser-run"
     }
   ],
-  "reviewed": "2026-10-23"
+  "reviewed": "2026-10-26"
 }

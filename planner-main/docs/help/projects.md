@@ -23,6 +23,25 @@ This makes the current setup the starting template for new
 projects. It is separate from saving a named project, and can include objects
 as well as settings.
 
+## Check for problems
+
+**Edit** > **Check for problems**, or `Alt + P`, checks your map for missing graphics, missing definitions, invalid geometry
+and other objects in impossible states. Select an entry to locate the affected objects. You can then
+delete them or choose **Auto-Repair** if a repair is available.
+
+The **Potential issues** tab lists geometry that may or may not be intentional, such as wall joins that
+are nearly 90 degrees or walls that are almost parallel to the x or y axis. You can ignore an intentional
+issue or choose **Auto-Repair** to correct it.
+
+## Activity log
+
+The **Activity Log**, available in the **View** menu, records your actions, application messages and detected
+problems or potential issues.
+
+Select an entry with an available restore state and choose **Restore to Here** to return to that point.
+Planner retains a limited number of undo states, so older entries eventually become unavailable for restoration.
+Their descriptions remain in the log.
+
 ## Recovery
 
 Planner keeps recovery checkpoints and restores the session when available. Only one Planner process
@@ -42,8 +61,7 @@ When a plan has issues, Planner may ask the user to either:
 Unavailable choices are disabled. Closing a geometry dialog cancels loading.
 
 Before applying recovery changes, Planner makes an exact backup of the original
-file. The recovery message gives its path and a summary of changes. A recovered
-project opens unsaved: use **Save As** to keep the recovered copy. Missing artwork
+file. The recovery message gives its path and a summary of changes. Missing artwork
 may appear as a marked placeholder until its definition is available.
 
 [> Next: Exporting and printing](export.md)

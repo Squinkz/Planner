@@ -87,7 +87,7 @@ def RenderExamples(record = False, recordCases = ()):
                 CompareExamples(project["scene"], saved["scene"], case["id"] + ".scene")
                 project = saved
             rendered = RenderPlan(target / planName, case["scale"], bounds = bounds, projectData = project, applyTheme = False,
-                                  outputFormat = case["format"], architecturalScale = case.get("architecturalScale"))
+                                  outputFormat = case["format"], architecturalScale = case.get("architecturalScale"), floors = False)
             # RenderPlan schedules its temporary viewport for deletion; this
             # batch has no normal event loop to drain those deferred deletes.
             QtCore.QCoreApplication.sendPostedEvents(None, QtCore.QEvent.Type.DeferredDelete)

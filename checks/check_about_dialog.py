@@ -9,6 +9,7 @@ workspace = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(workspace / "planner-main"))
 from PySide6 import QtCore, QtGui, QtTest, QtWidgets
 from fixtures.parity_examples import ExampleWindow, WorkflowState
+from planner_app.version import displayVersion
 
 
 def Main():
@@ -29,7 +30,7 @@ def Main():
         assert not about.logoLabel.pixmap().isNull()
         assert about.logoLabel.pixmap().size() == QtCore.QSize(300, 300)
         labels = [widget.text() for widget in about.findChildren(QtWidgets.QLabel)]
-        assert "Alpha 0.1.1" in labels and "2026 Dieter Stassen" in labels
+        assert displayVersion in labels and "2026 Dieter Stassen" in labels
         assert "Build your dream,\ndesign your space.\n\nMake your house a Home." in labels
         assert not any("Stacker" in text for text in labels)
         assert about.grab().save(str(captures / "about-dark.png"))
@@ -83,7 +84,7 @@ def Main():
         assert main.aboutDialog is None
         assert WorkflowState(main) == before
         helpWindow.close()
-    print("About: Stacker layout, temporary logo, dismissal, profile/licenses and help routing passed")
+    print("About: layout, logo, dismissal, profile/licenses and help routing passed")
 
 
 if __name__ == "__main__":

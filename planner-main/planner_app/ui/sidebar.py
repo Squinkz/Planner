@@ -12,7 +12,7 @@ from planner_app.ui.menus import AddMenuButton
 from planner_app.ui.export_panel import ExportPanel
 from planner_app.ui.furnishing_list import FurnishingCatalogList
 from planner_app.ui.widgets import (
-    VisibilityItemDelegate, CollapsibleSectionHeading, DownwardComboBox, FurnishingButton, FurnishingIconLayout, SectionHeading, SidebarTabBar, WallWidthSelector, WindowButton,
+    VisibilityItemDelegate, CollapsibleSectionHeading, DownwardComboBox, FurnishingButton, FurnishingIconLayout, SectionHeading, SidebarTabBar, WallWidthSelector, WindowButton, WallToolButton,
 )
 
 
@@ -29,7 +29,7 @@ class SidebarMixin:
         self.BuildFurnishTab()
         self.BuildVisibilityTab()
         self.exportPanel = ExportPanel(self)
-        exportIndex = self.sidebarTabs.addTab(self.exportPanel, UiIcon("save_alt_24dp_E3E3E3"), "")
+        exportIndex = self.sidebarTabs.addTab(self.exportPanel, UiIcon("save_alt"), "")
         self.sidebarTabs.setTabToolTip(exportIndex, "Export")
         for index in range(self.sidebarTabs.count()):
             name = self.sidebarTabs.tabText(index) or self.sidebarTabs.tabToolTip(index)
@@ -78,7 +78,7 @@ class SidebarMixin:
         exportActionLayout.setContentsMargins(14, 8, 14, 14)
         self.exportButton = QtWidgets.QPushButton("Export")
         self.exportButton.setObjectName("exportActionButton")
-        self.exportButton.setIcon(UiIcon("save_alt_24dp_E3E3E3"))
+        self.exportButton.setIcon(UiIcon("save_alt"))
         self.exportButton.setIconSize(QtCore.QSize(28, 28))
         self.exportButton.setFixedHeight(48)
         self.exportButton.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Fixed)
@@ -168,16 +168,28 @@ class SidebarMixin:
         self.visibilityTree.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.NoSelection)
         self.visibilityTree.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
         self.visibilityItems = {}
+        self.visibilityGroups = {}
         for name, parentName in (("World", None), ("Walls", "World"), ("Doors", "Walls"),
-                                 ("Windows", "Walls"), ("Fireplaces", "Walls"), ("Elevators", "World"), ("Stairs", "World"), ("Counters", "World"), ("Railings", "World"), ("Furnishings", "World"), ("Labels", "World"), ("Arrows", "World"), ("Measurement guides", "World"), ("Boundary lines", "World"), ("Dashed lines", "World"), ("Solid lines", "World"), ("North arrows", "World")):
-            parent = self.visibilityItems[parentName] if parentName else self.visibilityTree
-            item = QtWidgets.QTreeWidgetItem(parent, ["Dimension guides" if name == "Measurement guides" else name])
+                                 ("Windows", "Walls"), ("Fireplaces", "Walls"),
+                                 ("Objects", "World"), ("Elevators", "Objects"), ("Stairs", "Objects"),
+                                 ("Counters", "Objects"), ("Railings", "Objects"), ("Furnishings", "Objects"),
+                                 ("Annotations", "World"), ("Labels", "Annotations"), ("Arrows", "Annotations"),
+                                 ("Measurement guides", "Annotations"), ("Boundary lines", "Annotations"),
+                                 ("Dashed lines", "Annotations"), ("Solid lines", "Annotations"), ("North arrows", "Annotations")):
+            parent = (self.visibilityGroups | self.visibilityItems)[parentName] if parentName else self.visibilityTree
+            item = QtWidgets.QTreeWidgetItem(parent, [{"Measurement guides": "Dimension guides", "North arrows": "North markers"}.get(name, name)])
+            if name in ("Objects", "Annotations"):
+                item.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled | QtCore.Qt.ItemFlag.ItemIsUserCheckable)
+                item.setCheckState(0, QtCore.Qt.CheckState.Checked)
+                self.visibilityGroups[name] = item
+                continue
             item.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled | QtCore.Qt.ItemFlag.ItemIsUserCheckable)
             item.setCheckState(0, QtCore.Qt.CheckState.Checked)
             self.visibilityItems[name] = item
         self.referenceImageItem = QtWidgets.QTreeWidgetItem(self.visibilityTree, ["Reference Image"])
         self.referenceImageItem.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled | QtCore.Qt.ItemFlag.ItemIsUserCheckable)
         self.referenceImageItem.setCheckState(0, QtCore.Qt.CheckState.Unchecked)
+        self.visibilityTree.insertTopLevelItem(0, self.visibilityTree.takeTopLevelItem(self.visibilityTree.indexOfTopLevelItem(self.referenceImageItem)))
         self.visibilityTree.expandAll()
         self.visibilityTree.itemChanged.connect(self.SetVisibility)
         self.referenceImagePressState = None
@@ -211,8 +223,14 @@ class SidebarMixin:
                   "North arrows": sum(isinstance(obj, NorthArrow) for obj in self.viewport.furnishings),
                   "Furnishings": sum(not isinstance(obj, NorthArrow) for obj in self.viewport.furnishings), "Labels": len(self.viewport.labels), "Arrows": arrows, "Measurement guides": guides - sum(isinstance(obj, BoundaryLine) for obj in self.viewport.walls), "Boundary lines": boundaries, "Dashed lines": sum(type(obj) is DashedLine for obj in self.viewport.walls), "Solid lines": sum(type(obj) is SolidLine for obj in self.viewport.walls)}
         blocker = QtCore.QSignalBlocker(self.visibilityTree)
+        for group in self.visibilityGroups.values():
+            states = [self.viewport.visibility[name] for name, node in self.visibilityItems.items() if node.parent() is group]
+            state = (QtCore.Qt.CheckState.Checked if all(states)
+                     else QtCore.Qt.CheckState.Unchecked if not any(states)
+                     else QtCore.Qt.CheckState.PartiallyChecked)
+            group.setCheckState(0, state)
         for name, count in counts.items():
-            displayName = "Dimension guides" if name == "Measurement guides" else name
+            displayName = {"Measurement guides": "Dimension guides", "North arrows": "North markers"}.get(name, name)
             label = f"{displayName} ({count} {'object' if count == 1 else 'objects'})"
             if self.visibilityItems[name].text(0) != label:
                 self.visibilityItems[name].setText(0, label)
@@ -220,15 +238,25 @@ class SidebarMixin:
             visible = True
             ancestor = node
             while ancestor is not None:
-                visible = visible and ancestor.checkState(0) != QtCore.Qt.CheckState.Unchecked
+                if ancestor.flags() & QtCore.Qt.ItemFlag.ItemIsUserCheckable:
+                    visible = visible and ancestor.checkState(0) != QtCore.Qt.CheckState.Unchecked
                 ancestor = ancestor.parent()
             color = "treeDisabledText" if not visible else "treeEmptyText" if count == 0 else "text"
             node.setForeground(0, QtGui.QBrush(QtGui.QColor(themeColors[color])))
+        for groupName, group in self.visibilityGroups.items():
+            names = [name for name, node in self.visibilityItems.items() if node.parent() is group]
+            count = sum(counts[name] for name in names)
+            group.setText(0, f"{groupName} ({count} {'object' if count == 1 else 'objects'})")
+            visible = self.viewport.visibility["World"] and any(self.viewport.visibility[name] for name in names)
+            color = "treeDisabledText" if not visible else "treeEmptyText" if not any(counts[name] for name in names) else "text"
+            group.setForeground(0, QtGui.QBrush(QtGui.QColor(themeColors[color])))
         del blocker
 
     def SetVisibility(self, item, column):
         if item is self.referenceImageItem:
             self.referenceImage.ToggleVisibility(item.checkState(0) == QtCore.Qt.CheckState.Checked)
+            return
+        if item is not None and not item.flags() & QtCore.Qt.ItemFlag.ItemIsUserCheckable:
             return
         blocker = QtCore.QSignalBlocker(self.visibilityTree)
         if item is None:
@@ -243,9 +271,10 @@ class SidebarMixin:
             descendants = [item]
             while descendants:
                 node = descendants.pop()
-                name = next(name for name, candidate in self.visibilityItems.items() if candidate is node)
-                visibility[name] = enabled
-                node.setCheckState(0, QtCore.Qt.CheckState.Checked if enabled else QtCore.Qt.CheckState.Unchecked)
+                name = next((name for name, candidate in self.visibilityItems.items() if candidate is node), None)
+                if name is not None:
+                    visibility[name] = enabled
+                    node.setCheckState(0, QtCore.Qt.CheckState.Checked if enabled else QtCore.Qt.CheckState.Unchecked)
                 descendants.extend(node.child(index) for index in range(node.childCount()))
         for name, node in self.visibilityItems.items():
             node.setCheckState(0, QtCore.Qt.CheckState.Checked if visibility[name] else QtCore.Qt.CheckState.Unchecked)
@@ -256,6 +285,9 @@ class SidebarMixin:
             states = [node.child(index).checkState(0) for index in range(node.childCount())]
             if name == "Walls":
                 states.append(QtCore.Qt.CheckState.Checked if visibility[name] else QtCore.Qt.CheckState.Unchecked)
+            else:
+                states = [QtCore.Qt.CheckState.Checked if enabled else QtCore.Qt.CheckState.Unchecked
+                          for key, enabled in visibility.items() if key != "World"]
             state = (QtCore.Qt.CheckState.Checked if all(value == QtCore.Qt.CheckState.Checked for value in states)
                      else QtCore.Qt.CheckState.Unchecked if all(value == QtCore.Qt.CheckState.Unchecked for value in states)
                      else QtCore.Qt.CheckState.PartiallyChecked)
@@ -274,6 +306,7 @@ class SidebarMixin:
         toolbarLayout.setContentsMargins(0, 0, 0, 0)
         toolbarLayout.setSpacing(6)
         self.altHeld = False
+        self.shiftHeld = False
         self.snapButton = QtWidgets.QToolButton()
         self.snapButton.setAccessibleName("Snap")
         self.snapButton.setIcon(HeaderIcon("Snap"))
@@ -283,7 +316,7 @@ class SidebarMixin:
         self.snapButton.ensurePolished()
         self.snapButton.setFixedSize(40, 40)
         self.snapButton.setCheckable(True)
-        self.snapButton.setToolTip("Toggle snapping. Hold Alt to disable temporarily.")
+        self.snapButton.setToolTip("Toggle snapping. Hold Alt to invert temporarily.")
         self.snapOptionsButton = QtWidgets.QToolButton()
         self.snapOptionsButton.setObjectName("viewportToolbarButton")
         self.snapOptionsButton.setAccessibleName("Snapping Options")
@@ -435,10 +468,11 @@ class SidebarMixin:
         self.wallToolButtonGroup.setExclusive(True)
         self.wallToolButtons = {}
         for index, shape in enumerate(("line", "square", "circle")):
-            button = QtWidgets.QToolButton()
+            button = WallToolButton(shape)
             button.setObjectName("viewportToolbarButton")
-            button.setAccessibleName(shape.capitalize())
-            button.setToolTip(shape.capitalize())
+            label = "Polygon" if shape == "circle" else shape.capitalize()
+            button.setAccessibleName(label)
+            button.setToolTip(label)
             button.setIcon(UiIcon("octagon" if shape == "circle" else shape))
             button.setIconSize(QtCore.QSize(24, 24))
             button.setFixedSize(24, 28)

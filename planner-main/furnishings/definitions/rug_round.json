@@ -1,0 +1,29 @@
+{
+    "name": "Rug Round",
+    "image": "rug_round",
+    "width": 1800,
+    "length": 1800,
+    "icon": null,
+    "category": [
+        "Living Room",
+        "Bedroom",
+        "Entry"
+    ],
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "rug",
+        "carpet",
+        "carpeting",
+        "mat",
+        "floor",
+        "floorcovering",
+        "textile",
+        "soft",
+        "furnishing",
+        "decor",
+        "round",
+        "circular",
+        "circle"
+    ]
+}

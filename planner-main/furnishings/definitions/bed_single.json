@@ -19,6 +19,7 @@
         "person",
         "guest",
         "child",
-        "kids"
+        "kids",
+        "guestbed"
     ]
 }

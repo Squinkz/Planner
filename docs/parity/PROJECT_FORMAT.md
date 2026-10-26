@@ -57,11 +57,13 @@ and the one-time workspace migration; the UI must display stored values directly
 | Wall-like objects | `first`, `second`, `width`, `firstMiter`, `secondMiter`, `material` |
 | Furnishing | `first`, `second`, `width`, `definition`, `behindCounters`, `flipHorizontal`, `flipVertical` |
 | Label | `first`, `second`, `width`, `text`, `intensity` |
+| RoomLabel | Label fields plus optional `unitsOverride`; room area is derived, not serialized |
 | NorthArrow | `first`, `second`, `width`, `intensity` (0–1, defaults to 1 when absent) |
 | Attached opening | `parent`, `center` fraction along wall, `length`, class fields below |
 
 Object types include Wall, Counter, Railing, Stair, Pillar, Column, Elevator,
-Arrow, MeasurementGuide, BoundaryLine, AngleGuide, Furnishing, Label, NorthArrow and the opening types.
+Arrow, MeasurementGuide, BoundaryLine, DashedLine, SolidLine, AngleGuide, Furnishing,
+Label, RoomLabel, NorthArrow and the opening types.
 Class inheritance does not imply that every field applies to every type. The
 encoder and examples define actual wire records. A furnishing's endpoint segment
 and width encode oriented dimensions; it is not an axis-aligned screen rectangle.
@@ -76,6 +78,8 @@ Opening class fields:
 | Type | Additional fields |
 | --- | --- |
 | Door | `hingeAtSecond`, `swingsOutwards`, `measurementFlipped` |
+| SwingingDoor | `hingeAtSecond`, `measurementFlipped`; no facing field |
+| DoubleDoor | `swingsOutwards`, `measurementFlipped`; no hinge field |
 | SlidingDoor | `hingeAtSecond`, `panelsFlipped`, `measurementFlipped` |
 | PocketDoor | `hingeAtSecond`, `measurementFlipped` |
 | BarnDoor | `hingeAtSecond`, `swingsOutwards`, `measurementFlipped` |
@@ -84,6 +88,8 @@ Opening class fields:
 | Window | `swingsOutwards`, `measurementFlipped` |
 | SilledWindow | `swingsOutwards`, `sillDepth`, `measurementFlipped` |
 | CasementWindow | `hingeAtSecond`, `swingsOutwards`, `measurementFlipped` |
+| AwningWindow | `swingsOutwards`, `measurementFlipped` |
+| DoubleCasementWindow | `swingsOutwards`, `measurementFlipped` |
 | Fireplace | `swingsOutwards`, `depth`, `depthOffset`, `material`, `measurementFlipped` |
 
 Fireplace length is its span **along** the wall; depth is front-to-back and cannot
@@ -91,15 +97,28 @@ be less than wall thickness for a normally valid placement. Depth offset chooses
 its position across that thickness. Openings require an actual Wall parent.
 Resolve attachments after constructing unattached records, retaining indices.
 
-MeasurementGuide, BoundaryLine and AngleGuide can encode `textOffset`. AngleGuide also
+All five window types additionally encode `windowWell`, `wellDepth` and
+`wellDashed`. Older records default to false, 600 mm and false respectively.
+These fields do not apply to doors or fireplaces. `RoomLabel.unitsOverride`
+is a display unit from `unitModes`, or absent/null for project/export inheritance.
+It overrides both project and export unit choices without changing geometry.
+
+MeasurementGuide, BoundaryLine, DashedLine, SolidLine and AngleGuide encode `textOffset`. AngleGuide also
 encodes `middle: [x, y]` for its central control point, in addition to `first`
 and `second` for the arm endpoints.
+DashedLine and SolidLine also encode `weightClass`, defaulting to `Objects`.
+Accepted wire values are `Walls`, `Objects`, `Furnishings` and `Measurements`;
+the last displays as Dimensions. All linear/angular guides have zero body width.
 
 Railing/Stair include autosizing/manual count settings. Arrows encode `solidTip`,
 `tipSize`, `tipSizeMode: "millimeters"`, `intensity`. Legacy tip modes need the
 compatibility conversion in `ReadArrowTipSize`; a port must not multiply every
 stored arrow-head size by width. Furnishing `children` can retain resolved
 compound fallback records for installs missing the parent definition.
+Arrows optionally encode `directionReversed` (false when absent), which tracks
+their direction-button icon state. Stairs encode the same flag for flight
+direction. Arrow geometry reverses by exchanging endpoints; the icon flag is
+not an additional transform to apply on load.
 
 ## FILE-03: settings and embedded resources
 
@@ -115,6 +134,31 @@ project values or the option's own default; an explicit override is not the same
 as an inherited value even if it presently renders identically. Legacy projects
 without `snap.corners` inherit that flag from `snap.vertices`, preserving their
 previous combined snapping preference.
+
+`settings.wallMeasurementMode` is `All`, `Exterior` or `Exterior stacked`.
+New projects default to Exterior stacked; older files without the field load All.
+`settings.wallMeasurementReference` is `Centerline` or `Wall faces`, defaulting
+to Wall faces when absent. Default-valued fields may be omitted on save.
+Only stacked mode uses the reference choice. Both fields can also occur under
+`exportSettings` as independent sparse overrides. Without those overrides, Export
+and CLI use the project values. `exportSettings.measurementPrecision` is High,
+Medium or Low. `exportSettings.measurementSettings` is a sparse object containing
+doors/windows (0, 1 or 2) and stairs/counters (0 or 2); absent keys inherit project
+values. These overrides apply to preview, saved file output and CLI rendering.
+Options always edits project settings. Opening it while Export is active first
+switches to Build and restores the editor view. Export
+controls and active-export canvas shortcuts edit export overrides, never the
+project view restored on leaving Export.
+
+`settings.exportFolder` and `settings.exportFileName` remember destinations per
+project/session. An unset folder resolves to the plan's directory, or the app
+directory for an unsaved plan. These are not global browsing preferences.
+
+Optional `settings.floors` stores the editor's floor shading, defaulting to true.
+`settings.exportSettings.floors` is a separate optional boolean override. Without
+an override, Export inherits the editor's value; overrides affect previews, saved
+files and the CLI's saved-settings path. No room geometry is serialized. Both
+values require actual booleans. Coverage: `check_export_floors.py`.
 
 `buildSettings.wallWidths`, `openingSizes` and `miscSizes` retain metric source
 defaults in centimeters. Optional `buildSettings.imperialSizes` maps wall preset
@@ -147,7 +191,12 @@ Optional `settings.referenceImage` holds a single reference backdrop. It contain
 the path. Records are absent when no image is loaded. New projects default to no
 image; saved projects/sessions retain hidden images and their placement. Payloads
 are limited to 40 MiB and decoded images to 32,767 pixels per side/100 million
-pixels, within the existing 64 MiB project limit. Invalid image settings can be
+pixels, within the existing 64 MiB project limit. Qt's decoder allocation limit
+can also reject images below the pixel limits. Load errors distinguish unreadable
+data, excessive side length, excessive pixel count and decoder memory failures.
+Size errors report the source pixel dimensions, the relevant limit and advice to
+resize the image. Failed replacements retain the existing reference image.
+Coverage: `check_reference_image_errors.py`. Invalid image settings can be
 dropped by metadata recovery without discarding scene geometry. Image decoding
 and UI/canvas interaction use Qt adapters; the stored transform/opacity record is
 independent of the UI framework. Calibration updates width/height and center in
@@ -199,6 +248,16 @@ malformed history is recoverable through the loader. Desktop limits: 200 edits,
 memory estimate. It need not reproduce Python `getsizeof` or Qt allocation sizes.
 Export-option undo and scene undo are distinct workflows. See
 [editing contracts](../EDITING_PORTS.md).
+
+## FILE-04A: activity log
+
+Optional top-level `activityLog` is a versioned `zlib-base64` envelope of
+lightweight entries, validated scene-journal links and known issue state. It is
+separate from the bounded `history` journal. Descriptions survive journal expiry;
+Export links expire on reopening because Export's journal remains session-local.
+Projects and session checkpoints retain this metadata, while startup templates
+and export rendering snapshots exclude it. Invalid log data can be removed by
+recovery without changing scene geometry. See [Activity Log](../ACTIVITY_LOG.md).
 
 ## FILE-05: recovery is a staged transaction
 
@@ -257,7 +316,7 @@ reveals hidden targets (undoable) and enables furnishing visibility without
 changing object geometry or replacing missing definitions.
 
 Missing-asset notices belong to project loading/recovery. PNG/SVG rendering and
-preview refreshes do not repeat them in the console. Built-in north arrows are
+preview refreshes do not repeat them in the console. Built-in north markers are
 not catalog assets and must not appear in the missing-furnishing list.
 GUI previews and file exports use the editor's loaded catalog plus the project's
 embedded definitions, rather than independently reloading the installation's
@@ -298,19 +357,30 @@ project opening uses its recovery report. Preview and export remain quiet.
 
 Optimized PNG uses `type: "PNG_OPTIMIZED"` in the in-memory export history
 snapshot; it shares PNG controls and rendering but uses a separate encoding step.
-Switching to SVG and undoing restores that selector. This is not a `.plan` wire
-field: ProjectSettings stores export presentation overrides, not format or path,
-and session UI does not add those selectors either.
+Switching to SVG and undoing restores that selector. The project and session
+persist the selection as `settings.exportSettings.fileType`, with values `PNG`,
+`SVG` or `PNG_OPTIMIZED`. Omission defaults to PNG. Output destinations remain
+separate `exportFolder`/`exportFileName` values. The CLI's explicit file-type
+argument takes precedence over the saved UI selection.
 
 
 Session UI selections use persistent object IDs with an optional handle index:
 `null` for the whole object, 0/1 for endpoints, 2 for AngleGuide middle, and 3 for
-MeasurementGuide/BoundaryLine/AngleGuide labels. Validate the handle against decoded scene
+MeasurementGuide/BoundaryLine/DashedLine/SolidLine/AngleGuide label indices. The
+validator retains legacy boundary-style label indices; normal canvas clicks on
+their selected-only dimension labels select the body instead.
+Validate the handle against decoded scene
 objects before applying recovery. A wall cannot acquire an index-2 middle point
 or index-3 label merely because another class supports them. Unknown object IDs
 are skipped as in earlier sessions. These are session UI fields, separate from
 `middle` and `textOffset` in ordinary scene records. See the recovery coverage in
 [VERIFICATION.md](VERIFICATION.md).
+
+Session `ui.expanded` also stores the World tree's Objects and Annotations heading
+expansion. Missing entries default to expanded. Their aggregate checkbox states
+are derived from descendant category flags. These parents are
+not new keys in `settings.visibility` or export visibility overrides; existing
+project category flags and their schema remain unchanged.
 
 ## FILE-06: current scene problem inspection
 
@@ -323,11 +393,12 @@ or replay notices about repairs already completed during loading.
 
 Check missing furnishing definitions and graphics, including nested compound
 children, through the same asset resolver used by recovery and properties.
-Associate faulty children with their scene owner. Built-in North arrows and
+Associate faulty children with their scene owner. Built-in North markers and
 intentional Null placeholders are not missing definitions. Check geometry with
 the recovery validator and current placement/collision rules, including problems
 previously acknowledged through recovery's Highlight choice. Include existing
-contained-wall and exact-duplicate furnishing warnings. Inspect hidden objects
+contained-wall and coincident-object warnings across architectural objects and
+furnishings, including stairs, counters and elevators. Inspect hidden objects
 as well.
 
 Separate Problems and Potential issues into tabs with category groups, clickable
@@ -351,6 +422,13 @@ removes wall attachments with their parent, but does not expand into unrelated
 group members. Stale entries must never delete a newer canvas selection. Closing
 or rechecking the window changes no geometry. See `check_scene_problems.py`,
 `check_geometry_recovery.py`, `check_recovery_locate.py` and `check_header_menus.py`.
+
+Coincident-object Auto-Repair removes extra copies and keeps one existing copy,
+using the same duplicate grouping as editor warnings and export filtering.
+Preserve unique wall attachments when removing duplicate parents. Deletion and
+repair remain undoable. Selectable openings from 1 mm through 10 mm long are
+Potential issues with no automatic size repair, not fatal geometry errors.
+See `check_problem_duplicate_repair.py` and `check_architectural_duplicates.py`.
 
 Potential checks currently inspect regular wall endpoints, including hidden walls.
 Report near-axis walls and joins within 0.5 degrees of a right angle, excluding

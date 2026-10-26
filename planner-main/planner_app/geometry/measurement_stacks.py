@@ -1,7 +1,98 @@
 """Compact exterior chains for openings, room divisions and overall spans."""
 import math
 from PySide6 import QtCore
-from planner_app.models import Wall
+from planner_app.models import Wall, Window
+from planner_app.units import imperialModes, measurementPrecisions
+
+
+def StackedDimensionLengths(inner, additional, unitsMode, precision):
+    """Sum displayed inner segments in integer ticks, without changing geometry."""
+    if not additional:
+        return []
+    step = (25.4 / {"High": 16, "Medium": 4, "Low": 1}[precision]
+            if unitsMode in imperialModes else measurementPrecisions[precision])
+    byOwner = {}
+    innerTicks = []
+    for index, (first, second, owners) in enumerate(inner):
+        innerTicks.append(math.floor(QtCore.QLineF(first, second).length() / step + .5 + 1e-9))
+        for owner in owners:
+            ownerId = id(owner.parentWall if isinstance(owner, Window) else owner)
+            byOwner.setdefault(ownerId, set()).add(index)
+    result = []
+    for first, second, owners, tier in additional:
+        length = QtCore.QLineF(first, second).length()
+        if length < .0001:
+            result.append(length)
+            continue
+        direction = (second - first) / length
+        indices = set()
+        for owner in owners:
+            indices.update(byOwner.get(id(owner), ()))
+        segments = []
+        for index in indices:
+            start, end, members = inner[index]
+            delta = end - start
+            offset = start - first
+            if abs(delta.x() * direction.y() - delta.y() * direction.x()) > .01:
+                continue
+            if abs(offset.x() * direction.y() - offset.y() * direction.x()) > .01:
+                continue
+            low = QtCore.QPointF.dotProduct(offset, direction)
+            high = QtCore.QPointF.dotProduct(end - first, direction)
+            low, high = sorted((low, high))
+            if low >= -.01 and high <= length + .01:
+                segments.append((low, high, innerTicks[index]))
+        covered, totalTicks = 0.0, 0
+        for low, high, ticks in sorted(segments):
+            if abs(low - covered) > .01:
+                break
+            covered = high
+            totalTicks += ticks
+        # Only aggregate a complete chain. Unrelated or partially hidden chains
+        # must never contribute a fabricated overall dimension.
+        result.append(totalTicks * step if abs(covered - length) <= .01 else length)
+    return result
+
+
+def VisibleWallDimensionSpans(spans):
+    """Trim mixed wall ownership before stacking, without changing room geometry."""
+    result = []
+    for first, second, owners in spans:
+        visible = [owner for owner in owners if not owner.measurementHidden]
+        if not visible:
+            continue
+        if len(visible) == len(owners) or any(type(owner) is not Wall for owner in owners):
+            result.append((first, second, visible))
+            continue
+        length = QtCore.QLineF(first, second).length()
+        if length < .0001:
+            continue
+        direction = (second - first) / length
+        intervals = []
+        for owner in owners:
+            start = QtCore.QPointF.dotProduct(owner.firstVertex - first, direction)
+            end = QtCore.QPointF.dotProduct(owner.secondVertex - first, direction)
+            intervals.append((min(start, end), max(start, end), owner))
+        low, high = min(start for start, end, owner in intervals), max(end for start, end, owner in intervals)
+        # Retain the exterior corner/miter extensions at the ends of the run.
+        intervals = [(0 if abs(start - low) < .01 else max(0, start),
+                      length if abs(end - high) < .01 else min(length, end), owner)
+                     for start, end, owner in intervals]
+        stops = sorted({0.0, length, *(value for start, end, owner in intervals for value in (start, end) if 0 < value < length)})
+        pieces = []
+        for start, end in zip(stops, stops[1:]):
+            midpoint = (start + end) / 2
+            members = [owner for low, high, owner in intervals if low <= midpoint <= high
+                       and (not owner.measurementHidden)]
+            if not members or end - start < .0001:
+                continue
+            a, b = first + direction * start, first + direction * end
+            if pieces and pieces[-1][2] == members and QtCore.QLineF(pieces[-1][1], a).length() < .0001:
+                pieces[-1] = pieces[-1][0], b, members
+            else:
+                pieces.append((a, b, members))
+        result.extend(pieces)
+    return result
 
 
 def BuildMeasurementStacks(totals, openingSpans, walls, rooms, reference = "Wall faces"):

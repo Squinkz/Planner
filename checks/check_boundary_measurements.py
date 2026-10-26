@@ -68,7 +68,9 @@ def Main():
             selected = [(walls[0], None)] if frame % 3 == 1 else [(openings[4], None)] if frame % 3 == 2 else []
             for view in (viewport, reference):
                 view.walls, view.windows = members, openings
-                view.SetSelection(selected)
+                # Compare ambient geometry with the unselected frozen behavior.
+                # The current renderer must remain invariant under selection.
+                view.SetSelection(selected if view is viewport else [])
                 view.zoom = .4 + (frame // 6) * .2
                 view.panOffset = point(.37, .71)
                 view.measurementSettings["doors"] = frame % 3

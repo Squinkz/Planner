@@ -4,7 +4,28 @@ import math
 from PySide6 import QtCore, QtGui
 from planner_app.graphics.palette import themeColors
 from .linework import LinePen, defaultLineWidths
-from planner_app.models import OpenDoorway, Door, SwingingDoor, DoubleDoor, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, SlidingDoor, Window, Label
+from planner_app.models import OpenDoorway, Door, SwingingDoor, DoubleDoor, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, SlidingDoor, Window, Label, Fireplace
+
+
+def WallOpeningPolygons(opening, firstPoint, secondPoint, scale, wallLineWidth, outlineClearance = 0):
+    if not isinstance(opening, (Door, SwingingDoor, DoubleDoor, SlidingDoor, PocketDoor, BifoldDoor, OpenDoorway, Fireplace)):
+        return []
+    direction = secondPoint - firstPoint
+    length = math.hypot(direction.x(), direction.y())
+    if length <= 1e-10:
+        return []
+    halfWidth = (opening.parentWall.width if isinstance(opening, Fireplace) else opening.width) * scale / 2
+    normal = QtCore.QPointF(-direction.y(), direction.x()) / length * (halfWidth + wallLineWidth / 2 + outlineClearance)
+    if isinstance(opening, PocketDoor):
+        midpoint = (firstPoint + secondPoint) / 2
+        openingEnd = secondPoint if opening.hingeAtSecond else firstPoint
+        pocketEnd = firstPoint if opening.hingeAtSecond else secondPoint
+        pocketNormal = QtCore.QPointF(-direction.y(), direction.x()) / length * (halfWidth * .4)
+        spans = ((openingEnd, midpoint, normal),) if isinstance(opening, BarnDoor) else (
+            (openingEnd, midpoint, normal), (midpoint, pocketEnd, pocketNormal))
+    else:
+        spans = ((firstPoint, secondPoint, normal),)
+    return [QtGui.QPolygonF([start + offset, end + offset, end - offset, start - offset]) for start, end, offset in spans]
 
 
 def DrawStairSymbol(painter, firstPoint, secondPoint, width, stepCount = 4,

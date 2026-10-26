@@ -22,7 +22,9 @@ def Main():
     v = main.viewport
     panel = main.exportPanel
     main.sidebarTabs.setCurrentWidget(panel)
-    assert panel.solidObjectsField.text() == "Solid Objects"
+    assert panel.solidObjectsField.accessibleName() == "Solid Objects"
+    assert panel.solidObjectsField.text() == ""
+    assert any(label.text() == "Solid Objects" for label in panel.sectionContents["Canvas"].findChildren(QtWidgets.QLabel))
     panel.borderField.setCurrentText("None")
     panel.scaleField.setValue(100)
     panel.showGridField.setChecked(True)

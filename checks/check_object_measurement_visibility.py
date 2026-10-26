@@ -19,19 +19,20 @@ def Main():
     main.show()
     app.processEvents()
     v = main.viewport
+    v.wallMeasurementMode = "All"
     point = QtCore.QPointF
     wall = Wall(point(-2000, 0), point(2000, 0))
     door = Door(wall, .4, .6)
     v.walls, v.windows, v.labels, v.furnishings = [wall], [door], [], []
     v.snapEnabled = False
     v.showMeasurements = True
-    assert OpenMenu(v, point(-1500, 0))[:6] == ["Subdivide Wall", "Material", "Flip Horizontal", "Flip Vertical", "Hide dimensions", None]
-    Click(v, "Hide dimensions")
+    assert OpenMenu(v, point(-1500, 0))[:6] == ["Subdivide Wall", "Material", "Flip Horizontal", "Flip Vertical", "Hide Dimension", None]
+    Click(v, "Hide Dimension")
     assert wall.measurementHidden and not door.measurementHidden
     v.SetSelection([])
     v.grab()
     assert not any(wall in owners for first, second, owners in v.sceneMeasurements[1])
-    assert OpenMenu(v, point(-1500, 0))[:6] == ["Subdivide Wall", "Material", "Flip Horizontal", "Flip Vertical", "Show dimensions", None]
+    assert OpenMenu(v, point(-1500, 0))[:6] == ["Subdivide Wall", "Material", "Flip Horizontal", "Flip Vertical", "Show Dimension", None]
     v.objectContextMenu.hide()
     v.Undo()
     assert not wall.measurementHidden
@@ -47,10 +48,15 @@ def Main():
     # Selection dimensions stay visible despite the regular measurement override.
     door = v.windows[0]
     menu = OpenMenu(v, (door.firstVertex + door.secondVertex) / 2)
-    assert menu[menu.index("Flip Dimension") + 1:][:4] == ["Flip Horizontal", "Flip Vertical", "Hide dimensions", None]
-    Click(v, "Hide dimensions")
+    assert "Flip Dimension" not in menu and "Hide Dimension" not in menu
+    v.objectContextMenu.hide()
+    # Restore the parent chain before independently hiding the opening.
+    v.ApplyObjectContextAction([v.walls[0]], "measurementHidden", False)
+    menu = OpenMenu(v, (door.firstVertex + door.secondVertex) / 2)
+    assert menu[menu.index("Flip Dimension") + 1:][:2] == ["Hide Dimension", None]
+    Click(v, "Hide Dimension")
     v.grab()
-    assert any(door in owners for first, second, owners in v.sceneMeasurements[1])
+    assert any(door in owners for first, second, owners in v.selectionMeasurements)
     v.SetSelection([])
     v.grab()
     assert not any(door in owners for first, second, owners in v.sceneMeasurements[1])
@@ -59,7 +65,7 @@ def Main():
     shownImage = RenderPlan("measurement.plan", 80, (-3000, -2000, 6000, 4000), projectData = main.BuildProjectData(), applyTheme = False)
     assert hiddenImage != shownImage
     v.showMeasurements = False
-    assert "Hide dimensions" not in OpenMenu(v, point(-1500, 0))
+    assert "Hide Dimension" not in OpenMenu(v, point(-1500, 0))
     v.objectContextMenu.hide()
     v.showMeasurements = True
     # All capture categories, including furniture and text, support saved undo.

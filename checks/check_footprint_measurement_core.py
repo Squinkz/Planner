@@ -198,7 +198,8 @@ def Main():
         selection = [(walls[0], None)] if case % 3 == 1 else [(openings[4], None)] if case % 3 == 2 else []
         for view in (actual, reference):
             view.walls, view.windows = walls, openings
-            view.SetSelection(selection)
+            # Selection overlays no longer alter world measurement geometry.
+            view.SetSelection(selection if view is actual else [])
             view.zoom = (.003, .2, 1.5)[case % 3]
             view.panOffset = point(.37, .71)
             view.measurementSettings["doors"] = case % 3

@@ -546,7 +546,7 @@ class Elevator(Pillar):
 class NorthArrow(Furnishing):
     """A non-colliding annotation with the same rectangular handles as furnishings."""
     def __init__(self, center = QtCore.QPointF()):
-        super().__init__({"key": "north-arrow", "name": "North Arrow", "width": 600.0, "length": 1000.0}, center)
+        super().__init__({"key": "north-arrow", "name": "North Marker", "width": 600.0, "length": 1000.0}, center)
         self.intensity = 1.0
 
     def Clone(self):

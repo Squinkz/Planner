@@ -34,7 +34,7 @@ shows the pivot in rotation mode and the object center in resize mode.
 
 ## An object or measurement is missing
 
-Check the Visibility tab's category filters and master visibility. Press `Alt + H`
+Check the World tab's category filters and master visibility. Press `Alt + H`
 to restore individually hidden objects. For dimensions, check the global
 measurement toggle, category measurement switches and the object's
 **Show measurement** context action when available.

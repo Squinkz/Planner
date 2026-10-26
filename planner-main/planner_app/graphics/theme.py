@@ -253,7 +253,7 @@ QFrame#sectionHeadingLine { color: __COLOR_border__; background: __COLOR_border_
 QFrame#wallToolDivider { color: __COLOR_border__; background: __COLOR_border__; max-width: 1px; }
 QLabel#selectionHeading { font-size: 14pt; font-weight: 600; }
 QLabel#objectSubheading { font-weight: 700; }
-QLabel#exportResolution { color: __COLOR_mutedText__; font-style: italic; }
+QLabel#exportResolution, QLabel#exportFormatNote { color: __COLOR_mutedText__; font-style: italic; }
 QPushButton#exportActionButton {
     background: __COLOR_activeBackground__; border: 1px solid __COLOR_activeBackground__;
     color: __COLOR_activeText__; border-radius: 5px; font-weight: 700;
@@ -453,6 +453,11 @@ def HeaderIcon(iconName):
         "Construction": "construction.svg",
         "Viewport": "crop_3_2.svg", "Appearance": "palette.svg",
         "Measurements": "measure.svg",
+        "Grid": "grid.svg",
+        "Line Weight": "line_weight.svg",
+        "Units": "units.svg",
+        "Vignette": "vignette.svg",
+        "Texture": "texture.svg",
         "Walls": "wall_2.svg",
         "File": "insert_drive_file.svg",
         "Objects": "object.svg",
@@ -460,7 +465,7 @@ def HeaderIcon(iconName):
         "Edit": "edit.svg",
         "Transform": "translate.svg",
         "View": "visibility.svg",
-        "Export": "save_alt_24dp_E3E3E3.svg",
+        "Export": "save_alt.svg",
         "Maximize": "fullscreen.svg",
         "Hide selected": "hide_sel.svg",
         "Hide unselected": "hide_unsel.svg",

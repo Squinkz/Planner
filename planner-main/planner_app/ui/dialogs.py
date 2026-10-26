@@ -110,6 +110,10 @@ class DialogsMixin:
 
     def ShowAppMessage(self, title, text, kind = "info", informativeText = None, standardButtons = None, defaultButton = None,
                        buttonLabels = None, wrapInformativeText = True, detailedText = None, locateEntries = None):
+        if kind in ("error", "warning") and standardButtons is None:
+            activity = getattr(self, "activityLog", None)
+            if activity is not None:
+                activity.Message(title + ": " + text, kind = "Application", details = informativeText or "")
         message = RecoveryMessageBox(self) if locateEntries is not None else AppMessageBox(self)
         message.setOption(QtWidgets.QMessageBox.Option.DontUseNativeDialog, True)
         message.setWindowTitle(title)

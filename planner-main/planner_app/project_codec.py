@@ -537,6 +537,7 @@ def DecodeProject(data, definitions, validatePlacement = True, validatedImages =
     flags = ValidateFlags(settings, ("snapEnabled", "connectedVertices", "connectedObjects", "groupMode", "showGrid", "showMeasurements"))
     flags["collisionSettings"] = collisions
     flags["localTransforms"] = ValidateFlags({"localTransforms": False, **settings}, ("localTransforms",))["localTransforms"]
+    flags["floors"] = ValidateFlags({"floors": True, **settings}, ("floors",))["floors"]
     ignored = settings.get("ignoredPotentialIssues", [])
     if (not isinstance(ignored, list) or len(ignored) > 100000
             or any(not isinstance(value, str) or len(value) != 64 or any(character not in "0123456789abcdef" for character in value)
@@ -631,13 +632,17 @@ def DecodeProject(data, definitions, validatePlacement = True, validatedImages =
     if "solidFurnishings" in export and "solidObjects" not in export:
         export = dict(export, solidObjects = export["solidFurnishings"])
     export = {key: value for key, value in export.items() if key != "solidFurnishings"}
-    allowedExport = {"gridOrigin", "solidObjects", "wallStyle", "canvasTheme", "canvasColor", "linesColor", "borderColor", "gridColor", "texture", "textureAngle", "textureScale", "textureStrength", "textureHighlights", "textureMidtones", "textureShadows", "vignetteEnabled", "vignetteStrength", "showGrid", "viewportSettings", "lineworkSettings", "measurementVisibility", "visibility", "bounds", "scale", "scaleUnits", "scaleMode", "architecturalScale", "dpi", "ruler", "border", "borderSize", "unitsMode"}
-    allowedExport.update(("wallMeasurementMode", "wallMeasurementReference"))
+    allowedExport = {"gridOrigin", "solidObjects", "floors", "wallStyle", "canvasTheme", "canvasColor", "linesColor", "borderColor", "gridColor", "texture", "textureAngle", "textureScale", "textureStrength", "textureHighlights", "textureMidtones", "textureShadows", "vignetteEnabled", "vignetteStrength", "showGrid", "viewportSettings", "lineworkSettings", "measurementVisibility", "visibility", "bounds", "scale", "scaleUnits", "scaleMode", "architecturalScale", "dpi", "ruler", "border", "borderSize", "unitsMode"}
+    allowedExport.update(("wallMeasurementMode", "wallMeasurementReference", "fileType", "measurementPrecision", "measurementSettings"))
     if not isinstance(export, dict) or set(export) - allowedExport:
         raise ValueError("Invalid export settings.")
     flags["exportSettings"] = {}
     for name, value in export.items():
-        if name == "scale":
+        if name == "fileType":
+            if value not in ("PNG", "SVG", "PNG_OPTIMIZED"):
+                raise ValueError("Invalid export file type.")
+            flags["exportSettings"][name] = value
+        elif name == "scale":
             flags["exportSettings"][name] = ValidateNumber(value, minimum = .001, maximum = 1000000)
         elif name == "texture":
             if value is not None and (not isinstance(value, str) or value in ("", ".", "..") or "/" in value or "\\" in value):
@@ -675,6 +680,17 @@ def DecodeProject(data, definitions, validatePlacement = True, validatedImages =
             if value not in unitModes:
                 raise ValueError("Invalid export display unit.")
             flags["exportSettings"][name] = value
+        elif name == "measurementPrecision":
+            if not isinstance(value, str) or value not in measurementPrecisions:
+                raise ValueError("Invalid export dimension precision.")
+            flags["exportSettings"][name] = value
+        elif name == "measurementSettings":
+            if not isinstance(value, dict) or set(value) - set(measurementDefaults):
+                raise ValueError("Invalid export dimension splits.")
+            if any(type(entry) is not int or entry not in ((0, 2) if key in ("stairs", "counters") else (0, 1, 2))
+                   for key, entry in value.items()):
+                raise ValueError("Invalid export dimension splits.")
+            flags["exportSettings"][name] = dict(value)
         elif name in ("wallMeasurementMode", "wallMeasurementReference"):
             choices = ("All", "Exterior", "Exterior stacked") if name == "wallMeasurementMode" else ("Centerline", "Wall faces")
             if value not in choices:
@@ -704,7 +720,7 @@ def DecodeProject(data, definitions, validatePlacement = True, validatedImages =
             if not isinstance(value, str):
                 raise ValueError("Invalid export canvas theme.")
             flags["exportSettings"][name] = value
-        elif name in ("showGrid", "ruler", "vignetteEnabled", "solidObjects"):
+        elif name in ("showGrid", "ruler", "vignetteEnabled", "solidObjects", "floors"):
             flags["exportSettings"].update(ValidateFlags(export, (name,)))
         else:
             keys = set(flags[name])
@@ -776,4 +792,6 @@ def DecodeProject(data, definitions, validatePlacement = True, validatedImages =
         except (ValueError, TypeError, KeyError, IndexError, OverflowError, RecursionError):
             # Optional undo data must never prevent a valid project from opening.
             flags["history"] = {"undo": [], "redo": []}
+    from .activity_log import DecodeActivityLog
+    flags["activityLog"] = DecodeActivityLog(data.get("activityLog"))
     return walls, windows, furnishings, groups, hiddenObjects, flags, view, labels

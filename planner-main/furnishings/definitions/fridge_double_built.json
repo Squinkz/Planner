@@ -22,12 +22,11 @@
         "builtin",
         "integrated",
         "fitted",
-        "undercounter",
-        "under",
-        "counter",
         "double",
         "doors",
         "side",
-        "american"
+        "american",
+        "icebox",
+        "cooler"
     ]
 }

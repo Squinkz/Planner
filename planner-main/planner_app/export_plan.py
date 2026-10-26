@@ -62,7 +62,7 @@ def PreviewPaintRoles(render):
 
 @PreviewPaintRoles
 def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "png", projectData = None, applyTheme = True, border = None,
-               dpi = None, architecturalScale = None, borderSize = 28, vignetteStrength = 0, texture = None, textureAngle = 0, textureSettings = None, wallStyle = "Material", solidObjects = True, gridOrigin = (0.0, 0.0), preview = False, previewScene = False, clipCache = None, furnishingDefinitions = None, useExportSettings = False):
+               dpi = None, architecturalScale = None, borderSize = 28, vignetteStrength = 0, texture = None, textureAngle = 0, textureSettings = None, wallStyle = "Material", solidObjects = True, gridOrigin = (0.0, 0.0), preview = False, previewScene = False, clipCache = None, furnishingDefinitions = None, useExportSettings = False, floors = None):
     """Return a QImage or SVG bytes, using identical layout and scene drawing.
 
     projectData accepts an unsaved scene instead of reading planPath. GUI callers
@@ -77,6 +77,8 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
         raise ValueError("Invalid export border.")
     if type(solidObjects) is not bool:
         raise ValueError("Solid objects must be a boolean.")
+    if floors is not None and type(floors) is not bool:
+        raise ValueError("Floors must be a boolean.")
     if wallStyle not in ("Material", "Solid", "Outline"):
         raise ValueError("Invalid export wall style.")
     ruler = border in ("Marked", "Ruler")
@@ -117,26 +119,27 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
             raise ValueError("Scale, width and length must be greater than zero.")
 
     # Give the Windows offscreen backend a font directory before startup.
-    if sys.platform == "win32" and "QT_QPA_FONTDIR" not in os.environ:
+    if QtWidgets.QApplication.instance() is None and sys.platform == "win32" and "QT_QPA_FONTDIR" not in os.environ:
         os.environ["QT_QPA_FONTDIR"] = str(fontsDirectory)
     app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
     LoadApplicationFonts(app)
     data = projectData if projectData is not None else json.loads(ReadProjectBytes(planPath).decode("utf-8-sig"))
-    # History is irrelevant to rendering and may contain many previous scenes.
+    # History and activity are irrelevant to rendering and may contain many previous edits.
     if isinstance(data, dict):
-        data = {key: value for key, value in data.items() if key != "history"}
+        data = {key: value for key, value in data.items() if key not in ("history", "activityLog")}
     definitions = (dict(furnishingDefinitions) if furnishingDefinitions is not None else
                    {item["key"]: item for item in LoadFurnishings()})
     walls, windows, furnishings, groups, hidden, settings, savedView, labels = DecodeProject(data, definitions)
+    floors = settings["floors"] if floors is None else floors
     definitions.update(settings["embeddedFurnishings"])
     export = settings["exportSettings"]
     if useExportSettings:
         # Match the Export tab's inherited view and partial option groups. Keep
         # sizing units tied to the editor even when export labels use other units.
         settings["autoSizingUnitsMode"] = settings["unitsMode"]
-        settings["unitsMode"] = export.get("unitsMode", "Millimeters")
+        settings["unitsMode"] = export.get("unitsMode", settings["unitsMode"])
         for name in ("showGrid", "viewportSettings", "lineworkSettings", "measurementVisibility", "visibility",
-                     "wallMeasurementMode", "wallMeasurementReference"):
+                     "wallMeasurementMode", "wallMeasurementReference", "measurementPrecision", "measurementSettings"):
             if name not in export:
                 continue
             if isinstance(export[name], dict):
@@ -155,6 +158,7 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
         ruler = border in ("Marked", "Ruler")
         wallStyle = export.get("wallStyle", "Material")
         solidObjects = export.get("solidObjects", True)
+        floors = export.get("floors", settings["floors"])
         gridOrigin = export.get("gridOrigin", (0.0, 0.0))
         texture = export.get("texture")
         textureAngle = export.get("textureAngle", 0)
@@ -196,6 +200,7 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
         viewport.setMinimumSize(0, 0)
         viewport.walls, viewport.windows, viewport.furnishings = walls, windows, furnishings
         viewport.solidObjects = solidObjects
+        viewport.floors = floors
         viewport.wallStyle = wallStyle
         viewport.labels = labels
         viewport.objectGroups, viewport.hiddenObjects = groups, hidden

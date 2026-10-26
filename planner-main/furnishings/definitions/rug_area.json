@@ -1,11 +1,29 @@
 {
-    "name": "Area Rug Standard",
+    "name": "Rug Area",
     "image": "rug_area",
     "width": 2300,
     "length": 1600,
     "icon": null,
-    "category": "Living Room",
+    "category": [
+        "Living Room",
+        "Bedroom",
+        "Dining Room"
+    ],
     "inherits": null,
     "children": [],
-    "keywords": []
+    "keywords": [
+        "rug",
+        "carpet",
+        "carpeting",
+        "mat",
+        "floor",
+        "floorcovering",
+        "textile",
+        "soft",
+        "furnishing",
+        "decor",
+        "area",
+        "rectangular",
+        "rectangle"
+    ]
 }

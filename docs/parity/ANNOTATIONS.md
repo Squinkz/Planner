@@ -17,8 +17,10 @@ no measurement ticks or label when unselected, independently of the global
 measurement switch. Selection displays its length, including when automatic
 measurements are hidden. Its selected measurement is a body-selection target, not an independently
 draggable label. Its hidden label and leader are not hit targets when unselected.
-Visible boundary/dashed/solid strokes and endpoints take hit priority over
-structural wall bodies, including selected walls behind them.
+Eligible control points take priority over boundary/dashed/solid line bodies.
+Away from those points, the annotation strokes take priority over structural
+wall bodies, including selected walls behind them. Hover, cursor, click and
+context-menu targeting follow the shared interaction resolver.
 Export always includes only the dash-dot line, with no measurements. Preserve
 dash patterns in both solid/transparent PNG and SVG rendering. The object's
 nonselected bounds follow its line, not an invisible dimension label.
@@ -60,7 +62,7 @@ Coverage: `check_weighted_lines.py`, object behavior matrix and render examples.
 ## GUIDE-01: angle guides
 
 AngleGuide is a nonphysical scene annotation, not a wall attachment. It shares
-Measurement guides visibility and has zero body width. World and annotation
+Dimension guides visibility (stored as `Measurement guides`) and has zero body width. World and annotation
 visibility apply, while ambient wall/stair measurement switches do not turn an
 explicit guide into a physical object. Its persisted control points are `first`,
 `second` and `middle`; desktop endpoint indices remain 0/1, with middle at 2.
@@ -118,6 +120,6 @@ label moves; the marker's geometric anchor stays in place.
 
 Evidence: `check_angle_guides.py`, `check_angle_guide_controls.py`,
 `check_angle_point_properties.py`, `check_angle_guide_hover.py`,
-`check_angle_right_marker.py`, `check_guide_labels.py`, the 24-type object matrix
+`check_angle_right_marker.py`, `check_guide_labels.py`, the 31-type object matrix
 and the AngleGuide render example. The fixture matrix observes both endpoints,
 middle and label states, not just whole-object selection.

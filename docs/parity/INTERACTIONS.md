@@ -32,7 +32,7 @@ panel, separated by 10 px. The sidebar's major vertical spacing is 10.
 The initial sidebar width is 460 logical pixels. Double-clicking its resize
 handle restores that width within the available space.
 
-Build, Furnish and Visibility sit above Object Properties in an independently
+Build, Furnish and World sit above Object Properties in an independently
 resizable vertical splitter. Handle width is 8; initial proportions are 600:300.
 Tabs have minimum height 100. Properties heading margins are 13 left/right;
 content margins 13 left, 8 top, 14 right/bottom. Its content scrolls vertically,
@@ -78,8 +78,8 @@ icons identify the current mode. Category headings do not select or drag.
 
 The pinned `sort` button opens Category, Alphabetical, Width, Length and Area choices.
 Category is the default grouped order; the other choices show each furnishing
-once without category headings. Width and Length sort stored dimensions,
-using the effective placement dimensions for the selected units; Area sorts their
+once without category headings. Width and Length sort the effective placement
+dimensions for the selected units; Area sorts their
 width × length product. Names and
 definition keys break ties consistently.
 Choosing a different sort starts ascending; choosing the active sort reverses it.
@@ -101,24 +101,35 @@ presets and exact active wall widths, including non-preset values, remain intact
 custom saved startup templates retain their authored values. Changing factory defaults
 does not resize existing walls or rewrite saved plans.
 
-Visibility is an expanded checkbox tree without selected-row selection.
-Hierarchy: World -> Walls -> Doors/Windows/Fireplaces; other World children:
-Elevators, Stairs, Counters, Railings, Furnishings, Labels, Arrows, Measurement
-guides, North arrows. Parent counts/check states reflect children. A partially
+The World tab uses an expanded visibility checkbox tree without selected-row selection.
+World has three branches: Walls, Objects and Annotations. Walls contains
+Doors/Windows/Fireplaces. Objects groups Elevators, Stairs, Counters, Railings
+and Furnishings. Annotations groups Labels, Arrows, Dimension guides, Boundary
+lines, Dashed lines, Solid lines and North markers. Objects and Annotations are
+collapsible checkbox parents that toggle all categories in their group and show
+partial states when only some children are enabled. Their states are derived from
+the category flags, with summed child object counts and no separate saved visibility flags. World
+cascades through them and aggregates the real categories' states.
+The export visibility tree uses the same hierarchy and fits its height to the
+currently expanded rows. World-tab heading expansion persists in session UI
+state, separately from project visibility. The dimension guide wire key remains
+`Measurement guides`. Parent counts/check states reflect children. A partially
 checked parent toggles to unchecked, including via keyboard Space. Only the
 enabled checkbox hit area gets a hand cursor; ordinary row text retains arrow.
+Coverage: `check_visibility.py`, `check_visibility_grouping.py`.
 
-Reference Image is a separate top-level branch, independent of World, off until
+Reference Image is the first top-level branch, above and independent of World, off until
 an image is chosen. Checking it initially opens the image file picker; cancel or
-failure leaves it unchecked. Subsequent toggles reuse the embedded image. While
-enabled, clicking its row text in Visibility opens reference controls
+failure leaves it unchecked. Successfully loading an image switches to World and
+opens its reference controls, just like Alt+B. Subsequent toggles reuse the embedded image. While
+enabled, clicking its row text in World opens reference controls
 in the properties area, expanding that area if collapsed. Returning to Visibility
 alone does not reopen them. Leaving that tab, disabling the image, pressing Esc
 outside a gesture or clicking canvas void closes the controls. Restore the
 previous selection, splitter sizes, expanded/collapsed state and scroll position.
 `B`, View and the tree checkbox only toggle reference visibility. Enabling does
-not change the active tab or open reference controls, including after the initial
-file selection. `Alt+B` opens those controls only if the image is
+not change the active tab or open reference controls when an image is already
+loaded. `Alt+B` opens those controls only if the image is
 already visible. While active,
 the image is the sole transform target; scene picking, hover handles, selection
 and building shortcuts are blocked. A click over a scene object within the image
@@ -261,7 +272,8 @@ Shift-click adds selection members; Ctrl-click removes them. Ctrl-drag retains i
 On empty canvas, Shift-box selection adds fully enclosed objects and Ctrl-box selection removes them, expanding groups in Group Mode. Modifiers are captured on press; an empty click preserves the selection.
 Clicking a resize handle while Shift is already held must begin centered resize,
 not box selection. Handles have priority over the modifier's empty-canvas action.
-Whole selected groups show one combined measurement box, not per-member boxes.
+Whole selected groups show one combined selection-dimension box, not per-member
+overlays. Ambient member dimensions remain unchanged.
 
 Object drag translates the selection; Shift-drag duplicates it. Wall copies
 include their openings. Connected Objects recursively carries physical connected
@@ -285,7 +297,9 @@ through the existing endpoint geometry. Measurement and boundary line tools do
 not show this arrow-only control. Coverage: `check_arrow_direction.py`.
 
 Flip Horizontal and Flip Vertical are generic context actions for single or mixed
-selections. In Global mode they reflect X or Y respectively around the combined
+selections, except an individually selected wall attachment. Individual doors,
+windows and fireplaces expose their specific hinge/facing actions instead.
+In Global mode generic flips reflect X or Y respectively around the combined
 axis-aligned footprint's center. Every selected control point uses that same
 reflection, preserving junctions within the selection. Groups and hidden state
 are retained; connections outside the selection are not expanded implicitly.
@@ -390,7 +404,13 @@ remain undimmed. Regions use the wall renderer's actual
 junctions, crossings, thicknesses and chamfers. Nested wall islands remain excluded.
 The fill is below the reference image and grid. Grid opacity and rulers remain
 unchanged, and room shading remains visible when the grid is hidden.
-Exports and export previews retain their configured canvas appearance.
+Export's Canvas section has a Floors checkbox immediately below Solid Objects.
+It inherits the editor's floor shading on entry until an explicit export override
+is made. The override persists per project/session and supports export undo/redo.
+Floors controls only the room-fill paint, independently of object fill, grid,
+borders, room detection, areas and labels. PNG, Optimized PNG, SVG, both preview
+paths and the saved-settings CLI apply the same resolved choice. Leaving Export
+restores the editor's floor state. Coverage: `check_export_floors.py`.
 
 Room detection reads structural-geometry/topology/visibility revisions and wall
 preview values before the canvas background is painted. Changes update the tint
@@ -435,7 +455,8 @@ blockers still trim covered stair/counter spans.
 Splitting preferences are retained and restored when leaving stacked mode. In
 stacked mode, the split controls are hidden and disabled, replaced by the single
 Wall reference dropdown, which is disabled while wall dimensions are off.
-Both rows share visibility, selection colors and normal measurement formatting.
+All active tiers share ambient visibility and normal dimension formatting.
+Selection dimensions are a separate overlay and cannot alter tier construction.
 Coverage: `check_exterior_measurements.py`, `check_stacked_measurements.py`,
 `check_room_measurement_stacks.py`, `check_furnishing_measurement_blockers.py`.
 
@@ -508,7 +529,24 @@ Do not quantize camera movement, weaken render comparisons or hide artwork to
 meet a timing target. See `check_pan_preparation.py`, `check_pan_dpi.py`,
 `check_pan_dirty_regions.py` and `check_door_pan_reentry.py`.
 
-Alt temporarily inverts snapping. Ctrl constrains translation to an axis.
+Alt temporarily inverts snapping. The toolbar reflects the effective state,
+while project/session saves retain the base snap preference. Alt presses and
+releases remain paired across Options and other Planner windows, including
+reference tools that consume keyboard events. Ignore modifier auto-repeat.
+Application deactivation clears the override; pointer modifiers reconcile a
+release lost to a native dialog before processing a toolbar click. With no snap
+target types enabled, the indicator remains off even while Alt is held.
+Ctrl and Shift use the same cross-window tracking before any tool consumes a key.
+Pointer events reconcile all three modifiers. Main-window deactivation or hiding,
+application deactivation, lost canvas capture and missing held mouse buttons end
+unfinished gestures. Canvas transforms and reference-image drags roll back;
+box selection, wall drawing, pending context-clicks, D/S placement, panning and
+edge-pan timers clear. Calibration cancels its active point drag but keeps already
+placed points. Export crop/ruler drags retain their last value as an undoable
+gesture and clear the held flags. Application deactivation clears cached modifiers.
+Coverage: `check_snap_state.py`, `check_held_input.py`, `check_snap_options.py`,
+`check_interactions.py`, `check_pan_lifecycle.py`.
+Ctrl constrains translation to an axis.
 Held object drags and box selection automatically pan near or beyond the visible canvas edges.
 Use a 24-logical-pixel inner edge band with speed increasing toward the edge,
 reaching 480 logical pixels per second at the edge. Beyond the edge, add 480
@@ -599,8 +637,40 @@ tread/post counts follow the active limits, while manual counts stay unchanged.
 Measurement context actions exist only for object types that actually draw
 measurements under current global/category settings. They go at the bottom of
 the object's top action section, before Transform/clipboard/delete. Labels and
-north arrows have no such actions. Hide/Show dimensions affects normal drawing,
+north markers have no such actions. Hide Dimension/Show Dimension affects normal drawing,
 not selection dimensions. Related property controls obey the same eligibility.
+
+`AvailableDimensionActions` supplies shared eligibility for context menus and
+Properties, based on potential ambient geometry rather than selection overlays:
+
+| Wall mode | Flip Dimension | Hide Dimension/Show Dimension |
+| --- | --- | --- |
+| All | Supported directional openings with facing-side splitting | Objects contributing ambient dimensions under the active split settings |
+| Exterior | Unavailable | Exterior dimensions with splitting enabled, independently of object facing |
+| Exterior stacked | Unavailable | Exterior dimensions, using stacked mode's split-all policy |
+
+Own-hidden dimensions are evaluated as if shown for Show Dimension eligibility,
+but cannot be flipped until shown again in All mode. Exterior ignores facing.
+Parent-hidden chains and disabled categories/master suppress child
+actions. Interior-only openings offer neither action in exterior modes.
+Fireplace face dimensions do not depend on window split settings. Explicit
+dimension guides keep Hide/Show when the ambient master is off; selected-only
+line annotations do not. `check_dimension_action_policy.py` covers the opening
+type/mode/split/facing/hidden matrix and both UI surfaces.
+
+In All, Exterior and Exterior stacked modes, hidden opening dimensions do not split
+their parent wall's chain. The wall remains continuous, and unused stacked tiers
+collapse. Hiding a wall suppresses its openings' ambient chain as well. On a
+collinear run, hidden wall sections are clipped before building stacked tiers
+rather than retaining the entire run through a visible neighbor's ownership.
+Room detection and room areas are unaffected. Selecting a hidden object shows
+only a separate overlay; its world dimensions remain hidden. Selecting walls,
+openings, control points or groups never changes ambient splits, ownership or
+stack tiers. Group bounds supplement ambient member dimensions instead of
+replacing them. Coverage: `check_exterior_hidden_dimensions.py`
+includes both wall references, rotated runs, undo/redo and PNG/SVG output.
+`check_selection_dimension_overlay.py` checks selection invariance across all
+modes, references, split preferences, hidden objects, groups and exports.
 
 ## EDIT-02: coincident furnishing warnings
 
@@ -609,7 +679,7 @@ independent of collision toggles and placement validity. Compare original
 definition key, both oriented endpoints, width and horizontal/vertical flips.
 Different dimensions/orientations/flips, different definitions and near-coincident
 placements are not duplicates. This applies to furnishing objects, including
-whole compounds, rather than labels or built-in north arrows.
+whole compounds, rather than labels or built-in north markers.
 
 Among visible copies, keep the rear copy normal and draw every copy in front of
 it with `warningOutline`, the same role as contained walls. Behind Counters
@@ -642,7 +712,7 @@ object type, including annotations. Repairing a duplicate category handles all
 its coincident groups in one undoable edit. Keep one existing copy, preferring a
 visible copy, and preserve unique attachments when merging duplicate walls.
 Remove matching child copies after reparenting without deleting unrelated grouped
-or connected objects. A minimum-length (1 mm) opening is a potential issue, not
+or connected objects. An opening from 1 mm through 10 mm long is a potential issue, not
 invalid geometry. Tiny and collapsed openings retain a minimum screen-space hit
 area so they can be selected through their parent wall; selected openings keep
 their normal endpoint handles. Coverage: `check_problem_duplicate_repair.py`.
@@ -651,6 +721,16 @@ than exposing a normal half-stroke outside the surface. Coincident counters keep
 a warning footprint even when merged geometry assigns their surface to another
 owner. Fully covered rear furnishing copies do not contribute dark antialias
 fringes beneath the front warning, in solid or transparent object mode.
+
+## ACTIVITY-01: activity history and restoration
+
+View > Activity Log opens the non-modal activity browser. Entries persist with
+the project beyond normal undo retention. Restore to Here navigates retained
+scene/reference or Export history without deleting activity descriptions, and
+explicitly identifies which scope it restores. Branches, expired edits, errors
+and recovery/issue events remain readable when restoration is unavailable.
+See [Activity Log](../ACTIVITY_LOG.md) and `check_activity_log.py` /
+`check_activity_events.py` for the complete contract.
 
 ## EXPORT-01: layout and enabled states
 
@@ -674,7 +754,11 @@ and session, and participate in export undo/redo. A project without a saved dest
 defaults to its own directory, or the application directory before its first save.
 Global browse preferences do not affect export destinations. Closing the project
 clears its destination. Custom filenames are saved with the project and session,
-restored on reopen, and cleared on Close. Type changes update only the filename extension. Automatic
+restored on reopen, and cleared on Close. Filename displays a base name without
+an automatically appended extension. Optional `.png`/`.svg` suffixes are ignored
+case-insensitively and removed when committing the field; other dots remain part
+of the name. Type determines the output extension without adding it to the field.
+Previously saved names containing an export extension are displayed without it. Automatic
 project-based filenames keep their existing collision suffixes; custom names
 retain overwrite confirmation. Export joins the two entries and rejects folder
 components or reserved characters in Filename. Both entries participate in export
@@ -732,18 +816,19 @@ Tips and FPS remain app preferences. Maximize remains a window layout action,
 and reference-image visibility remains project metadata outside export artwork.
 Coverage: `check_export_measurement_shortcuts.py`.
 
-Options always edits project settings, including while Export is active. Its
-dimension tree, units, canvas precision, wall mode/reference, splitting preferences,
-Draw Grid and appearance fields reflect the project view, not the temporary export
-preview. Export's dimension tree, units and wall mode/reference edit sparse export
-overrides. An explicit override wins over subsequent Options changes; wall mode
-and reference inherit project values until overridden, and clearing an override
-restores inheritance immediately. Export units retain their existing default of
-Millimeters until explicitly overridden. Canvas precision and split settings have
-no export controls and follow the project settings. Project split settings are
-included in preview snapshot/restore so edits cannot be lost when switching tabs.
-Save/reopen, export undo/redo, PNG/SVG and CLI use the same resolved mode/reference.
-Coverage: `check_export_dimension_settings.py`, `check_export_cli_settings.py`.
+Opening Options from Export switches to Build before showing either a new or
+existing Options dialog. The editor camera/settings are restored, and export
+overrides remain saved. Options controls always edit the project.
+Export has Units and Precision rows followed by Measure and Walls sections.
+The shared Walls controls include Mode, conditional Wall reference and the
+Doors/Windows/Stairs/Counters split tabs, with identical sizing, reset, wheel,
+drag and disabled-state rules to Options. Each control writes its own sparse
+export override. Units, precision, mode/reference and each individual split
+category inherit project values until overridden. Clearing an override restores
+inheritance immediately. Returning to Build restores project settings.
+Save/reopen, export undo/redo, PNG/SVG and CLI use the same resolved values.
+Coverage: `check_export_dimension_settings.py`, `check_export_dimension_overrides.py`,
+`check_export_cli_settings.py`.
 
 Double-click a crop guide resets that edge to its automatic-bounds position.
 Otherwise double-click inside the drawing region returns to 1:1 output pixels
@@ -781,10 +866,30 @@ Its in-memory export-history selector value is `PNG_OPTIMIZED`, while renderer r
 `png`. Encoding quantizes to at most 256 palette entries and retains alpha and
 print-density metadata; it can change colors and is not a pixel-lossless variant
 of regular PNG. Encoding errors are reported without replacing an existing
-file, and the busy cursor/Export button state is restored. Native save filters,
-extensions and export undo retain the selected format. The format/path selector
-is not stored in project settings or session UI state; only presentation
-overrides persist there.
+file, and the Export button state is restored. Native save filters,
+extensions and export undo retain the selected format. The selected format is
+saved per project and session in `exportSettings.fileType`, defaulting to PNG
+when absent. Changing projects restores that project's format. Coverage:
+`check_export_filetype.py`.
+
+All three saved export types open a window-modal Exporting dialog after path and
+overwrite validation. It shows the filename, an indeterminate animated progress
+bar, current stage and Cancel. The editor remains responsive but cannot be edited
+until the dialog closes. A separate process renders the unsaved scene using the
+resolved export settings and catalog. Cancel, Escape and the window close button
+stop the process, discard its temporary output and leave any destination unchanged.
+Worker startup, render, encode and write errors close the progress dialog and show
+Export Failed. Success atomically replaces the destination and retains the existing
+Exported feedback and automatic filename numbering. No editor session is launched
+by the worker. Qt can round outlined SVG ruler glyph coordinates differently in a
+fresh process by 1/64 px; scene geometry and layout stay exact.
+Binary Qt/JavaScript transfer avoids base64 raster buffers. Native zlib deflation
+retains the original compression level. Optimizations preserve quantizer sample
+and arithmetic order, palette decisions, alpha and print density. Frozen seeded
+checks compare decompressed PNG chunks and decoded pixels exactly; compressed
+IDAT bytes and file sizes may differ.
+Coverage: `check_export_progress.py`, `check_export_button.py`, `check_optimized_png.py`,
+`check_optimized_png_parity.py`.
 
 File output remains limited to 32,767 units per side; PNG additionally has a
 100-million-pixel allocation limit. SVG has no raster-area limit. Preview

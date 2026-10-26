@@ -197,6 +197,12 @@ def PlanMeasurementComponents(memberGroups, openingParents, selectedKeys):
     return plans
 
 
+def EffectiveWallSplitSettings(settings, mode):
+    # Exterior chains have no facing side. Preserve the stored All-mode choice
+    # until the user explicitly changes a split control.
+    return {key: 0 if mode == "Exterior" and value == 1 else value for key, value in settings.items()}
+
+
 def BuildOpeningDimensions(first, second, direction, length, midpoint, owners, openings, cutters):
     """Coordinate interruption, side and fireplace policies for one exposed span.
 
@@ -207,11 +213,6 @@ def BuildOpeningDimensions(first, second, direction, length, midpoint, owners, o
     projectedOpenings = []
     projectedFireplaces = []
     for opening in openings:
-        low, high = OpeningProjection(first, direction, opening.first, opening.second)
-        projectedOpenings.append((opening.key, low, high))
-        if opening.fireplace is not None:
-            projectedFireplaces.append((low, high, *opening.fireplace))
-    for opening in openings:
         if opening.mode == 2 and opening.fireplace is None:
             continue
         if opening.mode == 1 and opening.fireplace is None and opening.oneSided:
@@ -219,6 +220,11 @@ def BuildOpeningDimensions(first, second, direction, length, midpoint, owners, o
                 continue
         low, high = OpeningProjection(first, direction, opening.first, opening.second,
                                       opening.pocket, opening.hingeAtSecond)
+        # An inactive opening must not acquire a dimension merely because a
+        # counter, stair or another opening interrupts the same span.
+        projectedOpenings.append((opening.key, low, high))
+        if opening.fireplace is not None:
+            projectedFireplaces.append((low, high, *opening.fireplace))
         start, end = max(0.0, low), min(length, high)
         if end - start > .0001:
             interruptions.append((start, end))

@@ -139,6 +139,20 @@ def Main():
         assert not v.FlipObjects([door, desk], False)
         CompareExamples(EncodeScene(v), before)
         assert not v.undoHistory and door.parentWall is wall
+        # Individual wall attachments use hinge/facing actions, not generic
+        # mirrors that could detach them from their supporting wall.
+        for openingType in (*v.openingPlacementTypes["Door"], *v.openingPlacementTypes["Window"], Fireplace):
+            wall = Wall(p(-2000, 0), p(2000, 0))
+            opening = openingType(wall, .3, .7)
+            InstallScene(main, [wall, opening])
+            v.SetSelection([(opening, None)])
+            assert all(not button.isVisible() for button in main.furnishingFlipFields.values())
+            position = v.WorldToViewport((opening.firstVertex + opening.secondVertex) / 2)
+            v.ShowObjectContextMenu(position, v.mapToGlobal(position.toPoint()))
+            names = [action.defaultWidget().accessibleName() for action in v.objectContextMenu.actions()
+                     if not action.isSeparator() and action.defaultWidget() is not None]
+            assert "Flip Horizontal" not in names and "Flip Vertical" not in names, openingType
+            v.objectContextMenu.close()
     print("PASS: shared/global and individual/local mirrors, mixed geometry, joined endpoints, attachments, readable text and history")
 
 

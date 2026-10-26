@@ -18,6 +18,9 @@ def Main():
     main.show()
     app.processEvents()
     v = main.viewport
+    v.wallMeasurementMode = "All"
+    main.ShowSettings()
+    main.settingsWindow.hide()
     point = QtCore.QPointF
     wall = Wall(point(-1800, 0), point(1800, 0))
     v.walls = [wall]
@@ -26,6 +29,18 @@ def Main():
         opening = cls(wall, .2, .4)
         v.windows = [opening]
         v.SetSelection([(opening, None)])
+        assert main.doorFields["measurement"].isVisible()
+        main.settingsWindow.SetWallMeasurementMode("Exterior stacked")
+        assert not main.doorFields["measurement"].isVisible()
+        assert "Flip Dimension" not in OpenMenu(v, (opening.firstVertex + opening.secondVertex) / 2)
+        originalFlip = opening.measurementFlipped
+        v.ApplyObjectContextAction([opening], "measurementFlipped")
+        main.EditDoorProperty("measurement")
+        assert opening.measurementFlipped == originalFlip
+        main.settingsWindow.SetWallMeasurementMode("Exterior")
+        assert not main.doorFields["measurement"].isVisible()
+        assert "Flip Dimension" not in OpenMenu(v, (opening.firstVertex + opening.secondVertex) / 2)
+        main.settingsWindow.SetWallMeasurementMode("All")
         assert main.doorFields["measurement"].isVisible()
         path = v.ConnectedWallPath([wall])
         before = v.WallDimensions([wall], path)

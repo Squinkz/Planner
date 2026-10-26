@@ -18,7 +18,7 @@ edited together. A field showing different values represents a mixed selection.
 Entering a value applies it to the selected targets.
 
 Click a numeric field to type, or drag it horizontally to adjust it. Hold `Alt`
-while dragging for finer adjustments.
+while dragging for finer adjustments. You can also enter basic expressions like `+4` or `*0.5`.
 
 ## Moving and duplicating
 

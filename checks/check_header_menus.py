@@ -41,10 +41,11 @@ def Main():
         viewport = window.viewport
         assert window.viewOptions["showGrid"].shortcutLabel.text() == "G"
         assert [None if action.isSeparator() else action.defaultWidget().accessibleName() for action in window.viewMenu.actions()] == [
-            "Draw Grid", None, "Reference Image", None, "Toggle dimensions", None, "Maximize", None, "Show tips", "Show FPS counter"]
+            "Toggle dimensions", "Draw Grid", None, "Reference Image", "Setup Reference Image", None, "Maximize", None, "Show tips", "Show FPS counter", None, "Activity Log"]
         assert not viewport.showFpsCounter and not viewport.performanceLabel.isVisible()
         assert viewport.showTips
         window.ShowViewMenu()
+        assert not window.menuButtons["Setup Reference Image"].isEnabled()
         assert not window.viewOptions["showTips"].iconLabel.pixmap().isNull()
         window.viewMenu.hide()
         tipsImage = viewport.grab().toImage()
