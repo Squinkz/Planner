@@ -24,7 +24,8 @@ from .furnishing_handles import FurnishingHandlesMixin
 from .export_bounds import ExportBoundsOverlay
 from .raster_cache import RasterCacheBudget
 from planner_app.scene_changes import SceneChanges, SceneList, SceneDict, SceneSet
-from planner_app.models import OpenDoorway, Door, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, Window, SilledWindow, CasementWindow, Label
+from planner_app.room_detection import RoomDetection
+from planner_app.models import OpenDoorway, Door, SwingingDoor, DoubleDoor, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, Label
 from planner_app.catalog import LoadFurnishings, furnishingsFolder
 from planner_app.preferences import wallPresetWidths, openingDefaultSizes, miscDefaultSizes, measurementDefaults, stairStepSizeDefaults, railingSpacingDefaults
 from planner_app.graphics.furnishings import FurnishingRendererMap
@@ -123,7 +124,7 @@ class DrawingViewport(GuideLabelsMixin, AngleGuidesMixin, VisibilityMixin, Group
         self.performanceTimer = QtCore.QTimer(self)
         self.performanceTimer.setInterval(250)
         self.performanceTimer.timeout.connect(self.RefreshPerformance)
-        self.visibility = dict.fromkeys(("World", "Walls", "Doors", "Windows", "Fireplaces", "Elevators", "Stairs", "Counters", "Railings", "Furnishings", "Labels", "Arrows", "Measurement guides", "Boundary lines", "North arrows"), True)
+        self.visibility = dict.fromkeys(("World", "Walls", "Doors", "Windows", "Fireplaces", "Elevators", "Stairs", "Counters", "Railings", "Furnishings", "Labels", "Arrows", "Measurement guides", "Boundary lines", "Dashed lines", "Solid lines", "North arrows"), True)
         self.objectGroups = []
         self.hiddenObjects = []
         self.hiddenObjectIds = set()
@@ -152,6 +153,8 @@ class DrawingViewport(GuideLabelsMixin, AngleGuidesMixin, VisibilityMixin, Group
         self.lineworkSettings = dict(lineworkDefaults)
         self.lineWidths = dict(defaultLineWidths)
         self.measurementSettings = dict(measurementDefaults)
+        self.wallMeasurementMode = "Exterior stacked"
+        self.wallMeasurementReference = "Wall faces"
         self.stairStepSizes = dict(stairStepSizeDefaults)
         self.railingSpacings = dict(railingSpacingDefaults)
         self.imperialAutoSizes = {}
@@ -234,7 +237,7 @@ class DrawingViewport(GuideLabelsMixin, AngleGuidesMixin, VisibilityMixin, Group
         self.mode = "Select"
         self.openingPlacementMode = None
         self.openingPlacementPressed = False
-        self.openingPlacementTypes = {"Door": (Door, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway), "Window": (Window, SilledWindow, CasementWindow)}
+        self.openingPlacementTypes = {"Door": (Door, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway, SwingingDoor, DoubleDoor), "Window": (Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow)}
         self.openingPlacementIndices = {"Door": 0, "Window": 0}
         self.selectedWall = None
         self.selectedVertex = None
@@ -323,6 +326,7 @@ class DrawingViewport(GuideLabelsMixin, AngleGuidesMixin, VisibilityMixin, Group
         self.setAcceptDrops(True)
         self.setMouseTracking(True)
         self.exportOverlay = ExportBoundsOverlay(self)
+        self.roomDetection = RoomDetection(self)
         if os.environ.get("PLANNER_RENDER_DIAGNOSTICS") == "1":
             self.SetRenderDiagnosticsEnabled(True)
 

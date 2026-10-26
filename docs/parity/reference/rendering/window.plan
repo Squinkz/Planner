@@ -28,7 +28,10 @@
         "center": 0.5,
         "length": 1199.9999999999998,
         "swingsOutwards": false,
-        "measurementFlipped": false
+        "measurementFlipped": false,
+        "windowWell": false,
+        "wellDepth": 600.0,
+        "wellDashed": false
       }
     ],
     "groups": [],

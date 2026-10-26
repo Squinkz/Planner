@@ -20,6 +20,7 @@ def Main():
     main.show()
     main.ShowSettings()
     panel = main.settingsWindow
+    panel.wallMeasurementModeField.setCurrentText("All")
     panel.tabs.setCurrentIndex(1)
     app.processEvents()
     v = main.viewport
@@ -58,7 +59,7 @@ def Main():
         v.furnishings = [blocker] if isinstance(blocker, Furnishing) else []
         v.ConnectedStairPath([stair])
         spans = v.StairDimensions([stair])
-        assert len(spans) == (4 if blocker is None else 5), len(spans)
+        assert len(spans) == (4 if blocker is None or isinstance(blocker, Furnishing) else 5), len(spans)
         if blocker is not None:
             blocker.firstVertex += point(0, 1000)
             blocker.secondVertex += point(0, 1000)
@@ -126,13 +127,14 @@ def Main():
     panel.SetMeasurementVisibility("stairs", True)
     panel.SetMeasurementVisibility("counters", True)
     items = panel.measurementVisibilityItems
-    tree = panel.measurementVisibilityTree
-    assert items["all"].text(0) == "Show measurements"
-    assert tree.topLevelItemCount() == 1 and items["all"].childCount() == 5
+    assert set(items) == {"walls", "stairs", "counters", "railings"}
 
     def Toggle(key):
-        tree.setCurrentItem(items[key])
-        QtTest.QTest.keyClick(tree, QtCore.Qt.Key.Key_Space)
+        if key == "all":
+            main.SetViewOption("showMeasurements")
+        else:
+            panel.measurementVisibilityTree.setCurrentItem(items[key])
+            QtTest.QTest.keyClick(panel.measurementVisibilityTree, QtCore.Qt.Key.Key_Space)
     # Capture the actual rendered dimension text, including each class gate.
     from planner_app.viewport import rendering
     originalFormat = rendering.FormatLength
@@ -188,12 +190,12 @@ def Main():
     rendering.FormatLength = originalFormat
     Toggle("stairs")
     assert not v.measurementVisibility["stairs"]
-    assert items["all"].checkState(0) == QtCore.Qt.CheckState.Checked
+    assert v.showMeasurements and "all" not in items
     remembered = dict(v.measurementVisibility)
     Toggle("all")
     assert not v.showMeasurements
     assert v.measurementVisibility == remembered
-    assert items["all"].checkState(0) == QtCore.Qt.CheckState.Unchecked
+    assert not v.showMeasurements and "all" not in items
     assert all(items[key].checkState(0) == (QtCore.Qt.CheckState.Checked if enabled else QtCore.Qt.CheckState.Unchecked)
                for key, enabled in remembered.items())
     assert all(item.flags() & QtCore.Qt.ItemFlag.ItemIsEnabled for item in items.values())
@@ -203,17 +205,17 @@ def Main():
     assert not v.showMeasurements and v.measurementVisibility == remembered
     main.SetViewOption("showMeasurements")
     assert v.showMeasurements and v.measurementVisibility == remembered
-    assert items["all"].checkState(0) == QtCore.Qt.CheckState.Checked
+    assert v.showMeasurements and "all" not in items
     for key in v.measurementVisibility:
-        panel.SetMeasurementVisibility(key, key in ("walls", "elevators"))
+        panel.SetMeasurementVisibility(key, key == "walls")
     data = main.BuildProjectData()
     decoded = DecodeProject(data, v.furnishingDefinitions)[5]
-    assert decoded["measurementVisibility"] == {"walls": True, "stairs": False, "counters": False, "railings": False, "elevators": True}
+    assert decoded["measurementVisibility"] == {"walls": True, "stairs": False, "counters": False, "railings": False}
     del data["settings"]["measurementVisibility"]
     data["settings"]["measurementSettings"] = {"doors": 1, "windows": 2}
     decoded = DecodeProject(data, v.furnishingDefinitions)[5]
     assert decoded["measurementSettings"]["stairs"] == 2
-    assert decoded["measurementVisibility"] == {"walls": True, "stairs": False, "counters": False, "railings": False, "elevators": False}
+    assert decoded["measurementVisibility"] == {"walls": True, "stairs": False, "counters": False, "railings": False}
     data["settings"]["measurementSettings"]["stairs"] = 1
     try:
         DecodeProject(data, v.furnishingDefinitions)
@@ -223,7 +225,7 @@ def Main():
         raise AssertionError("Facing-side mode accepted for stairs")
     main.close()
     restored = MainWindow()
-    assert restored.viewport.measurementVisibility == {"walls": True, "stairs": False, "counters": False, "railings": False, "elevators": True}
+    assert restored.viewport.measurementVisibility == {"walls": True, "stairs": False, "counters": False, "railings": False}
     restored.close()
 
 

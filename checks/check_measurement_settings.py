@@ -26,19 +26,69 @@ def Main():
     panel.tabs.setCurrentIndex(1)
     app.processEvents()
     v = main.viewport
-    assert panel.tabs.tabText(1) == "Measurements"
+    assert panel.tabs.tabText(1) == "Dimensions"
     assert panel.tabs.tabIcon(1).pixmap(18, 18).toImage() == UiIcon("measure").pixmap(18, 18).toImage()
     precisionBottom = panel.precisionField.mapTo(panel, QtCore.QPoint(0, panel.precisionField.height())).y()
     tree = panel.measurementVisibilityTree
-    firstRow = tree.viewport().mapTo(panel, tree.visualItemRect(panel.measurementVisibilityItems["all"]).topLeft()).y()
-    assert 0 <= firstRow - precisionBottom <= 28, (precisionBottom, firstRow, tree.geometry())
-    assert not tree.itemsExpandable() and not tree.rootIsDecorated() and not tree.expandsOnDoubleClick()
-    root = panel.measurementVisibilityItems["all"]
-    tree.setCurrentItem(root)
-    QtTest.QTest.keyClick(tree, QtCore.Qt.Key.Key_Left)
-    assert root.isExpanded()
-    assert all(not tree.visualItemRect(root.child(index)).isEmpty() for index in range(root.childCount()))
+    root = panel.drawDimensionsItem
+    assert precisionBottom < panel.measurementHeading.mapTo(panel, QtCore.QPoint()).y()
+    assert panel.unitsField.mapTo(panel, QtCore.QPoint()).y() == panel.precisionField.mapTo(panel, QtCore.QPoint()).y()
+    assert panel.unitsField.mapTo(panel, QtCore.QPoint()).x() < panel.precisionField.mapTo(panel, QtCore.QPoint()).x()
+    assert panel.measurementHeading.text() == "Measure"
+    assert any(label.text() == "Canvas precision" and label.buddy() is panel.precisionField
+               for label in panel.measurementPage.findChildren(QtWidgets.QLabel))
+    assert panel.gridHeading.text() == "Grid" and panel.gridHeading.font().bold()
+    assert tree.mapTo(panel, tree.rect().bottomLeft()).y() < panel.gridHeading.mapTo(panel, QtCore.QPoint()).y()
+    assert panel.gridHeading.mapTo(panel, panel.gridHeading.rect().bottomLeft()).y() < panel.showGridField.mapTo(panel, QtCore.QPoint()).y()
+    panel.gridAppearanceButton.click()
+    assert panel.tabs.currentWidget() is panel.appearanceTab
+    panel.tabs.setCurrentIndex(1)
+    if not v.showGrid:
+        panel.showGridField.click()
+    savedGridIntensities = dict(v.gridIntensities)
+    panel.showGridField.click()
+    assert not v.showGrid and not panel.gridAppearanceHeading.isEnabled()
+    assert all(not widget.isEnabled() for row in panel.gridAppearanceRows for widget in row)
+    assert all(not widget.isEnabled() for widget in list(panel.sliders.values()) + list(panel.valueFields.values()) + list(panel.resetButtons.values()))
+    assert all(widget.isEnabled() for widget in panel.lineworkSliders.values())
+    panel.showGridField.click()
+    assert v.showGrid and panel.gridAppearanceHeading.isEnabled()
+    assert all(widget.isEnabled() for row in panel.gridAppearanceRows for widget in row)
+    assert v.gridIntensities == savedGridIntensities
+    assert tree.topLevelItemCount() == 1 and root.childCount() == 4
+    assert root.text(0) == "Draw dimensions" and root.isExpanded()
+    assert [root.child(index).text(0) for index in range(root.childCount())] == [
+        "Walls", "Stairs", "Counters", "Railings"]
+    rootRect = tree.visualItemRect(root)
+    for item in panel.measurementVisibilityItems.values():
+        assert item.parent() is root and tree.visualItemRect(item).left() == rootRect.left() + 24
+    assert tree.height() == 160
+    root.setExpanded(False)
+    app.processEvents()
+    assert tree.height() == 32 and v.measurementVisibility["walls"]
+    root.setExpanded(True)
+    app.processEvents()
+    assert tree.height() == 160
     assert v.measurementSettings == {"doors": 1, "windows": 1, "stairs": 2, "counters": 2}
+    assert panel.wallMeasurementModeField.currentText() == "Exterior stacked"
+    panel.wallMeasurementModeField.setCurrentText("All")
+    savedSplits = dict(v.measurementSettings)
+    panel.SetMeasurementVisibility("stairs", True)
+    panel.SetMeasurementVisibility("walls", False)
+    assert v.showMeasurements and not panel.wallMeasurementModeField.isEnabled()
+    assert not panel.wallMeasurementModeLabel.isEnabled()
+    assert all(not slider.isEnabled() for slider in panel.measurementSliders.values())
+    assert all(not button.isEnabled() for button in panel.measurementResetButtons.values())
+    panel.SetMeasurementVisibility("walls", True)
+    panel.SetMeasurementVisibility("stairs", False)
+    assert panel.wallMeasurementModeField.isEnabled()
+    assert all(slider.isEnabled() for slider in panel.measurementSliders.values())
+    main.SetViewOption("showMeasurements")
+    assert not panel.wallMeasurementModeField.isEnabled()
+    assert all(not slider.isEnabled() for slider in panel.measurementSliders.values())
+    main.SetViewOption("showMeasurements")
+    assert panel.wallMeasurementModeField.isEnabled()
+    assert v.measurementSettings == savedSplits and v.wallMeasurementMode == "All"
     for key, slider in panel.measurementSliders.items():
         assert slider.minimum() == 0 and slider.maximum() == (1 if key in ("stairs", "counters") else 2) and slider.invertedAppearance()
     for key in ("doors", "windows"):

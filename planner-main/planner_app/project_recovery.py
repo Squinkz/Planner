@@ -54,7 +54,7 @@ def RecoverProject(data, definitions, defaults, chooseGeometry = None):
     for name, value in original.items():
         if name in ("exportSettings", "snapEnabled", "theme", "uiTheme", "canvasTheme", "showTips", "showFpsCounter", "referenceImage"):
             continue
-        if name not in settings:
+        if name not in settings and name not in ("exportFolder", "exportFileName", "wallMeasurementMode", "wallMeasurementReference"):
             notices.append(f"Ignored unknown editor setting: {name}.")
             continue
         candidate = copy.deepcopy(settings)
@@ -131,7 +131,7 @@ def RecoverProject(data, definitions, defaults, chooseGeometry = None):
             if codes != valid:
                 record["geometryIssues"] = valid
                 notices.append(f"Reset invalid geometry highlight flags on object {index + 1}.")
-        for name in ("measurementHidden", "measurementFlipped", "behindCounters", "flipHorizontal", "flipVertical"):
+        for name in ("measurementHidden", "measurementFlipped", "behindCounters", "flipHorizontal", "flipVertical", "windowWell", "wellDashed"):
             if name in record and type(record[name]) is not bool:
                 record[name] = False
                 notices.append(f"Reset invalid {name} flag on object {index + 1}.")
@@ -143,7 +143,7 @@ def RecoverProject(data, definitions, defaults, chooseGeometry = None):
                 identityChanged = True
                 notices.append(f"Regenerated invalid or duplicate ID for object {index + 1}.")
             seenIds.add(record["id"])
-        if record.get("type") in ("Wall", "Pillar", "Column", "Elevator", "Stair", "Counter", "Railing", "Arrow", "MeasurementGuide", "BoundaryLine", "AngleGuide", "Fireplace"):
+        if record.get("type") in ("Wall", "Pillar", "Column", "Elevator", "Stair", "Counter", "Railing", "Arrow", "MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide", "Fireplace"):
             material = record.get("material")
             if material not in wallMaterials and not (record.get("type") == "Fireplace" and material is None):
                 if isinstance(material, str):

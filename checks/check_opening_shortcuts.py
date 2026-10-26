@@ -97,6 +97,12 @@ def Main():
     QtTest.QTest.mouseClick(viewport, left, pos = Move(viewport, point(2500, 0)))
     assert type(viewport.windows[-1]) is OpenDoorway and abs(viewport.windows[-1].length - 900) < .01
     Wheel(viewport, point(4000, 0), -120)
+    assert type(viewport.windowDropPreview).__name__ == "SwingingDoor"
+    assert window.swingingDoorButton.property("placementActive")
+    Wheel(viewport, point(4000, 0), -120)
+    assert type(viewport.windowDropPreview).__name__ == "DoubleDoor"
+    assert window.doubleDoorButton.property("placementActive")
+    Wheel(viewport, point(4000, 0), -120)
     assert type(viewport.windowDropPreview) is Door
     # Ctrl locks the preview to the wall and chooses orientation before release.
     Move(viewport, point(4000, 0))

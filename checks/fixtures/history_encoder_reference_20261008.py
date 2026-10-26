@@ -16,7 +16,8 @@ def EncodeHistoryState(state):
         clone.firstVertex, clone.secondVertex = QtCore.QPointF(firstX, firstY), QtCore.QPointF(secondX, secondY)
         clone.width, clone.firstMiter, clone.secondMiter, clone.material = width, firstMiter, secondMiter, material
         if isinstance(clone, Arrow):
-            clone.solidTip, clone.tipSize, clone.intensity = extra
+            clone.solidTip, clone.tipSize, clone.intensity = extra[:3]
+            clone.directionReversed = extra[3] if len(extra) > 3 else False
         if isinstance(clone, Railing):
             clone.autosize, clone.manualPostCount = sizing
         if isinstance(clone, Stair):
@@ -24,9 +25,10 @@ def EncodeHistoryState(state):
             clone.directionReversed = extra
         walls.append(clone)
     for entry in state[3]:
-        obj, parent, center, length, hinge, swing, sill, flipped, measurementHidden = entry
+        obj, parent, center, length, hinge, swing, sill, flipped, measurementHidden = entry[:9]
         clone = clones[id(obj)]
         clone.measurementHidden = measurementHidden
+        clone.windowWell, clone.wellDepth, clone.wellDashed = entry[9] if len(entry) > 9 else (False, 600.0, False)
         clone.parentWall, clone.centerFraction, clone.length = clones[id(parent)], center, length
         for attribute, value in (("hingeAtSecond", hinge), ("swingsOutwards", swing), ("panelsFlipped", swing),
                                  ("sillDepth", sill), ("measurementFlipped", flipped)):

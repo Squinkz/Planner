@@ -15,11 +15,11 @@ from planner_app.project_codec import EncodeScene
 from planner_app.ui.main_window import MainWindow
 
 objectTypes = ("Wall", "Counter", "Railing", "Stair", "Pillar", "Column", "Elevator",
-               "Door", "SlidingDoor", "PocketDoor", "BarnDoor", "BifoldDoor", "OpenDoorway",
-               "Window", "SilledWindow", "CasementWindow", "Fireplace",
-               "Furnishing", "Label", "NorthArrow", "Arrow", "MeasurementGuide", "BoundaryLine", "AngleGuide")
-openingTypes = ("Door", "SlidingDoor", "PocketDoor", "BarnDoor", "BifoldDoor", "OpenDoorway",
-                "Window", "SilledWindow", "CasementWindow", "Fireplace")
+               "Door", "DoubleDoor", "SwingingDoor", "SlidingDoor", "PocketDoor", "BarnDoor", "BifoldDoor", "OpenDoorway",
+               "Window", "SilledWindow", "CasementWindow", "AwningWindow", "DoubleCasementWindow", "Fireplace",
+               "Furnishing", "Label", "RoomLabel", "NorthArrow", "Arrow", "MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide")
+openingTypes = ("Door", "DoubleDoor", "SwingingDoor", "SlidingDoor", "PocketDoor", "BarnDoor", "BifoldDoor", "OpenDoorway",
+                "Window", "SilledWindow", "CasementWindow", "AwningWindow", "DoubleCasementWindow", "Fireplace")
 workspace = Path(__file__).resolve().parents[2]
 referenceDirectory = workspace / "docs" / "parity" / "reference"
 
@@ -71,12 +71,12 @@ def CreateObject(viewport, name):
         return cls(point(1000, 0), point(0, 1000), middleVertex = point())
     if name == "Furnishing":
         return cls(viewport.furnishingDefinitions["desk"])
-    if name in ("Label", "NorthArrow"):
+    if name in ("Label", "RoomLabel", "NorthArrow"):
         return cls()
     if name in ("Pillar", "Column", "Elevator"):
         size = viewport.miscDefaultSizes[name] * 10
         return cls(point(0, -size / 2), point(0, size / 2), size)
-    width = viewport.miscDefaultSizes[name] * 10 if name in viewport.miscDefaultSizes else 240 if name == "Wall" else 0 if name in ("MeasurementGuide", "BoundaryLine") else 10
+    width = viewport.miscDefaultSizes[name] * 10 if name in viewport.miscDefaultSizes else 240 if name == "Wall" else 0 if name in ("MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine") else 10
     return cls(point(-1000, 0), point(1000, 0), width)
 
 

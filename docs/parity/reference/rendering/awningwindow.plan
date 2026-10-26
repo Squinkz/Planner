@@ -1,0 +1,179 @@
+{
+  "format": "Planner Project",
+  "version": 1,
+  "scene": {
+    "objects": [
+      {
+        "type": "Wall",
+        "id": 1,
+        "measurementHidden": false,
+        "first": [
+          -3000.0,
+          0.0
+        ],
+        "second": [
+          3000.0,
+          0.0
+        ],
+        "width": 240.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "AwningWindow",
+        "id": 2,
+        "measurementHidden": false,
+        "parent": 0,
+        "center": 0.5,
+        "length": 1199.9999999999998,
+        "swingsOutwards": false,
+        "measurementFlipped": false,
+        "windowWell": false,
+        "wellDepth": 600.0,
+        "wellDashed": false
+      }
+    ],
+    "groups": [],
+    "hidden": []
+  },
+  "settings": {
+    "wallWidth": 200.0,
+    "wallMaterial": "Generic",
+    "wallShape": "line",
+    "doorType": "Door",
+    "windowType": "Window",
+    "snapEnabled": true,
+    "snap": {
+      "grid": true,
+      "vertices": true,
+      "corners": true,
+      "midpoints": true,
+      "alignment": true
+    },
+    "connectedVertices": true,
+    "connectedObjects": false,
+    "groupMode": true,
+    "localTransforms": false,
+    "visibility": {
+      "World": true,
+      "Walls": true,
+      "Doors": true,
+      "Windows": true,
+      "Fireplaces": true,
+      "Elevators": true,
+      "Stairs": true,
+      "Counters": true,
+      "Railings": true,
+      "Furnishings": true,
+      "Labels": true,
+      "Arrows": true,
+      "Measurement guides": true,
+      "Boundary lines": true,
+      "North arrows": true
+    },
+    "ignoredPotentialIssues": [],
+    "showGrid": true,
+    "showMeasurements": true,
+    "measurementPrecision": "Medium",
+    "buildSettings": {
+      "wallWidths": [
+        10.0,
+        15.0,
+        20.0,
+        30.0
+      ],
+      "openingSizes": {
+        "Door": 90.0,
+        "SlidingDoor": 90.0,
+        "PocketDoor": 90.0,
+        "BarnDoor": 90.0,
+        "BifoldDoor": 120.0,
+        "OpenDoorway": 90.0,
+        "Window": 120.0,
+        "SilledWindow": 120.0,
+        "CasementWindow": 60.0,
+        "AwningWindow": 120.0,
+        "DoubleCasementWindow": 120.0
+      },
+      "miscSizes": {
+        "Stair": 100.0,
+        "Counter": 60.0,
+        "Railing": 8.0,
+        "Pillar": 30.0,
+        "Column": 30.0,
+        "Fireplace": 120.0,
+        "Elevator": 120.0
+      }
+    },
+    "viewportSettings": {
+      "overall": 1.0,
+      "major": 0.169,
+      "minor": 0.083,
+      "origin": 0.305
+    },
+    "lineworkSettings": {
+      "baseWidth": 4.0,
+      "walls": 1.0,
+      "architectural": 0.5,
+      "furnishings": 0.25,
+      "dimensions": 0.25
+    },
+    "measurementSettings": {
+      "doors": 0,
+      "windows": 0,
+      "stairs": 0,
+      "counters": 0
+    },
+    "measurementVisibility": {
+      "walls": true,
+      "stairs": true,
+      "counters": true,
+      "railings": true,
+      "elevators": true
+    },
+    "collisionSettings": {
+      "walls": true,
+      "architectural": true,
+      "furnishings": true
+    },
+    "railingSpacings": {
+      "minimum": 90.0,
+      "maximum": 150.0,
+      "target": 120.0
+    },
+    "stairStepSizes": {
+      "minimum": 25.0,
+      "maximum": 30.0
+    },
+    "unitsMode": "Millimeters"
+  },
+  "view": {
+    "zoom": 1,
+    "pan": [
+      0.0,
+      0.0
+    ]
+  },
+  "ui": {
+    "mainSplitter": [
+      1000,
+      448
+    ],
+    "propertiesSplitter": [
+      501,
+      251
+    ],
+    "propertiesCollapsed": false,
+    "propertiesRestoreHeight": null,
+    "exportSections": {
+      "Canvas": false,
+      "Border": false,
+      "Grid": false,
+      "Line Weight": false,
+      "Measurements": false,
+      "Composite": false,
+      "Visibility": false
+    }
+  }
+}

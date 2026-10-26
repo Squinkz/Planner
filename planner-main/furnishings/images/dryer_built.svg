@@ -26,7 +26,7 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#3d3d3d"
      inkscape:zoom="5.6568543"
-     inkscape:cx="6.4523494"
+     inkscape:cx="6.4523493"
      inkscape:cy="19.003495"
      inkscape:window-width="2560"
      inkscape:window-height="1336"
@@ -34,12 +34,16 @@
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
      inkscape:current-layer="svg1" />
-  <path vector-effect="non-scaling-stroke" stroke-width="1"
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
      id="rect3"
      style="fill:#ffffff;stroke:#000000;stroke-miterlimit:7.7;stroke-dasharray:4, 4;stroke-width:1;vector-effect:non-scaling-stroke"
      d="M 100,13.153806 V 100 H 0 V 13.153806"
      sodipodi:nodetypes="cccc" />
-  <path vector-effect="non-scaling-stroke" stroke-width="1"
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
      id="rect2"
      style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-miterlimit:7.7;stroke-width:1"
      d="m 13.147875,0.0057332 h 73.70425 c 4.456977,0 8.045084,3.5881075 8.045084,8.045084 H 89.89464 L 9.5655225,8.2485277 c 0,0 -4.4627317,5.5977963 -4.4627317,-0.1977105 0,-4.4569765 3.5881075,-8.045084 8.0450842,-8.045084 z"
@@ -66,11 +70,15 @@
      cx="29.946095"
      cy="8.7137308"
      r="1.5997792" />
-  <path vector-effect="non-scaling-stroke" stroke-width="1"
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
      id="path4"
-     style="fill:#ffffff;stroke:#000000;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-dashoffset:0;stroke-width:1;vector-effect:non-scaling-stroke"
+     style="fill:#ffffff;stroke:#000000;stroke-miterlimit:7.7;stroke-dasharray:4,4;stroke-dashoffset:0;stroke-width:1;vector-effect:non-scaling-stroke"
      d="M 100,13.153806 0,100 M 0,13.153806 100,100" />
-  <rect vector-effect="non-scaling-stroke" stroke-width="1"
+  <rect
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
      style="fill:#ffffff;stroke:none;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-dashoffset:0;vector-effect:non-scaling-stroke"
      id="rect4"
      width="33.849506"
@@ -117,11 +125,15 @@
      cx="25.110289"
      cy="8.7137308"
      r="1.5997792" />
-  <path vector-effect="non-scaling-stroke" stroke-width="1"
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
      style="fill:none;stroke:#000000;stroke-miterlimit:7.7;stroke-dasharray:4,4;stroke-dashoffset:0;stroke-opacity:1;stroke-width:1;vector-effect:non-scaling-stroke"
      d="M 100,13.153806 V 0"
      id="path5" />
-  <path vector-effect="non-scaling-stroke" stroke-width="1"
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
      style="fill:none;stroke:#000000;stroke-miterlimit:7.7;stroke-dasharray:4, 4;stroke-dashoffset:0;stroke-opacity:1;stroke-width:1;vector-effect:non-scaling-stroke"
      d="M 0,13.153806 V 0"
      id="path5-6" />

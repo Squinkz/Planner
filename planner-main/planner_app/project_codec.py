@@ -7,17 +7,18 @@ import math
 from pathlib import Path
 from xml.etree import ElementTree
 from PySide6 import QtCore, QtGui
-from .models import Door, Furnishing, OpenDoorway, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, SlidingDoor, MeasurementGuide, BoundaryLine, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Label, Window, NorthArrow, Fireplace
+from .models import Door, SwingingDoor, DoubleDoor, Furnishing, OpenDoorway, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, SlidingDoor, MeasurementGuide, BoundaryLine, DashedLine, SolidLine, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Label, RoomLabel, Window, NorthArrow, Fireplace
 from .graphics.theme import wallMaterials
 from .graphics.theme import gridIntensityDefaults
 from .preferences import wallPresetWidths, openingDefaultSizes, miscDefaultSizes, measurementDefaults, measurementVisibilityDefaults, stairStepSizeDefaults, railingSpacingDefaults, lineworkDefaults, collisionDefaults
 from .units import unitModes, measurementPrecisions
+from .models import lineWeightClasses
 from .catalog import FurnishingCategories
 from .reference_image import ValidateReferenceImage
 
 
 from .object_schema import openingClasses, openingFields, ReadArrowTipSize
-visibilityNames = ("World", "Walls", "Doors", "Windows", "Fireplaces", "Elevators", "Stairs", "Counters", "Railings", "Furnishings", "Labels", "Arrows", "Measurement guides", "Boundary lines", "North arrows")
+visibilityNames = ("World", "Walls", "Doors", "Windows", "Fireplaces", "Elevators", "Stairs", "Counters", "Railings", "Furnishings", "Labels", "Arrows", "Measurement guides", "Boundary lines", "Dashed lines", "Solid lines", "North arrows")
 snapNames = ("grid", "vertices", "corners", "midpoints", "alignment")
 projectFileLimit = 64 * 1024 * 1024
 
@@ -55,6 +56,8 @@ def EncodeObjectRecord(obj, indices, values = None):
         if isinstance(obj, Label):
             record["text"] = obj.text
             record["intensity"] = obj.intensity
+            if isinstance(obj, RoomLabel) and obj.unitsOverride is not None:
+                record["unitsOverride"] = obj.unitsOverride
         elif isinstance(obj, NorthArrow):
             record["intensity"] = obj.intensity
         elif isinstance(obj, Furnishing):
@@ -68,8 +71,12 @@ def EncodeObjectRecord(obj, indices, values = None):
                 record.update(middle = [obj.middleVertex.x(), obj.middleVertex.y()])
             if isinstance(obj, MeasurementGuide):
                 record["textOffset"] = [obj.textOffset.x(), obj.textOffset.y()]
+            if isinstance(obj, DashedLine):
+                record["weightClass"] = obj.weightClass
             if isinstance(obj, Arrow):
                 record.update(solidTip = obj.solidTip, tipSize = obj.tipSize, intensity = obj.intensity, tipSizeMode = "millimeters")
+                if obj.directionReversed:
+                    record["directionReversed"] = True
             if isinstance(obj, Railing):
                 record.update(autosize = obj.autosize, manualPostCount = obj.manualPostCount)
             if isinstance(obj, Stair):
@@ -310,15 +317,20 @@ def DecodeProject(data, definitions, validatePlacement = True, validatedImages =
         if kind in openingClasses:
             continue
         first, second = ValidatePoint(record["first"]), ValidatePoint(record["second"])
-        width = ValidateNumber(record["width"], minimum = 0 if kind in ("MeasurementGuide", "BoundaryLine", "AngleGuide") else 1e-8 if kind == "Label" else 1, maximum = 1e9)
-        if kind in ("MeasurementGuide", "BoundaryLine", "AngleGuide") and width != 0:
-            raise ValueError("Measurement guides cannot have a width.")
+        width = ValidateNumber(record["width"], minimum = 0 if kind in ("MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide") else 1e-8 if kind in ("Label", "RoomLabel") else 1, maximum = 1e9)
+        if kind in ("MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide") and width != 0:
+            raise ValueError("Dimension guides cannot have a width.")
         if kind != "AngleGuide" and QtCore.QLineF(first, second).length() < 1e-8:
             raise ValueError("An object has zero length.")
-        if kind == "Label":
+        if kind in ("Label", "RoomLabel"):
             if not isinstance(record["text"], str) or len(record["text"]) > 100000:
                 raise ValueError("A label contains invalid text.")
-            obj = Label(text = record["text"], intensity = ValidateNumber(record.get("intensity", 1.0), minimum = 0, maximum = 1))
+            obj = (RoomLabel if kind == "RoomLabel" else Label)(text = record["text"], intensity = ValidateNumber(record.get("intensity", 1.0), minimum = 0, maximum = 1))
+            if kind == "RoomLabel":
+                mode = record.get("unitsOverride")
+                if mode is not None and mode not in unitModes:
+                    raise ValueError("Invalid room label units.")
+                obj.unitsOverride = mode
             obj.firstVertex, obj.secondVertex, obj.width = first, second, width
             labels.append(obj)
         elif kind == "NorthArrow":
@@ -336,14 +348,19 @@ def DecodeProject(data, definitions, validatePlacement = True, validatedImages =
             obj.definitionKey = record["definition"]
             obj.firstVertex, obj.secondVertex, obj.width = first, second, width
             furnishings.append(obj)
-        elif kind in ("Wall", "Pillar", "Column", "Elevator", "Stair", "Counter", "Railing", "Arrow", "MeasurementGuide", "BoundaryLine", "AngleGuide"):
+        elif kind in ("Wall", "Pillar", "Column", "Elevator", "Stair", "Counter", "Railing", "Arrow", "MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide"):
             if record["material"] not in wallMaterials:
                 raise ValueError("A wall material is unknown.")
-            cls = {"Wall": Wall, "Pillar": Pillar, "Column": Column, "Elevator": Elevator, "Stair": Stair, "Counter": Counter, "Railing": Railing, "Arrow": Arrow, "MeasurementGuide": MeasurementGuide, "BoundaryLine": BoundaryLine, "AngleGuide": AngleGuide}[kind]
+            cls = {"Wall": Wall, "Pillar": Pillar, "Column": Column, "Elevator": Elevator, "Stair": Stair, "Counter": Counter, "Railing": Railing, "Arrow": Arrow, "MeasurementGuide": MeasurementGuide, "BoundaryLine": BoundaryLine, "DashedLine": DashedLine, "SolidLine": SolidLine, "AngleGuide": AngleGuide}[kind]
             obj = cls(first, second, width, ValidateNumber(record["firstMiter"], minimum = 0, maximum = 1),
                       ValidateNumber(record["secondMiter"], minimum = 0, maximum = 1), record["material"])
             if isinstance(obj, MeasurementGuide):
                 obj.textOffset = ValidatePoint(record.get("textOffset", [0, 0]))
+            if isinstance(obj, DashedLine):
+                weight = record.get("weightClass", "Objects")
+                if not isinstance(weight, str) or weight not in lineWeightClasses:
+                    raise ValueError("Invalid annotation line weight class.")
+                obj.weightClass = weight
             if isinstance(obj, AngleGuide):
                 obj.middleVertex = ValidatePoint(record["middle"])
             if isinstance(obj, Stair):
@@ -359,6 +376,7 @@ def DecodeProject(data, definitions, validatePlacement = True, validatedImages =
                 obj.autosize, obj.manualPostCount = autosize, count
             if isinstance(obj, Arrow):
                 obj.solidTip = ValidateFlags(record, ("solidTip",))["solidTip"]
+                obj.directionReversed = ValidateFlags({"directionReversed": False, **record}, ("directionReversed",))["directionReversed"]
                 obj.tipSize = ReadArrowTipSize(record, obj.width)
                 obj.intensity = ValidateNumber(record["intensity"], minimum = 0, maximum = 1)
             walls.append(obj)
@@ -395,17 +413,22 @@ def DecodeProject(data, definitions, validatePlacement = True, validatedImages =
         obj.geometryIssues = tuple(issues)
         measurementFlipped = record.get("measurementFlipped", False)
         if type(measurementFlipped) is not bool:
-            raise ValueError("An opening has an invalid measurement flip value.")
+            raise ValueError("An opening has an invalid dimension flip value.")
         obj.measurementFlipped = measurementFlipped
         for name in openingFields[type(obj)]:
-            if name in ("measurementFlipped", "sillDepth", "depth", "depthOffset", "material"):
+            if name in ("measurementFlipped", "sillDepth", "depth", "depthOffset", "material", "wellDepth"):
                 continue
             if hasattr(obj, name):
+                if name in ("windowWell", "wellDashed"):
+                    setattr(obj, name, ValidateFlags({name: False, **record}, (name,))[name])
+                    continue
                 if kind == "CasementWindow" and name == "hingeAtSecond" and name not in record:
                     continue
                 setattr(obj, name, ValidateFlags(record, (name,))[name])
         if isinstance(obj, SilledWindow):
             obj.sillDepth = ValidateNumber(record["sillDepth"], minimum = 0)
+        if "wellDepth" in openingFields[type(obj)]:
+            obj.wellDepth = ValidateNumber(record.get("wellDepth", 600.0), minimum = 1, maximum = 1e9)
         if isinstance(obj, Fireplace):
             obj.material = record.get("material", parent.material)
             if obj.material not in wallMaterials:
@@ -525,7 +548,7 @@ def DecodeProject(data, definitions, validatePlacement = True, validatedImages =
         # Older projects used one switch for both kinds of target.
         snap = {**snap, "corners": snap.get("vertices", True)}
     flags["snap"] = ValidateFlags(snap, snapNames)
-    flags["visibility"] = ValidateFlags({"Elevators": True, "Fireplaces": True, "North arrows": True, "Railings": True, "Labels": True, "Counters": True, "Arrows": True, "Measurement guides": True, "Boundary lines": True, **settings["visibility"]}, visibilityNames)
+    flags["visibility"] = ValidateFlags({"Elevators": True, "Fireplaces": True, "North arrows": True, "Railings": True, "Labels": True, "Counters": True, "Arrows": True, "Measurement guides": True, "Boundary lines": True, "Dashed lines": True, "Solid lines": True, **settings["visibility"]}, visibilityNames)
     if flags["snapEnabled"] and not any(flags["snap"].values()):
         raise ValueError("Snapping is enabled without any snap options.")
     flags["wallWidth"] = ValidateNumber(settings["wallWidth"], minimum = 1)
@@ -535,7 +558,7 @@ def DecodeProject(data, definitions, validatePlacement = True, validatedImages =
     flags["wallShape"] = settings.get("wallShape", "line")
     if flags["wallShape"] not in ("line", "square", "circle"):
         raise ValueError("Unknown wall tool shape.")
-    if settings["doorType"] not in ("Door", "SlidingDoor", "PocketDoor", "BarnDoor", "BifoldDoor", "OpenDoorway") or settings["windowType"] not in ("Window", "SilledWindow", "CasementWindow"):
+    if settings["doorType"] not in ("Door", "SlidingDoor", "PocketDoor", "BarnDoor", "BifoldDoor", "OpenDoorway", "SwingingDoor", "DoubleDoor") or settings["windowType"] not in ("Window", "SilledWindow", "CasementWindow", "AwningWindow", "DoubleCasementWindow"):
         raise ValueError("The active door/window type is unknown.")
     flags["doorType"], flags["windowType"] = settings["doorType"], settings["windowType"]
     build = settings.get("buildSettings", {"wallWidths": list(wallPresetWidths), "openingSizes": openingDefaultSizes})
@@ -550,7 +573,7 @@ def DecodeProject(data, definitions, validatePlacement = True, validatedImages =
         raise ValueError("The project contains invalid default miscellaneous sizes.")
     flags["buildSettings"] = {
         "wallWidths": [ValidateNumber(value, minimum = .1, maximum = 10000) for value in build["wallWidths"]],
-        "openingSizes": {key: ValidateNumber(build["openingSizes"].get(key, openingDefaultSizes[key]) if key in ("BarnDoor", "BifoldDoor", "CasementWindow") else build["openingSizes"][key], minimum = .1, maximum = 10000)
+        "openingSizes": {key: ValidateNumber(build["openingSizes"].get(key, openingDefaultSizes[key]) if key in ("BarnDoor", "BifoldDoor", "CasementWindow", "AwningWindow", "DoubleCasementWindow", "SwingingDoor", "DoubleDoor") else build["openingSizes"][key], minimum = .1, maximum = 10000)
                          for key in openingDefaultSizes},
         "miscSizes": {key: ValidateNumber(miscSizes[key], minimum = .1, maximum = 10000) for key in miscDefaultSizes}}
     imperialSizes = build.get("imperialSizes", {})
@@ -573,16 +596,34 @@ def DecodeProject(data, definitions, validatePlacement = True, validatedImages =
                                  for key in gridIntensityDefaults}
     measurements = settings.get("measurementSettings", measurementDefaults)
     if not isinstance(measurements, dict):
-        raise ValueError("The project contains invalid measurement settings.")
+        raise ValueError("The project contains invalid dimension settings.")
     measurements = {**measurementDefaults, **measurements}
     if any(type(measurements[key]) is not int or measurements[key] not in
            ((0, 2) if key in ("stairs", "counters") else (0, 1, 2)) for key in measurementDefaults):
-        raise ValueError("The project contains invalid measurement settings.")
+        raise ValueError("The project contains invalid dimension settings.")
     flags["measurementSettings"] = {key: measurements[key] for key in measurementDefaults}
+    mode = settings.get("wallMeasurementMode", "All")
+    if mode not in ("All", "Exterior", "Exterior stacked"):
+        raise ValueError("Invalid wall dimension mode.")
+    flags["wallMeasurementMode"] = mode
+    reference = settings.get("wallMeasurementReference", "Wall faces")
+    if reference not in ("Centerline", "Wall faces"):
+        raise ValueError("Invalid wall dimension reference.")
+    flags["wallMeasurementReference"] = reference
     visibility = settings.get("measurementVisibility", measurementVisibilityDefaults)
     if isinstance(visibility, dict) and "railings" not in visibility:
         visibility = {**visibility, "railings": False}
-    flags["measurementVisibility"] = ValidateFlags({"elevators": True, **visibility} if isinstance(visibility, dict) else visibility, tuple(measurementVisibilityDefaults))
+    flags["measurementVisibility"] = ValidateFlags(visibility, tuple(measurementVisibilityDefaults))
+    folder = settings.get("exportFolder")
+    filename = settings.get("exportFileName")
+    if filename is not None:
+        if not isinstance(filename, str) or not filename.strip() or filename in (".", "..") or any(character in filename for character in '<>:"/\\|?*\0'):
+            raise ValueError("Invalid export filename.")
+        flags["exportFileName"] = filename
+    if folder is not None:
+        if not isinstance(folder, str) or not folder.strip() or "\0" in folder:
+            raise ValueError("Invalid export folder.")
+        flags["exportFolder"] = folder
     export = settings.get("exportSettings", {})
     if not isinstance(export, dict):
         raise ValueError("Invalid export settings.")
@@ -591,6 +632,7 @@ def DecodeProject(data, definitions, validatePlacement = True, validatedImages =
         export = dict(export, solidObjects = export["solidFurnishings"])
     export = {key: value for key, value in export.items() if key != "solidFurnishings"}
     allowedExport = {"gridOrigin", "solidObjects", "wallStyle", "canvasTheme", "canvasColor", "linesColor", "borderColor", "gridColor", "texture", "textureAngle", "textureScale", "textureStrength", "textureHighlights", "textureMidtones", "textureShadows", "vignetteEnabled", "vignetteStrength", "showGrid", "viewportSettings", "lineworkSettings", "measurementVisibility", "visibility", "bounds", "scale", "scaleUnits", "scaleMode", "architecturalScale", "dpi", "ruler", "border", "borderSize", "unitsMode"}
+    allowedExport.update(("wallMeasurementMode", "wallMeasurementReference"))
     if not isinstance(export, dict) or set(export) - allowedExport:
         raise ValueError("Invalid export settings.")
     flags["exportSettings"] = {}
@@ -633,6 +675,11 @@ def DecodeProject(data, definitions, validatePlacement = True, validatedImages =
             if value not in unitModes:
                 raise ValueError("Invalid export display unit.")
             flags["exportSettings"][name] = value
+        elif name in ("wallMeasurementMode", "wallMeasurementReference"):
+            choices = ("All", "Exterior", "Exterior stacked") if name == "wallMeasurementMode" else ("Centerline", "Wall faces")
+            if value not in choices:
+                raise ValueError("Invalid export wall dimension setting.")
+            flags["exportSettings"][name] = value
         elif name == "scaleUnits":
             if value not in ("px/m", "px/cm"):
                 raise ValueError("Invalid export scale units.")
@@ -661,6 +708,10 @@ def DecodeProject(data, definitions, validatePlacement = True, validatedImages =
             flags["exportSettings"].update(ValidateFlags(export, (name,)))
         else:
             keys = set(flags[name])
+            if name == "measurementVisibility" and isinstance(value, dict):
+                value = {key: enabled for key, enabled in value.items() if key != "elevators"}
+                if not value:
+                    continue
             if not isinstance(value, dict) or set(value) - keys:
                 raise ValueError("Invalid export option group.")
             if name in ("visibility", "measurementVisibility"):
@@ -699,7 +750,7 @@ def DecodeProject(data, definitions, validatePlacement = True, validatedImages =
         flags["referenceImage"] = ValidateReferenceImage(settings["referenceImage"], validatedImages)
     flags["measurementPrecision"] = settings.get("measurementPrecision", "Medium")
     if not isinstance(flags["measurementPrecision"], str) or flags["measurementPrecision"] not in measurementPrecisions:
-        raise ValueError("The project contains an invalid measurement precision.")
+        raise ValueError("The project contains an invalid dimension precision.")
     if flags["unitsMode"] not in unitModes:
         raise ValueError("The project contains an unknown display unit.")
     flags["autoSizingUnitsMode"] = settings.get("autoSizingUnitsMode", flags["unitsMode"])

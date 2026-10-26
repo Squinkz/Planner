@@ -1,8 +1,9 @@
 # Releases and version numbers
 
-Planner currently displays **Alpha 0.1.0** in
-[the About dialog](../planner-main/planner_app/ui/about.py). This licensing change
-does not itself change that version or rebuild the executable.
+Planner currently displays **Alpha 0.1.1** in the About dialog. Update
+`appVersion` and `releaseStage` in [version.py](../planner-main/planner_app/version.py)
+when preparing a release. The About dialog and Windows ZIP filename share these
+values. For a stable release, set `releaseStage` to an empty string.
 
 ## When to increment
 

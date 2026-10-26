@@ -389,6 +389,8 @@ QSlider::sub-page:horizontal:disabled { background: __COLOR_disabledBackground__
 QSlider::handle:horizontal:disabled { background: __COLOR_disabled__; }
 QSlider#measurementMode::groove:vertical { width: 6px; background: __COLOR_hoverBackground__; border-radius: 3px; }
 QSlider#measurementMode::handle:vertical { height: 16px; margin: 0 -5px; border-radius: 8px; background: __COLOR_sliderHandle__; }
+QSlider#measurementMode::groove:vertical:disabled { background: __COLOR_disabledBackground__; }
+QSlider#measurementMode::handle:vertical:disabled { background: __COLOR_disabled__; }
 QTabWidget::pane {
     border: 1px solid __COLOR_controlBackground__;
     border-radius: 5px;

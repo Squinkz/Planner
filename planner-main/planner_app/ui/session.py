@@ -245,7 +245,7 @@ class SessionMixin:
             if not isinstance(build["wallWidths"], list) or len(build["wallWidths"]) != 4:
                 raise ValueError("Invalid recovered wall presets.")
             wallWidths = [ValidateNumber(width, minimum = .1, maximum = 10000) for width in build["wallWidths"]]
-            openingSizes = {key: ValidateNumber(build["openingSizes"].get(key, self.viewport.openingDefaultSizes[key]) if key in ("BarnDoor", "BifoldDoor", "CasementWindow") else build["openingSizes"][key], minimum = .1, maximum = 10000)
+            openingSizes = {key: ValidateNumber(build["openingSizes"].get(key, self.viewport.openingDefaultSizes[key]) if key in ("BarnDoor", "BifoldDoor", "CasementWindow", "AwningWindow", "DoubleCasementWindow", "SwingingDoor", "DoubleDoor") else build["openingSizes"][key], minimum = .1, maximum = 10000)
                             for key in self.viewport.openingDefaultSizes}
             grid = data.get("viewportSettings", self.viewport.gridIntensities)
             grid = {key: ValidateNumber(grid[key], minimum = 0, maximum = 2 if key == "overall" else 1)

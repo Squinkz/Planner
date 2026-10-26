@@ -56,6 +56,8 @@ def Main():
         main.exportPanel.SetOverride("border", "Plain")
         main.exportPanel.SetOverride("canvasColor", "#335577")
         main.exportPanel.SetOverride("scale", 250)
+        main.exportPanel.folderField.setText(directory)
+        main.exportPanel.folderField.editingFinished.emit()
         beforeClose = main.BuildProjectData()
         with patch.object(main, "ShowAppMessage", return_value = QtWidgets.QMessageBox.StandardButton.Cancel):
             assert not main.CloseProject()
@@ -71,6 +73,7 @@ def Main():
         assert all(v.visibility.values())
         assert v.measurementVisibility == main.defaultProjectData["settings"]["measurementVisibility"]
         assert not main.exportPanel.overrides
+        assert main.exportPanel.exportFolder is None and "exportFolder" not in main.ProjectSettings()
         assert not main.exportPanel.exportUndoHistory and not main.exportPanel.exportRedoHistory
         assert "referenceImage" not in main.ProjectSettings() and "exportSettings" not in main.ProjectSettings()
         assert main.ProjectSettings()["snap"] == settings["snap"]

@@ -2,10 +2,11 @@
 wallPresetWidths = (10, 15, 20, 30)
 wallPresetNames = ("Thin Wall", "Interior Wall", "Thick Interior Wall", "Exterior Wall")
 openingDefaultSizes = {"Door": 90, "SlidingDoor": 90, "PocketDoor": 90, "BarnDoor": 90, "BifoldDoor": 120, "OpenDoorway": 90,
-                       "Window": 120, "SilledWindow": 120, "CasementWindow": 60}
+                       "Window": 120, "SilledWindow": 120, "CasementWindow": 60,
+                       "AwningWindow": 120, "DoubleCasementWindow": 120, "SwingingDoor": 90, "DoubleDoor": 180}
 miscDefaultSizes = {"Stair": 100, "Counter": 60, "Railing": 8, "Pillar": 30, "Column": 30, "Fireplace": 120, "Elevator": 120}
 measurementDefaults = {"doors": 1, "windows": 1, "stairs": 2, "counters": 2}  # 0: both sides, 1: facing side, 2: no cuts.
-measurementVisibilityDefaults = {"walls": True, "stairs": False, "counters": False, "railings": False, "elevators": False}
+measurementVisibilityDefaults = {"walls": True, "stairs": False, "counters": False, "railings": False}
 collisionDefaults = {"walls": True, "architectural": True, "furnishings": True}
 railingSpacingDefaults = {"minimum": 90, "maximum": 150, "target": 120}
 stairStepSizeDefaults = {"minimum": 25, "maximum": 30}

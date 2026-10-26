@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "planner-main"))
 from PySide6 import QtCore, QtTest, QtWidgets
 from planner import MainWindow
 from planner_app.models import (Wall, Window, Door, OpenDoorway, SilledWindow, CasementWindow,
-    SlidingDoor, PocketDoor, BarnDoor, BifoldDoor)
+    SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, SwingingDoor, DoubleDoor, AwningWindow, DoubleCasementWindow)
 from planner_app.geometry.opening_placement import CenteredOpeningSpan
 from planner_app.viewport import rendering
 
@@ -31,11 +31,13 @@ def Main():
     v.showTips = True
     assert rendering.toolTipRows["angle"][1] == "Snap to 15\u00b0 increments"
     assert rendering.toolTipRows["localAngle"][1] == "Snap to local 15\u00b0 increments"
+    assert rendering.toolTipRows["center"] == ("Shift", "Expand from center")
     v.zoom = .75
     shift = QtCore.Qt.KeyboardModifier.ShiftModifier
     plain = QtCore.Qt.KeyboardModifier.NoModifier
     point = QtCore.QPointF
-    for openingType in (Window, Door, OpenDoorway, SilledWindow, CasementWindow, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor):
+    for openingType in (Window, Door, OpenDoorway, SilledWindow, CasementWindow, SlidingDoor, PocketDoor, BarnDoor,
+                        BifoldDoor, SwingingDoor, DoubleDoor, AwningWindow, DoubleCasementWindow):
         for angle in (0, 37, 90):
             direction = point(math.cos(math.radians(angle)), math.sin(math.radians(angle)))
             for index in (0, 1):
@@ -45,6 +47,19 @@ def Main():
                 v.windows = [opening]
                 v.SetSelection([(opening, index)])
                 endpoint = opening.firstVertex if index == 0 else opening.secondVertex
+                # Advertise centered resizing while dragging normally, before
+                # the user knows to hold Shift.
+                QtTest.QTest.mousePress(v, QtCore.Qt.MouseButton.LeftButton, plain, v.WorldToViewport(endpoint).toPoint())
+                target = v.dragStart + v.WorldToViewport(direction * (-100 if index == 0 else 100)) - v.WorldToViewport(point())
+                v.UpdateInteraction(target, plain)
+                rows = TipRows(rendering.toolTipRows)
+                rows.used = set()
+                with patch.object(rendering, "toolTipRows", rows):
+                    v.grab()
+                assert "center" in rows.used and "extrude" not in rows.used and "duplicate" not in rows.used
+                v.CancelInteraction()
+                QtTest.QTest.mouseRelease(v, QtCore.Qt.MouseButton.LeftButton, plain, target.toPoint())
+                v.SetSelection([(opening, index)])
                 QtTest.QTest.mousePress(v, QtCore.Qt.MouseButton.LeftButton, shift, v.WorldToViewport(endpoint).toPoint())
                 assert v.dragSource is opening and v.dragSourceVertex == index
                 assert v.boxStart is None, "Shift on a control point started box selection"

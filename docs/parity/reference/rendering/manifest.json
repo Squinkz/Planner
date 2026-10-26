@@ -93,7 +93,7 @@
         400,
         300
       ],
-      "rgbaSha256": "2243708c3edbf4e06703f106fe331d4bfe87dad8122aab951f4ce17734d706db",
+      "rgbaSha256": "08c3e00af0d92d6e50dd50e1f54cce3c31505289f3c606810a5706a25a8cd15c",
       "svg": null
     },
     {
@@ -156,7 +156,7 @@
         400,
         300
       ],
-      "rgbaSha256": "347e63683ee4e0e7c068bea46ae375dafdb75ab8deacb6a326d03389d50ab636",
+      "rgbaSha256": "8e50141519bfb3b8585c50130d5c6f70726904eeebbc59d14841c6db026e8b90",
       "svg": null
     },
     {
@@ -178,6 +178,48 @@
         400
       ],
       "rgbaSha256": "4e20a1ffc4e28770850aa27df4ece8d1255b745f1cb4bca8cd2b334f17ec1b83",
+      "svg": null
+    },
+    {
+      "id": "doubledoor",
+      "type": "DoubleDoor",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -3500,
+        -2000,
+        7000,
+        4000
+      ],
+      "plan": "doubledoor.plan",
+      "image": "doubledoor.png",
+      "pixels": [
+        700,
+        400
+      ],
+      "rgbaSha256": "04add22bcd9cbff2ffa2b233d3da6a56361831e49ff3d15ee8aa8a9facc68700",
+      "svg": null
+    },
+    {
+      "id": "swingingdoor",
+      "type": "SwingingDoor",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -3500,
+        -2000,
+        7000,
+        4000
+      ],
+      "plan": "swingingdoor.plan",
+      "image": "swingingdoor.png",
+      "pixels": [
+        700,
+        400
+      ],
+      "rgbaSha256": "896f9a00b0925e6f153452d8569de8397449c7885a0e49da620e8094e1ea846f",
       "svg": null
     },
     {
@@ -349,6 +391,48 @@
       "svg": null
     },
     {
+      "id": "awningwindow",
+      "type": "AwningWindow",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -3500,
+        -2000,
+        7000,
+        4000
+      ],
+      "plan": "awningwindow.plan",
+      "image": "awningwindow.png",
+      "pixels": [
+        700,
+        400
+      ],
+      "rgbaSha256": "b1da9eb24e4d8299524f271ded9bc4eb1504368052e0e0b024c1b245e457e6a5",
+      "svg": null
+    },
+    {
+      "id": "doublecasementwindow",
+      "type": "DoubleCasementWindow",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -3500,
+        -2000,
+        7000,
+        4000
+      ],
+      "plan": "doublecasementwindow.plan",
+      "image": "doublecasementwindow.png",
+      "pixels": [
+        700,
+        400
+      ],
+      "rgbaSha256": "57b474789d43dcb8e5fd0350fd63802a10e2855edffa2e06c909b976e6efc3d6",
+      "svg": null
+    },
+    {
       "id": "fireplace",
       "type": "Fireplace",
       "theme": "Dark Canvas",
@@ -408,7 +492,28 @@
         400,
         300
       ],
-      "rgbaSha256": "7e8c1a1f903b146d36e1c63fff29dd4446769219dd6c67df529948159e90f42f",
+      "rgbaSha256": "b17a6e6a7a80c08a1834e2dbb7b564d785edb79ba4d1fe873c870c46bf3164b0",
+      "svg": null
+    },
+    {
+      "id": "roomlabel",
+      "type": "RoomLabel",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "roomlabel.plan",
+      "image": "roomlabel.png",
+      "pixels": [
+        400,
+        300
+      ],
+      "rgbaSha256": "cbbf758cae9dabe16eb4e2695dfe337a3ba06f3b0fbfe92c51f5d6b5edc53b5f",
       "svg": null
     },
     {
@@ -496,6 +601,48 @@
       "svg": null
     },
     {
+      "id": "dashedline",
+      "type": "DashedLine",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "dashedline.plan",
+      "image": "dashedline.png",
+      "pixels": [
+        400,
+        300
+      ],
+      "rgbaSha256": "9cf3e19adf0c067b19ce7c8ef0e203c91caff658e196f88000762c47b826d9eb",
+      "svg": null
+    },
+    {
+      "id": "solidline",
+      "type": "SolidLine",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "boundsMillimeters": [
+        -2000,
+        -1500,
+        4000,
+        3000
+      ],
+      "plan": "solidline.plan",
+      "image": "solidline.png",
+      "pixels": [
+        400,
+        300
+      ],
+      "rgbaSha256": "aa7124b931ccefad38fa6dda8d8e79f6928a3a71870d03efa44af49c9b13551a",
+      "svg": null
+    },
+    {
       "id": "angleguide",
       "type": "AngleGuide",
       "theme": "Dark Canvas",
@@ -515,6 +662,58 @@
       ],
       "rgbaSha256": "3744a977f1e46c0a4d5705706592d4404e130133dbea92474a1e16374f01e938",
       "svg": null
+    },
+    {
+      "id": "window-well",
+      "type": "Window",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "png",
+      "windowWell": true,
+      "boundsMillimeters": [
+        -3500,
+        -2000,
+        7000,
+        4000
+      ],
+      "plan": "window-well.plan",
+      "image": "window-well.png",
+      "pixels": [
+        700,
+        400
+      ],
+      "rgbaSha256": "eac8276d4af25e304778e5e8a3aab305d5944a1784d1d8e52a5a4673b655870f",
+      "svg": null
+    },
+    {
+      "id": "window-well-svg",
+      "type": "Window",
+      "theme": "Dark Canvas",
+      "scale": 100,
+      "format": "svg",
+      "windowWell": true,
+      "boundsMillimeters": [
+        -3500,
+        -2000,
+        7000,
+        4000
+      ],
+      "plan": "window-well-svg.plan",
+      "image": "window-well-svg.png",
+      "pixels": [
+        700,
+        400
+      ],
+      "rgbaSha256": "0e823f60aed9c4b2b442a2a4066aaccd300f38e45c1dd82b97979c69f2d57430",
+      "svg": {
+        "width": "700",
+        "height": "400",
+        "viewBox": "0 0 700 400",
+        "paths": 29,
+        "images": 0,
+        "text": 0,
+        "nonScalingStrokes": 0
+      }
     },
     {
       "id": "washer",

@@ -135,7 +135,8 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
         # sizing units tied to the editor even when export labels use other units.
         settings["autoSizingUnitsMode"] = settings["unitsMode"]
         settings["unitsMode"] = export.get("unitsMode", "Millimeters")
-        for name in ("showGrid", "viewportSettings", "lineworkSettings", "measurementVisibility", "visibility"):
+        for name in ("showGrid", "viewportSettings", "lineworkSettings", "measurementVisibility", "visibility",
+                     "wallMeasurementMode", "wallMeasurementReference"):
             if name not in export:
                 continue
             if isinstance(export[name], dict):
@@ -231,7 +232,7 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
                                rulerSize + (y + length) * pixelsPerMillimeter)
         viewport.panOffset = origin - QtCore.QPointF((imageWidth + rulerSize) / 2,
                                                     (imageHeight + rulerSize) / 2)
-        for name in ("showGrid", "showMeasurements", "measurementPrecision", "measurementVisibility", "measurementSettings",
+        for name in ("showGrid", "showMeasurements", "measurementPrecision", "measurementVisibility", "measurementSettings", "wallMeasurementMode", "wallMeasurementReference",
                      "collisionSettings", "stairStepSizes", "railingSpacings", "imperialAutoSizes", "autoSizingUnitsMode", "unitsMode", "lineworkSettings"):
             setattr(viewport, name, settings[name])
         viewport.EnsureObjectIds()

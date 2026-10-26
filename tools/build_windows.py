@@ -3,10 +3,19 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import runpy
 import shutil
 import subprocess
 import sys
 import tempfile
+
+
+def PackageDistribution(distribution, build, version):
+    name = f"Planner-{version}-Windows"
+    archive = Path(shutil.make_archive(str(build / name), "zip", root_dir = distribution.parent, base_dir = distribution.name))
+    destination = distribution.parent / (name + ".zip")
+    archive.replace(destination)
+    return destination
 
 
 def Main():
@@ -14,6 +23,7 @@ def Main():
         raise SystemExit("Build the Windows executable on Windows.")
     root = Path(__file__).resolve().parents[1]
     source = root / "planner-main"
+    version = runpy.run_path(str(source / "planner_app/version.py"))["version"]
     build = root / "build/windows"
     distribution = root / "dist/Planner"
     # PyInstaller replaces its generated output. Reject symlinked destinations
@@ -79,10 +89,9 @@ def Main():
     report = json.loads(reportPath.read_text(encoding = "utf-8")) if reportPath.exists() else {}
     if result.returncode or not report.get("ok"):
         raise SystemExit("Packaged smoke test failed: " + report.get("error", "No smoke report was produced."))
-    archive = Path(shutil.make_archive(str(build / "Planner-Windows"), "zip", root_dir = distribution.parent, base_dir = distribution.name))
-    archive.replace(root / "dist/Planner-Windows.zip")
+    archive = PackageDistribution(distribution, build, version)
     print(f"Built {distribution / 'Planner.exe'}", flush = True)
-    print(f"ZIP: {root / 'dist/Planner-Windows.zip'}", flush = True)
+    print(f"ZIP: {archive}", flush = True)
     print(f"Verified {len(manifest)} external resource files. Report: {reportPath}", flush = True)
 
 

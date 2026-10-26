@@ -25,7 +25,7 @@ Medium is the default.
 
 ## Shown measurements
 
-Use the **View** menu to control the display of measurements, or hit `M` on the keyboard.
+Use the **View** menu to toggle the display of measurements, or hit `M` on the keyboard.
 Walls, stairs, counters, railings and elevators have independent visibility controls.
 
 Doors, windows, stairs and counters can optionally split wall measurements when they touch

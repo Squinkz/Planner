@@ -7,6 +7,7 @@ os.environ["QT_QPA_PLATFORM"] = "offscreen"
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "planner-main"))
 from PySide6 import QtCore, QtTest, QtWidgets
 from planner import MainWindow, Wall, Window, Door
+from check_history import Drag
 
 
 def Main():
@@ -33,11 +34,24 @@ def Main():
     assert first.firstMiter == .3 and second.secondMiter == .7
     assert first.secondMiter == second.firstMiter == 0
     assert first.objectId != second.objectId and None not in (first.objectId, second.objectId)
-    assert len(v.SelectionEntries()) == 2
+    assert v.SelectionEntries() == [(first, 1), (second, 0)]
+    # The new joint is immediately draggable without first clearing a group selection.
+    v.snapEnabled = False
+    v.connectedVerticesEnabled = False
+    v.connectedObjectsEnabled = False
+    start = v.WorldToViewport(point()).toPoint()
+    end = start + QtCore.QPoint(0, -40)
+    outerFirst, outerSecond = point(first.firstVertex), point(second.secondVertex)
+    Drag(v, start, end)
+    assert first.secondVertex != point() and first.secondVertex == second.firstVertex
+    assert first.firstVertex == outerFirst and second.secondVertex == outerSecond
+    v.Undo()
+    assert first.secondVertex == second.firstVertex == point()
     v.Undo()
     assert v.walls == [wall]
     v.Redo()
     assert v.walls == [first, second]
+    assert v.SelectionEntries() == [(first, 1), (second, 0)]
     v.Undo()
     # Occupied midpoint: nearest opening jamb, with no opening relocation.
     opening = Window(wall, .4, .7)

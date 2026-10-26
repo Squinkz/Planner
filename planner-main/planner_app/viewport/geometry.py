@@ -19,15 +19,18 @@ from planner_app.geometry.footprints import (WallBody, RectangleFootprint, Colum
 from planner_app.geometry.measurements import (MergeMeasurementSegments, FindMeasurementOwners,
     PrepareMeasurementPolygons, ExposedMeasurementSpans, MeasurementOpening,
     PlanMeasurementComponents, BuildOpeningDimensions)
+from planner_app.geometry.stair_annotations import StairInsetLines
 from planner_app.graphics.arrows import ArrowPaths, ConnectedArrowDirections, ConnectedArrowCorners
 from planner_app.graphics.path_operations import Paths
 from PySide6 import QtCore, QtGui
-from planner_app.models import OpenDoorway, Door, PocketDoor, BarnDoor, BifoldDoor, SlidingDoor, MeasurementGuide, BoundaryLine, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Window, SilledWindow, CasementWindow, Label, Furnishing, NorthArrow, Fireplace
+from planner_app.models import OpenDoorway, Door, SwingingDoor, DoubleDoor, PocketDoor, BarnDoor, BifoldDoor, SlidingDoor, MeasurementGuide, BoundaryLine, DashedLine, SolidLine, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, Label, Furnishing, NorthArrow, Fireplace
 from planner_app.graphics.fireplace import FireplacePath
+from planner_app.graphics.symbols import WindowWellPath
 from planner_app.graphics.column import ColumnPolygon, ColumnPath, ColumnContains
 from planner_app.graphics.furnishings import FurnishingContainsPoint
 from planner_app.furnishing_parts import FurnishingCollisionFootprints
 from planner_app.models import Elevator
+from planner_app.models import lineWeightClasses
 
 
 def CollisionPass(function):
@@ -390,6 +393,12 @@ class GeometryMixin:
         for obj in reversed(self.furnishings):
             if isinstance(obj, NorthArrow) and self.IsObjectVisible(obj) and self.WallPolygon(obj).containsPoint(position, QtCore.Qt.FillRule.OddEvenFill):
                 return obj, None
+        for opening in reversed(self.windows):
+            if opening.windowWell and self.IsObjectVisible(opening):
+                well = WindowWellPath(opening.firstVertex, opening.secondVertex, opening.width,
+                                      opening.wellDepth, swingsOutwards = not opening.swingsOutwards)
+                if Paths.Contains(Paths.PrepareStroke(width = 10 / scale)(well), worldPosition):
+                    return opening, None
         hitMargin = max(5, self.vertexSnapRange) / (self.basePixelsPerMillimeter * self.zoom)
         # Endpoint handles have a fixed screen-space hit area at every zoom.
         contained = list(reversed(self.ContainedWalls()))
@@ -403,10 +412,33 @@ class GeometryMixin:
                                self.WallPolygon(obj).containsPoint(position, QtCore.Qt.FillRule.OddEvenFill))), None)
         if any(isinstance(obj, Railing) for obj in orderedWalls):
             orderedWalls.sort(key = lambda obj: 0 if isinstance(obj, Window) or type(obj) in (Wall, Pillar, Column) else 1 if isinstance(obj, Railing) else 2)
-        orderedWalls = [obj for obj in orderedWalls if isinstance(obj, Arrow)] + [obj for obj in orderedWalls if not isinstance(obj, Arrow)]
+        orderedWalls = [obj for obj in orderedWalls if isinstance(obj, (Arrow, BoundaryLine))] + [obj for obj in orderedWalls if not isinstance(obj, (Arrow, BoundaryLine))]
         arrows = [obj for obj in orderedWalls if isinstance(obj, Arrow)]
         arrowDirections = ConnectedArrowDirections(list(reversed(arrows)))
         arrowCorners = ConnectedArrowCorners(arrows, arrowDirections)
+        # Control points precede line bodies, including annotations drawn inside
+        # walls. Otherwise an active endpoint can hover visibly but clicking its
+        # position selects the line crossing it instead.
+        vertexWalls = sorted(orderedWalls, key = lambda obj: 0 if obj is self.selectedWall else 1 if id(obj) in selectedIds else 2)
+        for wall in vertexWalls:
+            if isinstance(wall, (Pillar, Fireplace)) or isinstance(wall, Counter) and id(wall) not in selectedIds:
+                continue
+            if type(wall) is Wall and hitPillar is not None and id(wall) not in selectedIds:
+                # Unselected wall endpoints hidden beneath a pillar remain hidden.
+                continue
+            for vertexIndex, vertex in enumerate(ObjectControlPoints(wall)):
+                if abs(vertex.x() - worldPosition.x()) > hitMargin or abs(vertex.y() - worldPosition.y()) > hitMargin:
+                    continue
+                if QtCore.QLineF(position, self.WorldToViewport(vertex)).length() <= self.vertexSnapRange:
+                    return wall, vertexIndex
+        for guide in orderedWalls:
+            if not isinstance(guide, BoundaryLine):
+                continue
+            path = QtGui.QPainterPath(self.WorldToViewport(guide.firstVertex))
+            path.lineTo(self.WorldToViewport(guide.secondVertex))
+            hitWidth = max(10, self.lineWidths[lineWeightClasses[guide.weightClass][1]]) if isinstance(guide, DashedLine) else 10
+            if Paths.Contains(Paths.PrepareStroke(width = hitWidth)(path), position):
+                return guide, None
         # A visible selection stays draggable through objects painted above it.
         selectedObjects = [obj for obj, index in reversed(self.SelectionEntries()) if self.IsObjectVisible(obj)]
         for obj in selectedObjects:
@@ -449,11 +481,11 @@ class GeometryMixin:
             elif isinstance(obj, MeasurementGuide):
                 labelPosition, angle, labelRect, labelPath = self.MeasurementLabelLayout(obj)
                 if Paths.Contains(labelPath, position):
-                    return obj, 3
+                    return obj, None if isinstance(obj, BoundaryLine) else 3
                 first, last = self.WorldToViewport(obj.firstVertex), self.WorldToViewport(obj.secondVertex)
                 path = QtGui.QPainterPath(first)
                 path.lineTo(last)
-                if not obj.textOffset.isNull():
+                if not isinstance(obj, BoundaryLine) and not obj.textOffset.isNull():
                     path.moveTo((first + last) / 2)
                     path.lineTo(labelPosition)
             else:
@@ -486,19 +518,6 @@ class GeometryMixin:
                     bounds = bounds.united(QtGui.QPolygonF(polygon).boundingRect().adjusted(-hitMargin, -hitMargin, hitMargin, hitMargin))
             if bounds.contains(worldPosition):
                 candidates.append(obj)
-        vertexWalls = candidates
-        if any(wall is self.selectedWall for wall in vertexWalls):
-            vertexWalls = [self.selectedWall] + [wall for wall in vertexWalls if wall is not self.selectedWall]
-        for wall in vertexWalls:
-            if isinstance(wall, (Pillar, Fireplace)) or isinstance(wall, Counter) and wall is not self.selectedWall:
-                continue
-            if type(wall) is Wall and hitPillar is not None:
-                # Wall endpoints hidden beneath the pillar are not hit targets.
-                continue
-            for vertexIndex, vertex in enumerate(ObjectControlPoints(wall)):
-                delta = position - self.WorldToViewport(vertex)
-                if math.hypot(delta.x(), delta.y()) <= self.vertexSnapRange:
-                    return wall, vertexIndex
         for wall in candidates:
             if isinstance(wall, Fireplace):
                 path = worldTransform.map(FireplacePath(wall))
@@ -532,7 +551,8 @@ class GeometryMixin:
                 if not isinstance(wall, BoundaryLine) and not wall.textOffset.isNull():
                     path.moveTo((first + second) / 2)
                     path.lineTo(labelPosition)
-                if Paths.Contains(Paths.PrepareStroke(width = 10)(path), position):
+                hitWidth = max(10, self.lineWidths[lineWeightClasses[wall.weightClass][1]]) if isinstance(wall, DashedLine) else 10
+                if Paths.Contains(Paths.PrepareStroke(width = hitWidth)(path), position):
                     return wall, None
                 continue
             if isinstance(wall, Arrow):
@@ -764,8 +784,10 @@ class GeometryMixin:
             results.append(cached)
         # Remove internal crossing edges from the cached exterior contours,
         # rather than retracing every rectangle and miter triangle underneath.
-        overlapping = MergeBounds([(index, polygon.boundingRect().adjusted(-1e-8, -1e-8, 1e-8, 1e-8))
-                                   for index, result in enumerate(results) for owner, polygon in result[1]], len(components))
+        endJoinedRuns = bool(walls) and all(type(wall) in (Counter, Stair) for wall in walls)
+        overlapping = ([[index] for index in range(len(components))] if endJoinedRuns else
+                       MergeBounds([(index, polygon.boundingRect().adjusted(-1e-8, -1e-8, 1e-8, 1e-8))
+                                    for index, result in enumerate(results) for owner, polygon in result[1]], len(components)))
         mergedResults = []
         mergedComponents = []
         for group in overlapping:
@@ -1061,8 +1083,57 @@ class GeometryMixin:
             while len(cache) > max(1024, len(walls) * 16):
                 cache.pop(next(iter(cache)))
         self.wallFillPolygons = [(owner, self.PreparedWallPolygon(polygon)[2]) for owner, polygon in self.wallFillPolygons]
+        if all(type(wall) in (Counter, Stair) for wall in walls):
+            self.PreserveRunSideSeams()
         self.wallGeometryKey = geometryKey
         return viewTransform.map(self.wallGeometryPath)
+
+    def PreserveRunSideSeams(self):
+        """Keep side contact visible even in an end-connected U-shaped chain."""
+        scale = self.basePixelsPerMillimeter
+        tolerance = .01 * scale
+        widths = sorted({owner.width * scale for owner, polygon in self.wallFillPolygons})
+        index = BoundsIndex(widths[len(widths) // 2] if widths else 1)
+        seams = set()
+        for owner, polygon in self.wallFillPolygons:
+            delta = owner.secondVertex - owner.firstVertex
+            length = math.hypot(delta.x(), delta.y())
+            if length < .0001:
+                continue
+            axis = QtCore.QPointF(delta.x(), -delta.y()) / length
+            origin = QtCore.QPointF(owner.firstVertex.x(), -owner.firstVertex.y()) * scale
+            vertices = list(polygon)
+            for first, second in zip(vertices, vertices[1:] + vertices[:1]):
+                edge = second - first
+                edgeLength = math.hypot(edge.x(), edge.y())
+                midpoint = (first + second) / 2
+                across = abs((midpoint.x() - origin.x()) * axis.y() - (midpoint.y() - origin.y()) * axis.x())
+                if edgeLength < tolerance or abs(edge.x() * axis.y() - edge.y() * axis.x()) > tolerance or abs(across - owner.width * scale / 2) > tolerance:
+                    continue
+                direction = edge / edgeLength
+                bounds = QtCore.QRectF(first, second).normalized().adjusted(-tolerance, -tolerance, tolerance, tolerance)
+                for other, start, end in index.Query(bounds):
+                    if other is owner:
+                        continue
+                    if abs((start.x() - first.x()) * direction.y() - (start.y() - first.y()) * direction.x()) > tolerance:
+                        continue
+                    if abs((end.x() - first.x()) * direction.y() - (end.y() - first.y()) * direction.x()) > tolerance:
+                        continue
+                    limits = sorted((QtCore.QPointF.dotProduct(start - first, direction), QtCore.QPointF.dotProduct(end - first, direction)))
+                    low, high = max(0, limits[0]), min(edgeLength, limits[1])
+                    if high - low <= tolerance:
+                        continue
+                    a, b = first + direction * low, first + direction * high
+                    normal = QtCore.QPointF(-direction.y(), direction.x()) * tolerance
+                    center = (a + b) / 2
+                    if not (self.wallGeometryPath.contains(center + normal) and self.wallGeometryPath.contains(center - normal)):
+                        continue
+                    key = tuple(sorted(((round(a.x(), 8), round(a.y(), 8)), (round(b.x(), 8), round(b.y(), 8)))))
+                    if key not in seams:
+                        seams.add(key)
+                        self.wallGeometryPath.moveTo(a)
+                        self.wallGeometryPath.lineTo(b)
+                index.Insert(bounds, (owner, first, second))
 
     def PreparedWallPolygon(self, polygon):
         """Memoize metadata for immutable polygons owned by the geometry caches."""
@@ -1162,18 +1233,26 @@ class GeometryMixin:
         workspace = self.stairWorkspace
         workspace.zoom = self.zoom
         previousKey = workspace.wallGeometryKey
-        path = workspace.ConnectedWallPath(stairs, traceContours = False)
+        path = workspace.ConnectedWallPath(stairs)
         if previousKey != workspace.wallGeometryKey:
-            self.stairOutlinePath = workspace.TraceWallBoundary(workspace.wallGeometryPath, joinContours = False)
+            outline = workspace.wallGeometryPath
+            self.stairOutlinePath = QtGui.QPainterPath()
             lines = []
+            seen = set()
             first = None
-            for index in range(self.stairOutlinePath.elementCount()):
-                element = self.stairOutlinePath.elementAt(index)
+            for index in range(outline.elementCount()):
+                element = outline.elementAt(index)
                 point = QtCore.QPointF(element.x, element.y)
                 if element.isLineTo() and first is not None:
-                    lines.append(QtCore.QLineF(first, point))
+                    key = tuple(sorted(((round(first.x(), 8), round(first.y(), 8)), (round(point.x(), 8), round(point.y(), 8)))))
+                    if key not in seen:
+                        seen.add(key)
+                        lines.append(QtCore.QLineF(first, point))
+                        self.stairOutlinePath.moveTo(first)
+                        self.stairOutlinePath.lineTo(point)
                 first = point
             self.stairOutlineLines = lines
+            self.stairInsetLines = StairInsetLines(workspace.wallGeometryComponents, workspace.wallFillPolygons, self.basePixelsPerMillimeter)
             self.stairLandingCache = {}
         self.stairGeometryKey, self.stairGeometryPath = workspace.wallGeometryKey, workspace.wallGeometryPath
         self.stairGeometryComponents = workspace.wallGeometryComponents
@@ -1188,7 +1267,7 @@ class GeometryMixin:
         # Measurements need the exterior contour, as counters do, rather than
         # measuring those internal subpaths. Keep the rendering cache separate.
         path = workspace.ConnectedWallPath(stairs)
-        blockers = [self.ObjectCorners(obj) for obj in self.walls + self.furnishings
+        blockers = [self.ObjectCorners(obj) for obj in self.walls
                     if not isinstance(obj, (Stair, Arrow, MeasurementGuide)) and self.IsObjectVisible(obj)]
         return workspace.WallDimensions(stairs, path, [], cachedBoundary = True,
                                         measureCaps = True, blockers = blockers)
@@ -1200,7 +1279,7 @@ class GeometryMixin:
         workspace.preparedWallMembers = counters if counters is getattr(self, "preparedCounterMembers", None) else None
         workspace.zoom = self.zoom
         path = workspace.ConnectedWallPath(counters)
-        blockers = [self.ObjectCorners(obj) for obj in self.walls + self.furnishings
+        blockers = [self.ObjectCorners(obj) for obj in self.walls
                     if not isinstance(obj, (Counter, Arrow, MeasurementGuide)) and self.IsObjectVisible(obj)] if includeMeasurements else []
         dimensions = workspace.WallDimensions(counters, path, [], cachedBoundary = True,
                                               measureCaps = True, blockers = blockers) if includeMeasurements else []
@@ -1320,14 +1399,15 @@ class GeometryMixin:
         return outline
 
     def WallDimensions(self, walls, boundaryPath, openings = None, cachedBoundary = False,
-                       measureCaps = False, blockers = ()):
+                       measureCaps = False, blockers = (), measurementSettings = None):
+        settings = self.measurementSettings if measurementSettings is None else measurementSettings
         cutters = []
         if walls and type(walls[0]) in (Wall, Pillar, Column, Railing):
             if not hasattr(self, "measurementCutterWorkspaces"):
                 self.measurementCutterWorkspaces = {}
             toWorld = QtGui.QTransform().scale(1 / self.basePixelsPerMillimeter, -1 / self.basePixelsPerMillimeter)
             for objectClass, key in ((Stair, "stairs"), (Counter, "counters")):
-                if self.measurementSettings[key] != 0:
+                if settings[key] != 0:
                     continue
                 members = [obj for obj in self.walls if isinstance(obj, objectClass) and self.IsObjectVisible(obj)]
                 if not members:
@@ -1349,7 +1429,7 @@ class GeometryMixin:
                         cutters.append(toWorld.map(polygon))
         components = self.wallGeometryComponents
         if not cachedBoundary or len(components) < 2:
-            return self.BuildWallDimensions(walls, boundaryPath, openings, cachedBoundary, measureCaps, blockers, cutters)
+            return self.BuildWallDimensions(walls, boundaryPath, openings, cachedBoundary, measureCaps, blockers, cutters, measurementSettings)
         doors = list(self.windows if openings is None else openings)
         blockerKey = tuple(tuple((point.x(), point.y()) for point in polygon) for polygon in blockers)
         cutterKey = tuple(tuple((point.x(), point.y()) for point in polygon) for polygon in cutters)
@@ -1357,10 +1437,10 @@ class GeometryMixin:
         transform = QtGui.QTransform().translate(origin.x(), origin.y()).scale(self.zoom, self.zoom)
         dimensions = []
         hasSelection = hasattr(self, "SelectionEntries")
-        selectedIds = {id(obj) for obj, index in self.SelectionEntries()} if hasSelection else set()
+        selectedIds = {id(obj) for obj, index in self.SelectionEntries()} if hasSelection and measurementSettings is None else set()
         plans = PlanMeasurementComponents(((id(wall) for wall in members) for geometryKey, members, path in components),
                                           (id(door.parentWall) for door in doors), selectedIds)
-        settingsKey = tuple(sorted(self.measurementSettings.items()))
+        settingsKey = tuple(sorted(settings.items()))
         for (geometryKey, members, path), (doorIndices, selectedKeys) in zip(components, plans):
             componentDoors = [doors[index] for index in doorIndices]
             doorKey = tuple((id(door), type(door), door.firstFraction, door.secondFraction,
@@ -1373,7 +1453,8 @@ class GeometryMixin:
             cached = self.wallDimensionComponentCache.pop(key, None)
             if cached is None:
                 cached = self.BuildWallDimensions(members, transform.map(path), componentDoors,
-                                                   measureCaps = measureCaps, blockers = blockers, cutters = cutters)
+                                                   measureCaps = measureCaps, blockers = blockers, cutters = cutters,
+                                                   measurementSettings = measurementSettings)
             self.wallDimensionComponentCache[key] = cached
             dimensions.extend(cached)
         while len(self.wallDimensionComponentCache) > max(128, len(components) * 2):
@@ -1383,15 +1464,16 @@ class GeometryMixin:
         return dimensions
 
     def BuildWallDimensions(self, walls, boundaryPath, openings = None, cachedBoundary = False,
-                            measureCaps = False, blockers = (), cutters = ()):
-        selectedIds = {id(obj) for obj, index in self.SelectionEntries()} if hasattr(self, "SelectionEntries") else set()
+                            measureCaps = False, blockers = (), cutters = (), measurementSettings = None):
+        settings = self.measurementSettings if measurementSettings is None else measurementSettings
+        selectedIds = {id(obj) for obj, index in self.SelectionEntries()} if hasattr(self, "SelectionEntries") and measurementSettings is None else set()
         selectionKey = frozenset(id(wall) for wall in walls if id(wall) in selectedIds)
         doors = list(self.windows if openings is None else openings)
         wallKey = tuple((id(wall), wall.firstVertex.x(), wall.firstVertex.y(), wall.secondVertex.x(),
                          wall.secondVertex.y(), wall.width, wall.firstMiter, wall.secondMiter) for wall in walls)
         doorKey = tuple((id(door), type(door), id(door.parentWall), door.firstFraction, door.secondFraction,
                          (door.hingeAtSecond, door.swingsOutwards) if isinstance(door, BarnDoor) else
-                         door.swingsOutwards if type(door) in (Window, Door, SilledWindow, CasementWindow, BifoldDoor) else
+                         door.swingsOutwards if type(door) in (Window, Door, DoubleDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, BifoldDoor) else
                          door.hingeAtSecond if isinstance(door, PocketDoor) else door.panelsFlipped if isinstance(door, SlidingDoor) else
                          (door.depth, door.depthOffset) if isinstance(door, Fireplace) else None) for door in doors)
         origin = self.WorldToViewport(QtCore.QPointF())
@@ -1415,7 +1497,7 @@ class GeometryMixin:
         blockerKey = tuple(tuple((point.x(), point.y()) for point in polygon) for polygon in blockers)
         cutterKey = tuple(tuple((point.x(), point.y()) for point in polygon) for polygon in cutters)
         cacheKey = (wallKey, doorKey, tuple(door.measurementFlipped for door in doors),
-                    tuple(boundaryKey), tuple(sorted(self.measurementSettings.items())),
+                    tuple(boundaryKey), tuple(sorted(settings.items())),
                     measureCaps, blockerKey, cutterKey, selectionKey)
         if cacheKey == self.dimensionCacheKey:
             return self.dimensionCache
@@ -1485,7 +1567,7 @@ class GeometryMixin:
             openingVertices[id(door)] = first, second
             openingKeys[id(door)] = (id(door), doorKey[index], door.measurementFlipped,
                                      first.x(), first.y(), second.x(), second.y())
-        settingsKey = tuple(sorted(self.measurementSettings.items()))
+        settingsKey = tuple(sorted(settings.items()))
         openingRecords = {}
         dimensions = []
         preparedCutters = PrepareMeasurementPolygons([[(point.x(), point.y()) for point in cutter] for cutter in cutters])
@@ -1548,9 +1630,9 @@ class GeometryMixin:
                         if record is None:
                             openingFirst, openingSecond = openingVertices[id(door)]
                             parentFirst, parentSecond = door.parentWall.firstVertex, door.parentWall.secondVertex
-                            isDoor = isinstance(door, (Door, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway))
-                            mode = self.measurementSettings["doors" if isDoor else "windows"]
-                            oneSided = not isDoor or isinstance(door, (Door, SlidingDoor, BarnDoor))
+                            isDoor = isinstance(door, (Door, SwingingDoor, DoubleDoor, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway))
+                            mode = settings["doors" if isDoor else "windows"]
+                            oneSided = not isDoor or isinstance(door, (Door, DoubleDoor, SlidingDoor, BarnDoor))
                             flipped = False
                             if mode == 1 and oneSided and not isinstance(door, Fireplace):
                                 flipped = door.panelsFlipped if isinstance(door, SlidingDoor) else door.swingsOutwards
@@ -1624,7 +1706,8 @@ class GeometryMixin:
             return footprint
         if isinstance(drawingObject, BoundaryLine):
             points = ObjectControlPoints(drawingObject)
-            padding = max(1, self.lineWidths["dimensions"]) / (self.basePixelsPerMillimeter * self.zoom)
+            widthRole = lineWeightClasses[drawingObject.weightClass][1] if isinstance(drawingObject, DashedLine) else "dimensions"
+            padding = max(1, self.lineWidths[widthRole]) / (self.basePixelsPerMillimeter * self.zoom)
             bounds = QtGui.QPolygonF(points).boundingRect().adjusted(-padding, -padding, padding, padding)
             footprint = bounds, points, (QtCore.QPointF(1, 0), QtCore.QPointF(0, 1))
             drawingObject.footprintCache = (tuple((point.x(), point.y()) for point in points), self.zoom, padding), footprint

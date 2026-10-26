@@ -72,24 +72,24 @@
   <g
      id="planner-fixed-0"
      transform="matrix(7.0866126,0,0,7.0866096,-264.83812,-58.124957)"
-     style="display:inline;stroke:#000000;stroke-width:0.666667;stroke-opacity:1">
+     style="display:inline;stroke:#000000;stroke-width:1;stroke-opacity:1">
     <path
        vector-effect="non-scaling-stroke"
        stroke-width="1"
        id="path1-68"
-       style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:0.666667;stroke-miterlimit:7.7;stroke-opacity:1"
+       style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1"
        d="m 39.488277,9.2604161 a 1.0583332,1.0583331 0 0 1 -1.058333,1.0583339 1.0583332,1.0583331 0 0 1 -1.058333,-1.0583339 1.0583332,1.0583331 0 0 1 1.058333,-1.058333 1.0583332,1.0583331 0 0 1 1.058333,1.058333 z" />
     <path
        vector-effect="non-scaling-stroke"
        stroke-width="1"
        id="path1-68-1"
-       style="vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:0.666667;stroke-miterlimit:7.7;stroke-opacity:1"
+       style="vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1"
        d="M 39.267881,9.260416 A 0.83793571,0.83793527 0 0 1 38.429945,10.098352 0.83793571,0.83793527 0 0 1 37.592009,9.260416 0.83793571,0.83793527 0 0 1 38.429945,8.4224808 0.83793571,0.83793527 0 0 1 39.267881,9.260416 Z" />
     <path
        vector-effect="non-scaling-stroke"
        stroke-width="1"
        id="path8"
-       style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:0.666667;stroke-miterlimit:7.7;stroke-opacity:1"
+       style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1"
        d="M 39.022457,9.8529269 37.83743,8.6679064 m -10e-7,1.185019 1.185028,-1.1850197"
        sodipodi:nodetypes="cccc" />
   </g>

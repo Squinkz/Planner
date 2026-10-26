@@ -66,6 +66,8 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
         self.applying = False
 
         self.pathProject = None
+        self.exportFolder = None
+        self.exportFileName = None
 
         self.automaticPath = None
 
@@ -365,7 +367,8 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
 
             sectionLayout.setSpacing(12)
 
-            heading = QtWidgets.QPushButton(name)
+            displayName = "Dimensions" if name == "Measurements" else name
+            heading = QtWidgets.QPushButton(displayName)
 
             heading.setObjectName("exportSectionHeading")
 
@@ -377,9 +380,9 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
 
             heading.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
 
-            heading.setAccessibleName(f"{name} section")
+            heading.setAccessibleName(f"{displayName} section")
 
-            heading.setToolTip(f"Expand {name}")
+            heading.setToolTip(f"Expand {displayName}")
 
             sectionLayout.addWidget(heading)
 
@@ -569,18 +572,24 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
         wallsLabel.setBuddy(self.wallStyleField)
         canvasForm.addWidget(wallsLabel, 2, 0)
         canvasForm.addWidget(self.wallStyleField, 2, 1)
-        self.solidObjectsField = QtWidgets.QCheckBox("Solid Objects")
+        self.solidObjectsField = QtWidgets.QCheckBox()
+        self.solidObjectsField.setAccessibleName("Solid Objects")
         self.solidObjectsField.setChecked(True)
         self.solidObjectsField.setToolTip("Fill objects to hide the canvas and grid behind them")
-        canvasForm.addWidget(self.solidObjectsField, 4, 0, 1, 2, QtCore.Qt.AlignmentFlag.AlignHCenter)
+        canvasForm.addWidget(QtWidgets.QLabel("Solid Objects"), 4, 0)
+        canvasForm.addWidget(self.solidObjectsField, 4, 1)
 
         viewport = mainWindow.viewport
 
-        self.showGridField = QtWidgets.QCheckBox("Show Grid")
+        self.showGridField = QtWidgets.QCheckBox()
+        self.showGridField.setAccessibleName("Show Grid")
 
         self.showGridField.setChecked(viewport.showGrid)
 
-        sections["Grid"].addWidget(self.showGridField, alignment = QtCore.Qt.AlignmentFlag.AlignHCenter)
+        gridVisibilityForm = QtWidgets.QFormLayout()
+        gridVisibilityForm.setHorizontalSpacing(16)
+        gridVisibilityForm.addRow("Show Grid", self.showGridField)
+        sections["Grid"].addLayout(gridVisibilityForm)
 
         sections["Grid"].addWidget(self.gridColorOptions)
 
@@ -789,61 +798,39 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
         unitsRow.addWidget(self.unitsField, 1)
 
         sections["Measurements"].addLayout(unitsRow)
+        sections["Measurements"].addWidget(SectionHeading("Measure"))
 
         self.measurementVisibilityTree = QtWidgets.QTreeWidget()
-
         self.measurementVisibilityItems = {}
-
         states = []
-
-        for key, text in (("all", "Show all measurements"), ("walls", "Show wall measurements"),
-
-                          ("stairs", "Show stair measurements"), ("counters", "Show counter measurements"),
-
-                          ("railings", "Show railing measurements"), ("elevators", "Show elevator measurements")):
-
+        for key, title in (("all", "Draw dimensions"), ("walls", "Walls"),
+                           ("stairs", "Stairs"), ("counters", "Counters"),
+                           ("railings", "Railings")):
             parent = self.measurementVisibilityTree if key == "all" else self.measurementVisibilityItems["all"]
-
-            item = QtWidgets.QTreeWidgetItem(parent, [text])
-
+            item = QtWidgets.QTreeWidgetItem(parent, [title])
             item.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled | QtCore.Qt.ItemFlag.ItemIsUserCheckable)
-
             enabled = viewport.showMeasurements and viewport.measurementVisibility.get(key, False)
-
             state = QtCore.Qt.CheckState.Checked if enabled else QtCore.Qt.CheckState.Unchecked
-
             item.setCheckState(0, state)
-
             item.setData(0, QtCore.Qt.ItemDataRole.UserRole, key)
-
             self.measurementVisibilityItems[key] = item
-
             if key != "all":
-
                 states.append(state)
-
-        state = (QtCore.Qt.CheckState.Checked if all(state == QtCore.Qt.CheckState.Checked for state in states)
-
-                 else QtCore.Qt.CheckState.Unchecked if all(state == QtCore.Qt.CheckState.Unchecked for state in states)
-
+        state = (QtCore.Qt.CheckState.Checked if all(value == QtCore.Qt.CheckState.Checked for value in states)
+                 else QtCore.Qt.CheckState.Unchecked if all(value == QtCore.Qt.CheckState.Unchecked for value in states)
                  else QtCore.Qt.CheckState.PartiallyChecked)
-
         self.measurementVisibilityItems["all"].setCheckState(0, state)
-
-        self.measurementVisibilityTree.setRootIsDecorated(False)
-
-        self.measurementVisibilityTree.setItemsExpandable(False)
-
-        self.measurementVisibilityTree.setExpandsOnDoubleClick(False)
-
-
 
         vignetteHeading = SectionHeading("Vignette")
         vignetteHeader = QtWidgets.QVBoxLayout()
         vignetteHeader.setSpacing(6)
         vignetteHeader.addWidget(vignetteHeading)
-        self.enableVignetteField = QtWidgets.QCheckBox("Enable Vignette")
-        vignetteHeader.addWidget(self.enableVignetteField, alignment = QtCore.Qt.AlignmentFlag.AlignHCenter)
+        self.enableVignetteField = QtWidgets.QCheckBox()
+        self.enableVignetteField.setAccessibleName("Enable Vignette")
+        vignetteForm = QtWidgets.QFormLayout()
+        vignetteForm.setHorizontalSpacing(16)
+        vignetteForm.addRow("Enable Vignette", self.enableVignetteField)
+        vignetteHeader.addLayout(vignetteForm)
         self.vignetteStrengthOptions = QtWidgets.QWidget()
         strengthLayout = QtWidgets.QVBoxLayout(self.vignetteStrengthOptions)
         strengthLayout.setContentsMargins(0, 0, 0, 0)
@@ -943,12 +930,11 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
             self.visibilityTree.addTopLevelItem(source.clone())
 
         for tree, section, rowCount in ((self.measurementVisibilityTree, "Measurements", len(self.measurementVisibilityItems)),
-
                                         (self.visibilityTree, "Visibility", len(mainWindow.visibilityItems))):
 
             tree.setObjectName("visibilityTree")
 
-            tree.setAccessibleName(f"Export {section}")
+            tree.setAccessibleName("Export Dimensions" if section == "Measurements" else f"Export {section}")
 
             tree.setHeaderHidden(True)
 
@@ -967,6 +953,29 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
             tree.setFixedHeight(rowHeight * rowCount)
 
             sections[section].addWidget(tree)
+
+        tree = self.measurementVisibilityTree
+        for signal in (tree.itemExpanded, tree.itemCollapsed):
+            signal.connect(lambda item: self.measurementVisibilityTree.setFixedHeight(rowHeight * (
+                len(self.measurementVisibilityItems) if self.measurementVisibilityItems["all"].isExpanded() else 1)))
+        self.wallMeasurementHeading = SectionHeading("Walls")
+        sections["Measurements"].addWidget(self.wallMeasurementHeading)
+        wallForm = QtWidgets.QFormLayout()
+        wallForm.setHorizontalSpacing(16)
+        wallForm.setVerticalSpacing(12)
+        self.wallMeasurementModeField = DownwardComboBox()
+        self.wallMeasurementModeField.setAccessibleName("Export wall dimension mode")
+        self.wallMeasurementModeField.addItems(["All", "Exterior", "Exterior stacked"])
+        self.wallMeasurementModeField.currentTextChanged.connect(lambda mode: self.SetOverride("wallMeasurementMode", mode))
+        wallForm.addRow("Mode", self.wallMeasurementModeField)
+        self.wallMeasurementModeLabel = wallForm.labelForField(self.wallMeasurementModeField)
+        self.wallReferenceField = DownwardComboBox()
+        self.wallReferenceField.setAccessibleName("Export wall reference")
+        self.wallReferenceField.addItems(["Centerline", "Wall faces"])
+        self.wallReferenceField.currentTextChanged.connect(lambda reference: self.SetOverride("wallMeasurementReference", reference))
+        wallForm.addRow("Wall reference", self.wallReferenceField)
+        self.wallReferenceLabel = wallForm.labelForField(self.wallReferenceField)
+        sections["Measurements"].addLayout(wallForm)
 
 
 
@@ -1078,8 +1087,8 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
 
                                              self.SetOverride(group, defaults[key], key))
 
-        self.measurementVisibilityTree.itemChanged.connect(self.SetMeasurementVisibility)
 
+        self.measurementVisibilityTree.itemChanged.connect(self.SetMeasurementVisibility)
         self.visibilityTree.itemChanged.connect(self.SetVisibility)
 
         mainWindow.viewport.sceneChanged.connect(self.RefreshControls)
@@ -1099,6 +1108,9 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
                 "viewportSettings": dict(v.gridIntensities), "lineworkSettings": dict(v.lineworkSettings),
 
                 "showMeasurements": v.showMeasurements, "measurementVisibility": dict(v.measurementVisibility),
+                "measurementSettings": dict(v.measurementSettings),
+                "wallMeasurementMode": v.wallMeasurementMode,
+                "wallMeasurementReference": v.wallMeasurementReference,
 
                 "visibility": dict(v.visibility), "unitsMode": v.unitsMode, "measurementPrecision": v.measurementPrecision}
 
@@ -1185,6 +1197,9 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
             v.gridIntensities = dict(view["viewportSettings"])
 
             v.showGrid, v.showMeasurements = view["showGrid"], view["showMeasurements"]
+            v.wallMeasurementMode = view["wallMeasurementMode"]
+            v.measurementSettings = dict(view["measurementSettings"])
+            v.wallMeasurementReference = view["wallMeasurementReference"]
 
             v.unitsMode = view["unitsMode"]
             main.UpdateFurnishingSearch()
@@ -1667,9 +1682,7 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
             return
 
         key = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
-
         checked = item.checkState(0) != QtCore.Qt.CheckState.Unchecked
-
         keys = self.mainWindow.viewport.measurementVisibility if key == "all" else (key,)
 
         for name in keys:
@@ -1730,7 +1743,8 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
 
                    self.scaleModeTabs, self.architecturalScaleField, self.dpiField, *self.resolutionFields,
 
-                   self.unitsField, self.measurementVisibilityTree, self.visibilityTree]
+                   self.unitsField, self.measurementVisibilityTree, self.visibilityTree,
+                   self.wallMeasurementModeField, self.wallReferenceField]
 
         widgets += list(self.gridSliders.values()) + list(self.gridValueFields.values())
 
@@ -1945,6 +1959,15 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
 
                 buttons[key].setEnabled(value != defaults[key])
 
+        self.wallMeasurementModeField.setCurrentText(view["wallMeasurementMode"])
+        self.wallReferenceField.setCurrentText(view["wallMeasurementReference"])
+        wallDimensionsEnabled = view["showMeasurements"] and view["measurementVisibility"]["walls"]
+        for widget in (self.wallMeasurementHeading, self.wallMeasurementModeField, self.wallMeasurementModeLabel,
+                       self.wallReferenceField, self.wallReferenceLabel):
+            widget.setEnabled(wallDimensionsEnabled)
+        stacked = view["wallMeasurementMode"] == "Exterior stacked"
+        self.wallReferenceField.setVisible(stacked)
+        self.wallReferenceLabel.setVisible(stacked)
         for key, item in self.measurementVisibilityItems.items():
 
             if key == "all":
@@ -1968,7 +1991,6 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
             item.setForeground(0, QtGui.QBrush(QtGui.QColor(palette.themeColors[role if view["visibility"][key] else "treeDisabledText"])))
 
         for item, includeSelf in ((self.measurementVisibilityItems["all"], False),
-
                                   (self.visibilityItems["Walls"], True), (self.visibilityItems["World"], False)):
 
             states = [item.child(index).checkState(0) for index in range(item.childCount())]
@@ -1986,9 +2008,7 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
             item.setCheckState(0, state)
 
             if item is self.measurementVisibilityItems["all"]:
-
                 role = "treeDisabledText" if state == QtCore.Qt.CheckState.Unchecked else "text"
-
                 item.setForeground(0, QtGui.QBrush(QtGui.QColor(palette.themeColors[role])))
 
         del blockers
@@ -2003,7 +2023,7 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
 
         heading.setIcon(UiIcon("arrow_drop_down" if expanded else "arrow_drop_up"))
 
-        heading.setToolTip(f"{'Collapse' if expanded else 'Expand'} {name}")
+        heading.setToolTip(f"{'Collapse' if expanded else 'Expand'} {heading.text()}")
 
         if hasattr(self.mainWindow, "sessionTimer") and not self.mainWindow.projectLoading:
 
@@ -2037,12 +2057,25 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
         extension = ".svg" if self.typeField.currentData() == "SVG" else ".png"
         return Path(folder) / Path(name).with_suffix(extension)
 
+    def FolderEdited(self):
+        folder = self.folderField.text().strip()
+        if self.exportFolder is not None or folder != str(self.mainWindow.BrowseDirectory(forExport = True)):
+            self.exportFolder = folder or None
+        self.PopulatePath()
+        self.mainWindow.ProjectSettingsChanged()
+        self.RecordExportHistory()
+
     def PopulatePath(self, force = False):
         project = self.mainWindow.projectPath
         folder = self.folderField.text().strip()
         if force or project != self.pathProject or not folder:
             folder = str(self.mainWindow.BrowseDirectory(forExport = True))
             self.folderField.setText(folder)
+        if self.exportFileName and (force or project != self.pathProject or not self.fileNameField.text().strip()):
+            extension = ".svg" if self.typeField.currentData() == "SVG" else ".png"
+            self.fileNameField.setText(str(Path(self.exportFileName).with_suffix(extension)))
+            self.pathProject = project
+            return
         name = self.fileNameField.text().strip()
         automaticName = Path(self.automaticPath).name if self.automaticPath else None
         if not force and project == self.pathProject and name and name != automaticName:
@@ -2255,6 +2288,8 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
             pass
         else:
             self.fileNameField.setText(path.name)
+            self.exportFileName = path.name
+        self.mainWindow.ProjectSettingsChanged()
         self.RecordExportHistory()
 
     def BrowsePath(self):
@@ -2263,7 +2298,7 @@ class ExportPanel(ExportHistoryMixin, QtWidgets.QWidget):
         if folder:
             self.BeginExportGesture()
             self.folderField.setText(folder)
-            self.mainWindow.appPreferences["lastExportFolder"] = str(Path(folder).resolve())
-            self.mainWindow.SaveAppPreferences()
+            self.exportFolder = str(Path(folder).resolve())
+            self.mainWindow.ProjectSettingsChanged()
             self.PopulatePath()
             self.EndExportGesture()

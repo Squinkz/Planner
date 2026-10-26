@@ -4,14 +4,17 @@ from planner_app.models import Elevator
 from PySide6 import QtCore, QtGui
 from planner_app.graphics.palette import themeColors
 from planner_app.graphics.theme import HeaderIcon, MaterialIcon, UiIcon, wallMaterials
-from planner_app.models import Door, Furnishing, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway, SilledWindow, CasementWindow, SlidingDoor, Stair, Counter, Railing, MeasurementGuide, Wall, Pillar, Column, Label, Window, Fireplace
-from planner_app.models import BoundaryLine
+from planner_app.models import Door, SwingingDoor, DoubleDoor, Furnishing, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, SlidingDoor, Arrow, Stair, Counter, Railing, MeasurementGuide, Wall, Pillar, Column, Label, Window, Fireplace
+from planner_app.models import BoundaryLine, DashedLine, SolidLine, AngleGuide
 from planner_app.ui.menus import AddMenuButton, AddSubmenuButton
 
 
 class ContextMenuMixin:
     def ShowObjectContextMenu(self, position, globalPosition):
-        hitObject, hitIndex = self.HitTest(position)
+        hitObject, hitIndex, handle = self.SelectionTarget(position)
+        members = getattr(hitObject, "selectionMembers", ())
+        if members:
+            hitObject = self.selectedWall if self.selectedWall in members else members[-1]
         menu = self.objectContextMenu
         if hasattr(menu, "materialController"):
             menu.materialController.HideChildMenu()
@@ -34,23 +37,23 @@ class ContextMenuMixin:
         # Context commands act on objects, even when their vertices are selected.
         objects = list({id(obj): obj for obj, index in entries}.values())
         vertices = [(QtCore.QLineF(position, self.WorldToViewport(vertex)).length(), vertex)
-                    for wall in self.walls if type(wall) is Wall and self.IsObjectVisible(wall)
+                    for wall in self.walls if type(wall) is type(hitObject) and type(wall) not in (Pillar, Column, Elevator, AngleGuide) and self.IsObjectVisible(wall)
                     for vertex in (wall.firstVertex, wall.secondVertex)]
         nearestVertex = min(vertices, key = lambda entry: entry[0]) if vertices else None
         if nearestVertex is not None and nearestVertex[0] <= self.vertexSnapRange:
             vertex = QtCore.QPointF(nearestVertex[1])
-            sharedWalls = [wall for wall in self.walls if type(wall) is Wall and any(
+            sharedWalls = [wall for wall in self.walls if type(wall) is type(hitObject) and any(
                 QtCore.QLineF(vertex, endpoint).length() <= .01 for endpoint in (wall.firstVertex, wall.secondVertex))]
             if len(sharedWalls) == 2:
                 button = AddMenuButton(menu, "Dissolve Control Point", iconName = "Construction")
-                button.clicked.connect(lambda checked = False, vertex = vertex: self.DissolveWalls(vertex))
+                button.clicked.connect(lambda checked = False, vertex = vertex: self.DissolveWalls(vertex, type(hitObject)))
         if len({Wall if type(obj) in (Wall, Pillar, Column) else type(obj) for obj in objects}) == 1:
             objectType = Wall if any(type(obj) is Wall for obj in objects) else type(objects[0])
             options = []
+            if all(isinstance(obj, Wall) and type(obj) not in (Pillar, Column, Elevator, AngleGuide) for obj in objects):
+                button = AddMenuButton(menu, "Subdivide Wall" if objectType is Wall else "Subdivide", iconName = "Construction")
+                button.clicked.connect(lambda checked = False, objects = objects: self.SubdivideWalls(objects))
             if objectType in (Wall, Pillar, Column):
-                if all(type(obj) is Wall for obj in objects):
-                    button = AddMenuButton(menu, "Subdivide Wall", iconName = "Construction")
-                    button.clicked.connect(lambda checked = False, objects = objects: self.SubdivideWalls(objects))
                 def PopulateMaterials(materialMenu):
                     materialMenu.setStyleSheet("QPushButton#headerMenuItem { padding: 5px 0; } "
                                               "QPushButton#headerMenuItem:checked { background: " + themeColors["activeBackground"] + "; }")
@@ -69,8 +72,7 @@ class ContextMenuMixin:
                 button = AddSubmenuButton(self, menu, "Settings", "Material", PopulateMaterials)
                 menu.materialController = button._submenuController
             elif objectType is Furnishing:
-                options = [("Bring to Front", "front", "flip_to_front"), ("Move to Back", "back", "flip_to_back"),
-                           ("Flip Horizontal", "flipHorizontal", "flip_h"), ("Flip Vertical", "flipVertical", "flip_v")]
+                options = [("Bring to Front", "front", "flip_to_front"), ("Move to Back", "back", "flip_to_back")]
                 if len(objects) >= 2:
                     button = AddMenuButton(menu, "Create Furnishing from Selection…", iconName = "Chair")
                     button.clicked.connect(lambda checked = False, objects = objects:
@@ -78,15 +80,21 @@ class ContextMenuMixin:
                 if any(obj.definition.get("components") for obj in objects):
                     button = AddMenuButton(menu, "Decompose", iconName = "Construction")
                     button.clicked.connect(lambda checked = False, objects = objects: self.DecomposeFurnishings(objects))
+            elif objectType is Arrow:
+                options = [("Flip Direction", "reverseDirection", "Undo" if objects[0].directionReversed else "Redo")]
             elif objectType is Stair:
                 options = [("Flip Direction", "directionReversed", "Undo" if objects[0].directionReversed else "Redo")]
-            elif objectType in (Window, SilledWindow, CasementWindow, Fireplace):
+            elif objectType in (Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, Fireplace):
                 options = [("Flip Facing", "swingsOutwards", "flip_v")]
                 if objectType is CasementWindow:
                     options.append(("Flip Hinge Side", "hingeAtSecond", "flip_h"))
             elif objectType is Door:
                 options = [("Flip Swing Direction", "swingsOutwards", "flip_v"),
                            ("Flip Hinge Side", "hingeAtSecond", "flip_h")]
+            elif objectType is SwingingDoor:
+                options = [("Flip Hinge Side", "hingeAtSecond", "flip_h")]
+            elif objectType is DoubleDoor:
+                options = [("Flip Swing Direction", "swingsOutwards", "flip_v")]
             elif objectType is SlidingDoor:
                 options = [("Flip Panel Side", "panelsFlipped", "flip_v"),
                            ("Flip Slide Direction", "hingeAtSecond", "flip_h")]
@@ -96,36 +104,38 @@ class ContextMenuMixin:
                 options = [("Flip Facing", "swingsOutwards", "flip_v"), ("Flip Slide Direction", "hingeAtSecond", "flip_h")]
             elif objectType is PocketDoor:
                 options = [("Flip Pocket Side", "hingeAtSecond", "flip_h")]
-            if objectType in (Door, SlidingDoor, BarnDoor, Window, SilledWindow, CasementWindow):
-                measurementClass = "windows" if objectType in (Window, SilledWindow, CasementWindow) else "doors"
+            if objectType in (Door, DoubleDoor, SlidingDoor, BarnDoor, Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow):
+                measurementClass = "windows" if objectType in (Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow) else "doors"
                 if (self.showMeasurements and self.measurementVisibility["walls"]
                         and self.measurementSettings[measurementClass] == 1
                         and any(not obj.measurementHidden for obj in objects)):
-                    options.append(("Flip Measurement", "measurementFlipped", "Measurements"))
+                    options.append(("Flip Dimension", "measurementFlipped", "Measurements"))
             if options:
                 for label, command, iconName in options:
                     button = AddMenuButton(menu, label, iconName = UiIcon(iconName) if iconName.startswith("flip_") else iconName)
-                    if objectType is Furnishing and command in ("flipHorizontal", "flipVertical"):
-                        button.setToolTip("Mirror across the global " + ("Y" if command == "flipHorizontal" else "X") +
-                                          " axis through the furnishing's center")
                     button.clicked.connect(lambda checked = False, command = command, objects = objects:
                                            self.ApplyObjectContextAction(objects, command))
+        for label, command, icon in (("Flip Horizontal", "flipHorizontal", "flip_h"),
+                                      ("Flip Vertical", "flipVertical", "flip_v")):
+            button = AddMenuButton(menu, label, iconName = UiIcon(icon))
+            axis = "vertical" if command == "flipHorizontal" else "horizontal"
+            button.setToolTip("Mirror across the selection's " + axis + " axis, or each object's local " + axis + " axis in Local mode")
+            button.clicked.connect(lambda checked = False, command = command, objects = objects:
+                                   self.ApplyObjectContextAction(objects, command))
         measurementEnabled = False
-        if isinstance(hitObject, Elevator):
-            measurementEnabled = self.measurementVisibility["elevators"]
-        elif isinstance(hitObject, (Stair, Counter, Railing)):
+        if isinstance(hitObject, (Stair, Counter, Railing)):
             category = "stairs" if isinstance(hitObject, Stair) else "counters" if isinstance(hitObject, Counter) else "railings"
             measurementEnabled = self.measurementVisibility[category]
         elif type(hitObject) in (Wall, Pillar, Column) or isinstance(hitObject, Fireplace):
             measurementEnabled = self.measurementVisibility["walls"]
         elif isinstance(hitObject, Window):
-            category = "doors" if isinstance(hitObject, (Door, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway)) else "windows"
+            category = "doors" if isinstance(hitObject, (Door, SwingingDoor, DoubleDoor, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway)) else "windows"
             measurementEnabled = self.measurementVisibility["walls"] and self.measurementSettings[category] != 2
         elif isinstance(hitObject, MeasurementGuide) and not isinstance(hitObject, BoundaryLine):
             measurementEnabled = True
         if self.showMeasurements and measurementEnabled:
             hide = not hitObject.measurementHidden
-            button = AddMenuButton(menu, "Hide measurement" if hide else "Show measurement", iconName = "View")
+            button = AddMenuButton(menu, "Hide dimensions" if hide else "Show dimensions", iconName = "View")
             button.clicked.connect(lambda checked = False, obj = hitObject, hide = hide:
                                    self.ApplyObjectContextAction([obj], "measurementHidden", hide))
         selectedIds = {id(obj) for obj in objects}
@@ -161,14 +171,20 @@ class ContextMenuMixin:
         if command in ("front", "back"):
             self.MoveFurnishingLayer(objects, command == "front")
             return
+        if command in ("flipHorizontal", "flipVertical"):
+            return self.FlipObjects(objects, command == "flipHorizontal", value)
         before = self.CaptureState()
         for obj in objects:
-            if (type(obj) is Furnishing and command in ("flipHorizontal", "flipVertical")
-                    and (value is None or value != getattr(obj, command))):
-                # Reflect the rotated local axes across the world axis through
-                # this object's centre, then reflect its artwork on that axis.
-                obj.angle = -obj.angle
+            if isinstance(obj, Arrow) and command == "reverseDirection":
+                obj.firstVertex, obj.secondVertex = QtCore.QPointF(obj.secondVertex), QtCore.QPointF(obj.firstVertex)
+                obj.firstMiter, obj.secondMiter = obj.secondMiter, obj.firstMiter
+                obj.directionReversed = not obj.directionReversed
+                continue
             setattr(obj, command, value if value is not None else not getattr(obj, command))
+        if command == "reverseDirection":
+            reversedIds = {id(obj) for obj in objects if isinstance(obj, Arrow)}
+            self.SetSelection([(obj, 1 - index if id(obj) in reversedIds and index in (0, 1) else index)
+                               for obj, index in self.SelectionEntries()])
         self.RecordEdit(before)
         self.selectionChanged.emit()
         self.update()

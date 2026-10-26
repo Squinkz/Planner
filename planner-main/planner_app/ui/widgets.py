@@ -35,6 +35,14 @@ class VisibilityItemDelegate(QtWidgets.QStyledItemDelegate):
         tree.viewport().setMouseTracking(True)
         tree.viewport().installEventFilter(self)
 
+    def initStyleOption(self, option, index):
+        super().initStyleOption(option, index)
+        # A read-only aggregate checkbox can be unavailable without disabling
+        # its tree branch and the child controls needed to enable it again.
+        if (index.data(QtCore.Qt.ItemDataRole.CheckStateRole) is not None
+                and not index.flags() & QtCore.Qt.ItemFlag.ItemIsUserCheckable):
+            option.state &= ~QtWidgets.QStyle.StateFlag.State_Enabled
+
     def sizeHint(self, option, index):
         size = super().sizeHint(option, index)
         if self.rowHeight is not None:

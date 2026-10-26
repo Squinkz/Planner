@@ -28,6 +28,13 @@ def Main():
         main.show()
         app.processEvents()
         panel = main.exportPanel
+        heading = panel.sectionButtons["Measurements"]
+        assert heading.text() == "Dimensions" and heading.accessibleName() == "Dimensions section"
+        assert heading.toolTip() == "Expand Dimensions"
+        heading.setChecked(True)
+        assert heading.toolTip() == "Collapse Dimensions"
+        heading.setChecked(False)
+        assert panel.measurementVisibilityItems["all"].text(0) == "Draw dimensions"
         assert not any(button.isChecked() for button in panel.sectionButtons.values())
         assert [panel.typeField.itemText(index) for index in range(panel.typeField.count())] == ["PNG (raster)", "SVG (vector)", "Optimized PNG (raster)"]
         panel.fileNameField.setText("render.png")
@@ -37,6 +44,9 @@ def Main():
         assert panel.fileNameField.text() == "render.svg" and panel.typeField.currentData() == "SVG"
         assert panel.browseButton.text() == "" and not panel.browseButton.icon().isNull()
         original = copy.deepcopy(main.ProjectSettings())
+        # Destinations are now project settings. Establish the clean baseline
+        # after the fixture has chosen its folder and filename.
+        main.MarkProjectClean()
         view = panel.CaptureView()
         assert "exportSettings" not in original
         originalPan = QtCore.QPointF(147, -83)

@@ -640,7 +640,7 @@ class ExportBoundsOverlay(QtCore.QObject):
         v = self.viewport
         # The bounded overview and detail share an unselected, export-styled view.
         for name in ("walls", "windows", "furnishings", "labels", "objectGroups", "hiddenObjectIds", "visibility",
-                     "showGrid", "gridOrigin", "showMeasurements", "measurementPrecision", "measurementVisibility", "measurementSettings", "collisionSettings",
+                     "showGrid", "gridOrigin", "showMeasurements", "measurementPrecision", "measurementVisibility", "measurementSettings", "wallMeasurementMode", "wallMeasurementReference", "collisionSettings",
                      "stairStepSizes", "railingSpacings", "imperialAutoSizes", "autoSizingUnitsMode", "unitsMode", "wallStyle", "solidObjects", "lineworkSettings", "lineWidths", "gridIntensities",
                      "furnishingDefinitions", "furnishingRenderers", "materialBrushes", "warningMaterialBrushes", "groupedMaterialBrushes"):
             setattr(source, name, getattr(v, name))

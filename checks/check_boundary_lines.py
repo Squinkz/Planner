@@ -77,7 +77,7 @@ def Main():
         boundary.textOffset = point(0, 300)
         v.RecordEdit(before)
         labelPosition = v.MeasurementLabelLayout(boundary)[0]
-        assert v.HitTest(labelPosition) == (boundary, 3)
+        assert v.HitTest(labelPosition) == (boundary, None)
         v.SetSelection([])
         assert v.HitTest(labelPosition)[0] is None, "Invisible dimension label remained clickable"
         assert not v.ObjectsOverlap(boundary, Wall(point(-1000, 0), point(1000, 0)))

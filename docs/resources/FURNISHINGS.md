@@ -139,6 +139,8 @@ The marker may be hidden directly or inside a hidden layer/group. Paths also wor
 
 Set `vector-effect="non-scaling-stroke"` on each stroked shape or path. This keeps outlines a consistent visual thickness as the furnishing is resized or the view is zoomed. Planner applies this property when loading graphics and sets their stroke width from the furnishing line-weight setting. Include it in source artwork so SVG previews also use this behavior.
 
+Planner also normalizes `vector-effect` declarations in inline styles and embedded CSS, so an authored `vector-effect:none` cannot override its stroke widths. Dash patterns and offsets retain their normalized ratios; line caps, joins and path geometry remain authored.
+
 Catalog SVGs use a source stroke width of `1`, including inherited group settings and CSS rules. Keep new artwork consistent with this convention; Planner's line-weight control sets the actual viewport and export thickness.
 
 ```svg

@@ -1,6 +1,6 @@
 """Shared object fields and compatibility conversions for file transports."""
 import math
-from .models import Door, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway, Window, SilledWindow, CasementWindow, Fireplace
+from .models import Door, SwingingDoor, DoubleDoor, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway, Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, Fireplace
 
 
 def ReadArrowTipSize(record, width):
@@ -23,11 +23,13 @@ def ReadArrowTipSize(record, width):
         raise ValueError("An arrow contains an invalid head dimension.")
     return value
 
-openingClasses = {cls.__name__: cls for cls in (Door, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor,
-                                               OpenDoorway, Window, SilledWindow, CasementWindow, Fireplace)}
+openingClasses = {cls.__name__: cls for cls in (Door, SwingingDoor, DoubleDoor, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor,
+                                               OpenDoorway, Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, Fireplace)}
 openingFields = {
     Fireplace: ("swingsOutwards", "depth", "depthOffset", "material", "measurementFlipped"),
     Door: ("hingeAtSecond", "swingsOutwards", "measurementFlipped"),
+    SwingingDoor: ("hingeAtSecond", "measurementFlipped"),
+    DoubleDoor: ("swingsOutwards", "measurementFlipped"),
     SlidingDoor: ("hingeAtSecond", "panelsFlipped", "measurementFlipped"),
     PocketDoor: ("hingeAtSecond", "measurementFlipped"),
     BarnDoor: ("hingeAtSecond", "swingsOutwards", "measurementFlipped"),
@@ -36,4 +38,8 @@ openingFields = {
     Window: ("swingsOutwards", "measurementFlipped"),
     SilledWindow: ("swingsOutwards", "sillDepth", "measurementFlipped"),
     CasementWindow: ("hingeAtSecond", "swingsOutwards", "measurementFlipped"),
+    AwningWindow: ("swingsOutwards", "measurementFlipped"),
+    DoubleCasementWindow: ("swingsOutwards", "measurementFlipped"),
 }
+for windowType in (Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow):
+    openingFields[windowType] += ("windowWell", "wellDepth", "wellDashed")

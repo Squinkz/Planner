@@ -1,0 +1,11 @@
+{
+    "name": "Area Rug Standard",
+    "image": "rug_area",
+    "width": 2300,
+    "length": 1600,
+    "icon": null,
+    "category": "Living Room",
+    "inherits": null,
+    "children": [],
+    "keywords": []
+}

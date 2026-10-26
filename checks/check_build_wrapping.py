@@ -20,10 +20,10 @@ def Main():
     main.show()
     app.processEvents()
     doors = main.buildObjectLayouts["Doors"]
-    assert doors.hasHeightForWidth() and doors.count() == 6
-    assert main.buildObjectLayouts["Windows"].count() == 3
+    assert doors.hasHeightForWidth() and doors.count() == 8
+    assert main.buildObjectLayouts["Windows"].count() == 5
     assert main.buildObjectLayouts["Miscellaneous"].count() == 7
-    assert main.buildObjectLayouts["Annotations"].count() == 6
+    assert main.buildObjectLayouts["Annotations"].count() == 9
     main.mainSplitter.setSizes([800, 700])
     app.processEvents()
     wideRows = {doors.itemAt(index).geometry().y() for index in range(doors.count())}

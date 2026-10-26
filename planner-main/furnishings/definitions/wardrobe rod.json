@@ -1,0 +1,16 @@
+{
+    "name": "Wardrobe Rail",
+    "image": "wardrobe_rod",
+    "width": 1000,
+    "length": 350,
+    "icon": null,
+    "category": "Bedroom",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "wardrobe",
+        "clothes",
+        "rod",
+        "closet"
+    ]
+}

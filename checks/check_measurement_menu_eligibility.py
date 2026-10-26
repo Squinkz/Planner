@@ -38,47 +38,47 @@ def Main():
         return [action.defaultWidget().accessibleName() for action in v.objectContextMenu.actions() if not action.isSeparator()]
 
     for obj in (Label(), NorthArrow(), Furnishing(v.furnishingDefinitions["desk"]), Arrow(point(-1000, 0), point(1000, 0))):
-        assert "Hide measurement" not in MenuFor(obj)
+        assert "Hide dimensions" not in MenuFor(obj)
         obj.measurementHidden = True
-        assert "Show measurement" not in MenuFor(obj)
+        assert "Show dimensions" not in MenuFor(obj)
     for cls, category in ((Wall, "walls"), (Pillar, "walls"), (Column, "walls"),
                           (Stair, "stairs"), (Counter, "counters"), (Railing, "railings")):
         obj = cls(point(-1000, 0), point(1000, 0))
         v.measurementVisibility[category] = True
-        assert "Hide measurement" in MenuFor(obj)
+        assert "Hide dimensions" in MenuFor(obj)
         obj.measurementHidden = True
-        assert "Show measurement" in MenuFor(obj)
+        assert "Show dimensions" in MenuFor(obj)
         v.measurementVisibility[category] = False
-        assert "Show measurement" not in MenuFor(obj)
+        assert "Show dimensions" not in MenuFor(obj)
         obj.measurementHidden = False
-        assert "Hide measurement" not in MenuFor(obj)
+        assert "Hide dimensions" not in MenuFor(obj)
         v.measurementVisibility[category] = True
     wall = Wall(point(-2000, 0), point(2000, 0))
     for cls, category in ((Door, "doors"), (Window, "windows")):
         obj = cls(wall, .4, .6)
         for mode in (0, 1):
             v.measurementSettings[category] = mode
-            assert "Hide measurement" in MenuFor(obj)
+            assert "Hide dimensions" in MenuFor(obj)
         v.measurementSettings[category] = 2
-        assert "Hide measurement" not in MenuFor(obj)
+        assert "Hide dimensions" not in MenuFor(obj)
         v.measurementSettings[category] = 1
         v.measurementVisibility["walls"] = False
-        assert "Hide measurement" not in MenuFor(obj)
-        assert "Flip Measurement" not in MenuFor(obj)
+        assert "Hide dimensions" not in MenuFor(obj)
+        assert "Flip Dimension" not in MenuFor(obj)
         assert not main.doorProperties.layout().isRowVisible(main.doorFields["measurement"])
         v.measurementVisibility["walls"] = True
         v.showMeasurements = False
         for hidden in (False, True):
             obj.measurementHidden = hidden
             labels = MenuFor(obj)
-            assert not any(label in labels for label in ("Flip Measurement", "Hide measurement", "Show measurement"))
+            assert not any(label in labels for label in ("Flip Dimension", "Hide dimensions", "Show dimensions"))
             assert not main.doorProperties.layout().isRowVisible(main.doorFields["measurement"])
         v.showMeasurements = True
-        assert "Show measurement" in MenuFor(obj)
-        assert "Flip Measurement" not in MenuFor(obj)
+        assert "Show dimensions" in MenuFor(obj)
+        assert "Flip Dimension" not in MenuFor(obj)
         assert not main.doorProperties.layout().isRowVisible(main.doorFields["measurement"])
         obj.measurementHidden = False
-        assert "Flip Measurement" in MenuFor(obj)
+        assert "Flip Dimension" in MenuFor(obj)
         assert main.doorProperties.layout().isRowVisible(main.doorFields["measurement"])
     main.SetViewOption("showMeasurements")
     assert not main.doorProperties.layout().isRowVisible(main.doorFields["measurement"])
@@ -90,14 +90,14 @@ def Main():
     main.settingsWindow.SetMeasurementVisibility("walls", True)
     assert main.doorProperties.layout().isRowVisible(main.doorFields["measurement"])
     fireplace = Fireplace(wall, .4, .6)
-    assert "Hide measurement" in MenuFor(fireplace)
+    assert "Hide dimensions" in MenuFor(fireplace)
     v.measurementVisibility["walls"] = False
-    assert "Hide measurement" not in MenuFor(fireplace)
+    assert "Hide dimensions" not in MenuFor(fireplace)
     v.measurementVisibility["walls"] = True
     guide = MeasurementGuide(point(-1000, 0), point(1000, 0))
-    assert "Hide measurement" in MenuFor(guide)
+    assert "Hide dimensions" in MenuFor(guide)
     v.showMeasurements = False
-    assert "Hide measurement" not in MenuFor(guide)
+    assert "Hide dimensions" not in MenuFor(guide)
     v.objectContextMenu.hide()
     main.close()
     app.processEvents()

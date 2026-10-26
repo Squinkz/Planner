@@ -46,8 +46,8 @@ def Main():
             assert main.furnishingFlipFields[field].icon().pixmap(18, 18).toImage() == UiIcon(iconName).pixmap(18, 18).toImage()
         viewport.snapEnabled = False
         point = QtCore.QPointF
-        generic = ["Hide measurement", None, "Transform", None, "Cut", "Copy", None, "Delete"]
-        groupGeneric = ["Hide measurement", None, "Group selected", None] + generic[2:]
+        generic = ["Flip Horizontal", "Flip Vertical", "Hide dimensions", None, "Transform", None, "Cut", "Copy", None, "Delete"]
+        groupGeneric = ["Flip Horizontal", "Flip Vertical", "Hide dimensions", None, "Group selected", None] + generic[4:]
         parent = Wall(point(-1800, 0), point(1800, 0))
         viewport.walls = [parent]
         assert OpenMenu(viewport, point(0, 900)) == ["Paste"]
@@ -80,7 +80,7 @@ def Main():
                  (OpenDoorway, [])]
         for objectType, options in cases:
             if objectType in (Door, SlidingDoor, Window, SilledWindow):
-                options = options + [("Flip Measurement", "measurementFlipped")]
+                options = options + [("Flip Dimension", "measurementFlipped")]
             first = objectType(parent, .1, .35)
             second = objectType(parent, .65, .9)
             viewport.windows = [first, second]
@@ -121,17 +121,18 @@ def Main():
         # Right-clicking an unselected object switches the context to that object.
         viewport.SetSelection([(viewport.windows[0], None)])
         second = viewport.windows[1]
-        assert OpenMenu(viewport, (second.firstVertex + second.secondVertex) / 2) == ["Flip Facing", "Flip Measurement"] + generic
+        assert OpenMenu(viewport, (second.firstVertex + second.secondVertex) / 2) == ["Flip Facing", "Flip Dimension"] + generic
         assert viewport.SelectionEntries() == [(second, None)]
         viewport.objectContextMenu.hide()
         viewport.windows = []
         stair = Stair(point(-400, 700), point(400, 700), 300)
         viewport.walls.append(stair)
         viewport.measurementVisibility["stairs"] = True
-        assert OpenMenu(viewport, point(0, 700)) == ["Flip Direction"] + generic
+        assert OpenMenu(viewport, point(0, 700)) == ["Subdivide", "Flip Direction"] + generic
         for expectedIcon in ("Redo", "Undo", "Redo"):
             OpenMenu(viewport, point(0, 700))
-            button = viewport.objectContextMenu.actions()[0].defaultWidget()
+            button = next(action.defaultWidget() for action in viewport.objectContextMenu.actions()
+                          if not action.isSeparator() and action.defaultWidget().accessibleName() == "Flip Direction")
             assert button.iconLabel.pixmap().toImage() == HeaderIcon(expectedIcon).pixmap(18, 18).toImage()
             assert main.stairDirectionButton.icon().pixmap(18, 18).toImage() == HeaderIcon(expectedIcon).pixmap(18, 18).toImage()
             Click(viewport, "Flip Direction")
@@ -159,7 +160,7 @@ def Main():
         items = [Furnishing(definitions["desk"], point(x, 0)) for x in (-900, 0, 900)]
         viewport.furnishings = items.copy()
         viewport.SetSelection([(items[0], None), (items[1], None)])
-        assert OpenMenu(viewport, point(-900, 0)) == ["Create Furnishing from Selection…", "Bring to Front", "Move to Back", "Flip Horizontal", "Flip Vertical", None] + groupGeneric[2:]
+        assert OpenMenu(viewport, point(-900, 0)) == ["Create Furnishing from Selection…", "Bring to Front", "Move to Back", "Flip Horizontal", "Flip Vertical", None] + groupGeneric[4:]
         for action in viewport.objectContextMenu.actions():
             if action.isSeparator():
                 continue

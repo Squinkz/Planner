@@ -6,6 +6,8 @@ from PySide6 import QtCore
 class SceneChanges:
     def __init__(self):
         self.geometry = self.appearance = self.topology = self.visibility = 0
+        self.wallGeometry = 0
+        self.roomLabelGeometry = 0
         self.definitions = {}
         self.definitionOwners = {}
 
@@ -100,9 +102,9 @@ class ScenePoint(QtCore.QPointF):
 
 geometryFields = frozenset(("firstVertex", "secondVertex", "middleVertex", "textOffset", "width", "firstMiter", "secondMiter", "parentWall", "manualDepth", "manualDepthOffset",
                            "centerFraction", "length", "autosize", "manualStepCount", "manualPostCount",
-                           "stepSizeBounds", "spacingBounds", "sillDepth", "directionReversed", "flipHorizontal", "flipVertical"))
+                           "stepSizeBounds", "spacingBounds", "sillDepth", "windowWell", "wellDepth", "directionReversed", "flipHorizontal", "flipVertical"))
 appearanceFields = frozenset(("material", "text", "intensity", "measurementFlipped", "measurementHidden", "behindCounters", "geometryIssues", "hingeAtSecond",
-                             "swingsOutwards", "panelsFlipped", "solidTip", "tipSize", "definition", "objectId"))
+                             "swingsOutwards", "panelsFlipped", "solidTip", "tipSize", "definition", "objectId", "wellDashed", "unitsOverride", "weightClass"))
 
 
 class SceneObject:
@@ -132,6 +134,10 @@ class SceneObject:
     def NotifyRender(self, kind):
         for observer in self.__dict__.get("_renderObservers", ()):
             observer.Bump(kind)
+            if kind == "geometry" and type(self).__name__ in ("Wall", "Pillar", "Column"):
+                observer.Bump("wallGeometry")
+            if kind == "geometry" and type(self).__name__ == "RoomLabel":
+                observer.Bump("roomLabelGeometry")
 
     def __getstate__(self):
         return {name: value for name, value in self.__dict__.items() if name != "_renderObservers"}

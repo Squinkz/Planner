@@ -45,6 +45,7 @@ def Main():
             wall.solidTip = not wall.solidTip
             wall.tipSize += 7
             wall.intensity = .65
+            wall.directionReversed = True
         if isinstance(wall, Stair):
             wall.directionReversed = not wall.directionReversed
             wall.autosize = False
@@ -58,6 +59,8 @@ def Main():
                 setattr(opening, name, not getattr(opening, name))
         if hasattr(opening, "sillDepth"):
             opening.sillDepth += 20
+        if type(opening).__name__ in ("Window", "SilledWindow", "CasementWindow", "AwningWindow", "DoubleCasementWindow"):
+            opening.windowWell, opening.wellDepth, opening.wellDashed = True, 850.0, True
     v.furnishings[0].angle = 37
     v.furnishings[0].width += 21
     v.furnishings[0].definitionKey = "missing-definition"
@@ -102,8 +105,11 @@ def Main():
     main.ApplyProject(decoded, None)
     v.Undo()
     assert EncodeScene(v) == reference.EncodeHistoryState(second)
+    assert all(entry[0].windowWell == entry[9][0] and entry[0].wellDepth == entry[9][1]
+               and entry[0].wellDashed == entry[9][2] for entry in second[3])
     v.Undo()
     assert EncodeScene(v) == reference.EncodeHistoryState(first)
+    assert all(not obj.windowWell and obj.wellDepth == 600.0 and not obj.wellDashed for obj in v.windows)
     v.Redo()
     v.Redo()
     assert EncodeScene(v) == expected

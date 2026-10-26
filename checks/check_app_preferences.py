@@ -49,7 +49,7 @@ def Main():
             main.exportPanel.BrowsePath()
             assert Path(dialog.call_args.args[2]) == exportFolder
         main.appPreferences["lastExportFolder"] = str(folder / "missing")
-        assert main.BrowseDirectory(forExport = True) == projectFolder
+        assert main.BrowseDirectory(forExport = True) == exportFolder
         main.RememberBrowseFolder(target, forExport = True)
         main.appPreferences["lastBrowseFolder"] = str(folder / "missing")
         assert main.BrowseDirectory() == projectFolder
@@ -119,7 +119,7 @@ def Main():
         restarted = MainWindow()
         assert (palette.activeUITheme, palette.activeCanvasTheme) == ("Neutral UI", "Blueprint Canvas")
         assert restarted.BrowseDirectory() == browseFolder
-        assert restarted.BrowseDirectory(forExport = True) == exportFolder
+        assert restarted.BrowseDirectory(forExport = True) == appDirectory
         assert not restarted.viewport.showTips and restarted.viewport.showFpsCounter
         assert restarted.viewport.performanceTimer.isActive() and not restarted.viewport.performanceLabel.isHidden()
         with patch.object(QtWidgets.QFileDialog, "getOpenFileName", return_value = ("", "")) as dialog:

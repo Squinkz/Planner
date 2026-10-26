@@ -7,6 +7,7 @@
     "hidden": []
   },
   "settings": {
+    "wallMeasurementMode": "Exterior stacked",
     "wallWidth": 200.0,
     "wallMaterial": "Generic",
     "wallShape": "line",

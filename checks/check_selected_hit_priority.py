@@ -58,6 +58,7 @@ def Main():
     v.hoverPosition = handle[3]
     assert v.HitTest(handle[3]) == (back, None)
     assert v.HitFurnishingHandle(handle[3]) == (None, None)
+    assert all(obj is not front for obj, handles in v.VisibleFurnishingHandles())
     front.width = 1600
     front.firstVertex, front.secondVertex = originalFront
 

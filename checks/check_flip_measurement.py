@@ -32,8 +32,8 @@ def Main():
         counts = [sum(((first + second) / 2).y() * side > 0 for first, second, owners in before) for side in (1, -1)]
         assert sorted(counts) == [1, 3]
         labels = OpenMenu(v, (opening.firstVertex + opening.secondVertex) / 2)
-        assert "Flip Measurement" in labels
-        Click(v, "Flip Measurement")
+        assert "Flip Dimension" in labels
+        Click(v, "Flip Dimension")
         assert opening.measurementFlipped
         after = v.WallDimensions([wall], path)
         flippedCounts = [sum(((first + second) / 2).y() * side > 0 for first, second, owners in after) for side in (1, -1)]
@@ -57,7 +57,7 @@ def Main():
             v.measurementSettings[key] = mode
             main.RefreshProperties()
             assert not main.doorFields["measurement"].isVisible()
-            assert "Flip Measurement" not in OpenMenu(v, (opening.firstVertex + opening.secondVertex) / 2)
+            assert "Flip Dimension" not in OpenMenu(v, (opening.firstVertex + opening.secondVertex) / 2)
             spans = v.WallDimensions([wall], path)
             opening.measurementFlipped = False
             assert v.WallDimensions([wall], path) == spans
@@ -67,13 +67,13 @@ def Main():
         v.windows = [opening]
         v.SetSelection([(opening, None)])
         assert not main.doorFields["measurement"].isVisible()
-        assert "Flip Measurement" not in OpenMenu(v, (opening.firstVertex + opening.secondVertex) / 2)
+        assert "Flip Dimension" not in OpenMenu(v, (opening.firstVertex + opening.secondVertex) / 2)
     # A homogeneous selection flips every opening; clipboard copies retain it.
     first, second = Door(wall, .1, .3), Door(wall, .6, .8)
     v.windows = [first, second]
     v.SetSelection([(first, None), (second, None)])
     OpenMenu(v, (first.firstVertex + first.secondVertex) / 2)
-    Click(v, "Flip Measurement")
+    Click(v, "Flip Dimension")
     assert first.measurementFlipped and second.measurementFlipped
     v.SetSelection([(wall, None), (first, None), (second, None)])
     v.CopySelection()

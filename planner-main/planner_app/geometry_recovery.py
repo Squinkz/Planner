@@ -12,7 +12,7 @@ class GeometryLoadCancelled(Exception):
 
 
 geometryIssueNames = ("opening_bounds", "opening_overlap", "opening_obstruction", "fireplace_bounds")
-knownObjectTypes = {"Wall", "Pillar", "Column", "Elevator", "Stair", "Counter", "Railing", "Arrow", "MeasurementGuide", "BoundaryLine", "AngleGuide", "Label", "Furnishing", "NorthArrow", *openingClasses}
+knownObjectTypes = {"Wall", "Pillar", "Column", "Elevator", "Stair", "Counter", "Railing", "Arrow", "MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide", "Label", "RoomLabel", "Furnishing", "NorthArrow", *openingClasses}
 
 
 def Finite(value, minimum = -1e12, maximum = 1e12):
@@ -171,11 +171,11 @@ def FindGeometryIssue(index, data, definitions, prepared = None):
             if not Finite(record.get(name), minimum, 1e9 if name == "length" else 1e12):
                 candidate[name] = fallback
                 invalidDimensions = True
-        for name in ("sillDepth", "depth", "depthOffset"):
+        for name in ("sillDepth", "depth", "depthOffset", "wellDepth"):
             if name in record or kind == "Fireplace" and name in ("depth", "depthOffset"):
-                minimum = -1e12 if name == "depthOffset" else 1 if name == "depth" else 0
-                if not Finite(record.get(name), minimum, 1e9 if name == "depth" else 1e12):
-                    candidate[name] = 0 if name == "depthOffset" else parent.width if name == "depth" else 40
+                minimum = -1e12 if name == "depthOffset" else 1 if name in ("depth", "wellDepth") else 0
+                if not Finite(record.get(name), minimum, 1e9 if name in ("depth", "wellDepth") else 1e12):
+                    candidate[name] = 600 if name == "wellDepth" else 0 if name == "depthOffset" else parent.width if name == "depth" else 40
                     invalidDimensions = True
         if invalidDimensions:
             issue.update(code = "dimensions", description = "The opening has impossible dimensions or coordinates.",
@@ -204,17 +204,17 @@ def FindGeometryIssue(index, data, definitions, prepared = None):
             candidate[name] = [0, 0]
         else:
             candidate[name] = [value if Finite(value) else 0 for value in point]
-    if kind in ("MeasurementGuide", "BoundaryLine") and "textOffset" in record:
+    if kind in ("MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine") and "textOffset" in record:
         point = record["textOffset"]
         if not isinstance(point, list) or len(point) != 2 or not all(Finite(value) for value in point):
             candidate["textOffset"] = [0, 0]
-    minimum = 0 if kind in ("MeasurementGuide", "BoundaryLine", "AngleGuide") else 1e-8 if kind == "Label" else 1
-    if not Finite(record.get("width"), minimum, 1e9) or kind in ("MeasurementGuide", "BoundaryLine", "AngleGuide") and record.get("width") != 0:
-        candidate["width"] = 0 if kind in ("MeasurementGuide", "BoundaryLine", "AngleGuide") else data["settings"]["wallWidth"] if kind == "Wall" else definitions.get(record.get("definition"), definitions["null"])["width"]
+    minimum = 0 if kind in ("MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide") else 1e-8 if kind in ("Label", "RoomLabel") else 1
+    if not Finite(record.get("width"), minimum, 1e9) or kind in ("MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide") and record.get("width") != 0:
+        candidate["width"] = 0 if kind in ("MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide") else data["settings"]["wallWidth"] if kind == "Wall" else definitions.get(record.get("definition"), definitions["null"])["width"]
     if kind != "AngleGuide" and math.hypot(candidate["second"][0] - candidate["first"][0], candidate["second"][1] - candidate["first"][1]) < 1e-8:
         candidate["second"] = [candidate["first"][0] + (1000 if candidate["first"][0] <= 1e12 - 1000 else -1000), candidate["first"][1]]
     for name in ("firstMiter", "secondMiter"):
-        if kind not in ("Label", "Furnishing", "NorthArrow") and not Finite(record.get(name), 0, 1):
+        if kind not in ("Label", "RoomLabel", "Furnishing", "NorthArrow") and not Finite(record.get(name), 0, 1):
             candidate[name] = 0
     if candidate != record:
         issue.update(code = "dimensions", description = "The object has impossible dimensions or coordinates.", repair = candidate)

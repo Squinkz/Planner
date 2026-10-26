@@ -29,7 +29,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Planner-Windows
-          path: dist/Planner-Windows.zip
+          path: dist/Planner-*-Windows.zip
       - name: Save smoke-test report
         if: always()
         uses: actions/upload-artifact@v4

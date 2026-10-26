@@ -1,23 +1,93 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
    stroke-width="1"
-   viewBox="0 0 45 60"
+   viewBox="0 0 40 55"
    preserveAspectRatio="none"
    version="1.1"
    id="svg2"
    sodipodi:docname="toilet_hung.svg"
-   width="45"
-   height="60"
+   width="40"
+   height="55"
    inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   vector-effect="non-scaling-stroke"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:dc="http://purl.org/dc/elements/1.1/" vector-effect="non-scaling-stroke">
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
   <defs
-     id="defs2" />
+     id="defs2">
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect3"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,1,1,0,1.2475729,0,1 @ F,0,1,1,0,1.2475729,0,1 @ F,0,1,1,0,1.2475729,0,1 @ F,0,1,1,0,1.2475729,0,1"
+       radius="0"
+       unit="px"
+       method="auto"
+       mode="F"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" />
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect2"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1"
+       radius="0"
+       unit="px"
+       method="auto"
+       mode="F"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" />
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect1"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,20,0,1 @ F,0,1,1,0,20,0,1"
+       radius="0"
+       unit="px"
+       method="auto"
+       mode="F"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" />
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect3-4"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,1,1,0,1.2475729,0,1 @ F,0,1,1,0,1.2475729,0,1 @ F,0,1,1,0,1.2475729,0,1 @ F,0,1,1,0,1.2475729,0,1"
+       radius="0"
+       unit="px"
+       method="auto"
+       mode="F"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" />
+  </defs>
   <sodipodi:namedview
      id="namedview2"
      pagecolor="#505050"
@@ -27,15 +97,15 @@
      inkscape:pageopacity="0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="7.8071429"
-     inkscape:cx="9.0301921"
-     inkscape:cy="27.859103"
+     inkscape:zoom="8"
+     inkscape:cx="12.9375"
+     inkscape:cy="29.8125"
      inkscape:window-width="2560"
      inkscape:window-height="1336"
-     inkscape:window-x="-8"
+     inkscape:window-x="2552"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
-     inkscape:current-layer="g2" />
+     inkscape:current-layer="svg2" />
   <title
      id="title1">Toilet</title>
   <g
@@ -44,29 +114,48 @@
      stroke-width="1"
      stroke-linejoin="round"
      id="g2"
-     transform="translate(0,-10.026251)" vector-effect="non-scaling-stroke">
-    <path stroke-width="1"
-       d="m 0.9737491,13.718676 43.0525019,0 c 0,0 0,17.271653 0,29.282706 0,16.014737 -7.175417,27.024869 -21.526251,27.024869 -14.350834,0 -21.5262509,-11.010132 -21.5262509,-27.024869 0,-12.011053 0,-29.282706 0,-29.282706 z"
-       vector-effect="non-scaling-stroke"
-       id="path1"
-       style="stroke-width:1;vector-effect:non-scaling-stroke"
-       sodipodi:nodetypes="ccsssc" />
-    <rect stroke-width="1"
-       x="0"
-       y="10.026251"
-       width="45"
-       height="10"
-       rx="0"
-       vector-effect="non-scaling-stroke"
-       id="rect2"
-       style="stroke:#000000;stroke-width:1;stroke-opacity:1;vector-effect:non-scaling-stroke" />
-    <circle style="stroke-width:1;vector-effect:non-scaling-stroke" stroke-width="1"
-       cx="22.5"
-       cy="15.026251"
-       r="2"
-       vector-effect="non-scaling-stroke"
-       id="circle2" />
-  </g>
+     transform="translate(0,-10.026251)"
+     vector-effect="non-scaling-stroke" />
+  <rect vector-effect="non-scaling-stroke" stroke-width="1"
+     style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:11.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
+     id="rect1-4"
+     width="38.3125"
+     height="6"
+     x="0.84375"
+     y="2.9999998" />
+  <path vector-effect="non-scaling-stroke" stroke-width="1"
+     id="rect1-4-8"
+     transform="translate(0,-10.026251)"
+     d="m 6.9530144,16.526251 h 4.5048536 a 1.2475729,1.2475729 45 0 1 1.247573,1.247573 v 2.76699 a 1.2475729,1.2475729 135 0 1 -1.247573,1.247573 H 6.9530144 A 1.2475729,1.2475729 45 0 1 5.7054415,20.540814 l 0,-2.76699 a 1.2475729,1.2475729 135 0 1 1.2475729,-1.247573 z"
+     style="font-variation-settings:normal;opacity:1;vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:11.7;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+     inkscape:path-effect="#path-effect3"
+     inkscape:original-d="m 5.7054415,16.526251 h 6.9999995 v 5.262136 H 5.7054415 Z"
+     sodipodi:nodetypes="ccccc" />
+  <path vector-effect="non-scaling-stroke" stroke-width="1"
+     id="rect1-4-8-5"
+     transform="matrix(-1,0,0,1,40,-10.026251)"
+     d="m 6.9530144,16.526251 h 4.5048536 a 1.2475729,1.2475729 45 0 1 1.247573,1.247573 v 2.76699 a 1.2475729,1.2475729 135 0 1 -1.247573,1.247573 H 6.9530144 A 1.2475729,1.2475729 45 0 1 5.7054415,20.540814 l 0,-2.76699 a 1.2475729,1.2475729 135 0 1 1.2475729,-1.247573 z"
+     style="font-variation-settings:normal;vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:11.7;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000"
+     inkscape:path-effect="#path-effect3-4"
+     inkscape:original-d="m 5.7054415,16.526251 h 6.9999995 v 5.262136 H 5.7054415 Z"
+     sodipodi:nodetypes="ccccc" />
+  <path
+     stroke-width="1"
+     d="m 0,19.026251 h 40 v 26 a 20,20 135 0 1 -20,20 20,20 45 0 1 -20,-20 z"
+     vector-effect="non-scaling-stroke"
+     id="path1"
+     style="vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-opacity:1"
+     sodipodi:nodetypes="ccccc"
+     inkscape:path-effect="#path-effect1"
+     inkscape:original-d="m 0,19.026251 h 40 v 46 H 0 Z"
+     transform="matrix(-1,0,0,1,40,-10.026251)" />
+  <rect vector-effect="non-scaling-stroke" stroke-width="1"
+     style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:11.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
+     id="rect1"
+     width="40"
+     height="3"
+     x="0"
+     y="-1.607666e-07" />
   <metadata
      id="metadata2">
     <rdf:RDF>

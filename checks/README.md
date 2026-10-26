@@ -16,7 +16,7 @@ them with paths returned by the app. Hosted Windows runners can expose TEMP
 through an 8.3 alias such as `RUNNER~1`, while file dialogs and the app return
 the canonical path.
 
-Checks normally have a 30-second timeout. Repeated render integration checks
+Checks normally have a 30-second timeout. Repeated render and guide-selection session integration checks
 have 60 seconds, and the full external-theme matrix has 120 seconds to allow
 for slower hosted Windows workers. These are hang limits, not performance targets.
 

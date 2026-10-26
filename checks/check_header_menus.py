@@ -41,8 +41,7 @@ def Main():
         viewport = window.viewport
         assert window.viewOptions["showGrid"].shortcutLabel.text() == "G"
         assert [None if action.isSeparator() else action.defaultWidget().accessibleName() for action in window.viewMenu.actions()] == [
-            "Show grid", None, "Reference Image", None, "Toggle measurements", "Show wall measurements", "Show stair measurements",
-            "Show counter measurements", "Show elevator measurements", "Show railing measurements", None, "Maximize", None, "Show tips", "Show FPS counter"]
+            "Draw Grid", None, "Reference Image", None, "Toggle dimensions", None, "Maximize", None, "Show tips", "Show FPS counter"]
         assert not viewport.showFpsCounter and not viewport.performanceLabel.isVisible()
         assert viewport.showTips
         window.ShowViewMenu()
@@ -78,15 +77,15 @@ def Main():
         assert not window.viewportOnlyMode and window.sidebarPanel.isVisible()
         window.ShowSettings()
         panel = window.settingsWindow
-        window.viewOptions["stairs"].click()
+        panel.SetMeasurementVisibility("stairs", True)
         assert viewport.showMeasurements and viewport.measurementVisibility["stairs"]
-        assert panel.measurementVisibilityItems["all"].checkState(0) == QtCore.Qt.CheckState.Checked
+        assert "all" not in panel.measurementVisibilityItems
         window.ShowViewMenu()
         assert not window.viewOptions["showMeasurements"].iconLabel.pixmap().isNull()
         remembered = dict(viewport.measurementVisibility)
         window.viewOptions["showMeasurements"].click()
         assert not viewport.showMeasurements and viewport.measurementVisibility == remembered
-        window.viewOptions["counters"].click()
+        panel.SetMeasurementVisibility("counters", True)
         assert viewport.showMeasurements and viewport.measurementVisibility == dict(remembered, counters = True)
         window.viewOptions["showMeasurements"].click()
         window.viewOptions["showMeasurements"].click()

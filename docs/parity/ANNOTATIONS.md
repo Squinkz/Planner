@@ -4,7 +4,7 @@
 
 BoundaryLine is a zero-width, nonphysical annotation with two control points.
 It is placed from Boundary in Build's Annotations section and uses the same
-placement, endpoint/body/label editing, Ctrl angle snapping, cancellation,
+placement, endpoint/body editing, Ctrl angle snapping, cancellation,
 properties, clipboard, duplication and undo behavior as MeasurementGuide.
 Boundary lines have their own World/export visibility category, Boundary lines.
 They do not collide with architecture or furnishings.
@@ -15,8 +15,10 @@ dash/gap/dot/gap lengths of 6/3/1/3 times the larger of one logical pixel and
 the stroke width, so thin strokes retain a readable pattern. It has
 no measurement ticks or label when unselected, independently of the global
 measurement switch. Selection displays its length, including when automatic
-measurements are hidden. Its selected label can be moved like a measurement
-guide label; its hidden label and leader are not hit targets when unselected.
+measurements are hidden. Its selected measurement is a body-selection target, not an independently
+draggable label. Its hidden label and leader are not hit targets when unselected.
+Visible boundary/dashed/solid strokes and endpoints take hit priority over
+structural wall bodies, including selected walls behind them.
 Export always includes only the dash-dot line, with no measurements. Preserve
 dash patterns in both solid/transparent PNG and SVG rendering. The object's
 nonselected bounds follow its line, not an invisible dimension label.
@@ -25,6 +27,35 @@ Persist the type as BoundaryLine with zero width and optional textOffset. Histor
 recovery, session handle selections and clipboard transports retain the type.
 Existing files without Boundary lines visibility default that category to on.
 Coverage: `check_boundary_lines.py`, `check_session_guide_selection.py`.
+
+## GUIDE-04: dashed and solid lines
+
+DashedLine and SolidLine share BoundaryLine placement, control points, body
+editing, snapping, selected-only measurements and collision exemption.
+Build's Annotations section includes Dashed Line and Solid Line beside Boundary.
+Each has its own World/export visibility category, enabled by default.
+
+Their additional Weight dropdown follows Length, defaults to Objects and offers
+Walls, Objects, Furnishings and Dimensions. It uses the normal property row
+height and spacing. Mixed weight selections show `(different)` until edited.
+Changing Weight is one ordinary undoable edit. It changes appearance only, not
+object classification, collision behavior or geometric width.
+
+The Walls option uses wallOutline color and walls line width. Objects uses
+objectOutline and architectural width. Furnishings uses objectOutline and
+furnishings width. Dimensions uses measurementLine and dimensions width.
+These resolve from the current editor/export appearance, including live theme
+and line-width changes. Selection uses the usual selection color.
+Dashed strokes use dash/gap lengths of 6/3 times the larger of one logical pixel
+and the stroke width. Solid strokes have no dash pattern. Zero class line width
+hides the stroke, matching the corresponding class.
+
+Persist the concrete type, zero body width, textOffset and weightClass. Missing
+weightClass defaults to Objects; unknown values are rejected. The Dimensions
+option retains the stored `Measurements` key for existing projects. Clipboard,
+duplication, scene/session history and recovery retain the class and weight.
+PNG and SVG export use the configured class style without selection measurements.
+Coverage: `check_weighted_lines.py`, object behavior matrix and render examples.
 
 ## GUIDE-01: angle guides
 

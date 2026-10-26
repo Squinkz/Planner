@@ -34,6 +34,9 @@ def RenderExamples(record = False, recordCases = ()):
         v.measurementSettings = {key: 0 for key in v.measurementSettings}
         cases = [{"id": name.lower(), "type": name, "theme": "Dark Canvas", "scale": 100, "format": "png"}
                  for name in objectTypes]
+        cases += [{"id": "window-well" + ("-svg" if format == "svg" else ""), "type": "Window",
+                   "theme": "Dark Canvas", "scale": 100, "format": format, "windowWell": True}
+                  for format in ("png", "svg")]
         for key in ("washer", "treadmill", "kitchen_sink_drainer_dbl2", "chair_office", "chair_office_armless", "table_dining_round_6"):
             # Keep the published example ID stable across catalog renames.
             definitionKey = "sink_drainer_dbl2" if key == "kitchen_sink_drainer_dbl2" else key
@@ -64,7 +67,13 @@ def RenderExamples(record = False, recordCases = ()):
                 palette.SetThemes(canvasTheme = case["theme"])
                 currentTheme = case["theme"]
             obj = models.Furnishing(v.furnishingDefinitions[case["definition"]]) if "definition" in case else CreateObject(v, case["type"])
+            if case.get("windowWell"):
+                obj.windowWell = True
             objects = [obj.parentWall, obj] if case["type"] in openingTypes else [obj]
+            if isinstance(obj, models.RoomLabel):
+                corners = [QtCore.QPointF(-1500, -1000), QtCore.QPointF(1500, -1000),
+                           QtCore.QPointF(1500, 1000), QtCore.QPointF(-1500, 1000)]
+                objects = [models.Wall(first, second, 200) for first, second in zip(corners, corners[1:] + corners[:1])] + [obj]
             InstallScene(main, objects)
             bounds = [-3500, -2000, 7000, 4000] if case["type"] in openingTypes else [-2000, -1500, 4000, 3000]
             # A fixed crop and unselected export isolate geometry, glyph placement and strokes.

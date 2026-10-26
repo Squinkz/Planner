@@ -13,6 +13,13 @@ UI themes control widget text, surfaces, controls, icons and dialog accents. `fi
 
 Canvas themes control drawing surfaces, object outlines, grids, selections, measurements, rulers and overlays. `canvas` supplies drawing and furnishing backgrounds; `grid` is modulated by grid intensity. Ruler unit corners use `rulerBackground`. `missing` supplies missing-artwork accents on the canvas and in furnishing icons. Line weights are separate project settings.
 
+`roomFill` supplies the editor background inside detected rooms, underneath the
+reference image and grid. It is an independent canvas role, not a brightness
+adjustment to `canvas`. White palettes use a subtle darker fill; dark and colored
+palettes use a fill chosen for their own background and ink. It remains visible with the grid hidden and
+does not affect exports. Selectable canvas themes must define or inherit this
+role; there is no automatically generated fallback.
+
 Use the supplied files as the complete role reference. Selectable themes define every role for their type, directly or through inheritance. Colors use `#RRGGBB` or Qt's alpha-first `#AARRGGBB` notation.
 
 ## Fonts

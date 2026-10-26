@@ -5,9 +5,9 @@ from planner_app.models import Elevator, AngleGuide, ObjectControlPoints, SetCon
 import math
 from PySide6 import QtCore, QtWidgets
 from planner_app.graphics.theme import HeaderIcon, UiIcon, wallMaterials
-from planner_app.models import OpenDoorway, Door, Furnishing, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, SlidingDoor, MeasurementGuide, NorthArrow, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Label, Window, Fireplace
+from planner_app.models import OpenDoorway, Door, SwingingDoor, DoubleDoor, Furnishing, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, SlidingDoor, MeasurementGuide, NorthArrow, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Label, RoomLabel, Window, Fireplace
 from planner_app.ui.widgets import DownwardComboBox, DragSpinBox, DragSlider, SizeLinkButton
-from planner_app.units import PropertyUnit, FormatLength, imperialModes
+from planner_app.units import PropertyUnit, FormatLength, FormatArea, imperialModes, unitModes
 from planner_app.geometry.junctions import BuildWallJunction
 from planner_app.furnishing_assets import FurnishingAssetProblems
 
@@ -18,6 +18,7 @@ from .angle_properties import AnglePropertiesMixin
 
 class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
     def BuildProperties(self, toolsLayout):
+        toolsLayout.setSpacing(8)
         self.selectionLabel = QtWidgets.QLabel("No selection")
         self.selectionLabel.setObjectName("selectionHeading")
         self.selectionLabel.setWordWrap(True)
@@ -25,10 +26,12 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
         self.wallProperties = QtWidgets.QWidget()
         wallForm = QtWidgets.QFormLayout(self.wallProperties)
         wallForm.setContentsMargins(0, 16, 0, 0)
+        wallForm.setVerticalSpacing(8)
         self.vertexProperties = QtWidgets.QGroupBox("Point 1")
         self.vertexProperties.setObjectName("vertexProperties")
         vertexForm = QtWidgets.QFormLayout(self.vertexProperties)
         vertexForm.setContentsMargins(10, 18, 10, 10)
+        vertexForm.setVerticalSpacing(8)
         wallForm.setRowWrapPolicy(QtWidgets.QFormLayout.RowWrapPolicy.WrapLongRows)
         vertexForm.setRowWrapPolicy(QtWidgets.QFormLayout.RowWrapPolicy.WrapLongRows)
         self.propertyFields = {}
@@ -53,16 +56,17 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
         wallForm.addRow("Length", self.openingLengthRow)
         for fieldName, label, form in (("width", "Width", wallForm), ("length", "Length", wallForm),
                                        ("doorSize", "Door Size", wallForm), ("sillDepth", "Sill Depth", wallForm),
+                                       ("wellDepth", "Well depth", wallForm),
                                        ("angle", "Angle", wallForm),
                                        ("x", "X", vertexForm), ("y", "Y", vertexForm), ("miter", "Chamfer", vertexForm)):
             spinBox = DragSpinBox()
             spinBox.setAccessibleName(label)
             spinBox.setRange((0.1 if fieldName == "width" else 0.001) if fieldName in ("width", "length", "doorSize") else -1e9, 1e9)
-            if fieldName == "sillDepth":
-                spinBox.setRange(0.0, 1e9)
+            if fieldName in ("sillDepth", "wellDepth"):
+                spinBox.setRange(.1 if fieldName == "wellDepth" else 0.0, 1e9)
             spinBox.setDecimals(3)
-            spinBox.setSuffix(" cm" if fieldName in ("width", "sillDepth") else " m" if fieldName in ("length", "doorSize") else "")
-            spinBox.setSingleStep(1.0 if fieldName in ("width", "sillDepth") else 0.1)
+            spinBox.setSuffix(" cm" if fieldName in ("width", "sillDepth", "wellDepth") else " m" if fieldName in ("length", "doorSize") else "")
+            spinBox.setSingleStep(1.0 if fieldName in ("width", "sillDepth", "wellDepth") else 0.1)
             if fieldName == "angle":
                 spinBox.setRange(0.0, 360.0)
                 spinBox.setDecimals(1)
@@ -87,9 +91,26 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
                 sizeLayout.addWidget(spinBox, 1)
             elif fieldName in ("x", "y"):
                 controlPositionLayout.addWidget(spinBox, 1)
-            else:
+            elif fieldName != "wellDepth":
                 form.addRow(label, spinBox)
             self.propertyFields[fieldName] = spinBox
+        self.windowWellFields = {}
+        self.windowWellRows = {}
+        for name, label in (("windowWell", "Window well"), ("wellDashed", "Dashed well outline")):
+            checkbox = QtWidgets.QCheckBox()
+            checkbox.ensurePolished()
+            checkbox.setFixedWidth(checkbox.style().pixelMetric(QtWidgets.QStyle.PixelMetric.PM_IndicatorWidth, None, checkbox))
+            checkbox.setAccessibleName(label)
+            checkbox.clicked.connect(lambda checked, name = name: self.EditWindowWell(name, checked))
+            row = QtWidgets.QWidget()
+            rowLayout = QtWidgets.QHBoxLayout(row)
+            rowLayout.setContentsMargins(0, 0, 0, 0)
+            rowLayout.addWidget(checkbox, 0, QtCore.Qt.AlignmentFlag.AlignCenter)
+            wallForm.addRow(label, row)
+            if name == "windowWell":
+                wallForm.addRow("Well depth", self.propertyFields["wellDepth"])
+            self.windowWellFields[name] = checkbox
+            self.windowWellRows[name] = row
         self.furnishingFlipFields = {}
         for fieldName, label in (("flipHorizontal", "Flip horizontal"), ("flipVertical", "Flip vertical")):
             button = QtWidgets.QPushButton()
@@ -97,8 +118,8 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
             button.setObjectName("propertyIconButton")
             button.setIconSize(QtCore.QSize(24, 24))
             button.setAccessibleName(label)
-            button.setToolTip("Mirror across the global " + ("Y" if fieldName == "flipHorizontal" else "X") +
-                              " axis through the furnishing's center")
+            axis = "vertical" if fieldName == "flipHorizontal" else "horizontal"
+            button.setToolTip("Mirror across the selection's " + axis + " axis, or each object's local " + axis + " axis in Local mode")
             button.clicked.connect(lambda checked = False, fieldName = fieldName: self.EditFurnishingFlip(fieldName))
             wallForm.addRow(label, button)
             self.furnishingFlipFields[fieldName] = button
@@ -148,11 +169,12 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
         toolsLayout.addWidget(self.wallProperties)
         self.doorProperties = QtWidgets.QWidget()
         doorForm = QtWidgets.QFormLayout(self.doorProperties)
-        doorForm.setContentsMargins(0, 8, 0, 0)
+        doorForm.setContentsMargins(0, 0, 0, 0)
+        doorForm.setVerticalSpacing(8)
         doorForm.setRowWrapPolicy(QtWidgets.QFormLayout.RowWrapPolicy.WrapLongRows)
         self.doorFields = {}
         for fieldName, label in (("swing", "Swing direction"), ("hinge", "Hinge side"),
-                                 ("measurement", "Measurement side")):
+                                 ("measurement", "Dimension side")):
             button = QtWidgets.QPushButton()
             button.setIcon(UiIcon("flip_h" if fieldName == "hinge" else "flip_v")
                            if fieldName != "measurement" else HeaderIcon("Measurements"))
@@ -164,11 +186,12 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
             self.doorFields[fieldName] = button
         self.doorFields["swing"].setToolTip("Flip the door to the other side of its wall")
         self.doorFields["hinge"].setToolTip("Move the hinge to the opposite endpoint")
-        self.doorFields["measurement"].setToolTip("Flip the side used to split measurements for this opening")
+        self.doorFields["measurement"].setToolTip("Flip the side used to split dimensions for this opening")
         propertyWidgets = []
         propertyRowHeight = 32
         for form in (wallForm, vertexForm, doorForm):
             form.setHorizontalSpacing(16)
+            form.setLabelAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignVCenter)
             for row in range(form.rowCount()):
                 for role in (QtWidgets.QFormLayout.ItemRole.LabelRole, QtWidgets.QFormLayout.ItemRole.FieldRole):
                     item = form.itemAt(row, role)
@@ -181,6 +204,8 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
             widget.setFixedHeight(propertyRowHeight)
         for button in [self.stairDirectionButton] + list(self.doorFields.values()) + list(self.furnishingFlipFields.values()):
             button.setFixedWidth(propertyRowHeight)
+        for row in self.windowWellRows.values():
+            row.setFixedWidth(propertyRowHeight)
         toolsLayout.addWidget(self.doorProperties)
         self.BuildArrowProperties(toolsLayout, rowHeight = propertyRowHeight)
         self.BuildAngleProperties(toolsLayout)
@@ -193,6 +218,7 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
         labelForm.setContentsMargins(0, 16, 0, 0)
         labelForm.setHorizontalSpacing(16)
         labelForm.setVerticalSpacing(8)
+        labelForm.setLabelAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignVCenter)
         labelForm.setSizeConstraint(QtWidgets.QLayout.SizeConstraint.SetMinimumSize)
         self.labelTextField = QtWidgets.QPlainTextEdit()
         self.labelTextField.setObjectName("labelTextField")
@@ -201,6 +227,23 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
         self.labelTextField.setTabChangesFocus(True)
         self.labelTextField.textChanged.connect(self.EditLabelText)
         labelForm.addRow("Text", self.labelTextField)
+        self.roomNameField = QtWidgets.QLineEdit()
+        self.roomNameField.setAccessibleName("Room name")
+        self.roomNameField.textChanged.connect(self.EditLabelText)
+        labelForm.addRow("Name", self.roomNameField)
+        self.roomAreaValue = QtWidgets.QLabel()
+        self.roomAreaValue.setAccessibleName("Room area")
+        self.roomAreaValue.setFixedHeight(propertyRowHeight)
+        self.roomAreaValue.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextSelectableByMouse)
+        labelForm.addRow("Area", self.roomAreaValue)
+        self.roomUnitsField = DownwardComboBox()
+        self.roomUnitsField.setAccessibleName("Room area units")
+        self.roomUnitsField.addItem("Project", None)
+        for mode in unitModes:
+            self.roomUnitsField.addItem(mode, mode)
+        self.roomUnitsField.setFixedHeight(propertyRowHeight)
+        self.roomUnitsField.currentIndexChanged.connect(self.EditRoomUnits)
+        labelForm.addRow("Units", self.roomUnitsField)
         self.labelFields = {}
         self.labelPositionRow, self.labelPositionFields = self.BuildPositionFields(labelForm)
         labelSizeRow = QtWidgets.QHBoxLayout()
@@ -235,6 +278,38 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
         self.northArrowOpacityRow, self.northArrowIntensitySlider, self.northArrowIntensityValue = self.BuildObjectOpacityRow(propertyRowHeight, "North arrow")
         toolsLayout.addWidget(self.northArrowOpacityRow)
         self.northArrowOpacityRow.hide()
+        # Polish before fixing heights, so stylesheet metrics cannot resize only
+        # some controls when their form becomes visible for the first time.
+        for panel in (self.wallProperties, self.vertexProperties, self.doorProperties,
+                      self.arrowProperties, self.angleGuideProperties, self.labelProperties):
+            form = panel.layout()
+            form.setVerticalSpacing(8)
+            form.setLabelAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignVCenter)
+            for control in panel.findChildren(QtWidgets.QAbstractSpinBox):
+                control.ensurePolished()
+                control.setFixedHeight(propertyRowHeight)
+            for row in range(form.rowCount()):
+                for role in (QtWidgets.QFormLayout.ItemRole.LabelRole, QtWidgets.QFormLayout.ItemRole.FieldRole):
+                    item = form.itemAt(row, role)
+                    widget = item.widget() if item is not None else None
+                    if widget is not None and widget is not self.labelTextField:
+                        widget.ensurePolished()
+                        widget.setFixedHeight(propertyRowHeight)
+
+    def EditRoomUnits(self, index):
+        labels = list({id(obj): obj for obj, point in self.viewport.SelectionEntries()}.values())
+        if not labels or any(not isinstance(label, RoomLabel) for label in labels):
+            return
+        mode = self.roomUnitsField.itemData(index)
+        if all(label.unitsOverride == mode for label in labels):
+            return
+        before = self.viewport.CaptureState()
+        for label in labels:
+            label.unitsOverride = mode
+        self.viewport.roomDetection.UpdateLabels(force = True)
+        self.viewport.RecordEdit(before)
+        self.RefreshProperties()
+        self.viewport.update()
 
     def BuildObjectOpacityRow(self, rowHeight, name):
         row = QtWidgets.QWidget()
@@ -348,7 +423,7 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
         labels = [obj for obj, index in self.viewport.SelectionEntries()]
         if not labels or any(not isinstance(obj, Label) for obj in labels):
             return
-        text = self.labelTextField.toPlainText()
+        text = self.roomNameField.text() if all(isinstance(label, RoomLabel) for label in labels) else self.labelTextField.toPlainText()
         if all(obj.text == text for obj in labels):
             return
         before = self.viewport.CaptureState()
@@ -384,7 +459,7 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
 
     def EditObjectIntensity(self, value):
         objects = [obj for obj, index in self.viewport.SelectionEntries()]
-        if not objects or type(objects[0]) not in (Label, NorthArrow) or any(type(obj) is not type(objects[0]) for obj in objects):
+        if not objects or type(objects[0]) not in (Label, RoomLabel, NorthArrow) or any(type(obj) is not type(objects[0]) for obj in objects):
             return
         intensity = value / 100
         readout = self.northArrowIntensityValue if isinstance(objects[0], NorthArrow) else self.labelIntensityValue
@@ -453,8 +528,30 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
                 if mixed:
                     control.lineEdit().clear()
                 del blocker
-            self.selectionLabel.setText(f"Label (#{labels[0].objectId:04d})" if len(labels) == 1 else f"{len(labels)} Labels selected")
+            rooms = all(isinstance(label, RoomLabel) for label in labels)
+            form = self.labelProperties.layout()
+            form.setRowVisible(self.labelTextField, not rooms)
+            form.setRowVisible(self.roomNameField, rooms)
+            form.setRowVisible(self.roomAreaValue, rooms)
+            form.setRowVisible(self.roomUnitsField, rooms)
+            if rooms:
+                blocker = QtCore.QSignalBlocker(self.roomUnitsField)
+                modes = [label.unitsOverride for label in labels]
+                self.roomUnitsField.setCurrentIndex(self.roomUnitsField.findData(modes[0]) if all(mode == modes[0] for mode in modes) else -1)
+                self.roomUnitsField.setPlaceholderText("(different)")
+                del blocker
+                self.viewport.roomDetection.UpdateLabels(force = True)
+                areas = [FormatArea(label.areaSquareMillimeters, label.areaUnitsMode) for label in labels]
+                self.roomAreaValue.setText(areas[0] if len(set(areas)) == 1 else "(different)")
+            title = "Room Label" if rooms else "Label"
+            self.selectionLabel.setText(f"{title} (#{labels[0].objectId:04d})" if len(labels) == 1 else f"{len(labels)} {title}s selected")
             text = labels[0].text if all(obj.text == labels[0].text for obj in labels) else ""
+            blocker = QtCore.QSignalBlocker(self.roomNameField)
+            name = text if rooms else ""
+            if self.roomNameField.text() != name:
+                self.roomNameField.setText(name)
+            self.roomNameField.setPlaceholderText("(different)" if any(obj.text != labels[0].text for obj in labels) else "")
+            del blocker
             blocker = QtCore.QSignalBlocker(self.labelTextField)
             if self.labelTextField.toPlainText() != text:
                 self.labelTextField.setPlainText(text)
@@ -476,11 +573,11 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
             if fieldName in ("angle", "miter", "stepCount"):
                 continue
             blocker = QtCore.QSignalBlocker(field)
-            field.setRange(.01 if fieldName == "stepSize" else 0 if fieldName == "sillDepth" else .1 if fieldName == "width" else .001 if fieldName in ("length", "doorSize") else -1e9, 100000 if fieldName == "stepSize" else 1e9)
+            field.setRange(.01 if fieldName == "stepSize" else .1 if fieldName == "wellDepth" else 0 if fieldName == "sillDepth" else .1 if fieldName == "width" else .001 if fieldName in ("length", "doorSize") else -1e9, 100000 if fieldName == "stepSize" else 1e9)
             # These metric values are staging values for the final unit conversion.
             # Rounding them to display precision loses exact imperial grid lengths.
             field.setDecimals(9 if self.viewport.unitsMode in imperialModes else 2 if fieldName == "stepSize" else 3)
-            field.setSingleStep(1 if fieldName in ("width", "sillDepth", "stepSize") else .1)
+            field.setSingleStep(1 if fieldName in ("width", "sillDepth", "wellDepth", "stepSize") else .1)
             field.setSuffix(" " + PropertyUnit(fieldName, wall, "Adaptive Metric")[1] if fieldName not in ("x", "y") else "")
             del blocker
         entries = self.viewport.SelectionEntries()
@@ -512,18 +609,18 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
             self.RefreshPositionFields(self.objectPositionFields, list({id(obj): obj for obj, index in entries}.values()) or [wall])
         self.viewport.EnsureObjectIds()
         self.doorProperties.setVisible(isWindow and not isinstance(wall, OpenDoorway))
-        self.doorProperties.layout().setRowVisible(self.doorFields["swing"], isDoor or isSlidingDoor or isBarnDoor or isBifoldDoor or type(wall) in (Window, SilledWindow, CasementWindow, Fireplace))
-        self.doorProperties.layout().setRowVisible(self.doorFields["hinge"], isDoor or isSlidingDoor or isPocketDoor or isinstance(wall, CasementWindow))
-        measurementClass = "windows" if type(wall) in (Window, SilledWindow, CasementWindow) else "doors"
+        self.doorProperties.layout().setRowVisible(self.doorFields["swing"], isDoor or isinstance(wall, DoubleDoor) or isSlidingDoor or isBarnDoor or isBifoldDoor or type(wall) in (Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, Fireplace))
+        self.doorProperties.layout().setRowVisible(self.doorFields["hinge"], isDoor or isSlidingDoor or isPocketDoor or isinstance(wall, (CasementWindow, SwingingDoor)))
+        measurementClass = "windows" if type(wall) in (Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow) else "doors"
         self.doorProperties.layout().setRowVisible(self.doorFields["measurement"],
-                                                   type(wall) in (Door, SlidingDoor, BarnDoor, Window, SilledWindow, CasementWindow)
+                                                   type(wall) in (Door, DoubleDoor, SlidingDoor, BarnDoor, Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow)
                                                    and self.viewport.showMeasurements and self.viewport.measurementVisibility["walls"]
                                                    and self.viewport.measurementSettings[measurementClass] == 1
                                                    and any(not obj.measurementHidden for obj, index in entries))
         sideLabel = self.doorProperties.layout().labelForField(self.doorFields["swing"])
-        sideLabel.setText("Facing" if isBarnDoor or type(wall) in (Window, SilledWindow, CasementWindow, Fireplace) else "Panel side" if isSlidingDoor else "Swing direction")
+        sideLabel.setText("Facing" if isBarnDoor or type(wall) in (Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, Fireplace) else "Panel side" if isSlidingDoor else "Swing direction")
         sideLabel.setMinimumWidth(sideLabel.sizeHint().width())
-        self.doorFields["swing"].setToolTip("Flip the panel to the other side of its wall" if isBarnDoor else "Flip the window to the other side of its wall" if type(wall) in (Window, SilledWindow, CasementWindow) else
+        self.doorFields["swing"].setToolTip("Flip the panel to the other side of its wall" if isBarnDoor else "Flip the window to the other side of its wall" if type(wall) in (Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow) else
                                           "Mirror the panels across the wall" if isSlidingDoor else
                                           "Flip the door to the other side of its wall")
         hingeLabel = self.doorProperties.layout().labelForField(self.doorFields["hinge"])
@@ -532,6 +629,17 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
         self.doorFields["hinge"].setToolTip("Swap the opening and parking sides" if isBarnDoor else "Swap the opening and pocket sides" if isPocketDoor else
                                           "Reverse the sliding direction" if isSlidingDoor else "Move the hinge to the opposite endpoint")
         self.wallProperties.layout().setRowVisible(self.propertyFields["sillDepth"], isSilledWindow)
+        hasWell = type(wall) in (Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow)
+        for name, checkbox in self.windowWellFields.items():
+            self.wallProperties.layout().setRowVisible(self.windowWellRows[name], hasWell and (name == "windowWell" or wall.windowWell))
+            if hasWell:
+                states = {getattr(obj, name) for obj, index in entries}
+                blocker = QtCore.QSignalBlocker(checkbox)
+                checkbox.setTristate(len(states) > 1)
+                checkbox.setCheckState(QtCore.Qt.CheckState.PartiallyChecked if len(states) > 1 else
+                                       QtCore.Qt.CheckState.Checked if getattr(wall, name) else QtCore.Qt.CheckState.Unchecked)
+                del blocker
+        self.wallProperties.layout().setRowVisible(self.propertyFields["wellDepth"], hasWell and wall.windowWell)
         self.wallProperties.layout().setRowVisible(self.propertyFields["angle"], isFurnishing or isPillar)
         for button in self.furnishingFlipFields.values():
             self.wallProperties.layout().setRowVisible(button, type(wall) is Furnishing)
@@ -606,7 +714,7 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
         if wall is None:
             self.selectionLabel.setText("No selection")
             return
-        objectType = "Elevator" if isinstance(wall, Elevator) else wall.definition["name"] if isFurnishing else "Fireplace" if isinstance(wall, Fireplace) else "Column" if isinstance(wall, Column) else "Pillar" if isPillar else "Railing" if isRailing else "Stair" if isStair else "Bifold Door" if isBifoldDoor else "Barn Door" if isBarnDoor else "Pocket Door" if isPocketDoor else "Sliding Door" if isSlidingDoor else "Standard Door" if isDoor else "Silled Window" if isSilledWindow else "Casement Window" if isinstance(wall, CasementWindow) else "Open Doorway" if isinstance(wall, OpenDoorway) else "Standard Window" if isWindow else "Counter" if isinstance(wall, Counter) else "Wall"
+        objectType = "Elevator" if isinstance(wall, Elevator) else wall.definition["name"] if isFurnishing else "Fireplace" if isinstance(wall, Fireplace) else "Column" if isinstance(wall, Column) else "Pillar" if isPillar else "Railing" if isRailing else "Stair" if isStair else "Bifold Door" if isBifoldDoor else "Barn Door" if isBarnDoor else "Pocket Door" if isPocketDoor else "Sliding Door" if isSlidingDoor else "Double Door" if isinstance(wall, DoubleDoor) else "Swinging Door" if isinstance(wall, SwingingDoor) else "Standard Door" if isDoor else "Silled Window" if isSilledWindow else "Double Casement Window" if isinstance(wall, DoubleCasementWindow) else "Awning Window" if isinstance(wall, AwningWindow) else "Casement Window" if isinstance(wall, CasementWindow) else "Open Doorway" if isinstance(wall, OpenDoorway) else "Standard Window" if isWindow else "Counter" if isinstance(wall, Counter) else "Wall"
         furnishingNames = {}
         missingFurnishings = set()
         if isFurnishing:
@@ -629,6 +737,8 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
             values["angle"] = wall.angle
         if isSilledWindow:
             values["sillDepth"] = wall.sillDepth
+        if hasWell:
+            values["wellDepth"] = wall.wellDepth
         if isSlidingDoor or isPocketDoor:
             values["doorSize"] = wall.length / 2
         if hasSizing:
@@ -678,7 +788,7 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
                     minimum /= 2
                     maximum /= 2
                 spinBox.setRange(minimum, max(minimum, maximum))
-            spinBox.setValue(value / (1.0 if fieldName in ("miter", "stepCount", "angle") else 10.0 if fieldName in ("sillDepth", "stepSize") or fieldName == "width" and not isStair or fieldName == "length" and isFurnishing else 1000.0))
+            spinBox.setValue(value / (1.0 if fieldName in ("miter", "stepCount", "angle") else 10.0 if fieldName in ("sillDepth", "wellDepth", "stepSize") or fieldName == "width" and not isStair or fieldName == "length" and isFurnishing else 1000.0))
             del blocker
         if len(entries) > 1:
             objects = list({id(obj): obj for obj, index in entries}.values())
@@ -706,6 +816,8 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
                     propertyValues = [obj.angle for obj in objects]
                 elif fieldName == "sillDepth" and isSilledWindow:
                     propertyValues = [obj.sillDepth / 10 for obj in objects]
+                elif fieldName == "wellDepth" and hasWell:
+                    propertyValues = [obj.wellDepth / 10 for obj in objects]
                 elif fieldName in ("stepCount", "stepSize") and hasSizing:
                     propertyValues = [(obj.postCount if isinstance(obj, Railing) else obj.stepCount) if fieldName == "stepCount" else (obj.segmentWidth if isinstance(obj, Railing) else obj.stepSize) / 10 for obj in objects]
                 elif fieldName in ("width", "length", "doorSize"):
@@ -781,6 +893,20 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
             if hasSizing:
                 sizes = {round((obj.segmentWidth if isinstance(obj, Railing) else obj.stepSize), 6) for obj, index in entries}
                 self.stepSizeLabel.setText(FormatLength(next(iter(sizes)), self.viewport.unitsMode, "cm", 4) if len(sizes) == 1 else "(different)")
+        # These are separate forms, but their fields form one visual column.
+        visibleLabels = []
+        for panel in (self.wallProperties, self.doorProperties):
+            form = panel.layout()
+            for row in range(form.rowCount()):
+                item = form.itemAt(row, QtWidgets.QFormLayout.ItemRole.LabelRole)
+                label = item.widget() if item is not None else None
+                if label is not None:
+                    label.setMinimumWidth(0)
+                    if not panel.isHidden() and form.isRowVisible(row):
+                        visibleLabels.append(label)
+        columnWidth = max((label.sizeHint().width() for label in visibleLabels), default = 0)
+        for label in visibleLabels:
+            label.setMinimumWidth(columnWidth)
 
     def EditSelectionProperty(self, callback, *arguments):
         entries = self.viewport.SelectionEntries()
@@ -861,7 +987,7 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
         self.viewport.update()
 
     def EditFurnishingFlip(self, fieldName):
-        objects = list({id(obj): obj for obj, index in self.viewport.SelectionEntries() if type(obj) is Furnishing}.values())
+        objects = list({id(obj): obj for obj, index in self.viewport.SelectionEntries()}.values())
         if fieldName not in self.furnishingFlipFields or not objects:
             return
         self.viewport.ApplyObjectContextAction(objects, fieldName)
@@ -968,7 +1094,7 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
             self.RefreshProperties()
             return
         before = self.viewport.CaptureState()
-        millimeters = value * (10.0 if fieldName == "sillDepth" or fieldName == "width" and not isinstance(wall, Stair) or fieldName == "length" and isinstance(wall, Furnishing) else 1000.0)
+        millimeters = value * (10.0 if fieldName in ("sillDepth", "wellDepth") or fieldName == "width" and not isinstance(wall, Stair) or fieldName == "length" and isinstance(wall, Furnishing) else 1000.0)
         if fieldName == "doorSize" and isinstance(wall, (SlidingDoor, PocketDoor)):
             millimeters *= 2
         sizeValid = True
@@ -996,6 +1122,8 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
         elif isinstance(wall, Window):
             if fieldName == "sillDepth" and isinstance(wall, SilledWindow):
                 wall.sillDepth = max(0.0, millimeters)
+            elif fieldName == "wellDepth" and type(wall) in (Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow):
+                wall.wellDepth = max(1.0, millimeters)
             elif fieldName in ("length", "doorSize"):
                 direction = wall.parentWall.secondVertex - wall.parentWall.firstVertex
                 parentLength = math.hypot(direction.x(), direction.y())
@@ -1034,6 +1162,17 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
         self.viewport.update()
         self.RefreshProperties()
 
+    def EditWindowWell(self, fieldName, enabled):
+        if fieldName not in ("windowWell", "wellDashed"):
+            return
+        before = self.viewport.CaptureState()
+        for obj, index in self.viewport.SelectionEntries():
+            if type(obj) in (Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow):
+                setattr(obj, fieldName, enabled)
+        self.viewport.RecordEdit(before)
+        self.viewport.update()
+        self.RefreshProperties()
+
     def EditDoorProperty(self, fieldName):
         if not self.bulkPropertyEdit and self.EditSelectionProperty(self.EditDoorProperty, fieldName):
             return
@@ -1042,16 +1181,16 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
             return
         before = self.viewport.CaptureState()
         if fieldName == "measurement":
-            measurementClass = "windows" if type(door) in (Window, SilledWindow, CasementWindow) else "doors"
-            if (type(door) not in (Door, SlidingDoor, BarnDoor, Window, SilledWindow, CasementWindow)
+            measurementClass = "windows" if type(door) in (Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow) else "doors"
+            if (type(door) not in (Door, DoubleDoor, SlidingDoor, BarnDoor, Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow)
                     or self.viewport.measurementSettings[measurementClass] != 1):
                 return
             door.measurementFlipped = not door.measurementFlipped
-        elif fieldName == "swing" and type(door) in (Window, Door, SilledWindow, CasementWindow, BarnDoor, BifoldDoor, Fireplace):
+        elif fieldName == "swing" and type(door) in (Window, Door, DoubleDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, BarnDoor, BifoldDoor, Fireplace):
             door.swingsOutwards = not door.swingsOutwards
         elif fieldName == "swing" and isinstance(door, SlidingDoor):
             door.panelsFlipped = not door.panelsFlipped
-        elif isinstance(door, (Door, SlidingDoor, PocketDoor, CasementWindow)):
+        elif fieldName == "hinge" and isinstance(door, (Door, SwingingDoor, SlidingDoor, PocketDoor, CasementWindow)):
             door.hingeAtSecond = not door.hingeAtSecond
         else:
             return

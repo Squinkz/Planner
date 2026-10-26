@@ -32,7 +32,7 @@ def Main():
         v, point = main.viewport, QtCore.QPointF
         factory = main.defaultProjectData
         assert factory["settings"]["measurementVisibility"] == {
-            "walls": True, "stairs": False, "counters": False, "railings": False, "elevators": False}
+            "walls": True, "stairs": False, "counters": False, "railings": False}
         assert not factory["scene"]["objects"] and "history" not in factory
         startup = main.startupPath
         before = v.CaptureState()

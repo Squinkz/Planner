@@ -10,7 +10,7 @@ from planner_app.project_codec import DecodeProject, EncodeScene, EncodeUsedFurn
 from planner_app.project_history import EncodeEdit
 from planner_app.paths import appDirectory
 from planner_app.geometry_recovery import GeometryLoadCancelled
-from planner_app.models import Furnishing
+from planner_app.models import Furnishing, RoomLabel
 from planner_app.furnishing_assets import FurnishingAssetProblems
 
 
@@ -63,6 +63,20 @@ class ProjectsMixin:
             settings.pop("canvasTheme", None)
         if self.exportPanel.overrides:
             settings["exportSettings"] = copy.deepcopy(self.exportPanel.overrides)
+        if self.exportPanel.exportFolder:
+            settings["exportFolder"] = self.exportPanel.exportFolder
+        if self.exportPanel.exportFileName:
+            settings["exportFileName"] = self.exportPanel.exportFileName
+        mode = self.exportPanel.projectView["wallMeasurementMode"] if self.exportPanel.projectView is not None else v.wallMeasurementMode
+        if mode != "All":
+            settings["wallMeasurementMode"] = mode
+        else:
+            settings.pop("wallMeasurementMode", None)
+        reference = self.exportPanel.projectView["wallMeasurementReference"] if self.exportPanel.projectView is not None else v.wallMeasurementReference
+        if reference != "Wall faces":
+            settings["wallMeasurementReference"] = reference
+        else:
+            settings.pop("wallMeasurementReference", None)
         return settings
 
     def ProjectUiState(self):
@@ -189,6 +203,7 @@ class ProjectsMixin:
         self.referenceImage.CancelDrag()
         focused = QtWidgets.QApplication.focusWidget()
         propertyFields = list(self.propertyFields.values()) + list(self.referenceImage.fields.values())
+        propertyFields += [self.exportPanel.folderField, self.exportPanel.fileNameField]
         if focused is not None and any(field is focused or field.isAncestorOf(focused)
                                        for field in propertyFields):
             # Focus loss commits text even when keyboard tracking is disabled.
@@ -244,6 +259,8 @@ class ProjectsMixin:
             settings[name] = copy.deepcopy(defaults["settings"][name])
         settings.pop("referenceImage", None)
         settings.pop("exportSettings", None)
+        settings.pop("exportFolder", None)
+        settings.pop("exportFileName", None)
         settings.pop("ignoredPotentialIssues", None)
         data = {"format": "Planner Project", "version": 1,
                 "scene": copy.deepcopy(defaults["scene"]), "settings": settings,
@@ -500,6 +517,8 @@ class ProjectsMixin:
             self.SetLinework(settings["lineworkSettings"], notify = False)
             v.gridIntensities = dict(settings["viewportSettings"])
             v.measurementSettings = dict(settings["measurementSettings"])
+            v.wallMeasurementMode = settings["wallMeasurementMode"]
+            v.wallMeasurementReference = settings["wallMeasurementReference"]
             v.collisionSettings = dict(settings["collisionSettings"])
             v.stairStepSizes = dict(settings["stairStepSizes"])
             v.railingSpacings = dict(settings["railingSpacings"])
@@ -560,10 +579,14 @@ class ProjectsMixin:
                 v.openingPlacementIndices[mode] = names.index(settings[key])
             del blockers
             v.SetSelection([])
+            if any(isinstance(label, RoomLabel) for label in v.labels):
+                v.roomDetection.Refresh(force = True)
             v.sceneRevision += 1
             v.sceneChanged.emit()
             self.RefreshOpeningToolHighlight(None)
             self.projectPath = path
+            self.exportPanel.exportFolder = settings.get("exportFolder")
+            self.exportPanel.exportFileName = settings.get("exportFileName")
             self.exportPanel.PopulatePath(force = True)
             history = settings.get("history", {"undo": [], "redo": []})
             v.undoHistory, v.redoHistory = history["undo"], history["redo"]

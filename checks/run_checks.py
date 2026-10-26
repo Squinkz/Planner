@@ -39,11 +39,12 @@ with tempfile.TemporaryDirectory() as sessionFolder:
             raise RuntimeError(f'{len(callbackErrors)} unhandled callback/thread exceptions occurred during this check.')
 """
     failures = []
-    # Full catalog theme changes and repeated PNG/SVG integration renders
+    # Full catalog theme changes, repeated session launches and integration renders
     # run substantially slower on hosted Windows workers than locally.
     timeouts = {"check_external_themes.py": 120, "check_furnishings_on_counters.py": 60,
                 "check_export_settings.py": 60, "check_export_solid_objects.py": 60,
-                "check_export_cli_settings.py": 60, "check_parity_rendering.py": 60}
+                "check_export_cli_settings.py": 60, "check_parity_rendering.py": 60,
+                "check_session_guide_selection.py": 60}
     for check in checks:
         print(f"Checking {check.name}", flush = True)
         timeout = timeouts.get(check.name, 30)

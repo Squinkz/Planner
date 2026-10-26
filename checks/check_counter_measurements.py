@@ -22,8 +22,7 @@ def Main():
     assert sorted(round(QtCore.QLineF(first, second).length()) for first, second, owners in dimensions) == [600, 600, 2000, 2000]
     assert all(owners == [counter] for first, second, owners in dimensions)
     for blocker in (Wall(point(0, 420), point(2000, 420), 240),
-                    Stair(point(0, 600), point(2000, 600), 600),
-                    Furnishing({"width": 2000, "length": 600}, point(1000, 600))):
+                    Stair(point(0, 600), point(2000, 600), 600)):
         viewport.walls = [counter] + ([blocker] if isinstance(blocker, Wall) else [])
         viewport.furnishings = [] if isinstance(blocker, Wall) else [blocker]
         dimensions = viewport.ConnectedCounterPath([counter])[1]
@@ -34,6 +33,12 @@ def Main():
         blocker.firstVertex += point(0, 1000)
         blocker.secondVertex += point(0, 1000)
         assert len(viewport.ConnectedCounterPath([counter])[1]) == 4
+    # Stools, plants, sinks and other furnishings never cut counter dimensions.
+    viewport.walls = [counter]
+    baseline = viewport.ConnectedCounterPath([counter])[1]
+    for origin in (point(1000, 600), point(1000, 0), point(0, 0)):
+        viewport.furnishings = [Furnishing({"width": 2000, "length": 600}, origin)]
+        assert viewport.ConnectedCounterPath([counter])[1] == baseline
     viewport.furnishings = []
     blocker = Wall(point(-120, -1000), point(-120, 1000), 240)
     viewport.walls = [counter, blocker]

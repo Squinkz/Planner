@@ -4,11 +4,12 @@ import math
 from PySide6 import QtCore, QtGui
 from planner_app.graphics.palette import themeColors
 from .linework import LinePen, defaultLineWidths
-from planner_app.models import OpenDoorway, Door, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, SlidingDoor, Window, Label
+from planner_app.models import OpenDoorway, Door, SwingingDoor, DoubleDoor, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, SlidingDoor, Window, Label
 
 
 def DrawStairSymbol(painter, firstPoint, secondPoint, width, stepCount = 4,
-                    directionReversed = False, color = None, outline = True, firstTrim = 0, secondTrim = 0, clipRect = None, lineWidth = None):
+                    directionReversed = False, color = None, outline = True, firstTrim = 0, secondTrim = 0, clipRect = None, lineWidth = None, edgeInset = None,
+                    drawInsetEdges = True, drawArrow = True):
     lineWidth = defaultLineWidths["architectural"] if lineWidth is None else lineWidth
     color = themeColors["objectOutline"] if color is None else color
     direction = secondPoint - firstPoint
@@ -25,6 +26,13 @@ def DrawStairSymbol(painter, firstPoint, secondPoint, width, stepCount = 4,
     if firstTrim + secondTrim >= length - 1e-8:
         return
     runLength = length - firstTrim - secondTrim
+    inset = min(width / 4, width * .025 if edgeInset is None else edgeInset)
+    treadNormal = normal * (1 - 2 * inset / width) if width > 0 else normal
+    runStart = firstPoint + direction * (firstTrim / length)
+    runEnd = secondPoint - direction * (secondTrim / length)
+    if drawInsetEdges:
+        for side in (-1, 1):
+            painter.drawLine(QtCore.QLineF(runStart + treadNormal * side, runEnd + treadNormal * side))
     spacing = runLength / max(1, stepCount)
     firstStep, lastStep = 1, stepCount - 1
     if clipRect is not None:
@@ -40,30 +48,59 @@ def DrawStairSymbol(painter, firstPoint, secondPoint, width, stepCount = 4,
     for step in range(firstStep, lastStep + 1, stride):
         distance = firstTrim + (length - firstTrim - secondTrim) * step / stepCount
         center = firstPoint + direction * (distance / length)
-        painter.drawLine(QtCore.QLineF(center - normal, center + normal))
+        painter.drawLine(QtCore.QLineF(center - treadNormal, center + treadNormal))
     for distance in ((firstTrim,) if firstTrim > 0 else ()) + ((length - secondTrim,) if secondTrim > 0 else ()):
         center = firstPoint + direction * (distance / length)
-        painter.drawLine(QtCore.QLineF(center - normal, center + normal))
+        painter.drawLine(QtCore.QLineF(center - treadNormal, center + treadNormal))
     runStart = firstPoint + direction * (firstTrim / length)
     runDirection = direction * ((length - firstTrim - secondTrim) / length)
     start = runStart + runDirection if directionReversed else runStart
     tip = runStart if directionReversed else runStart + runDirection
-    arrowDirection = direction / length * (-1 if directionReversed else 1)
-    arrowNormal = QtCore.QPointF(-arrowDirection.y(), arrowDirection.x())
-    # A dark underlay keeps the arrow distinct where it crosses a tread line.
+    if drawArrow:
+        DrawStairArrows(painter, [(start, tip, color, True)], lineWidth)
+
+
+def DrawStairArrows(painter, arrows, lineWidth):
+    # Paint every underlay first so adjoining arrow segments cannot erase one
+    # another at their landing corner.
     painter.setPen(LinePen(themeColors["canvas"], lineWidth + 3 if lineWidth > 0 else 0))
-    painter.drawLine(QtCore.QLineF(start, tip))
-    painter.setPen(LinePen(color, lineWidth))
-    painter.drawLine(QtCore.QLineF(start, tip))
-    headLength, headWidth = 12, 7
-    for side in (-1, 1):
-        painter.drawLine(QtCore.QLineF(tip, tip - arrowDirection * headLength
-                                      + arrowNormal * (side * headWidth)))
+    for start, tip, color, showTip in arrows:
+        painter.drawLine(QtCore.QLineF(start, tip))
+    for start, tip, color, showTip in arrows:
+        painter.setPen(LinePen(color, lineWidth))
+        painter.drawLine(QtCore.QLineF(start, tip))
+        length = QtCore.QLineF(start, tip).length()
+        if not showTip or length < 1e-8:
+            continue
+        direction = (tip - start) / length
+        normal = QtCore.QPointF(-direction.y(), direction.x())
+        for side in (-1, 1):
+            painter.drawLine(QtCore.QLineF(tip, tip - direction * 12 + normal * (side * 7)))
+
+
+def WindowWellPath(firstPoint, secondPoint, width, depth, margin = 150.0, swingsOutwards = False):
+    direction = secondPoint - firstPoint
+    length = math.hypot(direction.x(), direction.y())
+    if length < 1e-10:
+        return QtGui.QPainterPath()
+    along = direction / length
+    outwards = QtCore.QPointF(-along.y(), along.x()) * (-1 if swingsOutwards else 1)
+    first = firstPoint + outwards * (width / 2) - along * margin
+    second = secondPoint + outwards * (width / 2) + along * margin
+    radius = min(depth, (length + margin * 2) / 4)
+    well = QtGui.QPainterPath(first)
+    well.lineTo(first + outwards * (depth - radius))
+    well.quadTo(first + outwards * depth, first + outwards * depth + along * radius)
+    well.lineTo(second + outwards * depth - along * radius)
+    well.quadTo(second + outwards * depth, second + outwards * (depth - radius))
+    well.lineTo(second)
+    return well
 
 
 def DrawOpeningSymbol(painter, firstPoint, secondPoint, width, openingType = Window,
                       hingeAtSecond = False, swingsOutwards = False, color = None, panelsFlipped = False,
-                      pixelsPerMillimeter = .2, sillDepth = 40.0, lineWidth = None, wallLineWidth = None, wallColor = None):
+                      pixelsPerMillimeter = .2, sillDepth = 40.0, lineWidth = None, wallLineWidth = None, wallColor = None,
+                      windowWell = False, wellDepth = 600.0, wellDashed = False):
     lineWidth = defaultLineWidths["architectural"] if lineWidth is None else lineWidth
     wallLineWidth = defaultLineWidths["walls"] if wallLineWidth is None else wallLineWidth
     wallColor = themeColors["wallOutline"] if wallColor is None else wallColor
@@ -108,7 +145,7 @@ def DrawOpeningSymbol(painter, firstPoint, secondPoint, width, openingType = Win
         for side in (-1, 1):
             painter.drawLine(QtCore.QLineF(midpoint + panelNormal * side, midpoint + normal * side))
         return
-    if openingType not in (BifoldDoor, SlidingDoor, Window, SilledWindow, CasementWindow):
+    if openingType not in (BifoldDoor, SlidingDoor, Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow):
         painter.setPen(LinePen(wallColor, wallLineWidth))
         painter.drawLine(QtCore.QLineF(firstPoint - normal, firstPoint + normal))
         painter.drawLine(QtCore.QLineF(secondPoint - normal, secondPoint + normal))
@@ -170,19 +207,22 @@ def DrawOpeningSymbol(painter, firstPoint, secondPoint, width, openingType = Win
         headWidth = headLength * 7 / 12
         for side in (-1, 1):
             painter.drawLine(QtCore.QLineF(arrowTip, arrowTip - arrowDirection * headLength + arrowNormal * (side * headWidth)))
-    elif openingType is Door:
-        swingNormal = QtCore.QPointF(direction.y(), -direction.x()) / length
-        if swingsOutwards:
-            swingNormal = -swingNormal
-        hinge = (secondPoint if hingeAtSecond else firstPoint) + swingNormal * (width / 2)
-        closedDirection = direction / length * (-1 if hingeAtSecond else 1)
-        startAngle = -math.degrees(math.atan2(closedDirection.y(), closedDirection.x()))
-        sweep = -math.degrees(math.atan2(closedDirection.x() * swingNormal.y() - closedDirection.y() * swingNormal.x(),
-                                        QtCore.QPointF.dotProduct(closedDirection, swingNormal)))
-        arc = QtGui.QPainterPath(hinge + closedDirection * length)
-        arc.arcTo(QtCore.QRectF(hinge.x() - length, hinge.y() - length, 2 * length, 2 * length), startAngle, sweep)
-        painter.drawPath(arc)
-        painter.drawLine(QtCore.QLineF(hinge, hinge + swingNormal * length))
+    elif openingType in (Door, SwingingDoor, DoubleDoor):
+        leafLength = length / 2 if openingType is DoubleDoor else length
+        for outwards in ((False, True) if openingType is SwingingDoor else (swingsOutwards,)):
+            for secondHinge in ((False, True) if openingType is DoubleDoor else (hingeAtSecond,)):
+                swingNormal = QtCore.QPointF(direction.y(), -direction.x()) / length
+                if outwards:
+                    swingNormal = -swingNormal
+                hinge = (secondPoint if secondHinge else firstPoint) + swingNormal * (width / 2)
+                closedDirection = direction / length * (-1 if secondHinge else 1)
+                startAngle = -math.degrees(math.atan2(closedDirection.y(), closedDirection.x()))
+                sweep = -math.degrees(math.atan2(closedDirection.x() * swingNormal.y() - closedDirection.y() * swingNormal.x(),
+                                                QtCore.QPointF.dotProduct(closedDirection, swingNormal)))
+                arc = QtGui.QPainterPath(hinge + closedDirection * leafLength)
+                arc.arcTo(QtCore.QRectF(hinge.x() - leafLength, hinge.y() - leafLength, 2 * leafLength, 2 * leafLength), startAngle, sweep)
+                painter.drawPath(arc)
+                painter.drawLine(QtCore.QLineF(hinge, hinge + swingNormal * leafLength))
     else:
         # Window perimeter belongs to the opening, including both wall faces.
         for side in (-1, 1):
@@ -193,17 +233,28 @@ def DrawOpeningSymbol(painter, firstPoint, secondPoint, width, openingType = Win
         for side in (-2, 1):
             offset = crossbarOffset + crossbarSpacing * side
             painter.drawLine(QtCore.QLineF(firstPoint + offset, secondPoint + offset))
-        if openingType is CasementWindow:
-            hinge = (secondPoint if hingeAtSecond else firstPoint) + facingNormal
-            closedDirection = direction / length * (-1 if hingeAtSecond else 1)
-            facingUnit = facingNormal / (width / 2)
-            tip = hinge + closedDirection * (length * math.cos(math.pi / 6)) + facingUnit * (length * .5)
-            startAngle = -math.degrees(math.atan2(closedDirection.y(), closedDirection.x()))
-            sweep = -30 if closedDirection.x() * facingUnit.y() - closedDirection.y() * facingUnit.x() > 0 else 30
-            arc = QtGui.QPainterPath(hinge + closedDirection * length)
-            arc.arcTo(QtCore.QRectF(hinge.x() - length, hinge.y() - length, 2 * length, 2 * length), startAngle, sweep)
-            painter.drawPath(arc)
-            painter.drawLine(QtCore.QLineF(hinge, tip))
+        if openingType in (CasementWindow, DoubleCasementWindow):
+            leafLength = length / 2 if openingType is DoubleCasementWindow else length
+            hinges = (False, True) if openingType is DoubleCasementWindow else (hingeAtSecond,)
+            for secondHinge in hinges:
+                hinge = (secondPoint if secondHinge else firstPoint) + facingNormal
+                closedDirection = direction / length * (-1 if secondHinge else 1)
+                facingUnit = facingNormal / (width / 2)
+                tip = hinge + closedDirection * (leafLength * math.cos(math.pi / 6)) + facingUnit * (leafLength * .5)
+                startAngle = -math.degrees(math.atan2(closedDirection.y(), closedDirection.x()))
+                sweep = -30 if closedDirection.x() * facingUnit.y() - closedDirection.y() * facingUnit.x() > 0 else 30
+                arc = QtGui.QPainterPath(hinge + closedDirection * leafLength)
+                arc.arcTo(QtCore.QRectF(hinge.x() - leafLength, hinge.y() - leafLength, 2 * leafLength, 2 * leafLength), startAngle, sweep)
+                painter.drawPath(arc)
+                painter.drawLine(QtCore.QLineF(hinge, tip))
+        if openingType is AwningWindow:
+            lip = facingNormal / (width / 2) * (length * .25)
+            pen = LinePen(color, lineWidth)
+            pen.setStyle(QtCore.Qt.PenStyle.DashLine)
+            painter.setPen(pen)
+            painter.drawPolyline(QtGui.QPolygonF([firstPoint + facingNormal, firstPoint + facingNormal + lip,
+                                                 secondPoint + facingNormal + lip, secondPoint + facingNormal]))
+            painter.setPen(LinePen(color, lineWidth))
         if openingType is SilledWindow:
             sillNormal = facingNormal
             lip = sillNormal / (width / 2) * (sillDepth * pixelsPerMillimeter)
@@ -219,6 +270,14 @@ def DrawOpeningSymbol(painter, firstPoint, secondPoint, width, openingType = Win
             painter.setBrush(QtCore.Qt.BrushStyle.NoBrush)
             painter.drawPolyline(QtGui.QPolygonF([firstSillPoint, firstSillPoint + lip,
                                                  secondSillPoint + lip, secondSillPoint]))
+        if windowWell:
+            well = WindowWellPath(firstPoint, secondPoint, width, wellDepth * pixelsPerMillimeter,
+                                  150 * pixelsPerMillimeter, swingsOutwards)
+            pen = LinePen(color, lineWidth)
+            if wellDashed:
+                pen.setStyle(QtCore.Qt.PenStyle.DashLine)
+            painter.setPen(pen)
+            painter.drawPath(well)
         # Wall crossbars cover the frame, glazing and swing strokes at each
         # end of the window, retaining a continuous wall-colored junction.
         painter.setPen(LinePen(wallColor, wallLineWidth))

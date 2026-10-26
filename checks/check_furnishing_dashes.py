@@ -28,13 +28,13 @@ def Main():
                     if style == "attributes":
                         content = f'<path {paint} {geometry}/>'
                     elif style == "inline":
-                        content = f'<path style="stroke:black;fill:none;stroke-width:{width};stroke-dasharray:{dash},{dash};stroke-dashoffset:{offset}" {geometry}/>'
+                        content = f'<path style="stroke:black;fill:none;vector-effect:none;stroke-width:{width};stroke-dasharray:{dash},{dash};stroke-dashoffset:{offset}" {geometry}/>'
                     elif style == "inherited":
                         content = f'<g {paint}><path {geometry}/></g>'
                     elif style == "override":
                         content = f'<g {paint}><path stroke-width="{width * 2}" stroke-dasharray="{dash * 2},{dash * 2}" stroke-dashoffset="{offset * 2}" {geometry}/></g>'
                     else:
-                        content = f'<style>.line {{stroke:black;fill:none;stroke-width:{width};stroke-dasharray:{dash},{dash};stroke-dashoffset:{offset}}}</style><path class="line" {geometry}/>'
+                        content = f'<style>.line {{stroke:black;fill:none;vector-effect:none;stroke-width:{width};stroke-dasharray:{dash},{dash};stroke-dashoffset:{offset}}}</style><path class="line" {geometry}/>'
                     source = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {100 * scale} {100 * scale}">{content}</svg>'.encode()
                     renderer = FurnishingRenderer(source, palette = colors, lineWidth = lineWidth)
                     image = QtGui.QImage(240, 120, QtGui.QImage.Format.Format_ARGB32_Premultiplied)

@@ -1,0 +1,11 @@
+{
+    "name": "Rug Runner Large",
+    "image": "rug_runner_large",
+    "width": 3000,
+    "length": 800,
+    "icon": null,
+    "category": ["Living Room", "Entry"],
+    "inherits": null,
+    "children": [],
+    "keywords": []
+}

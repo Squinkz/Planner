@@ -5,6 +5,7 @@
     "extends": "Blueprint Canvas",
     "colors": {
         "canvas": "#071b30",
+        "roomFill": "#0d263a", // Background inside detected rooms in the editor.
         "grid": "#5788b0",
         "objectOutline": "#deefff",
         "wallOutline": "#e7f3ff",

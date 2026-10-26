@@ -16,7 +16,7 @@ def MetricUnit(mode, adaptive = "m"):
 
 
 def PropertyUnit(fieldName, obj, mode):
-    adaptive = "cm" if fieldName in ("sillDepth", "stepSize") or fieldName == "width" and not isinstance(obj, Stair) or fieldName == "length" and isinstance(obj, Furnishing) else "m"
+    adaptive = "cm" if fieldName in ("sillDepth", "wellDepth", "stepSize") or fieldName == "width" and not isinstance(obj, Stair) or fieldName == "length" and isinstance(obj, Furnishing) else "m"
     return MetricUnit(mode, adaptive)
 
 
@@ -68,6 +68,15 @@ def FormatLength(millimeters, mode, adaptive = "m", decimals = 3, includeUnit = 
         value = round(value)
     text = f"{value:.{decimals}f}".rstrip("0").rstrip(".") if decimals else str(round(value))
     return f"{text} {unit}" if includeUnit else text
+
+
+def FormatArea(squareMillimeters, mode):
+    if squareMillimeters is None:
+        return "—"
+    divisor, unit = MetricUnit(mode)
+    value = squareMillimeters / (divisor * divisor)
+    decimals = 0 if unit in ("mm", "cm", "in") else 2
+    return f"{value:,.{decimals}f} {unit}²"
 
 
 def ParseImperialLength(text, mode):

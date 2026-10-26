@@ -16,7 +16,7 @@ Automatic body-cap clipping is required at zero as well as with manual chamfer.
 
 [OBJECTS.md](OBJECTS.md) and [EXAMPLES.md](EXAMPLES.md) add a per-type observed
 matrix, two workflows with 20 frozen state checkpoints, portable `.plan` examples
-and 33 object rendering cases. The matrix covers all 24 current types, whole/control point
+and 42 object rendering cases. The matrix covers all 31 current types, whole/control point
 properties, actual context actions and eight collision profiles. Workflow replay
 uses desktop input/command adapters and independent assertions. Image replay
 compares decoded pixels; SVG cases also check vector structure. See EXAMPLES for

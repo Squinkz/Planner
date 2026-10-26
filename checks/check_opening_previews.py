@@ -23,7 +23,7 @@ def Main():
     leftButton = QtCore.Qt.MouseButton.LeftButton
     parent = Wall(point(-2000, 0), point(2000, 0))
     viewport.walls = [parent]
-    assert list(window.viewOptions) == ["showGrid", "referenceImage", "showMeasurements", "walls", "stairs", "counters", "elevators", "railings", "showTips", "showFpsCounter"]
+    assert list(window.viewOptions) == ["showGrid", "referenceImage", "showMeasurements", "showTips", "showFpsCounter"]
     for openingType in (Window, Door):
         kind = "door" if openingType is Door else "window"
         mime = QtCore.QMimeData()

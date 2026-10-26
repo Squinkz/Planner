@@ -9,7 +9,7 @@ from pathlib import Path
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "planner-main"))
 from PySide6 import QtCore, QtWidgets
-from planner import MainWindow, Wall, Door, Window, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway, SilledWindow, CasementWindow
+from planner import MainWindow, Wall, Door, SwingingDoor, DoubleDoor, Window, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow
 from planner_app.models import Furnishing, Counter, Stair, Pillar, Column, Elevator, Railing, Fireplace
 from planner_app.placement_sizing import NominalPlacementSize, FurnishingPlacementSize
 from planner_app.furnishing_search import FurnishingDimensionText, FindFurnishings
@@ -65,7 +65,7 @@ def Main():
         for index, value in enumerate(metricDefaults[0]):
             assert math.isclose(main.wallWidthSelector.widths[index] * 10, NominalPlacementSize(value * 10, mode))
         position = v.WorldToViewport(point(5000, 0))
-        for cls in (Door, Window, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway, SilledWindow, CasementWindow):
+        for cls in (Door, SwingingDoor, DoubleDoor, Window, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow):
             expected = NominalPlacementSize(metricDefaults[1][cls.__name__] * 10, mode)
             expected *= 2 if cls in (SlidingDoor, PocketDoor, BarnDoor) else 1
             opening = v.FindWindowPlacement(position, openingType = cls)

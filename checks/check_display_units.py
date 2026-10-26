@@ -26,7 +26,7 @@ def Main():
     main.ShowSettings()
     panel, v = main.settingsWindow, main.viewport
     assert v.unitsMode == panel.unitsField.currentText() == "Millimeters"
-    assert panel.tabs.tabText(1) == "Measurements"
+    assert panel.tabs.tabText(1) == "Dimensions"
     assert [panel.unitsField.itemText(index) for index in range(len(unitModes))] == list(unitModes)
     point = QtCore.QPointF
     wall = Wall(point(), point(5000, 0))

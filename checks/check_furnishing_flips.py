@@ -83,6 +83,7 @@ def Main():
     main.show()
     app.processEvents()
     v = main.viewport
+    v.localTransforms = False
     v.performanceTimer.stop()
     v.performanceLabel.hide()
     globalDefinition = {**v.furnishingDefinitions["desk"], **definition, "key": "desk"}
@@ -114,10 +115,11 @@ def Main():
     renderKey = v.SceneRenderKey(None)
     renderValues = v.SceneRenderValueKey(None)
     main.RefreshProperties()
+    sharedCenter = v.ObjectFootprint(first)[0].united(v.ObjectFootprint(second)[0]).center()
     main.furnishingFlipFields["flipHorizontal"].click()
     assert first.flipHorizontal and second.flipHorizontal
     assert abs(first.angle - 323) < 1e-8 and abs(second.angle - 242) < 1e-8
-    assert QtCore.QLineF((second.firstVertex + second.secondVertex) / 2, QtCore.QPointF(2000, 0)).length() < 1e-8
+    assert QtCore.QLineF((second.firstVertex + second.secondVertex) / 2, QtCore.QPointF(2 * sharedCenter.x() - 2000, 0)).length() < 1e-8
     assert v.SceneRenderKey(None) != renderKey
     assert v.SceneRenderValueKey(None) != renderValues
     CompareDirect(v)

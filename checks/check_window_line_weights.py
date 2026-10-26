@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "planner-main"))
 from PySide6 import QtCore, QtGui, QtWidgets
 from planner_app.graphics.palette import themeColors
 from planner_app.graphics.symbols import DrawOpeningSymbol
-from planner_app.models import Wall, Window, SilledWindow, CasementWindow, Door, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway
+from planner_app.models import Wall, Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, Door, SwingingDoor, DoubleDoor, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway
 from planner_app.viewport.widget import DrawingViewport
 
 
@@ -29,7 +29,7 @@ def Main():
         second = -first
         wall = Wall(first, second, 240)
         viewport.walls = [wall]
-        for openingType in (Window, SilledWindow, CasementWindow):
+        for openingType in (Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow):
             viewport.windows = [openingType(wall, .25, .75)]
             viewport.windows[0].swingsOutwards = True
             for zoom in (.5, 1, 2):
@@ -52,7 +52,7 @@ def Main():
     themeColors["objectOutline"] = "#ff0000"
     wall = Wall(point(-1400, 0), point(1400, 0), 240)
     viewport.walls = [wall]
-    for openingType in (Window, SilledWindow, CasementWindow, Door, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway):
+    for openingType in (Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, Door, SwingingDoor, DoubleDoor, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway):
         opening = openingType(wall, .25, .75)
         viewport.windows = [opening]
         image = viewport.grab().toImage()
@@ -66,7 +66,7 @@ def Main():
     for vertical in (False, True):
         first, second = (point(150, 100), point(150, 300)) if vertical else (point(100, 150), point(300, 150))
         normal = point(-20, 0) if vertical else point(0, 20)
-        for openingType in (Window, SilledWindow, CasementWindow):
+        for openingType in (Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow):
             image = QtGui.QImage(400, 400, QtGui.QImage.Format.Format_ARGB32)
             image.fill(QtCore.Qt.GlobalColor.white)
             painter = QtGui.QPainter(image)

@@ -8,9 +8,13 @@ used where specified instead of equally spacing arbitrary HTML elements.
 
 ## SETTINGS-01: measurement split controls
 
-Settings > Measurements uses two equally stretched columns separated by 48 px.
-The page has margins left/top/right/bottom 16/20/16/16. The left column contains
-Doors, Windows, Stairs and Counters vertically, with 24 px between row layouts.
+Settings > Dimensions uses two equally stretched columns separated by 48 px.
+The page has margins left/top/right/bottom 16/20/16/16. Units and Canvas precision
+occupy equal top-row columns, Units left and Canvas precision right, without a heading.
+Each uses Appearance-style composition: a 120 px right-aligned caption, 8 px
+gap and dropdown. A 12 px gap precedes the two-column body. The right column
+contains Walls, Mode, then Doors, Windows, Stairs and Counters vertically, with
+24 px between row layouts.
 Each row is a horizontal composition with 16 px gaps:
 
 `70 px bold object heading | vertical selector | expanding labels | reset`
@@ -32,7 +36,8 @@ indicators. The vertical controls invert both appearance and controls so smaller
 indices are at the top. Single/page steps are one index. Doors/Windows tracks
 are 112 px high; Stairs/Counters are 49 px. The groove is 6 px wide with radius 3;
 the 16 px high rounded thumb overhangs 5 px horizontally. Ordinary semantic
-slider colors and disabled colors apply.
+slider colors and disabled colors apply. Each selector is 20 px wide, keeping
+the complete 16 px thumb inside its widget at every position.
 
 Labels occupy a zero-margin, zero-spacing vertical area. First/last labels anchor
 to top/bottom, and the middle label is centered. The category heading and reset
@@ -49,15 +54,44 @@ the choices; partial angle deltas accumulate to 120 units, while pixel scrolling
 moves one position per nonzero event. Clamp at the ends. A label is not a
 read-only caption or an independent radio button.
 
-The right column contains Units and Precision in a form with a 16 px horizontal
-gap, then 10 px space and the measurement-visibility checkbox tree. The tree has
-one expanded master and five children (walls, stairs, counters, railings,
-elevators), no selection highlight, no branch disclosure or collapsible rows,
-and 24 px indentation. Its height fits all six rows. Show Grid follows after
-16 px, then stretch. Split mode, measurement visibility, displayed units and
-precision are separate settings. A split selector is not the category's visibility
-switch. Export temporarily changing its view must not overwrite the underlying
-project settings these controls edit.
+The left column has a bold centered Measure heading, then a checkbox tree styled
+like the World visibility tree, without selected-row highlighting. Draw dimensions
+is its initially expanded root, with Walls, Stairs, Counters
+and Railings as children. Rows are 32 px high with 24 px indentation.
+Expanding or collapsing the root fits the tree to 160 or 32 px respectively.
+A bold centered Grid heading follows, with Draw Grid beneath it as a
+label-left, checkbox-right form row, then an Appearance button that switches to
+the Appearance tab. When the editor grid is off, Appearance's Grid heading,
+captions, intensity sliders, number fields and reset buttons are disabled.
+Their values are retained, and line-weight controls remain independent.
+Master and category values
+remain separate. Turning off the master retains nonempty category choices.
+With no categories enabled, the Options master is unchecked and read-only, painted
+disabled without disabling its branch or children. Checking a category restores it.
+View > Toggle dimensions and M remain available
+and enable walls if activated with no remembered categories. Units, precision
+and Draw Grid remain available independently. Export overrides must not replace
+the project settings edited by these controls.
+
+The right column has a bold, centered Walls heading, then a Mode dropdown above
+the split selectors. Exterior stacked is the factory default. All retains every
+wall measurement; Exterior retains only outer boundary dimensions. Exterior stacked uses
+up to three rows: openings nearest the wall, room divisions next, and overall
+length outermost. Redundant rows are omitted and remaining rows close up. All split
+selectors, their labels and reset buttons are hidden and disabled in stacked mode,
+replaced by one Wall reference dropdown: Centerline or Wall faces (default).
+Its field aligns with Mode. Other modes restore the saved split controls.
+Turning
+off wall dimensions or the editor dimension master additionally disables Mode
+and its label, plus Wall reference. These controls re-enable from their saved values when wall
+dimensions return; changing their enabled state does not alter their values. This is separate from the
+wall visibility checkbox and the opening/counter/stair split selectors.
+
+Build options use the same label-left, checkbox-right convention for collision
+settings. The icon/text captions remain clickable, and all three checkbox fields
+share a column and 32 px row height. Standalone checkboxes in Export use form
+rows too; the Dimensions and Visibility trees retain their hierarchy and styling.
+Coverage: `check_checkbox_layouts.py`.
 
 ## BUILD-01: Wall Tool composition
 
@@ -104,7 +138,7 @@ Angle and North. Wrapping and horizontal overflow retain readable widget minima.
 
 The Export tab is divided into three independently sized regions. Heading,
 path/browse, Type, separator and Digital/Architectural tabs stay above the scroll
-area. Canvas, Border, Grid, Line Weight, Measurements, Composite and Visibility
+area. Canvas, Border, Grid, Line Weight, Dimensions, Composite and Visibility
 scroll together in that order. The 48 px Export action stays below the sidebar
 splitter, outside this scroll area, with margins 14/8/14/14 and 28 px artwork.
 Object Properties is hidden while Export is active. Returning to another tab
@@ -139,12 +173,12 @@ forcing an input below the shared widget contract.
 
 | Section | Internal composition and dependent states |
 | --- | --- |
-| Canvas | Content-sized right-aligned labels, 8 px horizontal and 12 px vertical gaps. Theme, Background, Walls, Lines, then centered Solid Objects checkbox. Color rows contain an expanding swatch button, 8 px gap and 32 px reset. Theme inheritance and explicit color overrides are distinct states. |
+| Canvas | Content-sized right-aligned labels, 8 px horizontal and 12 px vertical gaps. Theme, Background, Walls, Lines, then a Solid Objects caption with its checkbox in the right-hand field column. Color rows contain an expanding swatch button, 8 px gap and 32 px reset. Theme inheritance and explicit color overrides are distinct states. |
 | Border | Full-width style dropdown without a redundant label, then Color and Border Size. Size caption sits above slider plus 72 px number field. Range 1–128, initial 28, expressed in output pixels/SVG units. None disables color/size dependents. |
-| Grid | Centered Show Grid checkbox, Color row, then caption-above-control amount rows. Each row is expanding slider, 80 px number, 34 px reset with 8 px gaps. Overall intensity is 0–2, others 0–1, three decimals. An extra 8 px separates Overall from Major/Minor/Origin. Show Grid off disables dependent groups. |
+| Grid | Show Grid caption with a right-hand checkbox, Color row, then caption-above-control amount rows. Each row is expanding slider, 80 px number, 34 px reset with 8 px gaps. Overall intensity is 0–2, others 0–1, three decimals. An extra 8 px separates Overall from Major/Minor/Origin. Show Grid off disables dependent groups. |
 | Line Weight | Caption-above-control rows for Base width, Walls, Architectural objects, Furnishings and Dimensions. Slider, number, reset with 8 px gaps. Base width is 1–4 px with 104 px field; other fields are 0–2 multipliers with 88 px fields. Resets are 34 px. |
-| Measurements | Units label and expanding 32 px dropdown separated by 16 px, followed by the expanded measurement checkbox tree. Master plus Walls/Stairs/Counters/Railings/Elevators, 24 px indentation, no row selection or collapsible branches. The tree fits all rows. |
-| Composite | Shared centered Vignette and Texture subheadings. Centered Enable Vignette, then Strength caption and slider/80 px field/32 px reset. Texture dropdown follows its heading, then Scale, Angle, Strength, Highlights, Midtones, Shadows. Captions sit 4 px above rows, row gaps are 8 px. Texture None disables all amount groups, stretch textures also disable Scale. Vignette off disables Strength. |
+| Dimensions | Units label and expanding 32 px dropdown separated by 16 px, then a centered Measure heading and checkbox tree. Draw dimensions is the collapsible, initially expanded root with Walls/Stairs/Counters/Railings children. Rows are 32 px with 24 px indentation and no selection highlight; height fits 160 px expanded or 32 px collapsed. A centered Walls heading follows, then Mode and the conditionally visible Wall reference dropdown in one aligned form. Wall reference appears only for Exterior stacked. Wall controls and heading disable when export wall dimensions are off. No precision or split selectors are provided here. |
+| Composite | Shared centered Vignette and Texture subheadings. Enable Vignette caption with a right-hand checkbox, then Strength caption and slider/80 px field/32 px reset. Texture dropdown follows its heading, then Scale, Angle, Strength, Highlights, Midtones, Shadows. Captions sit 4 px above rows, row gaps are 8 px. Texture None disables all amount groups, stretch textures also disable Scale. Vignette off disables Strength. |
 | Visibility | Expanded scene checkbox hierarchy cloned from World, without reference-image controls. No selection highlight, 24 px indentation, height fitted to all rows. Preserve tree scroll position when rebuilding. |
 
 Slider and number fields stay synchronized. Resets use the relevant factory or
@@ -192,7 +226,7 @@ furnishings, pillars and fireplaces, off for control-point geometry. See SIZE-01
 | Selected control point | A Point group follows after 12 px space. Group margins 10/18/10/10. One Position label precedes paired X/Y, with 6 px gap. Chamfer appears only for eligible two-ray wall/counter/stair junctions with an actual moving cut. |
 | Stair / railing sizing | Autosize checkbox, then Step count/Tread depth for stairs or Post Count/Segment Width for railings. Each row stacks a selectable calculated readout and its manual editor. Manual editors appear only when all selected objects have Autosize off; mixed modes use readouts and a partial checkbox. Stair Direction is a square icon button whose redo/undo artwork follows direction state. |
 | Label | Text, Position, Size, Point size, then a full-width opacity row. Text editor is 80–110 px high and Tab advances focus. Size has two equally stretched fields and no link button: either dimension always resizes proportionally. Opacity uses the 24 px opacity.svg icon instead of an Intensity caption, an expanding 0–100 slider and a 0.00–1.00 readout, with 10 px gaps. The row is at least the normal property-row height. Form row spacing is 8 px. |
-| Arrow | Length, Solid tip checkbox, Tip size, Tail thickness, then the same full-width opacity icon/slider/readout row as labels and reference image settings. Retain the arrow's 0.00–1.00 readout. The row is at least the normal property-row height, and form rows have explicit 8 px spacing. Endpoint coordinates use the shared Point group. |
+| Arrow | Length, Direction icon button, Solid tip checkbox, Tip size, Tail thickness, then the same full-width opacity icon/slider/readout row as labels and reference image settings. Direction alternates Redo/Undo artwork with its persisted flip state, including undo/redo. Retain the arrow's 0.00–1.00 readout. The row is at least the normal property-row height, and form rows have explicit 8 px spacing. Endpoint coordinates use the shared Point group. |
 | Measurement guide | Only Length from the arrow form, plus the applicable Point group. Arrow appearance rows do not remain visible as disabled controls. |
 | Angle guide | Position for the middle anchor, then Angle. Angle is 0–180°; undefined angles disable the field and show Undefined, differing values show (different). Endpoint coordinates use the shared Point group. See GUIDE-01. |
 
@@ -202,6 +236,16 @@ the wall uses flip_h, across the wall uses flip_v, measurement side uses the
 measurement icon. Labels and availability vary with hinge, slide, pocket and
 facing support. Measurement-side controls also depend on measurement visibility
 and facing-side split mode. Do not show every action for every opening.
+
+Room Label reuses the Label form and its existing dimensions, spacing, numeric
+controls, position/pivot behavior and opacity row. Its text editor row is labelled
+Name and uses a single-line QLineEdit in a standard-height row. Ordinary labels
+retain their multiline text editor. A selectable, read-only Area value
+and Units dropdown follow it before Position and Size. Units defaults to Project.
+Both rows are hidden for ordinary labels, whose multiline editor remains labelled Text.
+All property rows use the same polished control height and 8 px vertical gaps.
+Opening facing/measurement controls continue directly after the window-well rows.
+Mixed room-label selections display (different) when their calculated areas differ.
 
 Property fields use the arrowless draggable numeric control (NUM-01), current
 project units, suffixes and deferred typed commits. Scrubbing groups a gesture
@@ -214,7 +258,7 @@ editable common form. The exact property inventory is in the object matrix.
 
 Entering reference editing changes the outer heading to Reference Image with
 image.svg artwork. There is no duplicate reference title inside the scroller.
-The panel uses a zero-margin vertical layout with 12 px spacing, in this order:
+The panel uses a zero-margin vertical layout with 8 px spacing, in this order:
 
 1. Expanding path field and fixed 44 × 32 folder button, 26 px artwork, 6 px gap.
 2. Opacity icon (24 px), expanding amount slider and percentage readout. There

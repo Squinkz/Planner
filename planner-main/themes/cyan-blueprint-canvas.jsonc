@@ -5,6 +5,7 @@
     "extends": "Light Canvas",
     "colors": {
         "canvas": "#e7f6f7",
+        "roomFill": "#dceced", // Background inside detected rooms in the editor.
         "grid": "#5b939e",
         "objectOutline": "#164755",
         "wallOutline": "#235d69",

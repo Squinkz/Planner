@@ -36,6 +36,7 @@ def Main():
     v = DrawingViewport()
     v.resize(1800, 1200)
     v.zoom = 2
+    v.wallMeasurementMode = "All"  # Exercise full selected dimensions, including interior/contained walls.
     point = QtCore.QPointF
     host = Wall(point(-1000, 0), point(1000, 0), 240)
     fixtures = [(Wall(point(-500, 0), point(500, 0)), 2),

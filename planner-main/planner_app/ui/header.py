@@ -143,14 +143,10 @@ class HeaderMixin:
         self.viewMenu.setObjectName("viewportContextMenu")
         self.viewMenu.setSeparatorsCollapsible(False)
         self.viewOptions = {}
-        for item in (("showGrid", "Show grid", "G"), None,
+        for item in (("showGrid", "Draw Grid", "G"), None,
                      ("referenceImage", "Reference Image", "B"), None,
-                     ("showMeasurements", "Toggle measurements", "M"),
-                     ("walls", "Show wall measurements", ""),
-                     ("stairs", "Show stair measurements", ""),
-                     ("counters", "Show counter measurements", ""),
-                     ("elevators", "Show elevator measurements", ""),
-                     ("railings", "Show railing measurements", ""), None,
+                     ("showMeasurements", "Toggle dimensions", "M"),
+                     None,
                      ("viewportOnlyMode", "Maximize", "F"), None,
                      ("showTips", "Show tips", ""),
                      ("showFpsCounter", "Show FPS counter", "")):
@@ -286,11 +282,11 @@ class HeaderMixin:
             showMeasurements = view["showMeasurements"] if view is not None else self.viewport.showMeasurements
             measurements = view["measurementVisibility"] if view is not None else self.viewport.measurementVisibility
             enabled = (bool(self.referenceImage.state and self.referenceImage.state["visible"]) if option == "referenceImage" else
-                       showMeasurements if option == "showMeasurements" else
+                       showMeasurements and any(measurements.values()) if option == "showMeasurements" else
                        (showMeasurements and measurements[option] if view is not None else measurements[option]) if option in measurements
                        else view[option] if view is not None and option in view else getattr(self.viewport, option))
             if option == "showMeasurements":
-                label = "Show all measurements" if view is not None else "Toggle measurements"
+                label = "Toggle dimensions"
                 button.textLabel.setText(label)
                 button.setAccessibleName(label)
             if (view is not None and option == "showMeasurements" and enabled
@@ -341,6 +337,10 @@ class HeaderMixin:
                 self.viewport.showMeasurements = True
             elif not any(self.viewport.measurementVisibility.values()):
                 self.viewport.showMeasurements = False
+        elif option == "showMeasurements":
+            self.viewport.showMeasurements = not (self.viewport.showMeasurements and any(self.viewport.measurementVisibility.values()))
+            if self.viewport.showMeasurements and not any(self.viewport.measurementVisibility.values()):
+                self.viewport.measurementVisibility["walls"] = True
         elif option == "showFpsCounter":
             self.viewport.SetFpsCounterVisible(not self.viewport.showFpsCounter)
         else:

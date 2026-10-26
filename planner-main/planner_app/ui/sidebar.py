@@ -7,7 +7,7 @@ from planner_app.graphics.palette import themeColors
 from planner_app.graphics.icons import UiIcon, UiIconPath, GroupModeIcon
 from planner_app.furnishing_search import FindFurnishings, FurnishingDimensionText, SortFurnishings
 from planner_app.graphics.theme import HeaderIcon, MaterialIcon, wallMaterials
-from planner_app.models import OpenDoorway, Door, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, Window, SilledWindow, CasementWindow, MeasurementGuide, BoundaryLine, Arrow, Counter, Railing, Stair, Pillar, Column, Label, NorthArrow, Fireplace
+from planner_app.models import OpenDoorway, Door, SwingingDoor, DoubleDoor, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, MeasurementGuide, BoundaryLine, DashedLine, SolidLine, Arrow, Counter, Railing, Stair, Pillar, Column, Label, NorthArrow, Fireplace
 from planner_app.ui.menus import AddMenuButton
 from planner_app.ui.export_panel import ExportPanel
 from planner_app.ui.furnishing_list import FurnishingCatalogList
@@ -169,9 +169,9 @@ class SidebarMixin:
         self.visibilityTree.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
         self.visibilityItems = {}
         for name, parentName in (("World", None), ("Walls", "World"), ("Doors", "Walls"),
-                                 ("Windows", "Walls"), ("Fireplaces", "Walls"), ("Elevators", "World"), ("Stairs", "World"), ("Counters", "World"), ("Railings", "World"), ("Furnishings", "World"), ("Labels", "World"), ("Arrows", "World"), ("Measurement guides", "World"), ("Boundary lines", "World"), ("North arrows", "World")):
+                                 ("Windows", "Walls"), ("Fireplaces", "Walls"), ("Elevators", "World"), ("Stairs", "World"), ("Counters", "World"), ("Railings", "World"), ("Furnishings", "World"), ("Labels", "World"), ("Arrows", "World"), ("Measurement guides", "World"), ("Boundary lines", "World"), ("Dashed lines", "World"), ("Solid lines", "World"), ("North arrows", "World")):
             parent = self.visibilityItems[parentName] if parentName else self.visibilityTree
-            item = QtWidgets.QTreeWidgetItem(parent, [name])
+            item = QtWidgets.QTreeWidgetItem(parent, ["Dimension guides" if name == "Measurement guides" else name])
             item.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled | QtCore.Qt.ItemFlag.ItemIsUserCheckable)
             item.setCheckState(0, QtCore.Qt.CheckState.Checked)
             self.visibilityItems[name] = item
@@ -198,21 +198,22 @@ class SidebarMixin:
     def RefreshVisibilityCounts(self):
         stairs = sum(isinstance(obj, Stair) for obj in self.viewport.walls)
         guides = sum(isinstance(obj, MeasurementGuide) for obj in self.viewport.walls)
-        boundaries = sum(isinstance(obj, BoundaryLine) for obj in self.viewport.walls)
+        boundaries = sum(type(obj) is BoundaryLine for obj in self.viewport.walls)
         arrows = sum(isinstance(obj, Arrow) for obj in self.viewport.walls)
         railings = sum(isinstance(obj, Railing) for obj in self.viewport.walls)
         counters = sum(isinstance(obj, Counter) for obj in self.viewport.walls)
-        doors = sum(isinstance(obj, (Door, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway)) for obj in self.viewport.windows)
+        doors = sum(isinstance(obj, (Door, SwingingDoor, DoubleDoor, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway)) for obj in self.viewport.windows)
         counts = {"World": len(self.viewport.walls) + len(self.viewport.windows) + len(self.viewport.furnishings) + len(self.viewport.labels),
                   "Walls": len(self.viewport.walls) - sum(isinstance(obj, Elevator) for obj in self.viewport.walls) - stairs - counters - arrows - guides - railings, "Stairs": stairs, "Counters": counters, "Railings": railings,
                   "Doors": doors, "Windows": len(self.viewport.windows) - doors - sum(isinstance(obj, Fireplace) for obj in self.viewport.windows),
                   "Elevators": sum(isinstance(obj, Elevator) for obj in self.viewport.walls),
                   "Fireplaces": sum(isinstance(obj, Fireplace) for obj in self.viewport.windows),
                   "North arrows": sum(isinstance(obj, NorthArrow) for obj in self.viewport.furnishings),
-                  "Furnishings": sum(not isinstance(obj, NorthArrow) for obj in self.viewport.furnishings), "Labels": len(self.viewport.labels), "Arrows": arrows, "Measurement guides": guides - boundaries, "Boundary lines": boundaries}
+                  "Furnishings": sum(not isinstance(obj, NorthArrow) for obj in self.viewport.furnishings), "Labels": len(self.viewport.labels), "Arrows": arrows, "Measurement guides": guides - sum(isinstance(obj, BoundaryLine) for obj in self.viewport.walls), "Boundary lines": boundaries, "Dashed lines": sum(type(obj) is DashedLine for obj in self.viewport.walls), "Solid lines": sum(type(obj) is SolidLine for obj in self.viewport.walls)}
         blocker = QtCore.QSignalBlocker(self.visibilityTree)
         for name, count in counts.items():
-            label = f"{name} ({count} {'object' if count == 1 else 'objects'})"
+            displayName = "Dimension guides" if name == "Measurement guides" else name
+            label = f"{displayName} ({count} {'object' if count == 1 else 'objects'})"
             if self.visibilityItems[name].text(0) != label:
                 self.visibilityItems[name].setText(0, label)
             node = self.visibilityItems[name]
@@ -483,6 +484,8 @@ class SidebarMixin:
         toolsLayout.addWidget(SectionHeading("Objects", "Objects"))
         toolsLayout.addSpacing(8)
         self.doorButton = WindowButton(objectType = "door")
+        self.swingingDoorButton = WindowButton(objectType = "swinging-door")
+        self.doubleDoorButton = WindowButton(objectType = "double-door")
         self.slidingDoorButton = WindowButton(objectType = "sliding-door")
         self.pocketDoorButton = WindowButton(objectType = "pocket-door")
         self.barnDoorButton = WindowButton(objectType = "barn-door")
@@ -491,6 +494,8 @@ class SidebarMixin:
         self.windowButton = WindowButton()
         self.silledWindowButton = WindowButton(objectType = "silled-window")
         self.casementWindowButton = WindowButton(objectType = "casement-window")
+        self.awningWindowButton = WindowButton(objectType = "awning-window")
+        self.doubleCasementWindowButton = WindowButton(objectType = "double-casement-window")
         self.stairButton = WindowButton(objectType = "stair")
         self.otherButton = self.stairButton
         self.counterButton = WindowButton(objectType = "counter")
@@ -501,19 +506,23 @@ class SidebarMixin:
         self.fireplaceButton = WindowButton(objectType = "fireplace")
         self.northArrowButton = WindowButton(objectType = "north-arrow")
         self.labelButton = WindowButton(objectType = "label")
+        self.roomLabelButton = WindowButton(objectType = "room-label")
         self.arrowButton = WindowButton(objectType = "arrow")
         self.measurementGuideButton = WindowButton(objectType = "measurement-guide")
         self.boundaryLineButton = WindowButton(objectType = "boundary-line")
+        self.dashedLineButton = WindowButton(objectType = "dashed-line")
+        self.solidLineButton = WindowButton(objectType = "solid-line")
         self.angleGuideButton = WindowButton(objectType = "angle-guide")
         self.angleGuideButton.setAccessibleName("Angle Guide")
         self.angleGuideButton.setToolTip("Drag an Angle Guide onto the canvas. Move its middle point to carry both arms.")
-        categories = (("Doors", ((self.doorButton, "Standard"), (self.slidingDoorButton, "Sliding"),
+        categories = (("Doors", ((self.doorButton, "Standard"), (self.doubleDoorButton, "Double"), (self.swingingDoorButton, "Swinging"), (self.slidingDoorButton, "Sliding"),
                                   (self.pocketDoorButton, "Pocket"), (self.barnDoorButton, "Barn"),
                                   (self.bifoldDoorButton, "Bifold"), (self.openDoorwayButton, "Open"))),
                       ("Windows", ((self.windowButton, "Standard"), (self.silledWindowButton, "Silled"),
-                                    (self.casementWindowButton, "Casement"))),
+                                    (self.casementWindowButton, "Casement"), (self.awningWindowButton, "Awning"),
+                                    (self.doubleCasementWindowButton, "Double Casement"))),
                       ("Miscellaneous", ((self.stairButton, "Stair"), (self.counterButton, "Counter"), (self.railingButton, "Railing"), (self.pillarButton, "Pillar"), (self.columnButton, "Column"), (self.fireplaceButton, "Fireplace"), (self.elevatorButton, "Elevator"))),
-                      ("Annotations", ((self.labelButton, "Label"), (self.arrowButton, "Arrow"), (self.measurementGuideButton, "Measure"), (self.boundaryLineButton, "Boundary"), (self.angleGuideButton, "Angle"), (self.northArrowButton, "North"))))
+                      ("Annotations", ((self.labelButton, "Label"), (self.roomLabelButton, "Room Label"), (self.arrowButton, "Arrow"), (self.measurementGuideButton, "Measure"), (self.boundaryLineButton, "Boundary"), (self.dashedLineButton, "Dashed Line"), (self.solidLineButton, "Solid Line"), (self.angleGuideButton, "Angle"), (self.northArrowButton, "North"))))
         self.buildObjectLayouts = {}
         for category, buttons in categories:
             heading = QtWidgets.QLabel(category)
@@ -531,6 +540,7 @@ class SidebarMixin:
                 captionLabel = QtWidgets.QLabel(caption)
                 captionLabel.setObjectName("openingIconCaption")
                 captionLabel.setFixedWidth(64)
+                captionLabel.setWordWrap(True)
                 captionLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
                 iconLayout.addWidget(captionLabel)
                 grid.addWidget(iconWidget)
@@ -543,9 +553,10 @@ class SidebarMixin:
         self.buildScrollArea.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.buildScrollArea.setWidget(toolsPage)
         self.sidebarTabs.addTab(self.buildScrollArea, HeaderIcon("Construction"), "Build")
-        self.openingToolButtons = {Door: self.doorButton, SlidingDoor: self.slidingDoorButton,
+        self.openingToolButtons = {Door: self.doorButton, DoubleDoor: self.doubleDoorButton, SwingingDoor: self.swingingDoorButton, SlidingDoor: self.slidingDoorButton,
                                    PocketDoor: self.pocketDoorButton, BarnDoor: self.barnDoorButton, BifoldDoor: self.bifoldDoorButton, OpenDoorway: self.openDoorwayButton, Window: self.windowButton,
-                                   SilledWindow: self.silledWindowButton, CasementWindow: self.casementWindowButton}
+                                   SilledWindow: self.silledWindowButton, CasementWindow: self.casementWindowButton,
+                                   AwningWindow: self.awningWindowButton, DoubleCasementWindow: self.doubleCasementWindowButton}
 
     def BuildFurnishTab(self, refresh = False):
         searchText = self.furnishingSearchField.text() if refresh else ""

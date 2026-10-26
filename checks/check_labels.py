@@ -45,10 +45,10 @@ def Main():
     label = v.labels[0]
     assert QtCore.QLineF(label.origin, origin).length() < .001
     assert main.labelProperties.isVisible() and not main.wallProperties.isVisible()
-    assert main.labelProperties.layout().rowCount() == 5
+    assert main.labelProperties.layout().rowCount() == 8
     assert label.objectId is not None and main.selectionLabel.text() == f"Label (#{label.objectId:04d})"
     assert label.Font().pointSize() == 18 and label.intensity == 1
-    assert abs(label.pointSize - 16) < 1e-6
+    assert abs(label.pointSize - 32) < 1e-6
     assert not main.labelFields["pointSize"].toolTip()
     historyCount = len(v.undoHistory)
     main.labelIntensitySlider.sliderPressed.emit()

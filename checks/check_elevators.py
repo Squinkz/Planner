@@ -1,5 +1,6 @@
 """Elevators use architectural rendering and collisions with furnishing-style editing."""
 import os
+import copy
 import sys
 from pathlib import Path
 
@@ -9,6 +10,7 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from planner import MainWindow, Elevator, Wall, Counter, Railing
 from planner_app.models import Furnishing
 from planner_app.project_codec import DecodeProject
+from planner_app.project_recovery import RecoverProject
 from planner_app.graphics.svg_preview import SvgPreviewRenderer
 
 
@@ -82,17 +84,26 @@ def Main():
     v.walls, v.furnishings = [elevator], []
     v.SetSelection([])
     v.showMeasurements = True
-    v.measurementVisibility["elevators"] = True
+    assert "elevators" not in v.measurementVisibility
     v.grab()
     assert id(elevator) not in v.wallMaterialPaths
-    assert any(elevator in owners for first, second, owners in v.sceneMeasurements[1])
+    assert not any(elevator in owners for first, second, owners in v.sceneMeasurements[1])
     assert any(key[2] == v.lineWidths["architectural"] for key in v.elevatorRenderers)
-    v.measurementVisibility["elevators"] = False
     v.grab()
     assert not any(elevator in owners for first, second, owners in v.sceneMeasurements[1])
     v.SetSelection([(elevator, None)])
     v.grab()
-    assert any(elevator in owners for first, second, owners in v.sceneMeasurements[1])
+    assert not any(elevator in owners for first, second, owners in v.sceneMeasurements[1])
+    measuredWall = Wall(point(4000, 0), point(6000, 0), 200)
+    v.walls = [elevator, measuredWall]
+    v.objectGroups = [(elevator, measuredWall)]
+    v.SetSelection([(elevator, None), (measuredWall, None)])
+    v.grab()
+    assert not any(elevator in owners for first, second, owners in v.sceneMeasurements[1])
+    assert any(measuredWall in owners for first, second, owners in v.sceneMeasurements[1])
+    v.objectGroups = []
+    v.walls = [elevator]
+    v.SetSelection([(elevator, None)])
     v.visibility["Elevators"] = False
     assert not v.IsObjectVisible(elevator)
     v.visibility["Elevators"] = True
@@ -105,6 +116,12 @@ def Main():
     v.Redo()
     assert len(v.walls) == 2 and all(type(obj) is Elevator for obj in v.walls)
     data = main.BuildProjectData()
+    legacy = copy.deepcopy(data)
+    legacy["settings"]["measurementVisibility"]["elevators"] = True
+    legacy["settings"]["exportSettings"] = {"measurementVisibility": {"elevators": True}}
+    recovered, repairs = RecoverProject(legacy, v.furnishingDefinitions, main.defaultProjectData)
+    assert not repairs and "elevators" not in recovered[5]["measurementVisibility"]
+    assert "measurementVisibility" not in recovered[5]["exportSettings"]
     decoded = DecodeProject(data, v.furnishingDefinitions)
     assert all(type(obj) is Elevator for obj in decoded[0])
     main.ApplyProject(decoded, None)
@@ -113,7 +130,7 @@ def Main():
     assert not image.isNull() and SvgPreviewRenderer(main.exportPanel.Render("svg")).isValid()
     main.close()
     app.clipboard().clear()
-    print("PASS: elevator placement, editing, architectural rendering/collisions, measurements, persistence and export")
+    print("PASS: elevator editing/rendering, no ambient/selected dimensions, legacy flags, persistence and export")
 
 
 if __name__ == "__main__":

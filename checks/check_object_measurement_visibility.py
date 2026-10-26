@@ -25,13 +25,13 @@ def Main():
     v.walls, v.windows, v.labels, v.furnishings = [wall], [door], [], []
     v.snapEnabled = False
     v.showMeasurements = True
-    assert OpenMenu(v, point(-1500, 0))[:4] == ["Subdivide Wall", "Material", "Hide measurement", None]
-    Click(v, "Hide measurement")
+    assert OpenMenu(v, point(-1500, 0))[:6] == ["Subdivide Wall", "Material", "Flip Horizontal", "Flip Vertical", "Hide dimensions", None]
+    Click(v, "Hide dimensions")
     assert wall.measurementHidden and not door.measurementHidden
     v.SetSelection([])
     v.grab()
     assert not any(wall in owners for first, second, owners in v.sceneMeasurements[1])
-    assert OpenMenu(v, point(-1500, 0))[:4] == ["Subdivide Wall", "Material", "Show measurement", None]
+    assert OpenMenu(v, point(-1500, 0))[:6] == ["Subdivide Wall", "Material", "Flip Horizontal", "Flip Vertical", "Show dimensions", None]
     v.objectContextMenu.hide()
     v.Undo()
     assert not wall.measurementHidden
@@ -47,8 +47,8 @@ def Main():
     # Selection dimensions stay visible despite the regular measurement override.
     door = v.windows[0]
     menu = OpenMenu(v, (door.firstVertex + door.secondVertex) / 2)
-    assert menu[menu.index("Flip Measurement") + 1:][:2] == ["Hide measurement", None]
-    Click(v, "Hide measurement")
+    assert menu[menu.index("Flip Dimension") + 1:][:4] == ["Flip Horizontal", "Flip Vertical", "Hide dimensions", None]
+    Click(v, "Hide dimensions")
     v.grab()
     assert any(door in owners for first, second, owners in v.sceneMeasurements[1])
     v.SetSelection([])
@@ -59,7 +59,7 @@ def Main():
     shownImage = RenderPlan("measurement.plan", 80, (-3000, -2000, 6000, 4000), projectData = main.BuildProjectData(), applyTheme = False)
     assert hiddenImage != shownImage
     v.showMeasurements = False
-    assert "Hide measurement" not in OpenMenu(v, point(-1500, 0))
+    assert "Hide dimensions" not in OpenMenu(v, point(-1500, 0))
     v.objectContextMenu.hide()
     v.showMeasurements = True
     # All capture categories, including furniture and text, support saved undo.

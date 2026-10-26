@@ -9,6 +9,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "planner-main"))
 from PySide6 import QtCore, QtWidgets
 from fixtures.parity_examples import ExampleWindow, InstallScene
 from planner_app.models import Wall
+from planner_app.project_codec import DecodeProject
+from planner_app.project_recovery import RecoverProject
 
 
 def Main():
@@ -65,6 +67,43 @@ def Main():
         main.sidebarTabs.setCurrentIndex(0)
         main.sidebarTabs.setCurrentWidget(panel)
         assert panel.OutputPath() == target / "finished.png"
+        # Destinations belong to the plan, including typed edits and session data.
+        main.sidebarTabs.setCurrentIndex(0)
+        assert main.SaveProject()
+        saved = main.BuildProjectData(includeHistory = False)
+        assert saved["settings"]["exportFolder"] == str(target)
+        decoded, repairs = RecoverProject(saved, v.furnishingDefinitions, main.defaultProjectData)
+        assert not repairs, repairs
+        otherFolder = folder / "other project"
+        otherFolder.mkdir()
+        other = main.BuildProjectData(includeHistory = False)
+        other["settings"].pop("exportFolder")
+        # Old global preferences must not influence a new project's destination.
+        main.appPreferences["lastExportFolder"] = str(target)
+        main.ApplyProject(DecodeProject(other, v.furnishingDefinitions), otherFolder / "other.plan")
+        assert Path(panel.folderField.text()) == otherFolder and panel.exportFolder is None
+        assert main.SaveProject()
+        otherPath = main.projectPath
+        assert main.OpenProject(folder / "project.plan")
+        assert Path(panel.folderField.text()) == target
+        assert panel.fileNameField.text() == "finished.png"
+        typedFolder = folder / "typed output"
+        typedFolder.mkdir()
+        main.sidebarTabs.setCurrentWidget(panel)
+        panel.folderField.setText(str(typedFolder))
+        panel.folderField.editingFinished.emit()
+        assert main.ProjectSettings()["exportFolder"] == str(typedFolder)
+        v.Undo()
+        assert panel.exportFolder == str(target)
+        v.Redo()
+        assert panel.exportFolder == str(typedFolder)
+        main.sidebarTabs.setCurrentIndex(0)
+        assert main.SaveProject()
+        assert main.OpenProject(otherPath)
+        assert Path(panel.folderField.text()) == otherFolder
+        assert main.OpenProject(folder / "project.plan")
+        assert Path(panel.folderField.text()) == typedFolder
+        assert panel.fileNameField.text() == "finished.png"
     print("Export destinations: separate folder/name, native folder-only picker, extensions, undo/redo, cancellation and export passed")
 
 

@@ -62,6 +62,9 @@ def Main():
     point = QtCore.QPointF
     first = Label(point(-1200, -200), "Wide line\nshort", .4)
     second = Label(point(600, -500), "j\u0301 Åg\n\n世界", .75)
+    # Keep the original authored clipping specimen independent of placement defaults.
+    first.SetPointSize(16)
+    second.SetPointSize(16)
     second.angle = 31
     second.width *= .6
     viewport.labels = [first, second] + [Label(point(50000 + index * 1500, 50000), f"Offscreen {index}")

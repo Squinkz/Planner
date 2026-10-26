@@ -2,6 +2,7 @@
 import html
 from PySide6 import QtCore, QtGui, QtWidgets
 from planner_app.paths import appDirectory, assetsDirectory, fontsDirectory
+from planner_app.version import displayVersion
 from planner_app.graphics.icons import UiIcon
 from planner_app.graphics.palette import themeColors
 from planner_app.graphics.theme import HeaderIcon
@@ -126,7 +127,7 @@ class AboutDialog(QtWidgets.QDialog):
         self.logoLabel.setPixmap(QtGui.QIcon(str(assetsDirectory / "planner.svg")).pixmap(300, 300))
         layout.addWidget(self.logoLabel, 0, QtCore.Qt.AlignmentFlag.AlignCenter)
         layout.addSpacing(8)
-        versionLabel = QtWidgets.QLabel("Alpha 0.1.0")
+        versionLabel = QtWidgets.QLabel(displayVersion)
         versionLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         versionLabel.setTextInteractionFlags(QtCore.Qt.TextInteractionFlag.TextSelectableByMouse)
         layout.addWidget(versionLabel)

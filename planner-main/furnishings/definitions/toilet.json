@@ -1,8 +1,8 @@
 {
     "name": "Toilet",
     "image": "toilet",
-    "width": 450,
-    "length": 700,
+    "width": 400,
+    "length": 660,
     "category": "Bathroom",
     "keywords": [
         "toilet",

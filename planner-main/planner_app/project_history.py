@@ -2,7 +2,7 @@
 import json
 import math
 from types import SimpleNamespace
-from .models import MeasurementGuide, AngleGuide, Arrow, Railing, Stair, Fireplace, NorthArrow
+from .models import MeasurementGuide, AngleGuide, Arrow, Railing, Stair, Fireplace, NorthArrow, DashedLine
 from .object_schema import openingFields, openingClasses
 from .project_codec import EncodeObjectRecord, DecodeProject
 from .history_edits import ReferenceImageEdit
@@ -19,8 +19,12 @@ def EncodeEntry(category, entry, parentReference = None):
             values["middle"] = list(entry[10][:2])
         if isinstance(obj, MeasurementGuide):
             values["textOffset"] = list(entry[10][-2:])
+        if isinstance(obj, DashedLine):
+            values["weightClass"] = entry[10][0]
         if isinstance(obj, Arrow):
             values.update(solidTip = entry[10][0], tipSize = entry[10][1], intensity = entry[10][2])
+            if len(entry[10]) > 3 and entry[10][3]:
+                values["directionReversed"] = True
         if isinstance(obj, Railing):
             values.update(autosize = entry[9][0], manualPostCount = entry[9][1])
         if isinstance(obj, Stair):
@@ -28,6 +32,7 @@ def EncodeEntry(category, entry, parentReference = None):
     elif category == 3:
         fields = {"hingeAtSecond": entry[4], "swingsOutwards": entry[5], "panelsFlipped": entry[5],
                   "sillDepth": entry[6], "measurementFlipped": entry[7]}
+        fields.update(zip(("windowWell", "wellDepth", "wellDashed"), entry[9] if len(entry) > 9 else (False, 600.0, False)))
         if isinstance(obj, Fireplace):
             fields.update(depth = entry[6][0], depthOffset = entry[6][1], material = entry[6][2])
         values = {name: fields[name] for name in openingFields[type(obj)] if hasattr(obj, name)}
@@ -36,13 +41,15 @@ def EncodeEntry(category, entry, parentReference = None):
         values = {"first": [entry[1].x(), entry[1].y()], "second": [entry[2].x(), entry[2].y()], "width": entry[3]}
         if category == 8:
             values.update(text = entry[4], intensity = entry[5])
+            if hasattr(obj, "unitsOverride"):
+                values["unitsOverride"] = entry[6] if len(entry) > 7 else None
         elif category == 5 and type(obj).__name__ == "Furnishing":
             values["behindCounters"] = entry[4]
             values["flipHorizontal"] = entry[5]
             values["flipVertical"] = entry[6]
         elif category == 5 and isinstance(obj, NorthArrow):
             values["intensity"] = entry[7] if len(entry) > 8 else 1.0
-    values["measurementHidden"] = entry[-1]
+    values["measurementHidden"] = entry[8] if category == 3 else entry[-1]
     return EncodeObjectRecord(obj, {}, values)
 
 

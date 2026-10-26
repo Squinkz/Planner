@@ -26,12 +26,12 @@ def Main():
     app.processEvents()
     main.ShowSettings()
     settings = main.settingsWindow
-    assert settings.tabs.tabText(0) == "Build" and settings.tabs.tabText(1) == "Measurements" and settings.tabs.tabText(2) == "Appearance"
+    assert settings.tabs.tabText(0) == "Build" and settings.tabs.tabText(1) == "Dimensions" and settings.tabs.tabText(2) == "Appearance"
     assert main.viewport.unitsMode == "Millimeters"
     assert [settings.sizeFields[index].value() for index in range(4)] == [100, 150, 200, 300]
     assert all(field.suffix() == " mm" for field in settings.sizeFields.values())
-    assert set(settings.buildResetButtons) == {0, 1, 2, 3, "Door", "SlidingDoor", "PocketDoor", "BarnDoor", "BifoldDoor",
-                                                "OpenDoorway", "Window", "SilledWindow", "CasementWindow", "Stair", "Counter",
+    assert set(settings.buildResetButtons) == {0, 1, 2, 3, "Door", "DoubleDoor", "SwingingDoor", "SlidingDoor", "PocketDoor", "BarnDoor", "BifoldDoor",
+                                                "OpenDoorway", "Window", "SilledWindow", "CasementWindow", "AwningWindow", "DoubleCasementWindow", "Stair", "Counter",
                                                 "Railing", "Pillar", "Column", "Fireplace", "Elevator"}
     assert [settings.buildTabs.tabText(index) for index in range(settings.buildTabs.count())] == ["General", "Walls", "Doors", "Windows", "Misc"]
     assert all(not button.isEnabled() for button in settings.buildResetButtons.values())
@@ -96,7 +96,7 @@ def Main():
     del data["settings"]["buildSettings"]["miscSizes"]
     assert DecodeProject(data, v.furnishingDefinitions)[5]["buildSettings"]["miscSizes"] == miscDefaultSizes
     for key, field in settings.sizeFields.items():
-        if key in ("BarnDoor", "BifoldDoor", "CasementWindow"):
+        if key in ("BarnDoor", "BifoldDoor", "CasementWindow", "AwningWindow", "DoubleCasementWindow", "SwingingDoor", "DoubleDoor"):
             field.setValue(1000)
         value = field.value()
         assert settings.buildResetButtons[key].isEnabled()

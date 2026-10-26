@@ -1,9 +1,0 @@
-<svg stroke-width="1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 75 170" preserveAspectRatio="none" vector-effect="non-scaling-stroke">
-  <title>Bath</title>
-  <g fill="#ffffff" stroke="#000000" stroke-width="1" stroke-linejoin="round" vector-effect="non-scaling-stroke">
-    <rect style="stroke-width:1;vector-effect:non-scaling-stroke" stroke-width="1" x="0" y="0" width="75" height="170" rx="4" vector-effect="non-scaling-stroke"/>
-    <path style="stroke-width:1;vector-effect:non-scaling-stroke" stroke-width="1" d="M23 14 H52 Q65 14 65 30 V137 Q65 159 37.5 159 Q10 159 10 137 V30 Q10 14 23 14 Z" vector-effect="non-scaling-stroke"/>
-    <circle style="stroke-width:1;vector-effect:non-scaling-stroke" stroke-width="1" cx="37.5" cy="34" r="3" vector-effect="non-scaling-stroke"/>
-    <path style="stroke-width:1;vector-effect:non-scaling-stroke" stroke-width="1" d="M37.5 0 V19 M31.5 19 H43.5" fill="none" vector-effect="non-scaling-stroke"/>
-  </g>
-</svg>

@@ -29,7 +29,10 @@
         "length": 600.0000000000002,
         "hingeAtSecond": false,
         "swingsOutwards": false,
-        "measurementFlipped": false
+        "measurementFlipped": false,
+        "windowWell": false,
+        "wellDepth": 600.0,
+        "wellDashed": false
       }
     ],
     "groups": [],

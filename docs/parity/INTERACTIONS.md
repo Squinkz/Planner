@@ -194,9 +194,26 @@ points and the one-use units are not persisted.
 ## HOVER-01: picking, handles and cursors
 
 Hover does not change selection or create an undo edit. Selection and overlap
-priority matter: an already selected object wins overlap hits; exposed parts
+priority matter: an already selected object wins overlapping body hits; exposed parts
 of other objects remain selectable, and hidden objects are not pick targets.
 Do not let a nearby unselected furnishing handle steal a hit on a selected object.
+Eligible control points are tested before boundary, dashed and solid line bodies,
+so a line crossing a visible vertex cannot intercept its click or drag. Away from
+control points, these lines remain selectable inside walls, even selected walls.
+Hidden objects and wall endpoints concealed beneath an unselected pillar retain
+their existing picking exclusions. Coverage: `check_line_vertex_priority.py`.
+
+Hover highlighting, cursor selection, left presses, double-click actions and
+context menus share the resolved interaction target. Furnishing resize/rotation/
+pivot handles take precedence over underlying control points and label bodies;
+those underlying objects must not acquire the active hover highlight. Selected
+handles paint after unselected handles, matching their hit order. Unselected
+handles blocked by a selected body stay hidden. Whole-object multi-selections
+resolve endpoint hits to the group move, while explicitly selected vertices keep
+their vertex drag. Reference editing and calibration remain exclusive modes,
+using their own shared hover/click handle tests.
+Coverage: `check_hover_click_targets.py`, `check_selected_hit_priority.py`,
+`check_canvas_cursors.py`, `check_reference_image.py`, `check_reference_calibration.py`.
 
 Furnishing-style handles appear for selected or hovered objects and when the
 pointer approaches their handles. The current visibility broad phase uses
@@ -251,6 +268,42 @@ include their openings. Connected Objects recursively carries physical connected
 objects, including colliding furnishings; Connected Points follows eligible
 endpoints. These are separate options. Duplicating does not pull connected
 unselected neighbors. Whole-object moves offer control points as snap anchors.
+
+Shift-dragging an arrow or stair endpoint extrudes a new segment with the same
+endpoint orientation as its source. Extending endpoint 0 drags the new endpoint
+0, leaving endpoint 1 at the junction; extending endpoint 1 does the reverse.
+Arrow tips continue along the directed chain. Stairs retain directionReversed,
+including when extending the back of a reversed flight. Appearance and sizing
+settings are copied. Releasing Shift or cancelling restores the normal captured
+gesture state; committing extrusion is one undoable edit.
+
+Arrow Properties and its context menu offer Flip Direction. This exchanges the
+two endpoints and their chamfers without changing shape or style. Selected
+endpoint indices follow their physical point. Multiple selected arrows reverse
+together in one edit, and save/load, duplication and exports retain the direction
+through the existing endpoint geometry. Measurement and boundary line tools do
+not show this arrow-only control. Coverage: `check_arrow_direction.py`.
+
+Flip Horizontal and Flip Vertical are generic context actions for single or mixed
+selections. In Global mode they reflect X or Y respectively around the combined
+axis-aligned footprint's center. Every selected control point uses that same
+reflection, preserving junctions within the selection. Groups and hidden state
+are retained; connections outside the selection are not expanded implicitly.
+
+Local mode uses each object's own center and axes. Furnishing artwork flips
+around its own local axis without moving its center or changing its angle.
+Global furnishing flips also reflect the center and orientation; existing
+artwork flags encode the mirror with positive width and length. Both property
+buttons and context actions use the complete selection. Labels follow the
+reflection while keeping their glyphs readable. Guide label offsets reflect as
+vectors, and all three angle-guide points reflect together.
+
+Wall children follow a reflected parent exactly once even when both are
+selected. Hinge, facing/panel side and fireplace offset are rebased to preserve
+the mirrored symbol. An independently selected attachment must still fit its
+parent wall. Invalid placement rolls the whole action back and creates no undo
+entry. A successful reflection is one undoable edit and survives save/reopen.
+Coverage: `check_selection_flips.py`, `check_furnishing_flips.py`.
 
 Whole doors/windows selected on one stationary wall can transfer together to
 another wall during a body drag. Use the grabbed opening as the placement anchor,
@@ -326,6 +379,90 @@ Middle-drag pans; wheel zooms about the pointer. Double-click empty drawing
 canvas resets its camera; export uses its own reset described below. Opening
 placement, polygon creation and constrained-control point gestures can consume the wheel
 for their own adjustments. Preserve those exceptions from the shortcut guide.
+
+The editor fills detected structural wall enclosures with the canvas theme's
+required `roomFill` color. It is independent of `canvas`, with no generated fallback.
+Room geometry and areas remain derived, with no saved region objects or geometry.
+Door/window openings do not break enclosures. The visible wall boundary includes
+walls, pillars, columns and current wall/polygon previews, matching exterior
+measurements. Other object classes do not create enclosures. Open floor paths
+remain undimmed. Regions use the wall renderer's actual
+junctions, crossings, thicknesses and chamfers. Nested wall islands remain excluded.
+The fill is below the reference image and grid. Grid opacity and rulers remain
+unchanged, and room shading remains visible when the grid is hidden.
+Exports and export previews retain their configured canvas appearance.
+
+Room detection reads structural-geometry/topology/visibility revisions and wall
+preview values before the canvas background is painted. Changes update the tint
+in the same frame, including during drags and wall/polygon previews. It consumes
+the viewport's canonical wall geometry and retains one boundary classification
+for tint, room-label areas and exterior/stacked measurements. Furniture, opening
+and annotation motion do not rebuild room geometry. Unrelated collection changes
+may check the geometry key but skip classification when the walls match.
+Stable paints and camera changes reuse the world-space
+mask. A changed mask advances the background revision so scene, edit, reference
+focus and pan caches cannot retain the previous room shading. Coverage:
+`check_room_detection.py`, `check_live_room_tint.py` and the shared background/pan/cache checks.
+
+Wall measurement mode defaults to Exterior stacked for new projects. Older
+projects without a saved mode retain All. Exterior uses the same contour nesting
+classification as room detection and measures only the unbounded outer faces of
+visible wall geometry. Internal room faces and enclosed wall islands are omitted,
+including the fallback dimensions for selected interior walls. Concave outlines
+and separate buildings retain their actual boundaries. Opening splits remain in
+effect on exterior spans, and other measurement categories are unchanged.
+The mode is saved with the project/session and used by export previews, PNG/SVG
+output and command-line export. Exterior stacked uses at most three rows:
+opening spans nearest the wall, room divisions next, and overall length outermost.
+Wall reference is a project/session setting shared by editor, previews and PNG/SVG
+or command-line exports. Wall faces is the default, retaining exterior-face overall
+spans and splitting room divisions at both partition faces, including a separate
+wall-thickness span. Centerline references intersecting wall axes at chain endpoints
+and uses one division at each partition axis. Opening widths remain the actual
+opening widths in both modes. Face offsets account for partition angle.
+Room divisions are introduced only where a partition separates two detected
+rooms. Free wall stubs do not introduce room divisions.
+Touching or overlapping parallel walls can form a single partition assembly.
+Room probes must step beyond that assembly's complete cross-section. Wall faces
+uses its exposed faces, while Centerline uses the midpoint of those faces; do
+not introduce dimensions at the buried seams between its constituent walls.
+The inner chain includes both room and opening breaks. Omit redundant rows, leaving one row for an
+unbroken wall, two for room-only or opening-only chains, and three when both are
+needed. Rows start 20 px from the boundary, with 30 px between active tiers.
+Stair/counter split selectors do not cut stacked wall rows. Furnishings never
+interrupt architectural measurements, including stairs and counters. Architectural
+blockers still trim covered stair/counter spans.
+Splitting preferences are retained and restored when leaving stacked mode. In
+stacked mode, the split controls are hidden and disabled, replaced by the single
+Wall reference dropdown, which is disabled while wall dimensions are off.
+Both rows share visibility, selection colors and normal measurement formatting.
+Coverage: `check_exterior_measurements.py`, `check_stacked_measurements.py`,
+`check_room_measurement_stacks.py`, `check_furnishing_measurement_blockers.py`.
+
+Room Label is a draggable Annotations tool that can be placed anywhere on the
+canvas. Its editable single-line name and calculated area are
+centered on separate lines, with the area font at 55% of the name size. Default
+name size is 32 points at the same fixed reference used by ordinary labels.
+Position, proportional size, rotation/pivot and opacity reuse Label controls.
+Moving the center into another room updates its area. Outside any enclosure the
+area displays an em-dash placeholder, while preserving the name and transform.
+
+Area is the enclosed polygon area inside wall faces, less contained wall islands.
+Partitioned and nested rooms are separate lookup regions. Adaptive Metric and
+Meters use m², Centimeters cm², Millimeters mm², Feet and Inches ft², and Inches
+in². Meter/foot areas have two decimals, other modes display whole square units.
+Room labels default to project units in the editor and the selected export units in
+exports and export previews. A per-label Units override takes precedence in both.
+Name and area text use the canvas objectOutline role.
+
+The name, ordinary label transform, opacity and units override are serialized.
+Changing the override is undoable. Derived area and inherited unit changes do not
+resize the stored box, mark the project dirty or create undo steps.
+Derived values refresh through room/label revision keys. Exports calculate
+areas synchronously and use independent room-label clones, so export previews
+cannot alter editor label state. Room labels use Labels visibility and normal
+annotation history, session/project recovery, copy/paste and export paths.
+Coverage: `check_room_labels.py`, the object matrix and render examples.
 
 During editing-canvas panning, every delivered move updates the camera immediately.
 Repaint requests share one precise, single-shot deadline based on the current
@@ -413,16 +550,20 @@ template selections retain their stored widths.
 
 ## MEASURE-01: displayed dimensions
 
-In the editor, M and the top-level measurement controls toggle the
-master visibility flag without changing category choices. Hiding and showing a
+In the editor, M and the View menu's Toggle dimensions action toggle the
+master visibility flag while preserving nonempty category choices. Hiding and showing a
 walls-only configuration restores walls only. Category checkmarks retain the
 remembered choices while the master is off; Settings dims their labels. The
-editor master is checked/unchecked independently of the number of enabled
-categories. Enabling a category shows measurements without clearing other
+editor master is independent of the number of enabled categories. Settings has a
+collapsible Draw dimensions tree root with four category children. With
+all categories off, the root checkbox is unchecked and read-only, with disabled
+appearance while its children remain interactive; toggling dimensions
+from View or M in that state restores walls only. Enabling a category shows measurements without clearing other
 choices; disabling the last category also turns the master off. Save the master
-and category choices separately. Export retains its Show all measurements action,
-which explicitly enables or disables all categories. The View menu wording and
-partial-state indicator follow that distinction.
+and category choices separately. Export's Draw dimensions root remains a show/hide-all action,
+which explicitly enables or disables all categories. The View menu contains only
+Toggle dimensions (M), with a partial-state indicator in Export. Per-category
+controls remain in Settings and Export. Elevators have no measurement category.
 Coverage: `check_measurement_master_toggle.py`, `check_header_menus.py`.
 
 Geometry remains millimeters. Display precision affects canvas dimensions/guides,
@@ -458,7 +599,7 @@ tread/post counts follow the active limits, while manual counts stay unchanged.
 Measurement context actions exist only for object types that actually draw
 measurements under current global/category settings. They go at the bottom of
 the object's top action section, before Transform/clipboard/delete. Labels and
-north arrows have no such actions. Hide/Show measurement affects normal drawing,
+north arrows have no such actions. Hide/Show dimensions affects normal drawing,
 not selection dimensions. Related property controls obey the same eligibility.
 
 ## EDIT-02: coincident furnishing warnings
@@ -514,7 +655,7 @@ fringes beneath the front warning, in solid or transparent object mode.
 ## EXPORT-01: layout and enabled states
 
 Order: Export heading; folder/browse; filename; Type; separator; Digital/Architectural tabs;
-scrolling sections Canvas, Border, Grid, Line Weight, Measurements, Composite,
+scrolling sections Canvas, Border, Grid, Line Weight, Dimensions, Composite,
 Visibility; pinned Export action. Sections start collapsed unless restored.
 Section gap 20, heading/content gap 12, ordinary export controls 32 high,
 section buttons 40. Scroll content margins 14. Canvas labels are content-sized,
@@ -527,8 +668,13 @@ the scrolling sections. Keep the original full-width folder/browse row with
 add a label column. Filename sits 8 pixels below and spans the full row, aligned
 with the folder field's left edge and browse button's right edge. Use placeholders
 and accessible names to identify the entries. Browse opens the native folder-only
-picker and remembers that folder without changing the selected file type or a
-custom filename. Type changes update only the filename extension. Automatic
+picker and remembers that folder in the current project without changing the selected
+file type or a custom filename. Typed folder changes are also saved with the project
+and session, and participate in export undo/redo. A project without a saved destination
+defaults to its own directory, or the application directory before its first save.
+Global browse preferences do not affect export destinations. Closing the project
+clears its destination. Custom filenames are saved with the project and session,
+restored on reopen, and cleared on Close. Type changes update only the filename extension. Automatic
 project-based filenames keep their existing collision suffixes; custom names
 retain overwrite confirmation. Export joins the two entries and rejects folder
 components or reserved characters in Filename. Both entries participate in export
@@ -585,6 +731,19 @@ Outside Export, the same actions retain their normal editor behavior.
 Tips and FPS remain app preferences. Maximize remains a window layout action,
 and reference-image visibility remains project metadata outside export artwork.
 Coverage: `check_export_measurement_shortcuts.py`.
+
+Options always edits project settings, including while Export is active. Its
+dimension tree, units, canvas precision, wall mode/reference, splitting preferences,
+Draw Grid and appearance fields reflect the project view, not the temporary export
+preview. Export's dimension tree, units and wall mode/reference edit sparse export
+overrides. An explicit override wins over subsequent Options changes; wall mode
+and reference inherit project values until overridden, and clearing an override
+restores inheritance immediately. Export units retain their existing default of
+Millimeters until explicitly overridden. Canvas precision and split settings have
+no export controls and follow the project settings. Project split settings are
+included in preview snapshot/restore so edits cannot be lost when switching tabs.
+Save/reopen, export undo/redo, PNG/SVG and CLI use the same resolved mode/reference.
+Coverage: `check_export_dimension_settings.py`, `check_export_cli_settings.py`.
 
 Double-click a crop guide resets that edge to its automatic-bounds position.
 Otherwise double-click inside the drawing region returns to 1:1 output pixels

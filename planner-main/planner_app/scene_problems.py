@@ -178,6 +178,8 @@ def FindSceneProblems(viewport, includePotential = True, gridStep = None, includ
     duplicateIds = set(groupById)
     for obj in {id(obj): obj for obj in contained + duplicates}.values():
         name = re.sub(r"(?<!^)(?=[A-Z])", " ", type(obj).__name__).lower()
+        if name == "measurement guide":
+            name = "dimension guide"
         label = "Duplicate furnishing" if type(obj) is Furnishing else f"Coincident {name}" if id(obj) in duplicateIds else f"{name.capitalize()} contained in another object"
         group = groupById.get(id(obj))
         code = "duplicate" if type(obj) is Furnishing else "contained" if id(obj) in containedIds else "duplicate_architectural"

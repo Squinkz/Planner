@@ -2,6 +2,8 @@
 import math
 from .models import MeasurementGuide, Furnishing, NorthArrow, Label
 from .graphics.furnishings import FurnishingArtworkBounds
+from .graphics.symbols import WindowWellPath
+from .models import Window
 
 
 def BorderSize(style, requested = 28):
@@ -17,6 +19,10 @@ def AutomaticBounds(viewport):
         if not viewport.IsObjectVisible(obj):
             continue
         points = viewport.ObjectFootprint(obj)[1]
+        if isinstance(obj, Window) and obj.windowWell:
+            bounds = WindowWellPath(obj.firstVertex, obj.secondVertex, obj.width, obj.wellDepth,
+                                    swingsOutwards = not obj.swingsOutwards).boundingRect()
+            points = list(points) + [bounds.topLeft(), bounds.bottomRight()]
         if isinstance(obj, MeasurementGuide):
             bounds = viewport.ObjectFootprint(obj)[0]
             points = list(points) + [bounds.topLeft(), bounds.bottomRight()]

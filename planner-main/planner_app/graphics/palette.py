@@ -9,7 +9,7 @@ themeRoles = (
     "windowBackground", "text", "controlBackground", "fieldBackground", "hoverBackground",
     "pressedBackground", "activeBackground", "activeHoverBackground", "disabledBackground",
     "disabled", "border", "menuBorder", "mutedText", "activeText", "sliderHandle",
-    "scrollbarHandle", "treeDisabledText", "treeEmptyText", "canvas", "objectOutline",
+    "scrollbarHandle", "treeDisabledText", "treeEmptyText", "canvas", "roomFill", "objectOutline",
     "wallOutline", "invalidOutline", "selectionOutline", "groupSelectionOutline",
     "selectionFill", "groupSelectionFill", "wallFill", "materialPattern", "warningFill",
     "warningOutline", "stairSelectionFill", "stairGroupSelectionFill", "measurementLine",
@@ -21,7 +21,7 @@ themeRoles = (
 themeDefinitions = {}
 themeColors = {}
 canvasRoles = (
-    "canvas", "grid", "objectOutline", "wallOutline", "wallFill", "materialPattern",
+    "canvas", "roomFill", "grid", "objectOutline", "wallOutline", "wallFill", "materialPattern",
     "selectionOutline", "selectionFill", "groupSelectionOutline", "groupSelectionFill",
     "stairSelectionFill", "stairGroupSelectionFill", "selectionBoxFill", "measurementLine",
     "rulerBackground", "rulerMajorTick", "rulerMinorTick", "rulerText", "overlayFill", "exportOutsideShade",

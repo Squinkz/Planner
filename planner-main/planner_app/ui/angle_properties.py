@@ -11,6 +11,7 @@ class AnglePropertiesMixin:
         form = QtWidgets.QFormLayout(self.angleGuideProperties)
         form.setContentsMargins(0, 16, 0, 0)
         form.setHorizontalSpacing(16)
+        form.setVerticalSpacing(8)
         form.setRowWrapPolicy(QtWidgets.QFormLayout.RowWrapPolicy.WrapLongRows)
         self.angleGuidePositionRow, self.angleGuidePositionFields = self.BuildPositionFields(form)
         control = self.angleGuideAngleField = DragSpinBox()

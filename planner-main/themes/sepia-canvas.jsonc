@@ -5,6 +5,7 @@
     "extends": "Vellum Canvas",
     "colors": {
         "canvas": "#c1b7a7",
+        "roomFill": "#c8bfaf", // Background inside detected rooms in the editor.
         "grid": "#8b8071",
         "objectOutline": "#302a25",
         "wallOutline": "#4b4238",

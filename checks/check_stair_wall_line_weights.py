@@ -35,9 +35,13 @@ def Main():
         after = viewport.grab().toImage()
         for y in (-500, 500, -620, 620):
             sample = viewport.WorldToViewport(point(y, 125) if vertical else point(125, y)).toPoint()
+            # Inset stair edges may occupy nearby canvas, but must preserve every
+            # existing wall stroke/fill pixel, including its antialiasing fringe.
             for offset in range(-8, 9):
                 x = sample.x() + offset if vertical else sample.x()
                 row = sample.y() if vertical else sample.y() + offset
+                if before.pixelColor(x, row) == QtGui.QColor("#ffffff"):
+                    continue
                 assert before.pixelColor(x, row) == after.pixelColor(x, row), (vertical, y, offset)
         freeEdge = viewport.WorldToViewport(point(200, 1000) if vertical else point(1000, 200)).toPoint()
         coverage = sum((255 - after.pixelColor(freeEdge.x() if vertical else freeEdge.x() + offset,

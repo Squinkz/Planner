@@ -111,6 +111,8 @@ class ProblemsWindow(QtWidgets.QDialog):
                 for issue in issues:
                     obj = issue["object"]
                     name = getattr(obj, "definitionKey", obj.definition["key"]) if hasattr(obj, "definition") else type(obj).__name__
+                    if name == "MeasurementGuide":
+                        name = "Dimension guide"
                     child = QtWidgets.QTreeWidgetItem(parent, [f"{name} — Object {obj.objectId}"])
                     child.setToolTip(0, issue["description"])
                     child.setData(0, QtCore.Qt.ItemDataRole.UserRole, [issue])
@@ -194,7 +196,7 @@ class ProblemsWindow(QtWidgets.QDialog):
             if name in ("first", "second", "middle", "textOffset"):
                 attribute = {"first": "firstVertex", "second": "secondVertex", "middle": "middleVertex", "textOffset": "textOffset"}[name]
                 setattr(obj, attribute, QtCore.QPointF(*value))
-            elif name in ("width", "length", "firstMiter", "secondMiter", "sillDepth", "depth", "depthOffset"):
+            elif name in ("width", "length", "firstMiter", "secondMiter", "sillDepth", "depth", "depthOffset", "wellDepth"):
                 setattr(obj, name, value)
             elif name == "center":
                 obj.centerFraction = value

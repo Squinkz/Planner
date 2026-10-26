@@ -23,14 +23,19 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="11.313709"
-     inkscape:cx="26.383922"
-     inkscape:cy="44.857086"
+     inkscape:cx="26.383921"
+     inkscape:cy="44.857084"
      inkscape:window-width="2560"
      inkscape:window-height="1336"
-     inkscape:window-x="2552"
+     inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer1" />
+     inkscape:current-layer="svg1" />
+  <path data-theme-fill="fieldBackground" fill="#000000"
+     id="rect1-2"
+     style="display:inline;stroke-width:0.7;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:11.7;stroke-dashoffset:11.9"
+     d="m 53,48.019621 h 7.5 v 12 H 53 Z m -49.5,0 H 11 v 12 H 3.5 Z"
+     inkscape:label="fill" />
   <path
      d="m 3.5,48.019621 h 9"
      style="display:inline;fill:#ffffff;fill-opacity:1;stroke:#ffffff;stroke-width:3;stroke-dasharray:none;stroke-opacity:1"

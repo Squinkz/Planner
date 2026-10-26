@@ -79,6 +79,18 @@ class BoundaryLine(MeasurementGuide):
     """A dash-dot annotation whose dimensions appear only while selected."""
 
 
+lineWeightClasses = {"Walls": ("wallOutline", "walls"), "Objects": ("objectOutline", "architectural"),
+                     "Furnishings": ("objectOutline", "furnishings"), "Measurements": ("measurementLine", "dimensions")}
+
+
+class DashedLine(BoundaryLine):
+    weightClass = "Objects"
+
+
+class SolidLine(DashedLine):
+    pass
+
+
 class AngleGuide(MeasurementGuide):
     """A free angle: two outer points, a translating vertex, and a label offset."""
     def __init__(self, firstVertex, secondVertex, width = 0.0, firstMiter = 0.0, secondMiter = 0.0,
@@ -133,6 +145,7 @@ class Arrow(Wall):
     solidTip: bool = True
     tipSize: float = 60.0
     intensity: float = 1.0
+    directionReversed: bool = False
 
 
 @dataclass(init = False)
@@ -253,6 +266,9 @@ class Window(SceneObject):
         self.parentWall = parentWall
         self.objectId = None
         self.measurementFlipped = False
+        self.windowWell = False
+        self.wellDepth = 600.0
+        self.wellDashed = False
         self.SetFractions(firstFraction, secondFraction)
 
     def SetFractions(self, firstFraction, secondFraction):
@@ -384,6 +400,19 @@ class CasementWindow(Window):
         self.hingeAtSecond = hingeAtSecond
 
 
+class AwningWindow(Window):
+    def __init__(self, parentWall, firstFraction, secondFraction, swingsOutwards = False):
+        super().__init__(parentWall, firstFraction, secondFraction)
+        self.swingsOutwards = swingsOutwards
+
+
+class DoubleCasementWindow(Window):
+    """Two opposed casement leaves in one continuous frame."""
+    def __init__(self, parentWall, firstFraction, secondFraction, swingsOutwards = False):
+        super().__init__(parentWall, firstFraction, secondFraction)
+        self.swingsOutwards = swingsOutwards
+
+
 class SilledWindow(Window):
     def __init__(self, parentWall, firstFraction, secondFraction, swingsOutwards = False, sillDepth = 40.0):
         super().__init__(parentWall, firstFraction, secondFraction)
@@ -399,6 +428,20 @@ class Door(Window):
     def __init__(self, parentWall, firstFraction, secondFraction, hingeAtSecond = False, swingsOutwards = False):
         super().__init__(parentWall, firstFraction, secondFraction)
         self.hingeAtSecond = hingeAtSecond
+        self.swingsOutwards = swingsOutwards
+
+
+class SwingingDoor(Window):
+    """A double-acting door with one hinge side and no facing direction."""
+    def __init__(self, parentWall, firstFraction, secondFraction, hingeAtSecond = False):
+        super().__init__(parentWall, firstFraction, secondFraction)
+        self.hingeAtSecond = hingeAtSecond
+
+
+class DoubleDoor(Window):
+    """Two opposed standard door leaves sharing one swing direction."""
+    def __init__(self, parentWall, firstFraction, secondFraction, swingsOutwards = False):
+        super().__init__(parentWall, firstFraction, secondFraction)
         self.swingsOutwards = swingsOutwards
 
 
@@ -564,8 +607,8 @@ class Label(Furnishing):
         if origin is None:
             origin = self.origin
         font, textWidth, textHeight, textBounds, lines = self.TextLayout()
-        # New labels default to 16 points at the fixed 1:20 reference.
-        scale = 16 * (25.4 * 20 / 72) / QtGui.QFontInfo(font).pixelSize()
+        # New labels default to 32 points at the fixed 1:20 reference.
+        scale = 32 * (25.4 * 20 / 72) / QtGui.QFontInfo(font).pixelSize()
         self.width = textWidth * scale
         height = textHeight * scale
         self.firstVertex = origin + QtCore.QPointF(self.width / 2, 0)
@@ -594,10 +637,66 @@ class Label(Furnishing):
         self.secondVertex = self.firstVertex + north * height
 
     def Clone(self):
-        copy = Label(QtCore.QPointF(self.origin), self.text, self.intensity)
+        copy = type(self)(QtCore.QPointF(self.origin), self.text, self.intensity)
         copy.measurementHidden = self.measurementHidden
         copy.firstVertex, copy.secondVertex = QtCore.QPointF(self.firstVertex), QtCore.QPointF(self.secondVertex)
         copy.width = self.width
+        if isinstance(self, RoomLabel):
+            copy.unitsOverride = self.unitsOverride
         return copy
+
+
+class RoomLabel(Label):
+    """A centered room name with a derived, nonserialized area line."""
+    areaSquareMillimeters = None
+    areaUnitsMode = "Adaptive Metric"
+    unitsOverride = None
+
+    def __init__(self, origin = QtCore.QPointF(), text = "ROOM", intensity = 1.0):
+        super().__init__(QtCore.QPointF(), " ".join(text.splitlines()), intensity)
+        self.SetPointSize(32)
+        offset = origin - (self.firstVertex + self.secondVertex) / 2
+        self.firstVertex += offset
+        self.secondVertex += offset
+
+    def SetText(self, text):
+        super().SetText(" ".join(text.splitlines()))
+
+    def TextLayout(self):
+        from .units import FormatArea
+        font = self.Font()
+        area = FormatArea(self.areaSquareMillimeters, self.areaUnitsMode)
+        resolved = QtGui.QFontInfo(font)
+        key = self.text, area, font.toString(), resolved.family(), resolved.styleName(), resolved.pixelSize()
+        if key == getattr(self, "textLayoutKey", None):
+            return self.textLayout
+        areaFont = QtGui.QFont(font)
+        areaFont.setPointSizeF(font.pointSizeF() * .55)
+        nameLines = self.text.split("\n")
+        entries = [(line, font) for line in nameLines] + [(area, areaFont)]
+        metrics = [QtGui.QFontMetricsF(lineFont) for line, lineFont in entries]
+        height = sum(metric.lineSpacing() for metric in metrics)
+        # Reserve a stable area box. Derived area/unit changes must not resize
+        # stored geometry or silently invalidate the shared undo journal.
+        width = max(1.0, QtGui.QFontMetricsF(areaFont).horizontalAdvance("000,000,000 mm²"),
+                    *(QtGui.QFontMetricsF(font).horizontalAdvance(line) for line in nameLines))
+        positions = []
+        bounds = QtCore.QRectF()
+        top = -height / 2
+        for (line, lineFont), metric in zip(entries, metrics):
+            position = QtCore.QPointF(-metric.horizontalAdvance(line) / 2, top + metric.ascent())
+            positions.append((line, position, lineFont))
+            bounds = bounds.united(metric.boundingRect(line).translated(position))
+            top += metric.lineSpacing()
+        self.textLayout = font, width, height, bounds, tuple(positions)
+        self.textLayoutKey = key
+        return self.textLayout
+
+    def SetPointSize(self, value):
+        center = (self.firstVertex + self.secondVertex) / 2
+        super().SetPointSize(value)
+        offset = center - (self.firstVertex + self.secondVertex) / 2
+        self.firstVertex += offset
+        self.secondVertex += offset
 
 

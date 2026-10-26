@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   stroke-width="1"
+   viewBox="0 0 45 45"
+   preserveAspectRatio="none"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="cabinet_corner2.svg"
+   width="45"
+   height="45"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   vector-effect="non-scaling-stroke"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#505050"
+     bordercolor="#eeeeee"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#494949"
+     inkscape:zoom="11.304658"
+     inkscape:cx="0.044229557"
+     inkscape:cy="14.905361"
+     inkscape:window-width="2560"
+     inkscape:window-height="1336"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1" />
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
+     style="vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1"
+     d="M 12.50025,12.49975 C 12.506902,4.999773 12.506645,7.4998957 12.474667,0 H 45 V 45 H 0 V 12.49975 Z"
+     id="path2"
+     sodipodi:nodetypes="ccccccc" />
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
+     style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1"
+     d="m 0,12.49975 12.50025,0 L 10.000444,9.999147 0,9.999591 Z"
+     id="path4"
+     sodipodi:nodetypes="ccccc" />
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
+     style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1"
+     d="m 12.50025,0 0,12.49975 -2.499806,-2.500603 V 0 Z"
+     id="path4-4"
+     sodipodi:nodetypes="ccccc" />
+</svg>

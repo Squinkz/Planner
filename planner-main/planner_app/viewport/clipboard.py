@@ -6,12 +6,14 @@ from planner_app.models import Elevator
 import json
 import math
 from PySide6 import QtCore, QtWidgets
-from planner_app.models import Door, Furnishing, OpenDoorway, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, SlidingDoor, MeasurementGuide, BoundaryLine, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Label, Window, NorthArrow, Fireplace
+from planner_app.models import Door, SwingingDoor, DoubleDoor, Furnishing, OpenDoorway, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, SlidingDoor, MeasurementGuide, BoundaryLine, DashedLine, SolidLine, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Label, RoomLabel, Window, NorthArrow, Fireplace
 
 
 clipboardMimeType = "application/x-planner-selection"
 from planner_app.object_schema import openingClasses as openingTypes, openingFields, ReadArrowTipSize
 from planner_app.furnishing_assets import FurnishingAssetProblems
+from planner_app.units import unitModes
+from planner_app.models import lineWeightClasses
 
 
 class ClipboardMixin:
@@ -72,10 +74,16 @@ class ClipboardMixin:
                     if objectType == "CasementWindow":
                         record.setdefault("hingeAtSecond", False)
                     record.setdefault("measurementFlipped", False)
+                    if "wellDepth" in openingFields[openingTypes[objectType]]:
+                        record.setdefault("windowWell", False)
+                        record.setdefault("wellDashed", False)
+                        record.setdefault("wellDepth", 600.0)
+                        if type(record["wellDepth"]) not in (float, int) or not math.isfinite(record["wellDepth"]) or not 1 <= record["wellDepth"] <= 1e9:
+                            return None
                     if type(record["measurementFlipped"]) is not bool:
                         return None
                     flags = tuple(name for name in openingFields[openingTypes[objectType]]
-                                  if name not in ("measurementFlipped", "sillDepth", "depth", "depthOffset", "material"))
+                                  if name not in ("measurementFlipped", "sillDepth", "depth", "depthOffset", "material", "wellDepth"))
                     if any(not isinstance(record[flag], bool) for flag in flags):
                         return None
                     if objectType == "SilledWindow" and (not math.isfinite(record["sillDepth"]) or record["sillDepth"] < 0):
@@ -85,17 +93,22 @@ class ClipboardMixin:
                         return None
                     if objectType == "Fireplace" and record.get("material") not in self.warningMaterialBrushes:
                         return None
-                elif objectType in ("Wall", "Pillar", "Column", "Elevator", "Stair", "Counter", "Railing", "Furnishing", "Label", "NorthArrow", "Arrow", "MeasurementGuide", "BoundaryLine", "AngleGuide"):
+                elif objectType in ("Wall", "Pillar", "Column", "Elevator", "Stair", "Counter", "Railing", "Furnishing", "Label", "RoomLabel", "NorthArrow", "Arrow", "MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide"):
                     points.extend((record["first"], record["second"]))
-                    if not math.isfinite(record["width"]) or record["width"] < (0 if objectType in ("MeasurementGuide", "BoundaryLine", "AngleGuide") else 1e-8 if objectType == "Label" else 1):
+                    if not math.isfinite(record["width"]) or record["width"] < (0 if objectType in ("MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide") else 1e-8 if objectType in ("Label", "RoomLabel") else 1):
                         return None
-                    if objectType in ("MeasurementGuide", "BoundaryLine", "AngleGuide") and record["width"] != 0:
+                    if objectType in ("MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide") and record["width"] != 0:
                         return None
-                    if objectType in ("MeasurementGuide", "BoundaryLine", "AngleGuide"):
+                    if objectType in ("MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide"):
+                        if objectType in ("DashedLine", "SolidLine") and record.get("weightClass", "Objects") not in lineWeightClasses:
+                            return None
                         points.append(record.get("textOffset", [0, 0]))
                     if objectType == "AngleGuide":
                         points.append(record["middle"])
-                    if objectType == "Label":
+                    if objectType in ("Label", "RoomLabel"):
+                        if objectType == "RoomLabel" and record.get("unitsOverride") is not None:
+                            if record["unitsOverride"] not in unitModes:
+                                return None
                         if not isinstance(record["text"], str) or len(record["text"]) > 100000:
                             return None
                         intensity = record.get("intensity", 1.0)
@@ -117,7 +130,7 @@ class ClipboardMixin:
                           or not all(math.isfinite(record[field]) for field in ("firstMiter", "secondMiter"))):
                         return None
                     if objectType == "Arrow":
-                        if type(record["solidTip"]) is not bool:
+                        if type(record["solidTip"]) is not bool or type(record.get("directionReversed", False)) is not bool:
                             return None
                         ReadArrowTipSize(record, record["width"])
                         intensity = record["intensity"]
@@ -180,6 +193,8 @@ class ClipboardMixin:
                 if isinstance(obj, Label):
                     record["text"] = obj.text
                     record["intensity"] = obj.intensity
+                    if isinstance(obj, RoomLabel):
+                        record["unitsOverride"] = obj.unitsOverride
                 elif isinstance(obj, NorthArrow):
                     record["intensity"] = obj.intensity
                 elif isinstance(obj, Furnishing):
@@ -193,8 +208,12 @@ class ClipboardMixin:
                         record["middle"] = [obj.middleVertex.x(), obj.middleVertex.y()]
                     if isinstance(obj, MeasurementGuide):
                         record["textOffset"] = [obj.textOffset.x(), obj.textOffset.y()]
+                    if isinstance(obj, DashedLine):
+                        record["weightClass"] = obj.weightClass
                     if isinstance(obj, Arrow):
                         record.update(solidTip = obj.solidTip, tipSize = obj.tipSize, intensity = obj.intensity, tipSizeMode = "millimeters")
+                        if obj.directionReversed:
+                            record["directionReversed"] = True
                     if isinstance(obj, Railing):
                         record.update(autosize = obj.autosize, manualPostCount = obj.manualPostCount)
                     if isinstance(obj, Stair):
@@ -259,11 +278,13 @@ class ClipboardMixin:
                 width = record["width"]
                 if not all(math.isfinite(value) for value in (first.x(), first.y(), second.x(), second.y(), width)):
                     return False
-                minimumSize = 1e-8 if objectType == "Label" else 1
-                if width < (0 if objectType in ("MeasurementGuide", "BoundaryLine", "AngleGuide") else minimumSize) or objectType != "AngleGuide" and QtCore.QLineF(first, second).length() < minimumSize:
+                minimumSize = 1e-8 if objectType in ("Label", "RoomLabel") else 1
+                if width < (0 if objectType in ("MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide") else minimumSize) or objectType != "AngleGuide" and QtCore.QLineF(first, second).length() < minimumSize:
                     return False
-                if objectType == "Label":
-                    obj = Label(text = record["text"], intensity = record.get("intensity", 1.0))
+                if objectType in ("Label", "RoomLabel"):
+                    obj = (RoomLabel if objectType == "RoomLabel" else Label)(text = record["text"], intensity = record.get("intensity", 1.0))
+                    if objectType == "RoomLabel":
+                        obj.unitsOverride = record.get("unitsOverride")
                     obj.firstVertex, obj.secondVertex, obj.width = first, second, width
                 elif objectType == "NorthArrow":
                     obj = NorthArrow()
@@ -281,22 +302,25 @@ class ClipboardMixin:
                         setattr(obj, field, record.get(field, False))
                     obj.definitionKey = record["definition"]
                     obj.firstVertex, obj.secondVertex, obj.width = first, second, width
-                elif objectType in ("Wall", "Pillar", "Column", "Elevator", "Stair", "Counter", "Railing", "Arrow", "MeasurementGuide", "BoundaryLine", "AngleGuide"):
+                elif objectType in ("Wall", "Pillar", "Column", "Elevator", "Stair", "Counter", "Railing", "Arrow", "MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide"):
                     if not all(math.isfinite(record[field]) for field in ("firstMiter", "secondMiter")):
                         return False
                     material = record["material"]
                     if material not in self.warningMaterialBrushes:
                         return False
-                    obj = {"Wall": Wall, "Pillar": Pillar, "Column": Column, "Elevator": Elevator, "Stair": Stair, "Counter": Counter, "Railing": Railing, "Arrow": Arrow, "MeasurementGuide": MeasurementGuide, "BoundaryLine": BoundaryLine, "AngleGuide": AngleGuide}[objectType](first, second, width,
+                    obj = {"Wall": Wall, "Pillar": Pillar, "Column": Column, "Elevator": Elevator, "Stair": Stair, "Counter": Counter, "Railing": Railing, "Arrow": Arrow, "MeasurementGuide": MeasurementGuide, "BoundaryLine": BoundaryLine, "DashedLine": DashedLine, "SolidLine": SolidLine, "AngleGuide": AngleGuide}[objectType](first, second, width,
                           record["firstMiter"], record["secondMiter"], material)
                     if isinstance(obj, MeasurementGuide):
                         obj.textOffset = QtCore.QPointF(*record.get("textOffset", [0, 0]))
+                    if isinstance(obj, DashedLine):
+                        obj.weightClass = record.get("weightClass", "Objects")
                     if isinstance(obj, AngleGuide):
                         obj.middleVertex = QtCore.QPointF(*record["middle"]) + delta
                     if isinstance(obj, Railing):
                         obj.autosize, obj.manualPostCount = record.get("autosize", True), record.get("manualPostCount", 2)
                     if isinstance(obj, Arrow):
                         obj.solidTip, obj.tipSize, obj.intensity = record["solidTip"], ReadArrowTipSize(record, width), record["intensity"]
+                        obj.directionReversed = record.get("directionReversed", False)
                     if isinstance(obj, Stair):
                         obj.directionReversed = bool(record["directionReversed"])
                         obj.autosize, obj.manualStepCount = record.get("autosize", True), record.get("manualStepCount", 1)
@@ -350,13 +374,13 @@ class ClipboardMixin:
                             raise ValueError("Invalid fireplace depth")
                         if attribute == "depthOffset" and (not math.isfinite(value) or abs(value) > (obj.depth - obj.parentWall.width) / 2 + 1e-8):
                             raise ValueError("Invalid fireplace depth offset")
-                        setattr(obj, attribute, value if attribute in ("sillDepth", "depth", "depthOffset", "material") else bool(value))
+                        setattr(obj, attribute, value if attribute in ("sillDepth", "depth", "depthOffset", "material", "wellDepth") else bool(value))
                 created[index] = obj
                 self.windows.append(obj)
             for index, obj in created.items():
                 record = records[index]
                 if type(record.get("measurementHidden", False)) is not bool:
-                    raise ValueError("Invalid measurement visibility")
+                    raise ValueError("Invalid dimension visibility")
                 obj.measurementHidden = record.get("measurementHidden", False)
                 if isinstance(obj, Window):
                     parentLength = QtCore.QLineF(obj.parentWall.firstVertex, obj.parentWall.secondVertex).length()

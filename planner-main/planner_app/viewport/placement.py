@@ -6,7 +6,7 @@ from planner_app.models import Elevator
 import math
 from contextlib import contextmanager
 from PySide6 import QtCore, QtGui, QtWidgets
-from planner_app.models import OpenDoorway, Door, Furnishing, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, SlidingDoor, MeasurementGuide, BoundaryLine, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Label, Window, NorthArrow, Fireplace
+from planner_app.models import OpenDoorway, Door, SwingingDoor, DoubleDoor, Furnishing, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, SlidingDoor, MeasurementGuide, BoundaryLine, DashedLine, SolidLine, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Label, RoomLabel, Window, NorthArrow, Fireplace
 from .geometry import CollisionPass
 from planner_app.geometry.opening_placement import (ProjectOpening, OpeningGap,
     BlockedOpeningIntervals, OpeningPlacementSpan, CenteredOpeningSpan)
@@ -548,9 +548,11 @@ class PlacementMixin:
         direction /= math.hypot(direction.x(), direction.y())
         parent = Wall(center - direction * (length / 2), center + direction * (length / 2), width)
         preview = openingType(parent, 0.0, 1.0)
-        if isinstance(preview, (Door, SlidingDoor, PocketDoor, CasementWindow)) and source is not None:
+        if source is not None:
+            preview.windowWell, preview.wellDepth, preview.wellDashed = source.windowWell, source.wellDepth, source.wellDashed
+        if isinstance(preview, (Door, SwingingDoor, SlidingDoor, PocketDoor, CasementWindow)) and source is not None:
             preview.hingeAtSecond = source.hingeAtSecond
-        if type(preview) in (Window, Door, SilledWindow, CasementWindow, BarnDoor, BifoldDoor) and source is not None:
+        if type(preview) in (Window, Door, DoubleDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, BarnDoor, BifoldDoor) and source is not None:
             preview.swingsOutwards = source.swingsOutwards
         elif isinstance(preview, SlidingDoor) and source is not None:
             preview.panelsFlipped = source.panelsFlipped
@@ -573,14 +575,14 @@ class PlacementMixin:
         across = QtCore.QPointF.dotProduct(offset, QtCore.QPointF(-direction.y(), direction.x()))
         # A small axis dead zone avoids flickering when the pointer is on a divider.
         pixelsPerMillimeter = self.basePixelsPerMillimeter * self.zoom
-        if isinstance(door, (Door, SlidingDoor, PocketDoor, CasementWindow)) and abs(along) * pixelsPerMillimeter > 2:
+        if isinstance(door, (Door, SwingingDoor, SlidingDoor, PocketDoor, CasementWindow)) and abs(along) * pixelsPerMillimeter > 2:
             door.hingeAtSecond = along < 0 if isinstance(door, SlidingDoor) else along > 0
         if abs(across) * pixelsPerMillimeter > 2:
             if isinstance(door, SlidingDoor):
                 door.panelsFlipped = across < 0
-            elif type(door) in (Window, SilledWindow, CasementWindow):
+            elif type(door) in (Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow):
                 door.swingsOutwards = across > 0
-            elif isinstance(door, (Door, BarnDoor, BifoldDoor)):
+            elif isinstance(door, (Door, DoubleDoor, BarnDoor, BifoldDoor)):
                 door.swingsOutwards = across < 0
 
     def PlaceWindow(self, position, openingType = Window, modifiers = None, placement = None):
@@ -603,7 +605,7 @@ class PlacementMixin:
             self.inactiveOpeningPreview = None
             self.doorOrientationLocked = False
             self.alignmentGuides = []
-        elif (openingType in (Window, Door, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow)
+        elif (openingType in (Window, Door, DoubleDoor, SwingingDoor, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow)
               and modifiers & QtCore.Qt.KeyboardModifier.ControlModifier
               and isinstance(self.windowDropPreview, openingType)):
             self.doorOrientationLocked = True
@@ -634,7 +636,7 @@ class PlacementMixin:
         if self.guiDragCancelled:
             event.ignore()
             return
-        if any(event.mimeData().hasFormat("application/x-planner-" + kind) for kind in ("arrow", "measurement-guide", "boundary-line", "angle-guide", "railing", "pillar", "column", "elevator")):
+        if any(event.mimeData().hasFormat("application/x-planner-" + kind) for kind in ("arrow", "measurement-guide", "boundary-line", "dashed-line", "solid-line", "angle-guide", "railing", "pillar", "column", "elevator")):
             event.acceptProposedAction()
             return
         if event.mimeData().hasFormat("application/x-planner-counter"):
@@ -643,7 +645,9 @@ class PlacementMixin:
         if event.mimeData().hasFormat("application/x-planner-north-arrow"):
             event.acceptProposedAction()
             return
-        if event.mimeData().hasFormat("application/x-planner-label"):
+        if event.mimeData().hasFormat("application/x-planner-label") or event.mimeData().hasFormat("application/x-planner-room-label"):
+            if event.mimeData().hasFormat("application/x-planner-room-label"):
+                self.roomDetection.Refresh(force = True)
             event.acceptProposedAction()
             return
         if event.mimeData().hasFormat("application/x-planner-furnishing"):
@@ -651,7 +655,7 @@ class PlacementMixin:
             if key in self.furnishingDefinitions:
                 event.acceptProposedAction()
                 return
-        if any(event.mimeData().hasFormat(f"application/x-planner-{kind}") for kind in ("window", "silled-window", "casement-window", "door", "sliding-door", "pocket-door", "barn-door", "bifold-door", "open-doorway", "stair")):
+        if any(event.mimeData().hasFormat(f"application/x-planner-{kind}") for kind in ("window", "silled-window", "casement-window", "awning-window", "double-casement-window", "door", "swinging-door", "double-door", "sliding-door", "pocket-door", "barn-door", "bifold-door", "open-doorway", "stair")):
             event.setDropAction(QtCore.Qt.DropAction.CopyAction)
             event.accept()
         else:
@@ -666,7 +670,7 @@ class PlacementMixin:
         if self.guiDragCancelled:
             event.ignore()
             return
-        if any(event.mimeData().hasFormat("application/x-planner-" + kind) for kind in ("arrow", "measurement-guide", "boundary-line", "angle-guide", "railing", "pillar", "column", "elevator")):
+        if any(event.mimeData().hasFormat("application/x-planner-" + kind) for kind in ("arrow", "measurement-guide", "boundary-line", "dashed-line", "solid-line", "angle-guide", "railing", "pillar", "column", "elevator")):
             self.hoverPosition = event.position()
             if self.DrawingRect().contains(event.position()):
                 self.arrowPreview = self.FindArrowPlacement(event.position(), event.modifiers(),
@@ -676,6 +680,8 @@ class PlacementMixin:
                     Railing if event.mimeData().hasFormat("application/x-planner-railing") else
                     AngleGuide if event.mimeData().hasFormat("application/x-planner-angle-guide") else
                     BoundaryLine if event.mimeData().hasFormat("application/x-planner-boundary-line") else
+                    DashedLine if event.mimeData().hasFormat("application/x-planner-dashed-line") else
+                    SolidLine if event.mimeData().hasFormat("application/x-planner-solid-line") else
                     MeasurementGuide if event.mimeData().hasFormat("application/x-planner-measurement-guide") else Arrow)
                 event.acceptProposedAction()
             else:
@@ -719,11 +725,14 @@ class PlacementMixin:
                 event.ignore()
             self.update()
             return
-        if event.mimeData().hasFormat("application/x-planner-label"):
+        if event.mimeData().hasFormat("application/x-planner-label") or event.mimeData().hasFormat("application/x-planner-room-label"):
             self.hoverPosition = event.position()
             if self.DrawingRect().contains(event.position()):
                 origin = self.SnapPosition(self.ViewportToWorld(event.position()), event.modifiers())
-                self.labelPreview = Label(origin)
+                roomLabel = event.mimeData().hasFormat("application/x-planner-room-label")
+                self.labelPreview = RoomLabel(origin) if roomLabel else Label(origin)
+                if roomLabel:
+                    self.roomDetection.UpdateLabel(self.labelPreview)
                 event.acceptProposedAction()
             else:
                 self.labelPreview = None
@@ -764,9 +773,13 @@ class PlacementMixin:
                        PocketDoor if event.mimeData().hasFormat("application/x-planner-pocket-door") else
                        SlidingDoor if event.mimeData().hasFormat("application/x-planner-sliding-door") else
                        Door if event.mimeData().hasFormat("application/x-planner-door") else
+                       SwingingDoor if event.mimeData().hasFormat("application/x-planner-swinging-door") else
+                       DoubleDoor if event.mimeData().hasFormat("application/x-planner-double-door") else
                        SilledWindow if event.mimeData().hasFormat("application/x-planner-silled-window") else
-                       CasementWindow if event.mimeData().hasFormat("application/x-planner-casement-window") else Window)
-        if (any(event.mimeData().hasFormat(f"application/x-planner-{kind}") for kind in ("window", "silled-window", "casement-window", "door", "sliding-door", "pocket-door", "barn-door", "bifold-door", "open-doorway"))
+                       CasementWindow if event.mimeData().hasFormat("application/x-planner-casement-window") else
+                       AwningWindow if event.mimeData().hasFormat("application/x-planner-awning-window") else
+                       DoubleCasementWindow if event.mimeData().hasFormat("application/x-planner-double-casement-window") else Window)
+        if (any(event.mimeData().hasFormat(f"application/x-planner-{kind}") for kind in ("window", "silled-window", "casement-window", "awning-window", "double-casement-window", "door", "swinging-door", "double-door", "sliding-door", "pocket-door", "barn-door", "bifold-door", "open-doorway"))
                 and self.DrawingRect().contains(event.position())):
             self.UpdateOpeningPreview(event.position(), openingType, event.modifiers())
             event.setDropAction(QtCore.Qt.DropAction.CopyAction)
@@ -817,7 +830,7 @@ class PlacementMixin:
         if self.guiDragCancelled:
             event.ignore()
             return
-        if any(event.mimeData().hasFormat("application/x-planner-" + kind) for kind in ("arrow", "measurement-guide", "boundary-line", "angle-guide", "railing", "pillar", "column", "elevator")):
+        if any(event.mimeData().hasFormat("application/x-planner-" + kind) for kind in ("arrow", "measurement-guide", "boundary-line", "dashed-line", "solid-line", "angle-guide", "railing", "pillar", "column", "elevator")):
             self.arrowPreview = None
             if self.DrawingRect().contains(event.position()):
                 before = self.CaptureState()
@@ -828,6 +841,8 @@ class PlacementMixin:
                     Railing if event.mimeData().hasFormat("application/x-planner-railing") else
                     AngleGuide if event.mimeData().hasFormat("application/x-planner-angle-guide") else
                     BoundaryLine if event.mimeData().hasFormat("application/x-planner-boundary-line") else
+                    DashedLine if event.mimeData().hasFormat("application/x-planner-dashed-line") else
+                    SolidLine if event.mimeData().hasFormat("application/x-planner-solid-line") else
                     MeasurementGuide if event.mimeData().hasFormat("application/x-planner-measurement-guide") else Arrow)
                 if isinstance(arrow, (Railing, Pillar)) and not self.WallFits(arrow):
                     self.alignmentGuides = []
@@ -881,12 +896,15 @@ class PlacementMixin:
             self.alignmentGuides = []
             self.update()
             return
-        if event.mimeData().hasFormat("application/x-planner-label"):
+        if event.mimeData().hasFormat("application/x-planner-label") or event.mimeData().hasFormat("application/x-planner-room-label"):
             self.labelPreview = None
             if self.DrawingRect().contains(event.position()):
                 before = self.CaptureState()
                 origin = self.SnapPosition(self.ViewportToWorld(event.position()), event.modifiers())
-                label = Label(origin)
+                roomLabel = event.mimeData().hasFormat("application/x-planner-room-label")
+                label = RoomLabel(origin) if roomLabel else Label(origin)
+                if roomLabel:
+                    self.roomDetection.UpdateLabel(label)
                 self.labels.append(label)
                 self.SetSelection([(label, None)])
                 self.RecordEdit(before)
@@ -940,9 +958,13 @@ class PlacementMixin:
                        PocketDoor if event.mimeData().hasFormat("application/x-planner-pocket-door") else
                        SlidingDoor if event.mimeData().hasFormat("application/x-planner-sliding-door") else
                        Door if event.mimeData().hasFormat("application/x-planner-door") else
+                       SwingingDoor if event.mimeData().hasFormat("application/x-planner-swinging-door") else
+                       DoubleDoor if event.mimeData().hasFormat("application/x-planner-double-door") else
                        SilledWindow if event.mimeData().hasFormat("application/x-planner-silled-window") else
-                       CasementWindow if event.mimeData().hasFormat("application/x-planner-casement-window") else Window)
-        if (any(event.mimeData().hasFormat(f"application/x-planner-{kind}") for kind in ("window", "silled-window", "casement-window", "door", "sliding-door", "pocket-door", "barn-door", "bifold-door", "open-doorway"))
+                       CasementWindow if event.mimeData().hasFormat("application/x-planner-casement-window") else
+                       AwningWindow if event.mimeData().hasFormat("application/x-planner-awning-window") else
+                       DoubleCasementWindow if event.mimeData().hasFormat("application/x-planner-double-casement-window") else Window)
+        if (any(event.mimeData().hasFormat(f"application/x-planner-{kind}") for kind in ("window", "silled-window", "casement-window", "awning-window", "double-casement-window", "door", "swinging-door", "double-door", "sliding-door", "pocket-door", "barn-door", "bifold-door", "open-doorway"))
                 and self.PlaceWindow(event.position(), openingType, event.modifiers(), placement) is not None):
             event.setDropAction(QtCore.Qt.DropAction.CopyAction)
             event.accept()

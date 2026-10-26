@@ -1,5 +1,5 @@
 """Selection, connected objects, group movement and undo/redo history."""
-from planner_app.models import AngleGuide, NorthArrow, ObjectControlPoints, SetControlPoint
+from planner_app.models import AngleGuide, NorthArrow, ObjectControlPoints, SetControlPoint, DashedLine, Elevator
 
 import math
 import time
@@ -14,7 +14,7 @@ from planner_app.furnishing_parts import FurnishingParts, FurnishingCollisionFoo
 from planner_app.graphics.path_operations import Paths
 from PySide6 import QtCore, QtGui, QtWidgets
 from planner_app.models import (
-    Door, Furnishing, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, SlidingDoor, MeasurementGuide, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Label, Window, Fireplace, objectIdCounter,
+    Door, SwingingDoor, DoubleDoor, Furnishing, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, SlidingDoor, MeasurementGuide, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Label, Window, Fireplace, objectIdCounter,
 )
 
 
@@ -140,6 +140,91 @@ class SceneEditingMixin:
         self.selectionChanged.emit()
         self.update()
         return None
+
+    def FlipObjects(self, objects, horizontal, value = None):
+        objects = list({id(obj): obj for obj in objects}.values())
+        if not objects:
+            return False
+        self.CancelInteraction()
+        before = self.CaptureState()
+        bounds = QtCore.QRectF(self.ObjectFootprint(objects[0])[0])
+        for obj in objects[1:]:
+            bounds = bounds.united(self.ObjectFootprint(obj)[0])
+        sharedCenter = bounds.center()
+        command = "flipHorizontal" if horizontal else "flipVertical"
+        transforms = {}
+        for obj in objects:
+            center = (obj.middleVertex if isinstance(obj, AngleGuide) else
+                      (obj.firstVertex + obj.secondVertex) / 2) if self.localTransforms else sharedCenter
+            transform = QtGui.QTransform().translate(center.x(), center.y())
+            angle = 0.0
+            if self.localTransforms:
+                direction = obj.secondVertex - obj.firstVertex
+                angle = math.degrees(math.atan2(direction.y(), direction.x())) - 90
+            transform.rotate(angle)
+            transform.scale(-1 if horizontal else 1, 1 if horizontal else -1)
+            transform.rotate(-angle)
+            transform.translate(-center.x(), -center.y())
+            transforms[id(obj)] = transform
+        # Capture attachments before reflecting their parents. Unselected wall
+        # children follow the parent once, rather than being transformed twice.
+        openingTargets = []
+        for opening in self.windows:
+            transform = transforms.get(id(opening.parentWall), transforms.get(id(opening)))
+            if transform is not None:
+                first, second = transform.map(opening.firstVertex), transform.map(opening.secondVertex)
+                openingTargets.append((opening, (first + second) / 2, second - first))
+        for obj in objects:
+            if isinstance(obj, Window):
+                continue
+            transform = transforms[id(obj)]
+            if type(obj) is Furnishing or isinstance(obj, Label):
+                center = (obj.firstVertex + obj.secondVertex) / 2
+                target = QtCore.QPointF(center) if self.localTransforms else transform.map(center)
+                if type(obj) is Furnishing:
+                    if value is not None and value == getattr(obj, command):
+                        continue
+                    setattr(obj, command, not getattr(obj, command))
+                # Text stays readable. Furnishing artwork reflects through its
+                # existing flip flags, keeping width and length positive.
+                if not self.localTransforms:
+                    obj.angle = -obj.angle
+                delta = target - center
+                obj.firstVertex += delta
+                obj.secondVertex += delta
+            else:
+                points = [transform.map(point) for point in ObjectControlPoints(obj)]
+                for index, point in enumerate(points):
+                    SetControlPoint(obj, index, point)
+                if isinstance(obj, MeasurementGuide):
+                    obj.textOffset = transform.map(obj.textOffset) - transform.map(QtCore.QPointF())
+        for opening, target, direction in openingTargets:
+            parent = opening.parentWall
+            placement = ReattachTransformedOpening((target.x(), target.y()), (direction.x(), direction.y()),
+                (parent.firstVertex.x(), parent.firstVertex.y()), (parent.secondVertex.x(), parent.secondVertex.y()))
+            if placement is None:
+                self.RestoreState(before)
+                self.clipboardMessage.emit("Doors and windows must stay on their wall. Include the wall in the selection to flip them together.")
+                return False
+            opening.centerFraction, reversedAlongWall = placement
+            if reversedAlongWall and hasattr(opening, "hingeAtSecond"):
+                opening.hingeAtSecond = not opening.hingeAtSecond
+            # Reflection reverses handedness. The parent's normal points the
+            # opposite way to the reflected original normal unless rebased backwards.
+            if not reversedAlongWall:
+                for field in ("swingsOutwards", "panelsFlipped"):
+                    if hasattr(opening, field):
+                        setattr(opening, field, not getattr(opening, field))
+                if isinstance(opening, Fireplace):
+                    opening.depthOffset = -opening.depthOffset
+        if not self.OpeningsValid(before = before):
+            self.RestoreState(before)
+            self.clipboardMessage.emit("This flip would overlap an object or obstruct an opening.")
+            return False
+        self.RecordEdit(before)
+        self.selectionChanged.emit()
+        self.update()
+        return True
 
     def PrepareWallSelectionRotation(self, state):
         vertices = {}
@@ -661,29 +746,34 @@ class SceneEditingMixin:
         for wall in self.walls:
             sizing = ((wall.autosize, wall.manualPostCount) if isinstance(wall, Railing) else
                       (wall.autosize, wall.manualStepCount) if isinstance(wall, Stair) else None)
-            if isinstance(wall, AngleGuide):
+            if isinstance(wall, DashedLine):
+                details = (wall.weightClass, wall.textOffset.x(), wall.textOffset.y())
+            elif isinstance(wall, AngleGuide):
                 details = (wall.middleVertex.x(), wall.middleVertex.y(), wall.textOffset.x(), wall.textOffset.y())
             elif isinstance(wall, MeasurementGuide):
                 details = (wall.textOffset.x(), wall.textOffset.y())
             elif isinstance(wall, Arrow):
-                details = (wall.solidTip, wall.tipSize, wall.intensity)
+                details = (wall.solidTip, wall.tipSize, wall.intensity, wall.directionReversed)
             else:
                 details = wall.directionReversed if isinstance(wall, Stair) else None
             walls.append((wall, wall.firstVertex.x(), wall.firstVertex.y(), wall.secondVertex.x(), wall.secondVertex.y(),
                           wall.width, wall.firstMiter, wall.secondMiter, wall.material, sizing, details, wall.measurementHidden))
         walls = tuple(walls)
         windows = tuple((window, window.parentWall, window.centerFraction, window.length,
-                         window.hingeAtSecond if isinstance(window, (Door, SlidingDoor, PocketDoor, CasementWindow)) else None,
-                         window.swingsOutwards if type(window) in (Window, Door, SilledWindow, CasementWindow, BarnDoor, BifoldDoor, Fireplace) else
+                         window.hingeAtSecond if isinstance(window, (Door, SwingingDoor, SlidingDoor, PocketDoor, CasementWindow)) else None,
+                         window.swingsOutwards if type(window) in (Window, Door, DoubleDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, BarnDoor, BifoldDoor, Fireplace) else
                          window.panelsFlipped if isinstance(window, SlidingDoor) else None,
                          window.sillDepth if isinstance(window, SilledWindow) else (window.depth, window.depthOffset, window.material) if isinstance(window, Fireplace) else None,
-                         window.measurementFlipped, window.measurementHidden) for window in self.windows)
+                         window.measurementFlipped, window.measurementHidden,
+                         (window.windowWell, window.wellDepth, window.wellDashed)) for window in self.windows)
         furnishings = tuple((obj, QtCore.QPointF(obj.firstVertex), QtCore.QPointF(obj.secondVertex), obj.width,
                             obj.behindCounters, obj.flipHorizontal, obj.flipVertical,
                             *((obj.intensity,) if isinstance(obj, NorthArrow) else ()), obj.measurementHidden) for obj in self.furnishings)
         return (walls, self.selectedWall, self.selectedVertex, windows, tuple(self.SelectionEntries()), furnishings,
                 tuple(self.objectGroups), tuple(self.hiddenObjects),
-                tuple((obj, QtCore.QPointF(obj.firstVertex), QtCore.QPointF(obj.secondVertex), obj.width, obj.text, obj.intensity, obj.measurementHidden) for obj in self.labels))
+                tuple((obj, QtCore.QPointF(obj.firstVertex), QtCore.QPointF(obj.secondVertex), obj.width, obj.text, obj.intensity)
+                      + ((obj.unitsOverride,) if hasattr(obj, "unitsOverride") else ())
+                      + (obj.measurementHidden,) for obj in self.labels))
 
     def RecordEdit(self, before, coalesceKey = None):
         self.EnsureObjectIds(before)
@@ -742,10 +832,13 @@ class SceneEditingMixin:
             wall.material = material
             if isinstance(wall, MeasurementGuide):
                 wall.textOffset = QtCore.QPointF(*directionReversed[-2:])
+            if isinstance(wall, DashedLine):
+                wall.weightClass = directionReversed[0]
             if isinstance(wall, AngleGuide):
                 wall.middleVertex = QtCore.QPointF(*directionReversed[:2])
             if isinstance(wall, Arrow):
-                wall.solidTip, wall.tipSize, wall.intensity = directionReversed
+                wall.solidTip, wall.tipSize, wall.intensity = directionReversed[:3]
+                wall.directionReversed = directionReversed[3] if len(directionReversed) > 3 else False
             if isinstance(wall, Railing):
                 wall.autosize, wall.manualPostCount = stepCount
             if isinstance(wall, Stair):
@@ -780,15 +873,17 @@ class SceneEditingMixin:
                     and centerFraction != 0 and window.centerFraction == centerFraction and window.length == length
                     and window.measurementFlipped == (openingState[7] if len(openingState) > 7 else False)
                     and window.measurementHidden == (openingState[8] if len(openingState) > 8 else False)
+                    and (window.windowWell, window.wellDepth, window.wellDashed) == (openingState[9] if len(openingState) > 9 else (False, 600.0, False))
                     and (not isinstance(window, SilledWindow) or window.sillDepth == sillDepth)
-                    and (not isinstance(window, (Door, SlidingDoor, PocketDoor, CasementWindow))
+                    and (not isinstance(window, (Door, SwingingDoor, SlidingDoor, PocketDoor, CasementWindow))
                          or window.hingeAtSecond == hingeAtSecond)
-                    and (type(window) not in (Window, Door, SilledWindow, CasementWindow, BarnDoor, BifoldDoor)
+                    and (type(window) not in (Window, Door, DoubleDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, BarnDoor, BifoldDoor)
                          or window.swingsOutwards == swingsOutwards)
                     and (not isinstance(window, SlidingDoor) or window.panelsFlipped == swingsOutwards)):
                 continue
             window.measurementFlipped = openingState[7] if len(openingState) > 7 else False
             window.measurementHidden = openingState[8] if len(openingState) > 8 else False
+            window.windowWell, window.wellDepth, window.wellDashed = openingState[9] if len(openingState) > 9 else (False, 600.0, False)
             window.parentWall = parentWall
             window.centerFraction = centerFraction
             window.length = length
@@ -796,9 +891,9 @@ class SceneEditingMixin:
                 window.sillDepth = sillDepth
             if isinstance(window, Fireplace):
                 window.depth, window.depthOffset, window.material = sillDepth
-            if isinstance(window, (Door, SlidingDoor, PocketDoor, CasementWindow)):
+            if isinstance(window, (Door, SwingingDoor, SlidingDoor, PocketDoor, CasementWindow)):
                 window.hingeAtSecond = hingeAtSecond
-            if type(window) in (Window, Door, SilledWindow, CasementWindow, BarnDoor, BifoldDoor, Fireplace):
+            if type(window) in (Window, Door, DoubleDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, BarnDoor, BifoldDoor, Fireplace):
                 window.swingsOutwards = swingsOutwards
             elif isinstance(window, SlidingDoor):
                 window.panelsFlipped = swingsOutwards
@@ -806,7 +901,11 @@ class SceneEditingMixin:
     def RestoreLabelStates(self, states, restoreList = True):
         if restoreList:
             self.labels = []
-        for obj, first, second, width, text, intensity, measurementHidden in states:
+        for state in states:
+            obj, first, second, width, text, intensity = state[:6]
+            measurementHidden = state[-1]
+            if hasattr(obj, "unitsOverride"):
+                obj.unitsOverride = state[6] if len(state) > 7 else None
             if (not SnapshotPointMatches(obj.firstVertex, first.x(), first.y())
                     or not SnapshotPointMatches(obj.secondVertex, second.x(), second.y())
                     or (obj.width, obj.text, obj.intensity, obj.measurementHidden) != (width, text, intensity, measurementHidden)):
@@ -879,11 +978,11 @@ class SceneEditingMixin:
                 self.RestoreState(edit.Apply(self.CaptureState(), True))
             self.undoHistory.append(edit)
 
-    def DissolveWalls(self, vertex):
+    def DissolveWalls(self, vertex, objectType = Wall):
         self.CancelInteraction()
-        walls = [wall for wall in self.walls if type(wall) is Wall and any(
+        walls = [wall for wall in self.walls if type(wall) is objectType and any(
             QtCore.QLineF(vertex, endpoint).length() <= .01 for endpoint in (wall.firstVertex, wall.secondVertex))]
-        if len(walls) != 2:
+        if len(walls) != 2 or objectType in (Pillar, Column, Elevator, AngleGuide):
             return False
         self.EnsureObjectIds()
         source, other = sorted(walls, key = lambda wall: wall.objectId)
@@ -896,11 +995,12 @@ class SceneEditingMixin:
         direction = second - first
         length = math.hypot(direction.x(), direction.y())
         if length < 1e-8:
-            self.clipboardMessage.emit("Cannot dissolve: the new wall would have zero length.")
+            self.clipboardMessage.emit("Cannot dissolve: the new object would have zero length.")
             return False
-        merged = Wall(QtCore.QPointF(first), QtCore.QPointF(second), source.width,
-                      otherMiter if sourceFirstShared else source.firstMiter,
-                      source.secondMiter if sourceFirstShared else otherMiter, source.material)
+        merged = self.CloneLinearObject(source)
+        merged.firstVertex, merged.secondVertex = QtCore.QPointF(first), QtCore.QPointF(second)
+        merged.firstMiter = otherMiter if sourceFirstShared else source.firstMiter
+        merged.secondMiter = source.secondMiter if sourceFirstShared else otherMiter
         wallIds = {id(wall) for wall in walls}
         openings = []
         for opening in self.windows:
@@ -921,7 +1021,7 @@ class SceneEditingMixin:
                         setattr(clone, flag, not getattr(clone, flag))
             openings.append((opening, clone))
         candidates = [clone for opening, clone in openings] + [opening for opening in self.windows if id(opening.parentWall) not in wallIds]
-        if (any(self.OpeningsOverlap(firstOpening, secondOpening) for index, firstOpening in enumerate(candidates)
+        if objectType is Wall and (any(self.OpeningsOverlap(firstOpening, secondOpening) for index, firstOpening in enumerate(candidates)
                 for secondOpening in candidates[index + 1:]) or
                 any(self.JoinedObjectsOverlap(merged, obj, contactTolerance = 1.0, excludedWalls = wallIds) for obj in
                     self.furnishings + [wall for wall in self.walls if isinstance(wall, (Stair, Counter))])):
@@ -949,7 +1049,8 @@ class SceneEditingMixin:
 
     def SubdivideWalls(self, objects):
         self.CancelInteraction()
-        walls = [wall for wall in self.walls if type(wall) is Wall and any(wall is obj for obj in objects)]
+        walls = [wall for wall in self.walls if type(wall) not in (Pillar, Column, Elevator, AngleGuide)
+                 and any(wall is obj for obj in objects)]
         if not walls:
             return False
         splitFractions = {}
@@ -958,7 +1059,7 @@ class SceneEditingMixin:
             if length < 2e-8:
                 return False
             direction = wall.secondVertex - wall.firstVertex
-            fraction = ChooseWallSplit((wall.firstVertex.x(), wall.firstVertex.y()), (direction.x(), direction.y()),
+            fraction = .5 if type(wall) is not Wall else ChooseWallSplit((wall.firstVertex.x(), wall.firstVertex.y()), (direction.x(), direction.y()),
                 (self.NumericCollisionFootprint(other, self.ObjectFootprint(other))
                  for other in self.walls + self.furnishings if other is not wall),
                 ((opening.firstFraction, opening.secondFraction) for opening in self.windows if opening.parentWall is wall))
@@ -970,10 +1071,9 @@ class SceneEditingMixin:
         replacements = {}
         for wall in walls:
             midpoint = wall.firstVertex + (wall.secondVertex - wall.firstVertex) * splitFractions[id(wall)]
-            first = Wall(QtCore.QPointF(wall.firstVertex), QtCore.QPointF(midpoint), wall.width,
-                         wall.firstMiter, 0.0, wall.material)
-            second = Wall(QtCore.QPointF(midpoint), QtCore.QPointF(wall.secondVertex), wall.width,
-                          0.0, wall.secondMiter, wall.material)
+            first, second = self.CloneLinearObject(wall), self.CloneLinearObject(wall)
+            first.secondVertex, first.secondMiter = QtCore.QPointF(midpoint), 0.0
+            second.firstVertex, second.firstMiter = QtCore.QPointF(midpoint), 0.0
             replacements[id(wall)] = (first, second)
         for opening in self.windows:
             halves = replacements.get(id(opening.parentWall))
@@ -988,7 +1088,8 @@ class SceneEditingMixin:
                              for group in self.objectGroups]
         self.hiddenObjects = [part for obj in self.hiddenObjects for part in replacements.get(id(obj), (obj,))]
         self.hiddenObjectIds = {id(obj) for obj in self.hiddenObjects}
-        self.SetSelection([(part, None) for wall in walls for part in replacements[id(wall)]])
+        self.SetSelection([(part, index) for wall in walls
+                           for part, index in zip(replacements[id(wall)], (1, 0))])
         self.RecordEdit(before)
         self.selectionChanged.emit()
         self.update()
@@ -1021,6 +1122,28 @@ class SceneEditingMixin:
         opening.geometryIssues = getattr(source, "geometryIssues", ())
         return opening
 
+    def CloneLinearObject(self, source):
+        clone = type(source)(QtCore.QPointF(source.firstVertex), QtCore.QPointF(source.secondVertex), source.width,
+                             source.firstMiter, source.secondMiter, source.material)
+        clone.measurementHidden = source.measurementHidden
+        if isinstance(source, MeasurementGuide):
+            clone.textOffset = QtCore.QPointF(source.textOffset)
+        if isinstance(source, DashedLine):
+            clone.weightClass = source.weightClass
+        if isinstance(source, AngleGuide):
+            clone.middleVertex = QtCore.QPointF(source.middleVertex)
+        if isinstance(source, Arrow):
+            clone.solidTip, clone.tipSize, clone.intensity = source.solidTip, source.tipSize, source.intensity
+            clone.directionReversed = source.directionReversed
+        if isinstance(source, Railing):
+            clone.autosize, clone.manualPostCount = source.autosize, source.manualPostCount
+            clone.spacingBounds = source.spacingBounds
+        if isinstance(source, Stair):
+            clone.directionReversed = source.directionReversed
+            clone.autosize, clone.manualStepCount = source.autosize, source.manualStepCount
+            clone.stepSizeBounds = source.stepSizeBounds
+        return clone
+
     def DuplicateSelectionObjects(self, objects, groups):
         if self.ObjectsHaveAssetErrors(objects):
             return {}
@@ -1031,21 +1154,7 @@ class SceneEditingMixin:
                 copy = obj.Clone()
                 (self.labels if isinstance(obj, Label) else self.furnishings).append(copy)
             elif isinstance(obj, Wall):
-                copy = type(obj)(QtCore.QPointF(obj.firstVertex), QtCore.QPointF(obj.secondVertex), obj.width,
-                                 obj.firstMiter, obj.secondMiter, obj.material)
-                copy.measurementHidden = obj.measurementHidden
-                if isinstance(obj, MeasurementGuide):
-                    copy.textOffset = QtCore.QPointF(obj.textOffset)
-                if isinstance(obj, AngleGuide):
-                    copy.middleVertex = QtCore.QPointF(obj.middleVertex)
-                if isinstance(obj, Arrow):
-                    copy.solidTip, copy.tipSize, copy.intensity = obj.solidTip, obj.tipSize, obj.intensity
-                if isinstance(obj, Railing):
-                    copy.autosize, copy.manualPostCount = obj.autosize, obj.manualPostCount
-                    copy.spacingBounds = obj.spacingBounds
-                if isinstance(obj, Stair):
-                    copy.directionReversed = obj.directionReversed
-                    copy.autosize, copy.manualStepCount = obj.autosize, obj.manualStepCount
+                copy = self.CloneLinearObject(obj)
                 self.walls.append(copy)
             else:
                 continue  # Openings are copied after their parents.

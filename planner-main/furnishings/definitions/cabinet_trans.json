@@ -1,0 +1,23 @@
+{
+    "name": "Cabinet Overhead",
+    "image": "cabinet_trans",
+    "width": 600,
+    "length": 350,
+    "icon": null,
+    "category": "Kitchen",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "cabinet",
+        "cupboard",
+        "storage",
+        "base",
+        "kitchen",
+        "counter",
+        "cabinetry",
+        "cupboards",
+        "double",
+        "two",
+        "door"
+    ]
+}

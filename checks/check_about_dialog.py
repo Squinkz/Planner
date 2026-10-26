@@ -29,7 +29,7 @@ def Main():
         assert not about.logoLabel.pixmap().isNull()
         assert about.logoLabel.pixmap().size() == QtCore.QSize(300, 300)
         labels = [widget.text() for widget in about.findChildren(QtWidgets.QLabel)]
-        assert "Alpha 0.1.0" in labels and "2026 Dieter Stassen" in labels
+        assert "Alpha 0.1.1" in labels and "2026 Dieter Stassen" in labels
         assert "Build your dream,\ndesign your space.\n\nMake your house a Home." in labels
         assert not any("Stacker" in text for text in labels)
         assert about.grab().save(str(captures / "about-dark.png"))

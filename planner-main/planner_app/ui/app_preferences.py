@@ -69,7 +69,11 @@ class AppPreferencesMixin:
             warnings.warn(f"Cannot save application preferences: {error}")
 
     def BrowseDirectory(self, forExport = False):
-        lastFolder = self.appPreferences.get("lastExportFolder" if forExport else "lastBrowseFolder")
+        if forExport:
+            panel = getattr(self, "exportPanel", None)
+            lastFolder = panel.exportFolder if panel is not None else None
+        else:
+            lastFolder = self.appPreferences.get("lastBrowseFolder")
         if isinstance(lastFolder, str) and lastFolder and Path(lastFolder).is_dir():
             return Path(lastFolder)
         project = getattr(self, "projectPath", None)
@@ -80,8 +84,12 @@ class AppPreferencesMixin:
     def RememberBrowseFolder(self, path, forExport = False):
         folder = Path(path).resolve().parent
         if folder.is_dir():
-            self.appPreferences["lastExportFolder" if forExport else "lastBrowseFolder"] = str(folder)
-            self.SaveAppPreferences()
+            if forExport:
+                self.exportPanel.exportFolder = str(folder)
+                self.ProjectSettingsChanged()
+            else:
+                self.appPreferences["lastBrowseFolder"] = str(folder)
+                self.SaveAppPreferences()
 
     def RememberRecentProject(self, path):
         path = str(Path(path).resolve())

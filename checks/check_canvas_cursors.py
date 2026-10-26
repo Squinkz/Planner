@@ -100,7 +100,7 @@ def Main():
         assert slider.cursor().shape() == (expected if slider.isEnabled() else shape.ArrowCursor)
     main.settingsWindow.tabs.setCurrentIndex(1)
     app.processEvents()
-    for tree in (main.visibilityTree, main.settingsWindow.measurementVisibilityTree):
+    for tree in (main.visibilityTree,):
         if tree is main.visibilityTree:
             main.sidebarTabs.setCurrentIndex(2)
             app.processEvents()

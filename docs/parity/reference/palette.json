@@ -29,7 +29,8 @@
       "errorBorder": "#b26e79",
       "errorFill": "#f0412738",
       "errorText": "#ffb7ad",
-      "missing": "#ff9c91"
+      "missing": "#ff9c91",
+      "roomFill": "#073956"
     },
     "labelFont": "D-DIN Condensed"
   },
@@ -63,7 +64,8 @@
       "errorBorder": "#713939",
       "errorFill": "#f0231414",
       "errorText": "#ff8080",
-      "missing": "#ff6060"
+      "missing": "#ff6060",
+      "roomFill": "#16191c"
     },
     "labelFont": "Noto Sans"
   },
@@ -129,7 +131,8 @@
       "errorBorder": "#c46b6b",
       "errorFill": "#f0ffe8e8",
       "errorText": "#ad2222",
-      "missing": "#d02020"
+      "missing": "#d02020",
+      "roomFill": "#f3f3f3"
     },
     "labelFont": "Noto Sans"
   },

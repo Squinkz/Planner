@@ -71,7 +71,7 @@ class FurnishingHandlesMixin:
         handles.append(("pivot", None, None, self.WorldToViewport(pivot), QtCore.QPointF()))
         return handles
 
-    def VisibleFurnishingHandles(self, hoverHit = None):
+    def VisibleFurnishingHandles(self, hoverHit = None, position = None):
         if self.referenceImage is not None and self.referenceImage.active:
             return []
         if self.openingPlacementMode is not None or self.pendingWall is not None or self.isPanning:
@@ -86,16 +86,21 @@ class FurnishingHandlesMixin:
                                     if handle[0] == mode or mode == "rotate" and handle[0] == "pivot"])]
         selectedIds = {id(obj) for obj, index in self.SelectionEntries()}
         hovered = None
-        worldHover = self.ViewportToWorld(self.hoverPosition) if self.hoverPosition is not None else None
+        position = self.hoverPosition if position is None else position
+        worldHover = self.ViewportToWorld(position) if position is not None else None
         hoverMargin = 56 / (self.basePixelsPerMillimeter * self.zoom)
-        if self.hoverPosition is not None and self.DrawingRect().contains(self.hoverPosition):
-            hovered, index = self.HitTest(self.hoverPosition) if hoverHit is None else hoverHit
+        if position is not None and self.DrawingRect().contains(position):
+            hovered, index = self.HitTest(position) if hoverHit is None else hoverHit
         visible = []
         for furnishing in self.furnishings + self.labels + [obj for obj in self.walls if isinstance(obj, Pillar)] + [obj for obj in self.windows if isinstance(obj, Fireplace)]:
             if not self.IsObjectVisible(furnishing):
                 continue
+            if id(hovered) in selectedIds and id(furnishing) not in selectedIds:
+                # These handles cannot intercept the selected body. Do not
+                # reveal them as if they were available under the pointer.
+                continue
             if id(furnishing) not in selectedIds and furnishing is not hovered:
-                if self.hoverPosition is None:
+                if position is None:
                     continue
                 bounds = self.ObjectFootprint(furnishing)[0]
                 if not bounds.adjusted(-hoverMargin, -hoverMargin, hoverMargin, hoverMargin).contains(worldHover):
@@ -103,17 +108,17 @@ class FurnishingHandlesMixin:
             handles = self.FurnishingHandles(furnishing)
             mode = "rotate" if id(furnishing) in selectedIds and furnishing is self.furnishingRotationObject else "resize"
             handles = [handle for handle in handles if handle[0] == mode or mode == "rotate" and handle[0] == "pivot"]
-            nearHandle = self.hoverPosition is not None and any(
-                QtCore.QLineF(self.hoverPosition, handle[3]).length() <= 9 for handle in handles)
+            nearHandle = position is not None and any(
+                QtCore.QLineF(position, handle[3]).length() <= 9 for handle in handles)
             if id(furnishing) in selectedIds or furnishing is hovered or nearHandle:
                 visible.append((furnishing, handles))
+        visible.sort(key = lambda item: id(item[0]) in selectedIds)
         return visible
 
     def HitFurnishingHandle(self, position, hoverHit = None):
         hoverHit = self.HitTest(position) if hoverHit is None else hoverHit
         selectedIds = {id(obj) for obj, index in self.SelectionEntries()}
-        visible = self.VisibleFurnishingHandles(hoverHit = hoverHit)
-        visible.sort(key = lambda item: id(item[0]) in selectedIds or bool(getattr(item[0], "selectionMembers", ())))
+        visible = self.VisibleFurnishingHandles(hoverHit = hoverHit, position = position)
         for furnishing, handles in reversed(visible):
             if (id(hoverHit[0]) in selectedIds and id(furnishing) not in selectedIds
                     and not getattr(furnishing, "selectionMembers", ())):

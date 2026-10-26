@@ -9,6 +9,23 @@ from planner_app.graphics.cursors import RotationCursor
 
 
 class InteractionMixin:
+    def SelectionTarget(self, position, modifiers = None, hoverHit = None):
+        hitObject, hitIndex = self.HitTest(position) if hoverHit is None else hoverHit
+        furnishing, handle = self.HitFurnishingHandle(position, hoverHit = (hitObject, hitIndex))
+        if handle is not None:
+            return furnishing, None, handle
+        entries = self.SelectionEntries()
+        modifiers = QtWidgets.QApplication.keyboardModifiers() if modifiers is None else modifiers
+        shiftHeld = bool(modifiers & QtCore.Qt.KeyboardModifier.ShiftModifier)
+        wholeHitSelected = any(obj is hitObject and index is None for obj, index in entries)
+        hitSelected = any(obj is hitObject and (index == hitIndex or index is None) for obj, index in entries)
+        extrudeVertex = hitIndex is not None and isinstance(hitObject, (Wall, Window))
+        if hitSelected and len(entries) > 1 and not (shiftHeld and extrudeVertex and not wholeHitSelected):
+            # A selected body in a multi-selection moves with that selection.
+            # Its nearby endpoint must not advertise a separate vertex drag.
+            hitIndex = next(index for obj, index in entries if obj is hitObject and (index == hitIndex or index is None))
+        return hitObject, hitIndex, None
+
     def UpdateCanvasCursor(self, hoverHit = None):
         if self.exportOverlay.active:
             self.exportOverlay.UpdateCursor()
@@ -31,9 +48,8 @@ class InteractionMixin:
         elif self.dragStart is not None and self.selectedWall is not None:
             shape = QtCore.Qt.CursorShape.SizeAllCursor
         elif self.boxStart is None and self.hoverPosition is not None and self.DrawingRect().contains(self.hoverPosition):
-            hoverHit = self.HitTest(self.hoverPosition) if hoverHit is None else hoverHit
-            furnishing, handle = self.HitFurnishingHandle(self.hoverPosition, hoverHit = hoverHit)
-            if handle is None and hoverHit[0] is not None:
+            hitObject, hitIndex, handle = self.SelectionTarget(self.hoverPosition, hoverHit = hoverHit)
+            if handle is None and hitObject is not None:
                 shape = QtCore.Qt.CursorShape.SizeAllCursor
         if handle is not None:
             if handle[0] == "rotate":
@@ -377,25 +393,13 @@ class InteractionMixin:
                     self.doorOrientationLocked = False
                     if duplicate:
                         if isinstance(source, Wall):
-                            copy = type(source)(QtCore.QPointF(source.firstVertex), QtCore.QPointF(source.secondVertex), source.width,
-                                                source.firstMiter, source.secondMiter, source.material)
-                            copy.measurementHidden = source.measurementHidden
-                            if isinstance(source, MeasurementGuide):
-                                copy.textOffset = QtCore.QPointF(source.textOffset)
-                            if isinstance(source, Arrow):
-                                copy.solidTip, copy.tipSize, copy.intensity = source.solidTip, source.tipSize, source.intensity
-                            if isinstance(source, Railing):
-                                copy.autosize, copy.manualPostCount = source.autosize, source.manualPostCount
-                                copy.spacingBounds = source.spacingBounds
-                            if isinstance(source, Stair):
-                                copy.directionReversed = source.directionReversed
-                                copy.autosize, copy.manualStepCount = source.autosize, source.manualStepCount
+                            copy = self.CloneLinearObject(source)
                             if extrude:
                                 anchor = QtCore.QPointF(self.dragSourceVertices[self.dragSourceVertex])
                                 copy.firstVertex = QtCore.QPointF(anchor)
                                 copy.secondVertex = QtCore.QPointF(anchor)
                                 self.dragVertices = (QtCore.QPointF(anchor), QtCore.QPointF(anchor))
-                                self.selectedVertex = 1
+                                self.selectedVertex = self.dragSourceVertex if isinstance(source, (Arrow, Stair)) else 1
                             children = [] if extrude else [self.CloneOpening(opening, copy) for opening in self.windows if opening.parentWall is source]
                             self.walls.append(copy)
                             self.windows.extend(children)
@@ -639,8 +643,8 @@ class InteractionMixin:
                 and self.openingPlacementMode is None and self.pendingWall is None
                 and self.DrawingRect().contains(event.position())):
             self.hoverPosition = event.position()
-            furnishing, handle = self.HitFurnishingHandle(event.position())
-            if furnishing is not None:
+            furnishing, hitIndex, handle = self.SelectionTarget(event.position(), event.modifiers())
+            if handle is not None:
                 self.setFocus()
                 self.BeginFurnishingHandleDrag(furnishing, handle, event.position())
                 event.accept()
@@ -681,7 +685,7 @@ class InteractionMixin:
                 self.BeginWallDraw(event.position(), event.modifiers())
             else:
                 entries = self.SelectionEntries()
-                hitWall, hitIndex = self.HitTest(event.position())
+                hitWall, hitIndex, handle = self.SelectionTarget(event.position(), event.modifiers())
                 shiftHeld = bool(event.modifiers() & QtCore.Qt.KeyboardModifier.ShiftModifier)
                 controlHeld = bool(event.modifiers() & QtCore.Qt.KeyboardModifier.ControlModifier)
                 modifiedSelection = shiftHeld or controlHeld
@@ -700,10 +704,6 @@ class InteractionMixin:
                     return
                 wholeHitSelected = any(obj is hitWall and index is None for obj, index in entries)
                 if hitSelected and len(entries) > 1 and not (shiftHeld and extrudeVertex and not wholeHitSelected):
-                    # Grabbing a selected object's handle moves its selected body
-                    # unless that handle was explicitly selected as a vertex.
-                    hitIndex = next(index for obj, index in entries if obj is hitWall
-                                    and (index == hitIndex or index is None))
                     self.selectedWall, self.selectedVertex = hitWall, hitIndex
                     self.selection = list(entries)
                 else:
@@ -989,8 +989,8 @@ class InteractionMixin:
             self.mousePressEvent(event)
             return
         if event.button() == QtCore.Qt.MouseButton.LeftButton:
-            guide, index = self.HitTest(event.position())
-            if isinstance(guide, MeasurementGuide) and index == 3:
+            guide, index, handle = self.SelectionTarget(event.position(), event.modifiers())
+            if handle is None and isinstance(guide, MeasurementGuide) and index == 3:
                 self.CancelInteraction()
                 before = self.CaptureState()
                 guide.textOffset = QtCore.QPointF()
@@ -999,7 +999,6 @@ class InteractionMixin:
                 self.update()
                 event.accept()
                 return
-            furnishing, handle = self.HitFurnishingHandle(event.position())
             if handle is not None and handle[0] == "pivot":
                 self.CancelInteraction()
                 self.rotationPivot = None
@@ -1010,7 +1009,7 @@ class InteractionMixin:
         self.UpdateMode(event.modifiers())
         if (event.button() == QtCore.Qt.MouseButton.LeftButton and self.mode == "Select"
                 and not event.modifiers() & QtCore.Qt.KeyboardModifier.ShiftModifier
-                and self.HitTest(event.position())[0] is None):
+                and self.SelectionTarget(event.position(), event.modifiers())[0] is None):
             self.ResetView()
             event.accept()
             return

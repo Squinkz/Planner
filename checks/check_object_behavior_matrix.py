@@ -45,6 +45,7 @@ def CaptureMatrix():
                 fields = {}
                 mapping = {**{"property:" + key: value for key, value in main.propertyFields.items()},
                            **{"opening:" + key: value for key, value in main.doorFields.items()},
+                           **{"well:" + key: value for key, value in main.windowWellFields.items()},
                            **{"arrow:" + key: value for key, value in main.arrowFields.items()},
                            **{"label:" + key: value for key, value in main.labelFields.items()},
                            **{"position:" + key: value for key, value in main.objectPositionFields.items()},
@@ -52,7 +53,12 @@ def CaptureMatrix():
                            **{"anglePosition:" + key: value for key, value in main.angleGuidePositionFields.items()},
                            "angle": main.angleGuideAngleField, "sizeLink": main.sizeLinkButton,
                            "material": main.materialField, "autosize": main.autosizeField,
-                           "direction": main.stairDirectionButton, "labelText": main.labelTextField,
+                           "direction": main.stairDirectionButton, "arrowDirection": main.arrowDirectionButton,
+                           "labelText": main.labelTextField,
+                           "roomArea": main.roomAreaValue,
+                           "lineWeight": main.lineWeightField,
+                           "roomName": main.roomNameField,
+                           "roomUnits": main.roomUnitsField,
                            "labelIntensity": main.labelIntensitySlider,
                            **{"flip:" + key: value for key, value in main.furnishingFlipFields.items()}}
                 forms = main.propertiesPanel.findChildren(QtWidgets.QFormLayout)
@@ -74,6 +80,10 @@ def CaptureMatrix():
                         entry.update(value = widget.value(), minimum = widget.minimum(), maximum = widget.maximum())
                     elif isinstance(widget, QtWidgets.QPlainTextEdit):
                         entry.update(value = widget.toPlainText())
+                    elif isinstance(widget, QtWidgets.QLineEdit):
+                        entry.update(value = widget.text(), maxLength = widget.maxLength())
+                    elif isinstance(widget, QtWidgets.QLabel):
+                        entry.update(value = widget.text())
                     fields[key] = entry
                 row["properties"][state] = fields
             v.SetSelection([(obj, None)])

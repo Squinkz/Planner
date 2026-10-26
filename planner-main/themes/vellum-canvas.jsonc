@@ -6,6 +6,7 @@
     "labelFont": "Drafting Small Caps",
     "colors": {
         "canvas": "#f5efdf",
+        "roomFill": "#eee7d7", // Background inside detected rooms in the editor.
         "grid": "#9e947b",
         "objectOutline": "#423a2c",
         "wallOutline": "#5e5341",

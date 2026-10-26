@@ -1,10 +1,11 @@
 """Arrow appearance and dimension controls, including mixed selections."""
 import math
 from PySide6 import QtCore, QtWidgets
-from planner_app.models import Arrow, MeasurementGuide, BoundaryLine, ObjectControlPoints
+from planner_app.models import Arrow, MeasurementGuide, BoundaryLine, DashedLine, SolidLine, ObjectControlPoints, lineWeightClasses
 from planner_app.units import MetricUnit
 from planner_app.graphics.icons import UiIcon
-from .widgets import DragSpinBox, DragSlider
+from planner_app.graphics.theme import HeaderIcon
+from .widgets import DragSpinBox, DragSlider, DownwardComboBox
 
 
 class ArrowPropertiesMixin:
@@ -16,6 +17,12 @@ class ArrowPropertiesMixin:
         form.setVerticalSpacing(8)
         form.setRowWrapPolicy(QtWidgets.QFormLayout.RowWrapPolicy.WrapLongRows)
         self.arrowFields = {}
+        self.lineWeightField = DownwardComboBox()
+        self.lineWeightField.setAccessibleName("Line weight class")
+        for weight in lineWeightClasses:
+            self.lineWeightField.addItem("Dimensions" if weight == "Measurements" else weight, weight)
+        self.lineWeightField.setMinimumHeight(rowHeight)
+        self.lineWeightField.currentIndexChanged.connect(lambda index: self.EditArrowProperty("weightClass", self.lineWeightField.itemData(index)))
         for name, label in (("length", "Length"), ("solidTip", "Solid tip"),
                             ("tipSize", "Tip size"), ("width", "Tail thickness"), ("intensity", "Intensity")):
             if name == "solidTip":
@@ -55,7 +62,20 @@ class ArrowPropertiesMixin:
                 form.addRow(row)
             else:
                 form.addRow(label, control)
+            if name == "length":
+                form.addRow("Weight", self.lineWeightField)
             self.arrowFields[name] = control
+        self.arrowDirectionButton = QtWidgets.QPushButton()
+        self.arrowDirectionButton.setObjectName("propertyIconButton")
+        self.arrowDirectionButton.setFixedSize(rowHeight, rowHeight)
+        self.arrowDirectionButton.setIconSize(QtCore.QSize(24, 24))
+        self.arrowDirectionButton.setIcon(HeaderIcon("Redo"))
+        self.arrowDirectionButton.setAccessibleName("Flip arrow direction")
+        self.arrowDirectionButton.setToolTip("Flip the arrow direction")
+        self.arrowDirectionButton.clicked.connect(lambda: self.viewport.ApplyObjectContextAction(
+            list({id(obj): obj for obj, index in self.viewport.SelectionEntries() if isinstance(obj, Arrow)}.values()),
+            "reverseDirection"))
+        form.insertRow(form.getWidgetPosition(self.arrowFields["solidTip"])[0], "Direction", self.arrowDirectionButton)
         layout.addWidget(self.arrowProperties)
         self.arrowProperties.hide()
 
@@ -68,7 +88,18 @@ class ArrowPropertiesMixin:
         self.wallProperties.hide()
         self.doorProperties.hide()
         guide = isinstance(arrows[0], MeasurementGuide)
-        name = "Boundary line" if isinstance(arrows[0], BoundaryLine) else "Measurement guide" if guide else "Arrow"
+        if not guide:
+            self.arrowDirectionButton.setIcon(HeaderIcon("Undo" if arrows[0].directionReversed else "Redo"))
+        weighted = isinstance(arrows[0], DashedLine)
+        self.arrowProperties.layout().setRowVisible(self.arrowDirectionButton, not guide)
+        name = "Solid Line" if isinstance(arrows[0], SolidLine) else "Dashed Line" if weighted else "Boundary line" if isinstance(arrows[0], BoundaryLine) else "Dimension guide" if guide else "Arrow"
+        self.arrowProperties.layout().setRowVisible(self.lineWeightField, weighted)
+        if weighted:
+            blocker = QtCore.QSignalBlocker(self.lineWeightField)
+            values = {arrow.weightClass for arrow in arrows}
+            self.lineWeightField.setCurrentIndex(self.lineWeightField.findData(arrows[0].weightClass) if len(values) == 1 else -1)
+            self.lineWeightField.setPlaceholderText("(different)")
+            del blocker
         self.selectionLabel.setText(f"{name} (#{arrows[0].objectId:04d})" if len(arrows) == 1 else f"{len(arrows)} {name.lower()}s selected")
         for fieldName, field in self.arrowFields.items():
             row = self.arrowIntensityValue.parentWidget() if fieldName == "intensity" else field
@@ -132,6 +163,8 @@ class ArrowPropertiesMixin:
     def EditArrowProperty(self, name, value):
         arrows = list({id(obj): obj for obj, index in self.viewport.SelectionEntries()}.values())
         if not arrows or any(not isinstance(obj, (Arrow, MeasurementGuide)) for obj in arrows):
+            return
+        if name == "weightClass" and (value not in lineWeightClasses or any(not isinstance(obj, DashedLine) for obj in arrows)):
             return
         before = self.viewport.CaptureState()
         for arrow in arrows:

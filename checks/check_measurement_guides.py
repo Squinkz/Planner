@@ -45,7 +45,7 @@ def Main():
     assert drop.isAccepted() and len(v.walls) == 1 and v.arrowPreview is None
     guide = v.walls[0]
     assert guide.width == 0 and guide.objectId is not None
-    assert "Measurement guide" in main.selectionLabel.text()
+    assert "Dimension guide" in main.selectionLabel.text()
     assert main.arrowFields["length"].isVisible()
     assert not main.arrowFields["width"].isVisible() and not main.arrowFields["solidTip"].isVisible()
     main.EditArrowProperty("length", 2)

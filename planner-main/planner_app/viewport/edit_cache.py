@@ -172,7 +172,8 @@ class EditPaintCacheMixin:
             screenBounds = QtCore.QRectF(self.WorldToViewport(bounds.topLeft()), self.WorldToViewport(bounds.bottomRight())).normalized()
             if isinstance(obj, Window):
                 if not isinstance(obj, Fireplace):
-                    extent = (obj.length + obj.width / 2 + getattr(obj, "sillDepth", 0)) * pixelsPerMillimeter
+                    extent = (obj.length + obj.width / 2 + getattr(obj, "sillDepth", 0)
+                              + (obj.wellDepth + 150 if obj.windowWell else 0)) * pixelsPerMillimeter
                     screenBounds = screenBounds.adjusted(-extent, -extent, extent, extent)
             for coordinates, region in pieces:
                 screenBounds = screenBounds.united(transform.mapRect(region))

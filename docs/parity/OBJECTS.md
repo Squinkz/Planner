@@ -6,7 +6,7 @@ desktop app, including distinctions between structural objects and furnishings
 that happen to share handles or an SVG renderer.
 
 [object-behavior.json](reference/object-behavior.json) is the executable companion:
-24 current types, exact visible property widgets, ranges, increments, tooltips, handles,
+31 current types, exact visible property widgets, ranges, increments, tooltips, handles,
 visibility categories, context actions with measurements on/off, seed records,
 all eight collision setting combinations and footprint exclusions. Replay it with
 `python checks/run_checks.py check_object_behavior_matrix.py` from the workspace.
@@ -37,8 +37,10 @@ for gesture rules, snapping, connected movement, groups and cancellation.
 | Stair | Width 1000 | Endpoints; width, length, autosize, direction; manual count/step size; eligible control point chamfer | Connected stairs can form landings |
 | Pillar | 300 × 300 | Box; width, length, angle, material; rectangular body | Independent |
 | Column | 300 × 300 | Same as Pillar; elliptical body | Independent |
-| Elevator | 1200 × 1200 | Box; width, length, angle; architectural SVG/line weight; no material or flip controls | Independent |
+| Elevator | 1200 × 1200 | Box; width, length, angle; architectural SVG/line weight; no material or furnishing artwork flip controls | Independent |
 | Door | Span 900 | Endpoints; length, swing, hinge, measurement side | Wall child |
+| Double door | Span 1800 | Endpoints; total length, shared swing, measurement side; two half-span leaves with outer hinges and no center jamb | Wall child |
+| Swinging door | Span 900 | Endpoints; length, hinge; two opposed 90-degree swing arcs; no facing or measurement-side control | Wall child |
 | Sliding door | Initial span 1800; panel size 900 | Endpoints; length, door size, panel side, slide direction, measurement side | Wall child |
 | Pocket door | Initial span 1800; panel size 900 | Endpoints; door size, pocket side | Wall child |
 | Barn door | Initial span 1800; panel size 900 | Endpoints; door size, facing, slide direction, measurement side | Wall child |
@@ -47,17 +49,51 @@ for gesture rules, snapping, connected movement, groups and cancellation.
 | Window | Span 1200 | Endpoints; length, facing, measurement side | Wall child |
 | Silled window | Span 1200 | Window plus sill depth | Wall child |
 | Casement window | Span 600 | Window plus hinge | Wall child |
+| Awning window | Span 1200 | Window with dashed rectangular projection, limited to its span; facing | Wall child |
+| Double casement window | Span 1200 | Two opposite half-span casement leaves in one frame; no central crossbar or hinge toggle | Wall child |
 | Fireplace | Width 1200; depth 500 or wall thickness, whichever is larger | Eight resize handles; width, length/depth, facing, material; no free rotation/pivot | Wall child; depth offset across wall |
 | Furnishing | From definition | Box; width, length, angle, horizontal/vertical flip | Independent; compound definitions retain child order |
-| Label | From text/font bounds | Proportional box; text, point size, intensity; width/length presentation | Independent annotation |
+| Label | From text/font bounds at 32 points | Proportional box; text, point size, intensity; width/length presentation | Independent annotation |
+| Room label | Centered name at 32 points, area line at 55% of the name size | Label controls with Name and calculated Area; area follows the detected room under its center | Independent annotation in Labels visibility |
 | North arrow | 600 × 1000 | Box; width, length, angle | Independent annotation |
-| Arrow | Tail thickness 10 | Endpoints; length, solid tip, tip size, tail thickness, intensity | Independent annotation |
+| Arrow | Tail thickness 10 | Endpoints; length, solid tip, tip size, tail thickness, intensity, direction flip | Independent annotation |
 | Measurement guide | Zero body width | Endpoints; length, text offset | Independent annotation |
+| Boundary line | Zero body width | Endpoints; length, selected-only dimensions; dash-dot stroke | Independent annotation |
+| Dashed line | Zero body width; Objects weight | Boundary controls plus Weight class; dashed stroke | Independent annotation |
+| Solid line | Zero body width; Objects weight | Boundary controls plus Weight class; solid stroke | Independent annotation |
 | Angle guide | Zero body width | Two arm endpoints and a middle control point; unsigned angle, text offset | Independent annotation |
 
 Lengths for drawn linear objects come from the drawing gesture. The
 [CHAMFER-01](CHAMFERS.md) convention is: 0 is an uncut sharp join and 1 is the
 full translating-plane cut; new control points start at zero.
+
+All five window types offer a Window well checkbox, off by default. Enabling it
+reveals Well depth (600 mm initially) and Dashed well outline (off initially).
+The open rounded outline extends 150 mm beyond each jamb and returns to the
+wall face. It follows the window's facing and span. Depth remains an independent
+physical dimension. The well is part of its window, with no separate selection,
+visibility or collision body. Clicking its outline selects the window.
+Well settings participate in history, clipboard, project/session persistence,
+recovery, render invalidation, automatic export bounds and PNG/SVG export.
+Legacy records default to no well. Coverage: `check_window_variants.py`.
+
+Swinging doors are double-acting openings. Their hinge side is shared by both
+swings and can be flipped in properties, the context menu or Ctrl orientation.
+They have no stored facing direction. With door measurement cuts enabled, they
+split both wall faces; the no-cuts mode omits both. Their default size is 900 mm,
+with the normal nominal imperial conversion for new objects. They appear in the
+Doors palette and visibility category. The D-key cycle appends Swinging Door
+after Open Doorway, preserving existing saved type choices. Coverage:
+`check_swinging_doors.py`, the object matrix and the frozen render corpus.
+
+Double doors pair two standard 90-degree door leaves with opposite outer hinges.
+Both leaves use half the opening span and share one facing direction. Only the
+outer jambs are drawn. Properties and the context menu expose swing direction
+and the usual one-sided measurement flip, with no hinge-side control. Placement,
+Ctrl orientation, copy/paste, history, recovery, visibility and export follow
+standard doors. The D-key cycle appends Double Door after Swinging Door; the
+palette and default-size settings place it next to Standard Door. Coverage:
+`check_double_doors.py` and the shared opening/measurement/render checks.
 
 The matrix uses a **2000 mm example axis**, not a product default length. Opening seed parents
 are 6000 mm long. A furnishing seed uses Desk; other definitions have their own
@@ -78,7 +114,8 @@ size. Its U-shaped material body has a complete outline through the wall;
 measurements go in front and behind it. It has no opaque rectangular background.
 
 Elevators are symmetrical and have no furnishing flip state. Sharing the SVG
-drawing path must not require these flags or expose furnishing flip controls.
+drawing path must not require these flags or expose furnishing artwork controls.
+Generic context-menu reflections transform their geometry like other objects.
 
 ## Visibility, measurements and drawing
 
@@ -87,6 +124,21 @@ Column use Walls; Elevator has Elevators. World is the master visibility switch.
 Hiding/deleting a wall includes its attached openings/fireplaces; undo restores
 the relationships. Hidden objects are different from measurement-hidden objects.
 
+Counter and stair shapes merge only through shared control endpoints at their
+end caps. Side contact and end-to-side contact preserve separate outlines.
+Side seams remain visible in end-connected U-shaped chains. Ordinary wall
+intersection merging is unchanged. Stair flights have one inset line along each
+long edge, 25 mm from the outer edge (capped at one quarter of narrow widths).
+Treads and collinear join dividers stop at these lines. Insets continue around
+joined landing outlines and the ends of shared side seams, without adding a
+second cap at a free flight end. They use the normal architectural color/line
+width. Stair direction shafts continue through landings when an unambiguous
+incoming/outgoing pair agrees on direction. Intermediate heads are suppressed.
+Conflicting directions and branches keep independent arrows; directed cycles
+retain a direction head. Geometry is cached independently of camera and color.
+Coverage: `check_run_end_merging.py`, `check_stair_landing_annotations.py`, the
+stair junction and landing checks.
+
 Stair direction arrowheads are fixed at 12 drawing units long and 7 units on
 each side of the shaft. Stair length, width, trimmed landings and direction do
 not resize the head. Canvas and export rendering share this symbol geometry.
@@ -94,7 +146,8 @@ Coverage: `check_stair_arrowheads.py`.
 
 Global measurements gate all ambient measurements and related UI options.
 Walls, pillars, columns and fireplaces follow wall measurement visibility;
-stairs, counters, railings and elevators have their own switches. Doors/windows
+stairs, counters and railings have their own switches. Elevators have no ambient,
+selected or context-menu measurements. Doors/windows
 also follow their measurement mode (both sides, facing side or no cuts).
 Measurement guides draw their explicit measurement. Furnishings, labels, north
 arrows and arrows do not gain ambient object measurements merely because they
@@ -104,10 +157,10 @@ label only when selected. They share measurement-guide editing and annotation
 collision exclusion, but have their own visibility category. Exports omit their
 selected-only measurement labels. See [annotation behavior](ANNOTATIONS.md).
 
-Hide/Show measurement belongs at the bottom of the object's top context-menu
+Hide/Show dimensions belongs at the bottom of the object's top context-menu
 section, before Transform. Offer it only when that class currently draws ambient
 measurements, including allowing an individually hidden measurement to be shown
-again. Flip Measurement additionally requires a supported type and facing-side
+again. Flip Dimension additionally requires a supported type and facing-side
 mode. Global measurement disable also removes these controls from Properties.
 Individual hiding never suppresses selection dimensions. A selected group gets
 bounding-box dimensions, rather than dimensions on each member.
@@ -172,3 +225,27 @@ flips, collision footprints, connected-object contact, decomposition and export
 must use the resulting child geometry. Empty compound bounds do not collide or
 connect objects. Detailed resource fields live in
 [the furnishing schema](../resources/FURNISHINGS.md).
+
+## Shared subdivision and dissolution
+
+Walls, counters, stairs, railings, arrows, measurement guides, boundary lines,
+dashed lines and solid lines offer Subdivide in their context menus. Walls retain
+their clear-segment search around openings and blocking geometry; other straight
+objects divide at their midpoint. New halves retain the concrete type and its
+appearance, sizing, direction and Weight settings. Outer chamfers remain; the
+new joint is sharp. Groups and hidden state follow the replacements. Subdivision
+clears the whole-object selection and selects both endpoints at each new joint
+(endpoint 1 of the first half and endpoint 0 of the second). Dragging the joint
+keeps the halves together even with Connected Points and Connected Objects off.
+Subdividing multiple objects selects both endpoints of every split. Redo restores
+this control-point selection.
+
+Dissolve Control Point is offered at a shared endpoint of exactly two objects of
+the same concrete class. It replaces them with the chord between their outer
+endpoints, retaining the lower-ID object's settings and both outer chamfers.
+A zero-length result is rejected. Wall dissolution retains opening rebasing and
+fit validation. Mixed classes never dissolve together. Both actions form a single
+undoable edit, including object/group/visibility replacement. Box-controlled
+objects, wall attachments and three-point angle guides do not offer these actions.
+Coverage: `check_linear_subdivision.py`, `check_wall_dissolve.py` and
+`check_opening_transform_core.py`.

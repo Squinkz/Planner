@@ -1,5 +1,5 @@
 """Remove editor-only warning objects from an independent export viewport."""
-from .models import Furnishing, Wall, Pillar, Column, Counter, Elevator
+from .models import Furnishing, Wall, Pillar, Column, Counter, Elevator, RoomLabel
 from .furnishing_assets import FurnishingAssetProblems
 from .geometry_recovery import ActiveGeometryIssues
 
@@ -22,3 +22,14 @@ def PrepareExportScene(viewport):
     viewport.windows = [obj for obj in viewport.windows if id(obj) not in excluded]
     viewport.furnishings = [obj for obj in viewport.furnishings if id(obj) not in excluded]
     viewport.furnishingRenderers = viewport.furnishingRenderers.Copy(excludeErrors = True)
+    if any(isinstance(label, RoomLabel) for label in viewport.labels):
+        labels = []
+        for label in viewport.labels:
+            if isinstance(label, RoomLabel):
+                clone = label.Clone()
+                clone.objectId = label.objectId
+                labels.append(clone)
+            else:
+                labels.append(label)
+        viewport.labels = labels
+        viewport.roomDetection.Refresh(force = True)

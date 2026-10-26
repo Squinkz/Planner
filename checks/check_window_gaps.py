@@ -5,7 +5,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "planner-main"))
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 from PySide6 import QtCore, QtGui, QtWidgets
-from planner import MainWindow, Wall, Window, SilledWindow, CasementWindow, Door, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway
+from planner import MainWindow, Wall, Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, Door, SwingingDoor, DoubleDoor, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway
 from check_history import Drag
 
 
@@ -18,7 +18,7 @@ def Main():
     viewport = window.viewport
     point = QtCore.QPointF
     none = QtCore.Qt.KeyboardModifier.NoModifier
-    openingTypes = (Window, SilledWindow, CasementWindow, Door, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway)
+    openingTypes = (Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, Door, SwingingDoor, DoubleDoor, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway)
     for direction in (point(1, 0), point(-1, 0), point(.6, .8)):
         parent = Wall(direction * -2500, direction * 2500)
         for openingType in openingTypes:

@@ -639,6 +639,7 @@ def FurnishingRenderer(imagePath, selectionColor = None, palette = None, lineWid
     transparentColors = {"none", "transparent", "inherit"}
     paintPattern = re.compile(r"(\b(?:fill|stroke|color|stop-color)\s*:\s*)([^;}]+)", re.IGNORECASE)
     widthPattern = re.compile(r"(\bstroke-width\s*:\s*)([^;}]+)", re.IGNORECASE)
+    vectorPattern = re.compile(r"(\bvector-effect\s*:\s*)([^;}]+)", re.IGNORECASE)
     strokeWidth = str(lineWidth)
 
     def Recolor(paint, missing = False):
@@ -673,6 +674,9 @@ def FurnishingRenderer(imagePath, selectionColor = None, palette = None, lineWid
         style = element.text if styleElement else element.get("style")
         if style:
             style = widthPattern.sub(lambda match: match.group(1) + strokeWidth, style)
+            # Inline/CSS declarations override presentation attributes. Keep
+            # authored stroke effects, but enforce Planner's constant width.
+            style = vectorPattern.sub(lambda match: match.group(1) + "non-scaling-stroke", style)
             style = paintPattern.sub(
                 lambda match: match.group(1) + ("none" if match.group(1).strip().lower().startswith("stroke:") and lineWidth == 0 else Recolor(match.group(2), missing)), style)
             if styleElement:

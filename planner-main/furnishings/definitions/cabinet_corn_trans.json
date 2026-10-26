@@ -1,0 +1,21 @@
+{
+    "name": "Cabinet Corner Overhead",
+    "image": "cabinet_corner_trans",
+    "width": 550,
+    "length": 550,
+    "icon": null,
+    "category": "Kitchen",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "cabinet",
+        "cupboard",
+        "storage",
+        "base",
+        "kitchen",
+        "counter",
+        "cabinetry",
+        "cupboards",
+        "corner"
+    ]
+}

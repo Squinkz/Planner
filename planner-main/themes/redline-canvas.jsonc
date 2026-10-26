@@ -6,6 +6,7 @@
     "labelFont": "Noto Sans",
     "colors": {
         "canvas": "#faf8f3",
+        "roomFill": "#eeebe6", // Background inside detected rooms in the editor.
         "grid": "#aaa39a",
         "objectOutline": "#393a39",
         "wallOutline": "#565651",

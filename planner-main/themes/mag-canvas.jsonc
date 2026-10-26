@@ -7,6 +7,7 @@
 
         // Canvas and object colors
         "canvas": "#ffffff", // Canvas background and furnishing artwork background.
+        "roomFill": "#f3f3f3", // Background inside detected rooms in the editor.
         "grid": "#000000", // Grid ink; brightness also follows grid intensity settings.
         "objectOutline": "#3c3442", // Object and furnishing outlines, canvas label text, and visible tree entries.
         "wallOutline": "#63596b", // Wall and pillar outlines.

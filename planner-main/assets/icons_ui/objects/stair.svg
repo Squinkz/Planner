@@ -22,15 +22,21 @@
      inkscape:pageopacity="0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#292929"
-     inkscape:zoom="11.313709"
-     inkscape:cx="33.454988"
-     inkscape:cy="33.808541"
+     inkscape:zoom="5.6568545"
+     inkscape:cx="-29.786872"
+     inkscape:cy="8.3968927"
      inkscape:window-width="2560"
      inkscape:window-height="1336"
-     inkscape:window-x="2552"
+     inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer1" />
+     inkscape:current-layer="svg1" />
+  <path data-theme-fill="fieldBackground" fill="#000000"
+     id="rect1"
+     style="display:inline;opacity:1;vector-effect:none;stroke-width:0.7;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:11.7;stroke-dashoffset:11.9;stop-color:#000000;stop-opacity:1"
+     inkscape:label="fill"
+     d="M 14,39.874999 H 25.910478 V 27.756841 L 37.726194,27.376829 38.124388,15.5 H 51.5 V 50 H 14 Z"
+     sodipodi:nodetypes="ccccccccc" />
   <g
      inkscape:groupmode="layer"
      id="layer1"
