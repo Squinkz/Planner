@@ -1,0 +1,11 @@
+{
+    "name": "Rotary Washing Line",
+    "image": "rotary_washline",
+    "width": 2500,
+    "length": 2500,
+    "icon": null,
+    "category": "Utility",
+    "inherits": null,
+    "children": [],
+    "keywords": []
+}

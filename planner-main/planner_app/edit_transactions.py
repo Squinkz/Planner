@@ -9,6 +9,23 @@ from abc import ABC, abstractmethod
 stateCategories = (0, 3, 5, 8)
 
 
+def ValidateSceneMemberships(members, walls, openingParents, groups, hidden):
+    """Validate opaque identity keys; adapters decide which models are walls."""
+    members, walls = frozenset(members), frozenset(walls)
+    if any(parent not in walls for parent in openingParents):
+        raise ValueError("History opening has no parent wall.")
+    grouped = set()
+    for group in groups:
+        ids = set(group)
+        if len(ids) < 2 or len(ids) != len(group) or ids - members or ids & grouped:
+            raise ValueError("Invalid history group.")
+        grouped.update(ids)
+    hidden = tuple(hidden)
+    hiddenIds = set(hidden)
+    if hiddenIds - members or len(hiddenIds) != len(hidden):
+        raise ValueError("Invalid hidden history objects.")
+
+
 class SparseSceneEdit(ABC):
     __slots__ = ("changes", "groups", "hidden", "orders", "selection")
 

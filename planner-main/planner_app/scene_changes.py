@@ -7,6 +7,7 @@ class SceneChanges:
     def __init__(self):
         self.geometry = self.appearance = self.topology = self.visibility = 0
         self.wallGeometry = 0
+        self.stairGeometry = 0
         self.roomLabelGeometry = 0
         self.definitions = {}
         self.definitionOwners = {}
@@ -117,13 +118,14 @@ class SceneObject:
         elif name in ("stepSizeBounds", "spacingBounds"):
             value = tuple(value)
         object.__setattr__(self, name, value)
-        if name not in geometryFields and name not in appearanceFields:
+        guideDepth = name == "depth" and type(self).__name__ == "MeasurementGuide"
+        if name not in geometryFields and name not in appearanceFields and not guideDepth:
             return
         changed = old is not value if name in ("parentWall", "definition") else old != value
         if name == "definition" and changed:
             for observer in self.__dict__.get("_renderObservers", ()):
                 observer.Watch(self)
-        if name in geometryFields and changed:
+        if (name in geometryFields or guideDepth) and changed:
             if name == "parentWall":
                 for observer in self.__dict__.get("_renderObservers", ()):
                     observer.Watch(value)
@@ -136,6 +138,8 @@ class SceneObject:
             observer.Bump(kind)
             if kind == "geometry" and type(self).__name__ in ("Wall", "Pillar", "Column"):
                 observer.Bump("wallGeometry")
+            if kind == "geometry" and type(self).__name__ == "Stair":
+                observer.Bump("stairGeometry")
             if kind == "geometry" and type(self).__name__ == "RoomLabel":
                 observer.Bump("roomLabelGeometry")
 

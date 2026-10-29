@@ -29,14 +29,14 @@ def Main():
     viewport.walls = [Wall(QtCore.QPointF(-500, 0), QtCore.QPointF(500, 0))]
     originalStyle, originalPalette, originalFont = app.styleSheet(), app.palette(), app.font()
     originalHeader = main.fullscreenButton.icon().cacheKey()
-    furnishing = main.findChildren(FurnishingButton)[0]
+    definition = main.viewport.furnishingDefinitions["desk"]
     counter = next(button for button in main.findChildren(WindowButton) if button.objectType == "counter")
     durations = []
     with patch.object(app, "setStyleSheet", wraps = app.setStyleSheet) as styles, \
          patch.object(app, "allWidgets", wraps = app.allWidgets) as allWidgets:
         for canvasTheme in ("Light Canvas", "Dark Canvas") * 3:
             oldRenderer = viewport.furnishingRenderers
-            oldFurnishingIcon, oldCounterIcon = furnishing.icon().cacheKey(), counter.icon().cacheKey()
+            oldFurnishingIcon, oldCounterIcon = main.furnishingThumbnails.Icon(definition).cacheKey(), counter.icon().cacheKey()
             oldMaterialIcon = main.newWallMaterialField.itemIcon(0).cacheKey()
             started = perf_counter()
             main.SetThemes(canvasTheme = canvasTheme)
@@ -45,7 +45,7 @@ def Main():
             assert app.styleSheet() == originalStyle and app.palette() == originalPalette and app.font() == originalFont
             assert main.fullscreenButton.icon().cacheKey() == originalHeader
             assert viewport.furnishingRenderers is not oldRenderer
-            assert furnishing.icon().cacheKey() != oldFurnishingIcon and counter.icon().cacheKey() != oldCounterIcon
+            assert main.furnishingThumbnails.Icon(definition).cacheKey() == oldFurnishingIcon and counter.icon().cacheKey() != oldCounterIcon
             assert main.newWallMaterialField.itemIcon(0).cacheKey() != oldMaterialIcon
             assert viewport.materialBrushes[("Generic", False)].color().name() == palette.themeColors["wallFill"]
             for tree in main.findChildren(QtWidgets.QTreeWidget):

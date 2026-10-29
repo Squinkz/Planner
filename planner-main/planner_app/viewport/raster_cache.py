@@ -17,6 +17,7 @@ class RasterCacheBudget:
         if overlay is not None:
             entries.update(snapshot = overlay.snapshot, navigation = overlay.svgNavigationImage,
                            vectorView = overlay.svgViewImage, detail = overlay.detailImage,
+                           titleBlock = overlay.titleBlockImage,
                            rulers = [strip[2] for strip in overlay.rulerStrips])
         return entries
 
@@ -64,6 +65,8 @@ class RasterCacheBudget:
             elif name == "rulers":
                 overlay.rulerStrips = []
                 overlay.rulerKey = None
+            elif name == "titleBlock":
+                overlay.titleBlockImage = overlay.titleBlockImageKey = None
         self.evictions += 1
         self.Record("evicted", name, reason)
 

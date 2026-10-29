@@ -3,6 +3,17 @@ import math
 from dataclasses import dataclass
 
 
+def GuideDepthOffset(first, second, depth):
+    """World offset toward the upright guide's lower side, independent of endpoint order."""
+    deltaX, deltaY = second[0] - first[0], second[1] - first[1]
+    length = math.hypot(deltaX, deltaY)
+    if depth == 0 or length < 1e-10:
+        return 0.0, 0.0
+    if deltaX < 0 or deltaX == 0 and deltaY > 0:
+        deltaX, deltaY = -deltaX, -deltaY
+    return deltaY / length * depth, -deltaX / length * depth
+
+
 def MergeMeasurementSegments(polygon):
     segments = []
     for first, second in zip(polygon, polygon[1:]):

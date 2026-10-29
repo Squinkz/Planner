@@ -1,11 +1,17 @@
 """Raster/vector export previews, crop guides and read-only mouse gestures."""
+from planner_app.graphics.text import PathTextPainter
 import math
+from datetime import date
 from PySide6 import QtCore, QtGui
 from planner_app.export_bounds import AutomaticBounds
+from planner_app.export_crop import MoveCropOrigin, MoveCropEdge, HitCropEdge, HitCropRuler
 from planner_app.graphics.palette import themeColors
+from planner_app.graphics import palette
 from planner_app.graphics.compositing import DrawVignette, DrawNormalTexture
 from planner_app.graphics.svg_preview import SvgPreviewRenderer
 from planner_app.graphics.export_border import DrawExportBorder, DrawRulerZones
+from planner_app.export_settings import ExportPixelSize
+from planner_app.graphics.title_block import DrawTitleBlock, TitleBlockLayout, RenderTitleBlockBitmap
 
 
 class ExportBoundsOverlay(QtCore.QObject):
@@ -56,6 +62,11 @@ class ExportBoundsOverlay(QtCore.QObject):
         self.texture = None
         self.textureAngle = 0
         self.textureSettings = {}
+        self.titleBlock = {}
+        self.titleBlockDpi = 300
+        self.architecturalScale = None
+        self.titleBlockPicture = self.titleBlockKey = None
+        self.titleBlockImage = self.titleBlockImageKey = None
         self.rulerKey = None
         self.rulerStrips = []
         viewport.installEventFilter(self)
@@ -65,6 +76,8 @@ class ExportBoundsOverlay(QtCore.QObject):
         self.colorAppearanceRevisions = 0
         self.svgColorKey = None
         self.active = active
+        self.titleBlockPicture = self.titleBlockKey = None
+        self.titleBlockImage = self.titleBlockImageKey = None
         if self.svgRenderer is not None:
             self.svgRenderer.deleteLater()
         if self.svgAlternate is not None:
@@ -98,7 +111,7 @@ class ExportBoundsOverlay(QtCore.QObject):
             except ValueError:
                 # An empty canvas still offers a useful two-meter crop at the origin.
                 self.autoBounds = (-1000.0, -1000.0, 2000.0, 2000.0)
-            self.bounds = tuple(bounds) if bounds is not None else self.autoBounds
+            self.bounds = self.ConstrainTitleBlockBounds(tuple(bounds) if bounds is not None else self.autoBounds)
         self.UpdateCursor()
         v.update()
 
@@ -113,10 +126,7 @@ class ExportBoundsOverlay(QtCore.QObject):
         x, y, width, height = self.bounds
         first = v.WorldToViewport(QtCore.QPointF(x, y))
         second = v.WorldToViewport(QtCore.QPointF(x + width, y + height))
-        distances = (abs(position.x() - first.x()), abs(position.x() - second.x()),
-                     abs(position.y() - first.y()), abs(position.y() - second.y()))
-        edge = min(range(4), key = lambda index: distances[index])
-        return edge if distances[edge] <= 8 else None
+        return HitCropEdge((position.x(), position.y()), (first.x(), first.y()), (second.x(), second.y()))
 
     def HitRuler(self, position):
         v = self.viewport
@@ -136,21 +146,13 @@ class ExportBoundsOverlay(QtCore.QObject):
         border = self.borderSize * v.basePixelsPerMillimeter * v.zoom / (self.scale / 1000)
         if self.borderStyle == "Ruler + Reference Zones":
             border = (self.borderSize // 2) * v.basePixelsPerMillimeter * v.zoom / (self.scale / 1000)
-        if crop.left() <= position.x() <= crop.right() and (
-                crop.top() - border <= position.y() < crop.top() or crop.bottom() < position.y() <= crop.bottom() + border):
-            return 0
-        if crop.top() <= position.y() <= crop.bottom() and (
-                crop.left() - border <= position.x() < crop.left() or crop.right() < position.x() <= crop.right() + border):
-            return 1
-        return None
+        return HitCropRuler((position.x(), position.y()),
+                            (crop.left(), crop.top(), crop.right(), crop.bottom()), border)
 
     def MoveOrigin(self, axis, coordinate, modifiers = QtCore.Qt.KeyboardModifier.NoModifier):
         v = self.viewport
-        if v.snapEnabled != bool(modifiers & QtCore.Qt.KeyboardModifier.AltModifier):
-            step = v.GridSteps(self.scale / 1000)[1]
-            coordinate = math.copysign(math.floor(abs(coordinate) / step + .5) * step, coordinate)
-        origin = list(v.gridOrigin)
-        origin[axis] = coordinate
+        step = v.GridSteps(self.scale / 1000)[1] if v.snapEnabled != bool(modifiers & QtCore.Qt.KeyboardModifier.AltModifier) else None
+        origin = MoveCropOrigin(v.gridOrigin, axis, coordinate, step)
         if tuple(origin) != v.gridOrigin:
             self.originChanged.emit(origin)
             v.update()
@@ -164,31 +166,30 @@ class ExportBoundsOverlay(QtCore.QObject):
                  else QtCore.Qt.CursorShape.ArrowCursor)
         self.viewport.setCursor(shape)
 
+    def ConstrainTitleBlockBounds(self, bounds, edge = None):
+        if bounds is None or not self.titleBlock.get("enabled", False):
+            return bounds
+        width, height, block = TitleBlockLayout(1, 1, self.titleBlock, self.scale,
+                                                self.architecturalScale, self.outputFormat, self.titleBlockDpi)
+        border = 2 * self.borderSize if self.drawRuler else 0
+        minimumWidth = max(1, block[2] - border) * 1000 / self.scale
+        minimumHeight = max(1, block[3] - border) * 1000 / self.scale
+        x, y, width, height = bounds
+        if width < minimumWidth:
+            if edge == 0:
+                x -= minimumWidth - width
+            width = minimumWidth
+        if height < minimumHeight:
+            if edge == 2:
+                y -= minimumHeight - height
+            height = minimumHeight
+        return x, y, width, height
+
     def MoveEdge(self, edge, coordinate, reset = False, modifiers = QtCore.Qt.KeyboardModifier.NoModifier):
-        x, y, width, height = self.bounds
-        edges = [x, x + width, y, y + height]
-        opposite = edge ^ 1
-        if reset:
-            edges[edge] = coordinate
-            # Reset exactly to the auto guide, preserving a positive crop even if
-            # the opposite guide was dragged past its original position.
-            if edge % 2 == 0 and edges[opposite] <= coordinate:
-                edges[opposite] = coordinate + 1
-            elif edge % 2 == 1 and edges[opposite] >= coordinate:
-                edges[opposite] = coordinate - 1
-        else:
-            snapping = self.viewport.snapEnabled != bool(modifiers & QtCore.Qt.KeyboardModifier.AltModifier)
-            if snapping:
-                step = self.viewport.GridSteps(self.scale / 1000)[1]
-                origin = self.viewport.gridOrigin[0 if edge < 2 else 1]
-                relative = coordinate - origin
-                coordinate = origin + math.copysign(math.floor(abs(relative) / step + .5) * step, relative)
-                limit = origin + ((math.ceil((edges[opposite] - origin) / step) - 1) * step if edge % 2 == 0
-                         else (math.floor((edges[opposite] - origin) / step) + 1) * step)
-            else:
-                limit = edges[opposite] - 1 if edge % 2 == 0 else edges[opposite] + 1
-            edges[edge] = min(coordinate, limit) if edge % 2 == 0 else max(coordinate, limit)
-        bounds = (edges[0], edges[2], edges[1] - edges[0], edges[3] - edges[2])
+        v = self.viewport
+        step = v.GridSteps(self.scale / 1000)[1] if not reset and v.snapEnabled != bool(modifiers & QtCore.Qt.KeyboardModifier.AltModifier) else None
+        bounds = MoveCropEdge(self.bounds, edge, coordinate, reset, step, v.gridOrigin[0 if edge < 2 else 1])
+        bounds = self.ConstrainTitleBlockBounds(bounds, edge)
         if bounds != self.bounds:
             self.bounds = bounds
             self.boundsChanged.emit(bounds)
@@ -325,9 +326,22 @@ class ExportBoundsOverlay(QtCore.QObject):
                  QtCore.QLineF(drawingRect.left(), first.y(), drawingRect.right(), first.y()),
                  QtCore.QLineF(drawingRect.left(), second.y(), drawingRect.right(), second.y()))
         hovered = self.dragEdge if self.dragEdge is not None else self.HitEdge(self.hoverPosition)
+        # Crop guides are screen overlays. Use whole device-pixel strokes and
+        # align their centres so fractional zoom/pan cannot change coverage.
+        ratio = painter.device().devicePixelRatioF()
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing, False)
         for edge, line in enumerate(lines):
-            painter.setPen(QtGui.QPen(QtGui.QColor(themeColors["selectionOutline"]),
-                                     2.5 if edge == hovered else 1.5, QtCore.Qt.PenStyle.DashLine))
+            strokeWidth = max(1, math.floor((2.5 if edge == hovered else 1.5) * ratio + .5))
+            pixelOffset = .5 if strokeWidth % 2 else 0
+            firstPoint, secondPoint = line.p1(), line.p2()
+            for point in (firstPoint, secondPoint):
+                point.setX((math.floor(point.x() * ratio) + pixelOffset) / ratio)
+                point.setY((math.floor(point.y() * ratio) + pixelOffset) / ratio)
+            line = QtCore.QLineF(firstPoint, secondPoint)
+            pen = QtGui.QPen(QtGui.QColor(themeColors["selectionOutline"]), strokeWidth / ratio,
+                            QtCore.Qt.PenStyle.DashLine)
+            pen.setCapStyle(QtCore.Qt.PenCapStyle.FlatCap)
+            painter.setPen(pen)
             if drawGuides:
                 painter.drawLine(line)
         painter.restore()
@@ -348,12 +362,13 @@ class ExportBoundsOverlay(QtCore.QObject):
                                 v.showGrid, tuple(v.gridIntensities.items()), v.gridOrigin, v.unitsMode, v.wallStyle,
                                 tuple(v.collisionSettings.items()), tuple(v.stairStepSizes.items()),
                                 tuple(v.railingSpacings.items()), tuple((kind, tuple(values.items())) for kind, values in v.imperialAutoSizes.items()), v.autoSizingUnitsMode,
-                                colorAlpha, v.floors, v.solidObjects),
+                                colorAlpha, v.floors, v.solidRooms, v.solidObjects),
                                appearanceRevision = v.renderChanges.appearance - self.colorAppearanceRevisions if vectorColors else None)
         if self.outputFormat == "svg":
             v.rasterCacheBudget.Clear("detail", "format-switch")
             v.rasterCacheBudget.Clear("snapshot", "format-switch")
             self.DrawVectorPreview(painter, drawingRect, key)
+            self.DrawTitleBlockPreview(painter, drawingRect)
             return
         v.rasterCacheBudget.Clear("navigation", "format-switch")
         v.rasterCacheBudget.Clear("vectorView", "format-switch")
@@ -411,6 +426,7 @@ class ExportBoundsOverlay(QtCore.QObject):
         self.Draw(painter, drawingRect, drawGuides = False)
         if self.drawRuler and self.snapshot is not None:
             self.DrawCropRulers(painter, drawingRect)
+        self.DrawTitleBlockPreview(painter, drawingRect)
         compositeError = ""
         if self.snapshot is not None and (self.vignetteStrength > 0 or self.texture is not None):
             x, y, width, height = self.bounds
@@ -419,6 +435,8 @@ class ExportBoundsOverlay(QtCore.QObject):
             border = self.borderSize if self.drawRuler else 0
             imageWidth = max(1, math.ceil(round(width * pixelsPerMillimeter, 8))) + 2 * border
             imageHeight = max(1, math.ceil(round(height * pixelsPerMillimeter, 8))) + 2 * border
+            imageWidth, imageHeight, block = TitleBlockLayout(imageWidth, imageHeight, self.titleBlock, self.scale,
+                                                              self.architecturalScale, self.outputFormat, self.titleBlockDpi)
             first = v.WorldToViewport(QtCore.QPointF(x, y + height)) - QtCore.QPointF(border * factor, border * factor)
             frame = QtCore.QRectF(first, QtCore.QSizeF(imageWidth * factor, imageHeight * factor))
             painter.save()
@@ -438,6 +456,68 @@ class ExportBoundsOverlay(QtCore.QObject):
             painter.setFont(v.font())
             painter.drawText(drawingRect.adjusted(20, 20, -20, -20),
                              QtCore.Qt.AlignmentFlag.AlignCenter | QtCore.Qt.TextFlag.TextWordWrap, self.previewError or compositeError)
+            painter.restore()
+
+    def DrawTitleBlockPreview(self, painter, drawingRect):
+        if not self.titleBlock.get("enabled", False):
+            self.titleBlockPicture = self.titleBlockKey = None
+            self.viewport.rasterCacheBudget.Clear("titleBlock", "disabled")
+            return
+        border = self.borderSize if self.drawRuler else 0
+        width, height = ExportPixelSize(self.bounds, self.scale, border)
+        key = (width, height, tuple(sorted(self.titleBlock.items())), self.scale,
+               self.architecturalScale, self.outputFormat, self.titleBlockDpi, date.today(),
+               tuple(themeColors[role] for role in ("canvas", "objectOutline", "rulerMajorTick", "rulerMinorTick")))
+        if key != self.titleBlockKey:
+            self.titleBlockLayout = TitleBlockLayout(width, height, self.titleBlock, self.scale,
+                                                      self.architecturalScale, self.outputFormat, self.titleBlockDpi)
+            outputWidth, outputHeight, block = self.titleBlockLayout
+            picture = QtGui.QPicture()
+            blockPainter = PathTextPainter(picture)
+            try:
+                DrawTitleBlock(blockPainter, block, self.titleBlock, self.scale,
+                               self.architecturalScale, self.outputFormat, self.titleBlockDpi)
+            finally:
+                blockPainter.end()
+            self.titleBlockPicture, self.titleBlockKey = picture, key
+        outputWidth, outputHeight, block = self.titleBlockLayout
+        v = self.viewport
+        if self.outputFormat == "png":
+            imageKey = (key, v.viewportRasterByteLimit)
+            if self.titleBlockImage is None or self.titleBlockImageKey != imageKey:
+                v.rasterCacheBudget.Clear("titleBlock", "replacement")
+                snapshotBytes = self.snapshot.sizeInBytes() if self.snapshot is not None else 0
+                available = max(0, min(v.viewportRasterByteLimit // 4, v.viewportRasterByteLimit - snapshotBytes))
+                sampling = min(1.0, 32767 / block[2], 32767 / block[3],
+                               math.sqrt(available / (4 * block[2] * block[3])))
+                imageWidth = max(1, math.floor(block[2] * sampling))
+                imageHeight = max(1, math.floor(block[3] * sampling))
+                if v.rasterCacheBudget.Prepare("titleBlock", imageWidth * imageHeight * 4, preserve = ("snapshot",)):
+                    image = RenderTitleBlockBitmap(block, self.titleBlock, self.scale, self.architecturalScale,
+                                                    pixelSize = (imageWidth, imageHeight), dpi = self.titleBlockDpi)
+                    self.titleBlockImage, self.titleBlockImageKey = image, imageKey
+        else:
+            v.rasterCacheBudget.Clear("titleBlock", "format-switch")
+        x, y, worldWidth, worldHeight = self.bounds
+        factor = v.basePixelsPerMillimeter * v.zoom / (self.scale / 1000)
+        first = v.WorldToViewport(QtCore.QPointF(x, y + worldHeight)) - QtCore.QPointF(border * factor, border * factor)
+        painter.save()
+        try:
+            painter.setClipRect(drawingRect)
+            painter.translate(first)
+            painter.scale(factor, factor)
+            # Match the extra background area for exports below the minimum size.
+            if outputWidth > width:
+                painter.fillRect(QtCore.QRectF(width, 0, outputWidth - width, height), QtGui.QColor(themeColors["canvas"]))
+            if outputHeight > height:
+                painter.fillRect(QtCore.QRectF(0, height, width, outputHeight - height), QtGui.QColor(themeColors["canvas"]))
+            if self.outputFormat == "png":
+                if self.titleBlockImage is not None:
+                    painter.setRenderHint(QtGui.QPainter.RenderHint.SmoothPixmapTransform, True)
+                    painter.drawImage(QtCore.QRectF(*block), self.titleBlockImage)
+            else:
+                painter.drawPicture(QtCore.QPointF(), self.titleBlockPicture)
+        finally:
             painter.restore()
 
     def DrawVectorPreview(self, painter, drawingRect, sceneKey):
@@ -495,7 +575,7 @@ class ExportBoundsOverlay(QtCore.QObject):
                 if image.isNull():
                     raise ValueError("Could not create the SVG navigation preview.")
                 image.fill(QtCore.Qt.GlobalColor.transparent)
-                cachePainter = QtGui.QPainter(image)
+                cachePainter = PathTextPainter(image)
                 try:
                     cachePainter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
                     renderer.render(cachePainter)
@@ -547,7 +627,7 @@ class ExportBoundsOverlay(QtCore.QObject):
                     if not image.isNull():
                         image.setDevicePixelRatio(deviceRatio)
                         image.fill(QtCore.Qt.GlobalColor.transparent)
-                        cachePainter = QtGui.QPainter(image)
+                        cachePainter = PathTextPainter(image)
                         try:
                             cachePainter.translate(-drawingRect.left(), -drawingRect.top())
                             cachePainter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
@@ -622,7 +702,7 @@ class ExportBoundsOverlay(QtCore.QObject):
         origin = QtCore.QPointF(-coverage.x() * pixelsPerMillimeter, (coverage.y() + coverage.height()) * pixelsPerMillimeter)
         source.panOffset = origin - QtCore.QPointF(source.width() / 2, source.height() / 2)
         image.fill(QtGui.QColor(themeColors["canvas"]))
-        painter = QtGui.QPainter(image)
+        painter = PathTextPainter(image)
         try:
             painter.scale(imageWidth / width, imageHeight / height)
             painter.setFont(source.font())
@@ -641,7 +721,7 @@ class ExportBoundsOverlay(QtCore.QObject):
         # The bounded overview and detail share an unselected, export-styled view.
         for name in ("walls", "windows", "furnishings", "labels", "objectGroups", "hiddenObjectIds", "visibility",
                      "showGrid", "gridOrigin", "showMeasurements", "measurementPrecision", "measurementVisibility", "measurementSettings", "wallMeasurementMode", "wallMeasurementReference", "collisionSettings",
-                     "stairStepSizes", "railingSpacings", "imperialAutoSizes", "autoSizingUnitsMode", "unitsMode", "wallStyle", "solidObjects", "floors", "lineworkSettings", "lineWidths", "gridIntensities",
+                     "stairStepSizes", "railingSpacings", "imperialAutoSizes", "autoSizingUnitsMode", "unitsMode", "wallStyle", "solidObjects", "floors", "solidRooms", "lineworkSettings", "lineWidths", "gridIntensities",
                      "furnishingDefinitions", "furnishingRenderers", "materialBrushes", "warningMaterialBrushes", "groupedMaterialBrushes"):
             setattr(source, name, getattr(v, name))
         source.setFont(v.font())
@@ -675,6 +755,8 @@ class ExportBoundsOverlay(QtCore.QObject):
 
     def DrawCropRulers(self, painter, drawingRect):
         v = self.viewport
+        if self.outputFormat == "svg":
+            v.rasterCacheBudget.Clear("rulers", "vector-border")
         if self.snapshotViewport is None:
             from .widget import DrawingViewport
             self.snapshotViewport = DrawingViewport(v)
@@ -702,10 +784,10 @@ class ExportBoundsOverlay(QtCore.QObject):
         pixelWidth, pixelHeight = math.ceil(width * pixelsPerMillimeter), math.ceil(height * pixelsPerMillimeter)
         rulerSize = self.borderSize
         imageWidth, imageHeight = pixelWidth + 2 * rulerSize, pixelHeight + 2 * rulerSize
-        directRulers = imageWidth > 32767 or imageHeight > 32767
+        directRulers = self.outputFormat == "svg" or imageWidth > 32767 or imageHeight > 32767
         rulerColors = tuple((name, themeColors[name]) for name in
                             ("rulerBackground", "rulerText", "rulerMajorTick", "rulerMinorTick", "border"))
-        key = (self.bounds, self.scale, rulerSize, self.borderStyle, v.gridOrigin, v.unitsMode, v.font().toString(), rulerColors)
+        key = (self.bounds, self.scale, rulerSize, self.borderStyle, v.gridOrigin, v.unitsMode, v.font().toString(), rulerColors, self.outputFormat)
         if key != self.rulerKey:
             source = self.snapshotViewport
             source.rulerSize = rulerSize
@@ -717,8 +799,8 @@ class ExportBoundsOverlay(QtCore.QObject):
             rulerBytes = (2 * imageWidth * rulerSize + 2 * rulerSize * pixelHeight) * 4
             if directRulers or not v.rasterCacheBudget.Prepare("rulers", rulerBytes,
                     preserve = ("snapshot", "detail", "navigation", "vectorView")):
-                # Paint the frame directly at export scale when storing strips
-                # would displace the native-resolution plan snapshot.
+                # Keep SVG borders vector. Raster previews also draw directly
+                # if storing strips would displace the plan snapshot.
                 first = v.WorldToViewport(QtCore.QPointF(x, y + height))
                 factor = v.basePixelsPerMillimeter * v.zoom / pixelsPerMillimeter
                 painter.save()
@@ -741,7 +823,7 @@ class ExportBoundsOverlay(QtCore.QObject):
                     (0, rulerSize, rulerSize, pixelHeight), (imageWidth - rulerSize, rulerSize, rulerSize, pixelHeight)):
                 strip = QtGui.QImage(stripWidth, stripHeight, QtGui.QImage.Format.Format_ARGB32)
                 strip.fill(QtCore.Qt.GlobalColor.transparent)
-                stripPainter = QtGui.QPainter(strip)
+                stripPainter = PathTextPainter(strip)
                 try:
                     stripPainter.translate(-offsetX, -offsetY)
                     stripPainter.setFont(source.font())

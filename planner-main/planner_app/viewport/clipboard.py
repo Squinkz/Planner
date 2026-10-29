@@ -4,6 +4,7 @@ from planner_app.models import AngleGuide
 from planner_app.models import Elevator
 
 import json
+import copy
 import math
 from PySide6 import QtCore, QtWidgets
 from planner_app.models import Door, SwingingDoor, DoubleDoor, Furnishing, OpenDoorway, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, SlidingDoor, MeasurementGuide, BoundaryLine, DashedLine, SolidLine, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Label, RoomLabel, Window, NorthArrow, Fireplace
@@ -14,6 +15,16 @@ from planner_app.object_schema import openingClasses as openingTypes, openingFie
 from planner_app.furnishing_assets import FurnishingAssetProblems
 from planner_app.units import unitModes
 from planner_app.models import lineWeightClasses
+from planner_app.project_codec import EncodeFurnishingDefinitions, DecodeFurnishingDefinitions, projectFileLimit
+from planner_app.selection_records import ValidateSelectionPayload
+from planner_app.selection_placement import PlanSelectionPlacement
+from planner_app.selection_copy import SelectionCopyObjects, BuildSelectionTransport
+from planner_app.record_schema import selectionObjectLimit
+from planner_app.model_construction import PlanObjectConstruction, PlanSelectionOpeningFields
+from planner_app.model_factory import ConstructDetachedObject
+from planner_app.furnishing_imports import ResolveFurnishingImports
+from planner_app.geometry.editing import OpeningOrientationChanges
+from planner_app.furnishing_limits import FurnishingExpansionSizes, sceneExpansionLimit
 
 
 class ClipboardMixin:
@@ -42,152 +53,35 @@ class ClipboardMixin:
             self.clipboardErrorTimer.stop()
         self.update()
 
-    def ReadClipboardSelection(self):
-        mime = QtWidgets.QApplication.clipboard().mimeData()
-        if mime is None or not mime.hasFormat(clipboardMimeType):
+    def ReadClipboardSelection(self, data = None):
+        if data is None:
+            mime = QtWidgets.QApplication.clipboard().mimeData()
+            if mime is None or not mime.hasFormat(clipboardMimeType):
+                return None
+            data = bytes(mime.data(clipboardMimeType))
+        if len(data) > projectFileLimit:
             return None
         try:
-            payload = json.loads(bytes(mime.data(clipboardMimeType)).decode("utf-8"))
-            if payload["version"] != 1:
+            payload = json.loads(data.decode("utf-8"))
+            if not isinstance(payload, dict) or payload.get("version") != 1:
                 return None
-            records = payload["objects"]
-            if not isinstance(records, list) or not 1 <= len(records) <= 10000:
-                return None
-            groups = payload.get("groups", [])
-            grouped = set()
-            if not isinstance(groups, list):
-                return None
-            for group in groups:
-                if not isinstance(group, list) or len(group) < 2 or any(type(index) is not int or not 0 <= index < len(records) for index in group) or len(set(group)) != len(group) or grouped.intersection(group):
-                    return None
-                grouped.update(group)
-            points = [payload["center"]]
-            checkedAssets = set()
-            for record in records:
-                if not isinstance(record["selected"], bool):
-                    return None
-                objectType = record["type"]
-                if objectType in openingTypes:
-                    points.append(record["center"])
-                    if not math.isfinite(record["length"]) or record["length"] < 1 or not math.isfinite(record["fraction"]):
-                        return None
-                    parent = record["parent"]
-                    if parent is not None and (type(parent) is not int or not 0 <= parent < len(records)
-                                               or records[parent]["type"] != "Wall"):
-                        return None
-                    if objectType == "CasementWindow":
-                        record.setdefault("hingeAtSecond", False)
-                    record.setdefault("measurementFlipped", False)
-                    if "wellDepth" in openingFields[openingTypes[objectType]]:
-                        record.setdefault("windowWell", False)
-                        record.setdefault("wellDashed", False)
-                        record.setdefault("wellDepth", 600.0)
-                        if type(record["wellDepth"]) not in (float, int) or not math.isfinite(record["wellDepth"]) or not 1 <= record["wellDepth"] <= 1e9:
-                            return None
-                    if type(record["measurementFlipped"]) is not bool:
-                        return None
-                    flags = tuple(name for name in openingFields[openingTypes[objectType]]
-                                  if name not in ("measurementFlipped", "sillDepth", "depth", "depthOffset", "material", "wellDepth"))
-                    if any(not isinstance(record[flag], bool) for flag in flags):
-                        return None
-                    if objectType == "SilledWindow" and (not math.isfinite(record["sillDepth"]) or record["sillDepth"] < 0):
-                        return None
-                    if objectType == "Fireplace" and any(type(record[name]) not in (float, int) or not math.isfinite(record[name])
-                                                          for name in ("depth", "depthOffset")):
-                        return None
-                    if objectType == "Fireplace" and record.get("material") not in self.warningMaterialBrushes:
-                        return None
-                elif objectType in ("Wall", "Pillar", "Column", "Elevator", "Stair", "Counter", "Railing", "Furnishing", "Label", "RoomLabel", "NorthArrow", "Arrow", "MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide"):
-                    points.extend((record["first"], record["second"]))
-                    if not math.isfinite(record["width"]) or record["width"] < (0 if objectType in ("MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide") else 1e-8 if objectType in ("Label", "RoomLabel") else 1):
-                        return None
-                    if objectType in ("MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide") and record["width"] != 0:
-                        return None
-                    if objectType in ("MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide"):
-                        if objectType in ("DashedLine", "SolidLine") and record.get("weightClass", "Objects") not in lineWeightClasses:
-                            return None
-                        points.append(record.get("textOffset", [0, 0]))
-                    if objectType == "AngleGuide":
-                        points.append(record["middle"])
-                    if objectType in ("Label", "RoomLabel"):
-                        if objectType == "RoomLabel" and record.get("unitsOverride") is not None:
-                            if record["unitsOverride"] not in unitModes:
-                                return None
-                        if not isinstance(record["text"], str) or len(record["text"]) > 100000:
-                            return None
-                        intensity = record.get("intensity", 1.0)
-                        if type(intensity) not in (int, float) or not math.isfinite(intensity) or not 0 <= intensity <= 1:
-                            return None
-                    elif objectType == "Furnishing":
-                        if not isinstance(record["definition"], str):
-                            return None
-                        key = record["definition"]
-                        if key not in checkedAssets:
-                            if self.FurnishingAssetHasErrors(key):
-                                return None
-                            checkedAssets.add(key)
-                    elif objectType == "NorthArrow":
-                        intensity = record.get("intensity", 1.0)
-                        if type(intensity) not in (int, float) or not math.isfinite(intensity) or not 0 <= intensity <= 1:
-                            return None
-                    elif (record["material"] not in self.warningMaterialBrushes
-                          or not all(math.isfinite(record[field]) for field in ("firstMiter", "secondMiter"))):
-                        return None
-                    if objectType == "Arrow":
-                        if type(record["solidTip"]) is not bool or type(record.get("directionReversed", False)) is not bool:
-                            return None
-                        ReadArrowTipSize(record, record["width"])
-                        intensity = record["intensity"]
-                        if type(intensity) not in (int, float) or not math.isfinite(intensity) or not 0 <= intensity <= 1:
-                            return None
-                    if objectType == "Railing" and (type(record.get("autosize", True)) is not bool or
-                            type(record.get("manualPostCount", 2)) is not int or not 2 <= record.get("manualPostCount", 2) <= 100000):
-                        return None
-                    if objectType == "Stair" and not isinstance(record["directionReversed"], bool):
-                        return None
-                    if objectType == "Stair" and (type(record.get("autosize", True)) is not bool or
-                            type(record.get("manualStepCount", 1)) is not int or not 1 <= record.get("manualStepCount", 1) <= 100000):
-                        return None
-                else:
-                    return None
-            if not all(isinstance(point, list) and len(point) == 2 and all(math.isfinite(value) for value in point) for point in points):
-                return None
-            for record in records:
-                if record["type"] not in openingTypes:
-                    if record["type"] != "AngleGuide" and QtCore.QLineF(QtCore.QPointF(*record["first"]), QtCore.QPointF(*record["second"])).length() < 1:
-                        return None
-                elif record["parent"] is not None:
-                    parent = records[record["parent"]]
-                    length = QtCore.QLineF(QtCore.QPointF(*parent["first"]), QtCore.QPointF(*parent["second"])).length()
-                    if length < record["length"] or not 0 <= record["fraction"] <= 1:
-                        return None
-            return payload if any(record["selected"] for record in records) else None
-        except (ValueError, TypeError, KeyError, OverflowError):
+            portable = DecodeFurnishingDefinitions(payload.get("furnishingDefinitions", {}), self.furnishingDefinitions)
+            definitions = {**self.furnishingDefinitions, **portable}
+            return ValidateSelectionPayload(payload, definitions, self.warningMaterialBrushes, unitModes, lineWeightClasses)
+        except (ValueError, TypeError, KeyError, OverflowError, RecursionError, IndexError):
             return None
 
-    def CopySelection(self):
-        self.CancelInteraction()
-        if not self.CanCopySelection():
-            if self.SelectionEntries():
-                self.ShowClipboardError("Cannot copy or cut a selection containing missing or errored furnishings.")
-            return False
-        selected = {id(obj) for obj, index in self.SelectionEntries()}
-        if not selected:
-            return False
-        walls = [obj for obj in self.walls if id(obj) in selected]
-        wallIndices = {id(obj): index for index, obj in enumerate(walls)}
-        objects = walls + [obj for obj in self.windows if id(obj) in selected or id(obj.parentWall) in wallIndices]
-        objects += [obj for obj in self.furnishings if id(obj) in selected]
-        objects += [obj for obj in self.labels if id(obj) in selected]
-        records = []
-        corners = []
+    def SelectionCopyRecords(self, objects, selected, wallIndices):
         for obj in objects:
-            corners.extend(self.ObjectCorners(obj))
+            corners = self.ObjectCorners(obj)
             record = {"type": type(obj).__name__, "selected": id(obj) in selected, "measurementHidden": obj.measurementHidden}
             if isinstance(obj, Window):
                 center = (obj.firstVertex + obj.secondVertex) / 2
                 record.update(parent = wallIndices.get(id(obj.parentWall)), center = [center.x(), center.y()],
                               fraction = obj.centerFraction, length = obj.length)
+                direction = obj.parentWall.secondVertex - obj.parentWall.firstVertex
+                wallLength = math.hypot(direction.x(), direction.y())
+                record["wallDirection"] = [direction.x() / wallLength, direction.y() / wallLength]
                 for attribute in openingFields[type(obj)]:
                     if hasattr(obj, attribute):
                         record[attribute] = getattr(obj, attribute)
@@ -212,6 +106,8 @@ class ClipboardMixin:
                         record["middle"] = [obj.middleVertex.x(), obj.middleVertex.y()]
                     if isinstance(obj, MeasurementGuide):
                         record["textOffset"] = [obj.textOffset.x(), obj.textOffset.y()]
+                    if type(obj) is MeasurementGuide and obj.depth != 0:
+                        record["depth"] = obj.depth
                     if isinstance(obj, DashedLine):
                         record["weightClass"] = obj.weightClass
                     if isinstance(obj, Arrow):
@@ -223,13 +119,36 @@ class ClipboardMixin:
                     if isinstance(obj, Stair):
                         record["directionReversed"] = obj.directionReversed
                         record.update(autosize = obj.autosize, manualStepCount = obj.manualStepCount)
-            records.append(record)
-        center = [(min(point.x() for point in corners) + max(point.x() for point in corners)) / 2,
-                  (min(point.y() for point in corners) + max(point.y() for point in corners)) / 2]
+            yield record, ((point.x(), point.y()) for point in corners)
+
+    def CopySelection(self):
+        self.CancelInteraction()
+        if not self.CanCopySelection():
+            if self.SelectionEntries():
+                self.ShowClipboardError("Cannot copy or cut a selection containing missing or errored furnishings.")
+            return False
+        selected = {id(obj) for obj, index in self.SelectionEntries()}
+        if not selected:
+            return False
+        objects, wallIndices = SelectionCopyObjects(selected, self.walls,
+            ((obj, obj.parentWall) for obj in self.windows), self.furnishings, self.labels)
+        if len(objects) > selectionObjectLimit:
+            self.ShowClipboardError("Cannot copy or cut more than 10,000 objects at once.")
+            return False
         indices = {id(obj): index for index, obj in enumerate(objects)}
-        groups = [[indices[id(obj)] for obj in group if id(obj) in indices] for group in self.objectGroups]
-        payload = json.dumps({"version": 1, "center": center, "objects": records,
-                              "groups": [group for group in groups if len(group) >= 2]}, allow_nan = False)
+        try:
+            transport = BuildSelectionTransport(self.SelectionCopyRecords(objects, selected, wallIndices), indices,
+                ((id(obj) for obj in group) for group in self.objectGroups))
+            portable = EncodeFurnishingDefinitions([obj.definition for obj in objects
+                if type(obj) is Furnishing and obj.definition.get("isUser", False)], includeBuiltIns = True)
+            if portable:
+                transport["furnishingDefinitions"] = portable
+            payload = json.dumps(transport, allow_nan = False)
+            if self.ReadClipboardSelection(payload.encode("utf-8")) is None:
+                raise ValueError("The selection exceeds clipboard limits or contains invalid object data.")
+        except (OSError, ValueError, TypeError, KeyError, OverflowError, RecursionError) as error:
+            self.ShowClipboardError("Cannot copy or cut this selection: " + str(error))
+            return False
         mime = QtCore.QMimeData()
         mime.setData(clipboardMimeType, payload.encode("utf-8"))
         mime.setText(payload)
@@ -260,87 +179,41 @@ class ClipboardMixin:
             return False
         # Decode and build detached objects before modifying any scene lists.
         try:
-            if payload["version"] != 1 or not payload["objects"] or len(payload["objects"]) > 10000:
+            if payload["version"] != 1 or not payload["objects"] or len(payload["objects"]) > selectionObjectLimit:
                 return False
             records = payload["objects"]
+            embedded = payload.get("furnishingDefinitions", {})
+            imported = {}
+            definitions = self.furnishingDefinitions
+            if embedded:
+                definitions, imported, remapped = ResolveFurnishingImports(embedded, definitions, suffix = "pasted")
+                for record in records:
+                    if record["type"] == "Furnishing":
+                        record["definition"] = remapped.get(record["definition"], record["definition"])
             center = QtCore.QPointF(*payload["center"])
             delta = QtCore.QPointF()
             if not inPlace:
                 target = self.SnapPosition(self.ViewportToWorld(position), QtWidgets.QApplication.keyboardModifiers())
                 delta = target - center
-            if not all(math.isfinite(value) for value in (delta.x(), delta.y())):
-                return False
             created = {}
-            for index, record in enumerate(records):
-                if not isinstance(record["selected"], bool):
-                    return False
-                objectType = record["type"]
-                if objectType in openingTypes:
-                    continue
-                first = QtCore.QPointF(*record["first"]) + delta
-                second = QtCore.QPointF(*record["second"]) + delta
-                width = record["width"]
-                if not all(math.isfinite(value) for value in (first.x(), first.y(), second.x(), second.y(), width)):
-                    return False
-                minimumSize = 1e-8 if objectType in ("Label", "RoomLabel") else 1
-                if width < (0 if objectType in ("MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide") else minimumSize) or objectType != "AngleGuide" and QtCore.QLineF(first, second).length() < minimumSize:
-                    return False
-                if objectType in ("Label", "RoomLabel"):
-                    obj = (RoomLabel if objectType == "RoomLabel" else Label)(text = record["text"], intensity = record.get("intensity", 1.0))
-                    if objectType == "RoomLabel":
-                        obj.unitsOverride = record.get("unitsOverride")
-                    obj.firstVertex, obj.secondVertex, obj.width = first, second, width
-                elif objectType == "NorthArrow":
-                    obj = NorthArrow()
-                    obj.intensity = record.get("intensity", 1.0)
-                    obj.firstVertex, obj.secondVertex, obj.width = first, second, width
-                elif objectType == "Furnishing":
-                    definition = self.furnishingDefinitions.get(record["definition"], self.furnishingDefinitions["null"])
-                    obj = Furnishing(definition)
-                    if type(record.get("behindCounters", False)) is not bool:
-                        return False
-                    obj.behindCounters = record.get("behindCounters", False)
-                    for field in ("flipHorizontal", "flipVertical"):
-                        if type(record.get(field, False)) is not bool:
-                            return False
-                        setattr(obj, field, record.get(field, False))
-                    obj.definitionKey = record["definition"]
-                    obj.firstVertex, obj.secondVertex, obj.width = first, second, width
-                elif objectType in ("Wall", "Pillar", "Column", "Elevator", "Stair", "Counter", "Railing", "Arrow", "MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide"):
-                    if not all(math.isfinite(record[field]) for field in ("firstMiter", "secondMiter")):
-                        return False
-                    material = record["material"]
-                    if material not in self.warningMaterialBrushes:
-                        return False
-                    obj = {"Wall": Wall, "Pillar": Pillar, "Column": Column, "Elevator": Elevator, "Stair": Stair, "Counter": Counter, "Railing": Railing, "Arrow": Arrow, "MeasurementGuide": MeasurementGuide, "BoundaryLine": BoundaryLine, "DashedLine": DashedLine, "SolidLine": SolidLine, "AngleGuide": AngleGuide}[objectType](first, second, width,
-                          record["firstMiter"], record["secondMiter"], material)
-                    if isinstance(obj, MeasurementGuide):
-                        obj.textOffset = QtCore.QPointF(*record.get("textOffset", [0, 0]))
-                    if isinstance(obj, DashedLine):
-                        obj.weightClass = record.get("weightClass", "Objects")
-                    if isinstance(obj, AngleGuide):
-                        obj.middleVertex = QtCore.QPointF(*record["middle"]) + delta
-                    if isinstance(obj, Railing):
-                        obj.autosize, obj.manualPostCount = record.get("autosize", True), record.get("manualPostCount", 2)
-                    if isinstance(obj, Arrow):
-                        obj.solidTip, obj.tipSize, obj.intensity = record["solidTip"], ReadArrowTipSize(record, width), record["intensity"]
-                        obj.directionReversed = record.get("directionReversed", False)
-                    if isinstance(obj, Stair):
-                        obj.directionReversed = bool(record["directionReversed"])
-                        obj.autosize, obj.manualStepCount = record.get("autosize", True), record.get("manualStepCount", 1)
-                else:
-                    return False
+            # Use Qt's scalar distance primitive to preserve threshold rounding.
+            placements = PlanSelectionPlacement(payload, (delta.x(), delta.y()),
+                distance = lambda x, y: QtCore.QLineF(0.0, 0.0, x, y).length())
+            for index, record, first, second, width in placements:
+                plan = PlanObjectConstruction(record, self.warningMaterialBrushes, unitModes, lineWeightClasses,
+                    placement = (first, second, width), delta = (delta.x(), delta.y()))
+                obj = ConstructDetachedObject(plan, definitions)
                 created[index] = obj
-            for record in records:
-                if record["type"] in openingTypes:
-                    if not math.isfinite(record["length"]) or record["length"] < 1:
-                        return False
-                    if not math.isfinite(record["fraction"]) or not all(math.isfinite(value) for value in record["center"]):
-                        return False
-                    parentIndex = record["parent"]
-                    if parentIndex is not None and (parentIndex not in created or type(created[parentIndex]) is not Wall):
-                        return False
         except (ValueError, TypeError, KeyError, OverflowError):
+            return False
+        try:
+            furnishings = [obj for obj in list(self.furnishings) + list(created.values()) if type(obj) is Furnishing]
+            sizes = FurnishingExpansionSizes(obj.definition for obj in furnishings)
+            count = len(self.walls) + len(self.windows) + len(self.furnishings) + len(self.labels) + len(records)
+            if count + sum(sizes[id(obj.definition)] - 1 for obj in furnishings) > sceneExpansionLimit:
+                self.ShowClipboardError("Cannot paste: the scene would expand beyond 100,000 objects.")
+                return False
+        except (ValueError, TypeError, KeyError):
             return False
         before = self.CaptureState()
         originalLists = self.walls, self.windows, self.furnishings, self.labels
@@ -369,16 +242,16 @@ class ClipboardMixin:
                     if inPlace and QtCore.QLineF((obj.firstVertex + obj.secondVertex) / 2, QtCore.QPointF(*record["center"])).length() > 1e-7:
                         valid = False
                         break
-                for attribute in openingFields[type(obj)]:
-                    if hasattr(obj, attribute):
-                        value = record[attribute]
-                        if attribute == "sillDepth" and (not math.isfinite(value) or value < 0):
-                            raise ValueError("Invalid sill depth")
-                        if attribute == "depth" and (not math.isfinite(value) or value < obj.parentWall.width):
-                            raise ValueError("Invalid fireplace depth")
-                        if attribute == "depthOffset" and (not math.isfinite(value) or abs(value) > (obj.depth - obj.parentWall.width) / 2 + 1e-8):
-                            raise ValueError("Invalid fireplace depth offset")
-                        setattr(obj, attribute, value if attribute in ("sillDepth", "depth", "depthOffset", "material", "wellDepth") else bool(value))
+                fields = PlanSelectionOpeningFields(record, type(obj).__name__, obj.parentWall.width)
+                for attribute, value in fields.items():
+                    setattr(obj, attribute, value)
+                direction = record.get("wallDirection")
+                if record["parent"] is None and direction is not None:
+                    target = obj.parentWall.secondVertex - obj.parentWall.firstVertex
+                    reversedAlongWall = direction[0] * target.x() + direction[1] * target.y() < 0
+                    fields = {name: getattr(obj, name) for name in openingFields[type(obj)]}
+                    for attribute, value in OpeningOrientationChanges(fields, reversedAlongWall).items():
+                        setattr(obj, attribute, value)
                 created[index] = obj
                 self.windows.append(obj)
             for index, obj in created.items():
@@ -389,7 +262,7 @@ class ClipboardMixin:
                 if isinstance(obj, Window):
                     parentLength = QtCore.QLineF(obj.parentWall.firstVertex, obj.parentWall.secondVertex).length()
                     halfSpan = obj.length / (2 * parentLength)
-                    valid = valid and halfSpan <= obj.centerFraction <= 1 - halfSpan and self.OpeningFits(obj)
+                    valid = valid and (isinstance(obj, PocketDoor) or halfSpan <= obj.centerFraction <= 1 - halfSpan) and self.OpeningFits(obj)
                 elif isinstance(obj, Counter):
                     valid = valid and self.CounterFits(obj)
                 elif isinstance(obj, Stair):
@@ -407,6 +280,12 @@ class ClipboardMixin:
             self.clipboardMessage.emit("Cannot paste here: objects overlap or an opening has no suitable wall.")
             self.update()
             return False
+        if imported:
+            self.projectFurnishingDefinitions = {**self.projectFurnishingDefinitions, **imported}
+            self.furnishingDefinitions = definitions
+            main = self.window()
+            main.RefreshFurnishingRenderers()
+            main.BuildFurnishTab(refresh = True)
         self.objectGroups.extend(tuple(created[index] for index in group) for group in payload.get("groups", []))
         self.SetSelection([(created[index], None) for index, record in enumerate(records) if record["selected"]])
         self.RecordEdit(before)

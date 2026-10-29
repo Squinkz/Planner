@@ -6,10 +6,11 @@ import re
 
 from planner_app.graphics.palette import themeColors
 from planner_app.graphics.theme import HeaderIcon, WallPresetIcon, BuildCanvasStyle
-from planner_app.graphics.furnishings import FurnishingRenderer
+from planner_app.graphics.furnishing_thumbnails import FurnishingThumbnailCache
 from planner_app.preferences import wallPresetWidths
 from planner_app.graphics.icons import UiIcon
 from planner_app.units import FormatLength, ParseImperialLength
+from .drag_wheel import NativeDragWheel
 from planner_app.number_expressions import EvaluateNumberExpression
 
 
@@ -738,12 +739,19 @@ class ObjectDragButtonMixin:
             viewport = self.window().viewport
             if self.objectType.startswith("wall-"):
                 viewport.CancelInteraction()
+                viewport.wallDrawShape = self.objectType.removeprefix("wall-")
+                viewport.circleSegments = 8
+                viewport.circleWheelDelta = 0
             viewport.guiDragActive = True
             viewport.guiDragCancelled = False
             viewport.guiDragKind = self.objectType
             viewport.update()
             try:
-                drag.exec(QtCore.Qt.DropAction.CopyAction)
+                if self.objectType == "wall-circle":
+                    with NativeDragWheel(viewport):
+                        drag.exec(QtCore.Qt.DropAction.CopyAction)
+                else:
+                    drag.exec(QtCore.Qt.DropAction.CopyAction)
             finally:
                 viewport.guiDragActive = False
                 viewport.guiDragKind = None
@@ -765,7 +773,7 @@ class ObjectDragButtonMixin:
 class WindowButton(ObjectDragButtonMixin, PaletteDragButton):
     def __init__(self, parent = None, objectType = "window"):
         super().__init__(parent)
-        label = "North Marker" if objectType == "north-arrow" else objectType.replace("-", " ").title()
+        label = {"north-arrow": "North Marker", "measurement-guide": "Dimension"}.get(objectType, objectType.replace("-", " ").title())
         self.setAccessibleName(label)
         self.setObjectName("openingIconButton")
         self.setStyleSheet(BuildCanvasStyle())
@@ -775,7 +783,7 @@ class WindowButton(ObjectDragButtonMixin, PaletteDragButton):
         self.setIcon(UiIcon("objects/" + objectType))
         self.objectType = objectType
         self.pressPosition = None
-        self.setToolTip(label.capitalize())
+        self.setToolTip("Dimension guide" if objectType == "measurement-guide" else label.capitalize())
 
 
 class WallToolButton(ObjectDragButtonMixin, QtWidgets.QToolButton):
@@ -904,31 +912,7 @@ class FurnishingButton(PaletteDragButton):
         self.pressPosition = None
 
     def RefreshIcon(self):
-        definition = self.definition
-        compoundIcon = bool(definition.get("graphicData") and not definition.get("icon"))
-        renderer = FurnishingRenderer(definition["graphicData"] if compoundIcon else definition["iconPath"],
-            nominalSize = (definition["width"], definition["length"]),
-            palette = {"outline": themeColors["icon"], "background": themeColors["fieldBackground"], "missing": themeColors["missing"]})
-        pixmap = QtGui.QPixmap(80, 80)
-        pixmap.fill(QtCore.Qt.GlobalColor.transparent)
-        with QtGui.QPainter(pixmap) as painter:
-            if compoundIcon:
-                width, length = definition["width"], definition["length"]
-            else:
-                width, length = max(1, renderer.defaultSize().width()), max(1, renderer.defaultSize().height())
-            scale = (72 if compoundIcon else 80) / max(width, length)
-            viewBox = renderer.viewBoxF()
-            artwork = getattr(renderer, "artworkBounds", viewBox)
-            if not viewBox.isEmpty() and artwork != viewBox:
-                scale = 72 / max(artwork.width(), artwork.height())
-                target = QtCore.QRectF(40 + (viewBox.x() - artwork.center().x()) * scale,
-                                      40 + (viewBox.y() - artwork.center().y()) * scale,
-                                      viewBox.width() * scale, viewBox.height() * scale)
-            else:
-                target = QtCore.QRectF((80 - width * scale) / 2, (80 - length * scale) / 2,
-                                      width * scale, length * scale)
-            renderer.render(painter, target)
-        self.setIcon(QtGui.QIcon(pixmap))
+        self.setIcon(furnishingButtonThumbnails.Icon(self.definition))
 
     def mousePressEvent(self, event):
         self.pressPosition = event.position().toPoint() if event.button() == QtCore.Qt.MouseButton.LeftButton else None
@@ -942,25 +926,31 @@ class FurnishingButton(PaletteDragButton):
         super().mouseMoveEvent(event)
 
     def StartDrag(self):
-        mime = QtCore.QMimeData()
-        mime.setData("application/x-planner-furnishing", self.definition["key"].encode())
-        drag = QtGui.QDrag(self)
-        drag.setMimeData(mime)
-        pixmap = QtGui.QPixmap(1, 1)
-        pixmap.fill(QtCore.Qt.GlobalColor.transparent)
-        drag.setPixmap(pixmap)
         self.pressPosition = None
         self.setDown(False)
-        viewport = self.window().viewport
-        viewport.guiDragActive = True
-        viewport.guiDragCancelled = False
-        viewport.guiDragKind = "furnishing"
+        StartFurnishingDrag(self, self.window().viewport, self.definition["key"])
+
+
+furnishingButtonThumbnails = FurnishingThumbnailCache()
+
+
+def StartFurnishingDrag(source, viewport, key):
+    mime = QtCore.QMimeData()
+    mime.setData("application/x-planner-furnishing", key.encode())
+    drag = QtGui.QDrag(source)
+    drag.setMimeData(mime)
+    pixmap = QtGui.QPixmap(1, 1)
+    pixmap.fill(QtCore.Qt.GlobalColor.transparent)
+    drag.setPixmap(pixmap)
+    viewport.guiDragActive = True
+    viewport.guiDragCancelled = False
+    viewport.guiDragKind = "furnishing"
+    viewport.update()
+    try:
+        drag.exec(QtCore.Qt.DropAction.CopyAction)
+    finally:
+        viewport.guiDragActive = False
+        viewport.guiDragKind = None
+        viewport.furnishingPreview = None
+        viewport.alignmentGuides = []
         viewport.update()
-        try:
-            drag.exec(QtCore.Qt.DropAction.CopyAction)
-        finally:
-            viewport.guiDragActive = False
-            viewport.guiDragKind = None
-            viewport.furnishingPreview = None
-            viewport.alignmentGuides = []
-            viewport.update()

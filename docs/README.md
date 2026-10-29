@@ -2,7 +2,7 @@
 
 ## User help
 
-[Welcome to Planner](../planner-main/docs/help/README.md) contains the quickstart and linked user guide.
+[Welcome to Planner](../planner-main/help/README.md) contains the quickstart and linked user guide.
 Everyday drawing, editing, search, appearance, project and export instructions
 belong there. These pages also appear in the application's Help window.
 
@@ -18,6 +18,7 @@ belong there. These pages also appear in the application's Help window.
 - [Editing transactions and desktop adapter boundaries](EDITING_PORTS.md)
 - [Help authoring and viewer contract](HELP_AUTHORING.md)
 - [Rendering diagnostics and performance probes](RENDER_DIAGNOSTICS.md)
+- [Export shortcut scope and audit](EXPORT_SHORTCUT_AUDIT.md)
 
 ## Resource authoring
 
@@ -48,7 +49,7 @@ Keep technical documentation in this folder. The repository-root README
 is the entry point; bundled third-party package notes and license notices stay
 with their resources. Move user workflows into Help and link to them from
 technical references instead of maintaining duplicate tutorials.
-Changes to `planner-main/docs/help/` require an explicit user request. Routine implementation
+Changes to `planner-main/help/` require an explicit user request. Routine implementation
 changes may update technical contracts without changing the help pages.
 
 From the workspace root, validate local links, organization and help with:

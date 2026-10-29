@@ -185,6 +185,8 @@ QPushButton#viewportMenuItem:checked QLabel { color: __COLOR_activeText__; }
 QPushButton#viewportMenuItem QLabel#menuShortcutLabel { color: __COLOR_mutedText__; font-size: 8pt; }
 QPushButton#viewportMenuItem:hover QLabel#menuShortcutLabel,
 QPushButton#viewportMenuItem:checked QLabel#menuShortcutLabel { color: __COLOR_activeText__; }
+QPushButton#viewportMenuItem:disabled { background: transparent; border-color: transparent; color: __COLOR_disabled__; }
+QPushButton#viewportMenuItem QLabel:disabled { color: __COLOR_disabled__; }
 QPushButton {
     background: __COLOR_controlBackground__;
     border: 1px solid __COLOR_controlBackground__;
@@ -210,13 +212,13 @@ QPushButton#openingIconButton {
     max-height: 46px;
 }
 QToolButton#viewportToolbarButton { background: __COLOR_controlBackground__; border: 1px solid __COLOR_controlBackground__; border-radius: 5px; padding: 0; }
-QToolButton#viewportToolbarButton:hover { background: __COLOR_hoverBackground__; border-color: __COLOR_hoverBackground__; }
-QToolButton#viewportToolbarButton:pressed { background: __COLOR_pressedBackground__; border-color: __COLOR_pressedBackground__; }
-QToolButton#viewportToolbarButton:checked { background: __COLOR_activeBackground__; border-color: __COLOR_activeBackground__; }
-QToolButton#viewportToolbarButton:checked:hover { background: __COLOR_activeHoverBackground__; border-color: __COLOR_activeHoverBackground__; }
-QToolButton#viewportToolbarButton[modeSelector="true"] { background: __COLOR_activeBackground__; border-color: __COLOR_activeBackground__; }
-QToolButton#viewportToolbarButton[modeSelector="true"]:hover { background: __COLOR_activeHoverBackground__; border-color: __COLOR_activeHoverBackground__; }
-QToolButton#viewportToolbarButton[modeSelector="true"]:pressed { background: __COLOR_pressedBackground__; border-color: __COLOR_pressedBackground__; }
+QToolButton#viewportToolbarButton:enabled:hover { background: __COLOR_hoverBackground__; border-color: __COLOR_hoverBackground__; }
+QToolButton#viewportToolbarButton:enabled:pressed { background: __COLOR_pressedBackground__; border-color: __COLOR_pressedBackground__; }
+QToolButton#viewportToolbarButton:enabled:checked { background: __COLOR_activeBackground__; border-color: __COLOR_activeBackground__; }
+QToolButton#viewportToolbarButton:enabled:checked:hover { background: __COLOR_activeHoverBackground__; border-color: __COLOR_activeHoverBackground__; }
+QToolButton#viewportToolbarButton[modeSelector="true"]:enabled { background: __COLOR_activeBackground__; border-color: __COLOR_activeBackground__; }
+QToolButton#viewportToolbarButton[modeSelector="true"]:enabled:hover { background: __COLOR_activeHoverBackground__; border-color: __COLOR_activeHoverBackground__; }
+QToolButton#viewportToolbarButton[modeSelector="true"]:enabled:pressed { background: __COLOR_pressedBackground__; border-color: __COLOR_pressedBackground__; }
 QToolButton#exportBrowseButton { background: __COLOR_controlBackground__; border: 1px solid __COLOR_controlBackground__; border-radius: 4px; padding: 0; }
 QToolButton#exportBrowseButton:hover { background: __COLOR_hoverBackground__; border-color: __COLOR_hoverBackground__; }
 QToolButton#exportBrowseButton:pressed { background: __COLOR_pressedBackground__; border-color: __COLOR_pressedBackground__; }
@@ -289,7 +291,7 @@ QAbstractSpinBox QLineEdit, QComboBox QLineEdit {
 QLineEdit:disabled, QTextEdit:disabled, QPlainTextEdit:disabled {
     background: __COLOR_disabledBackground__; border-color: __COLOR_disabledBackground__; color: __COLOR_disabled__;
 }
-QDoubleSpinBox, QSpinBox {
+QDoubleSpinBox, QSpinBox, QDateEdit {
     background: __COLOR_fieldBackground__;
     border: 1px solid __COLOR_fieldBackground__;
     border-radius: 4px;
@@ -298,7 +300,7 @@ QDoubleSpinBox, QSpinBox {
     min-height: 22px;
     selection-background-color: __COLOR_activeBackground__;
 }
-QDoubleSpinBox:disabled, QSpinBox:disabled { background: __COLOR_disabledBackground__; border-color: __COLOR_disabledBackground__; color: __COLOR_disabled__; }
+QDoubleSpinBox:disabled, QSpinBox:disabled, QDateEdit:disabled { background: __COLOR_disabledBackground__; border-color: __COLOR_disabledBackground__; color: __COLOR_disabled__; }
 QComboBox {
     background: __COLOR_fieldBackground__;
     border: 1px solid __COLOR_fieldBackground__;
@@ -307,7 +309,7 @@ QComboBox {
     min-height: 22px;
 }
 QComboBox:hover { border-color: __COLOR_hoverBackground__; }
-QComboBox::drop-down {
+QComboBox::drop-down, QDateEdit::drop-down {
     subcontrol-origin: padding;
     subcontrol-position: top right;
     width: 20px;
@@ -316,8 +318,8 @@ QComboBox::drop-down {
     border-bottom-right-radius: 5px;
     background: __COLOR_controlBackground__;
 }
-QComboBox::drop-down:hover { background: __COLOR_hoverBackground__; }
-QComboBox::down-arrow {
+QComboBox::drop-down:hover, QDateEdit::drop-down:hover { background: __COLOR_hoverBackground__; }
+QComboBox::down-arrow, QDateEdit::down-arrow {
     image: url("__ICON_arrow_drop_down__"); width: 16px; height: 16px;
 }
 QComboBox QAbstractItemView {
@@ -336,7 +338,13 @@ QComboBox QAbstractItemView::item:selected {
     color: __COLOR_activeText__;
 }
 QComboBox:disabled { color: __COLOR_disabled__; background: __COLOR_disabledBackground__; border-color: __COLOR_disabledBackground__; }
-QComboBox::drop-down:disabled { background: __COLOR_disabledBackground__; border-color: __COLOR_disabledBackground__; }
+QComboBox::drop-down:disabled, QDateEdit::drop-down:disabled { background: __COLOR_disabledBackground__; border-color: __COLOR_disabledBackground__; }
+QCalendarWidget QAbstractItemView {
+    background: __COLOR_fieldBackground__; color: __COLOR_text__;
+    selection-background-color: __COLOR_activeBackground__; selection-color: __COLOR_activeText__;
+    alternate-background-color: __COLOR_controlBackground__;
+}
+QCalendarWidget QWidget#qt_calendar_navigationbar { background: __COLOR_controlBackground__; }
 QLineEdit#furnishingSearch {
     border-radius: 4px; padding: 4px 8px; min-height: 22px;
     selection-background-color: __COLOR_activeBackground__;

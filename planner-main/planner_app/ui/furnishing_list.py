@@ -2,6 +2,7 @@
 from PySide6 import QtCore, QtGui, QtWidgets
 from planner_app.graphics.palette import themeColors
 from .furnishing_quick_search import FurnishingResultDelegate
+from .widgets import StartFurnishingDrag
 
 
 class FurnishingListDelegate(FurnishingResultDelegate):
@@ -48,7 +49,7 @@ class FurnishingCatalogList(QtWidgets.QListWidget):
         elif query:
             sections = [("Search Results", [definition["key"] for definition in results if definition["key"] != "null"])]
         else:
-            sections = [(category, [key for key, cardCategory in main.furnishingCategoryCards if cardCategory == category])
+            sections = [(category, list(main.furnishingCategoryKeys[category]))
                         for category in main.furnishingCategoryWidgets]
             if main.furnishingSortDescending:
                 sections = [(category, keys[::-1]) for category, keys in reversed(sections)]
@@ -68,8 +69,8 @@ class FurnishingCatalogList(QtWidgets.QListWidget):
                     self.addItem(heading)
                 for key in keys:
                     definition = main.viewport.furnishingDefinitions[key]
-                    dimensions = main.furnishingDimensionLabels[key].text()
-                    item = QtWidgets.QListWidgetItem(main.furnishingButtons[key].icon(), definition["name"].strip())
+                    dimensions = main.furnishingDimensions[key]
+                    item = QtWidgets.QListWidgetItem(main.furnishingThumbnails.Icon(definition), definition["name"].strip())
                     item.setData(QtCore.Qt.ItemDataRole.UserRole, key)
                     item.setData(QtCore.Qt.ItemDataRole.UserRole + 1, dimensions)
                     item.setSizeHint(QtCore.QSize(0, 40))
@@ -94,9 +95,11 @@ class FurnishingCatalogList(QtWidgets.QListWidget):
         for row in range(self.count()):
             item = self.item(row)
             key = item.data(QtCore.Qt.ItemDataRole.UserRole)
-            button = self.mainWindow.furnishingButtons.get(key)
-            if button is not None:
-                item.setIcon(button.icon())
+            definition = self.mainWindow.viewport.furnishingDefinitions.get(key)
+            if definition is not None:
+                icon = self.mainWindow.furnishingThumbnails.Icon(definition)
+                if item.icon().cacheKey() != icon.cacheKey():
+                    item.setIcon(icon)
                 dimensionWidth = max(dimensionWidth, metrics.horizontalAdvance(item.data(QtCore.Qt.ItemDataRole.UserRole + 1)))
         self.resultDelegate.dimensionWidth = min(144, dimensionWidth)
         self.viewport().update()
@@ -110,6 +113,5 @@ class FurnishingCatalogList(QtWidgets.QListWidget):
     def startDrag(self, supportedActions):
         item = self.currentItem()
         key = item.data(QtCore.Qt.ItemDataRole.UserRole) if item is not None else None
-        button = self.mainWindow.furnishingButtons.get(key)
-        if button is not None:
-            button.StartDrag()
+        if key in self.mainWindow.viewport.furnishingDefinitions:
+            StartFurnishingDrag(self, self.mainWindow.viewport, key)

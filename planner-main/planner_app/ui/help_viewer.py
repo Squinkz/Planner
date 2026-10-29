@@ -4,6 +4,7 @@ import math
 import re
 from PySide6 import QtCore, QtGui, QtWidgets
 from planner_app.paths import helpDirectory
+from planner_app.help_anchors import HeadingAnchors
 from planner_app.graphics.palette import themeColors
 from planner_app.graphics.theme import HeaderIcon
 from planner_app.graphics.icons import UiIcon
@@ -249,7 +250,7 @@ class HelpWindow(QtWidgets.QDialog):
             iterator = block.begin()
             while not iterator.atEnd():
                 fragment = iterator.fragment()
-                if fragment.charFormat().isAnchor():
+                if fragment.charFormat().isAnchor() and fragment.charFormat().anchorHref():
                     anchors.append((fragment.position(), fragment.length()))
                 iterator += 1
             block = block.next()
@@ -347,6 +348,10 @@ class HelpWindow(QtWidgets.QDialog):
             document.setLayoutEnabled(layoutEnabled)
         if not fragment:
             self.browser.verticalScrollBar().setValue(0)
+        else:
+            # The native source jump can happen before our anchors and final
+            # typography exist. Resolve it again once the layout is enabled.
+            self.browser.scrollToAnchor(fragment)
         return True
 
     def OpenLink(self, link):
@@ -701,6 +706,15 @@ class HelpWindow(QtWidgets.QDialog):
         document.setLayoutEnabled(False)
         try:
             self.browser.RestoreMarkdownBreaks()
+            cursor = QtGui.QTextCursor(document)
+            for block, name in HeadingAnchors(document):
+                cursor.setPosition(block.position())
+                cursor.movePosition(QtGui.QTextCursor.MoveOperation.NextCharacter,
+                                    QtGui.QTextCursor.MoveMode.KeepAnchor)
+                anchor = QtGui.QTextCharFormat()
+                anchor.setAnchor(True)
+                anchor.setAnchorNames([name])
+                cursor.mergeCharFormat(anchor)
             self.StyleDocument()
             self.ResizeImages()
             self.RefreshTheme()

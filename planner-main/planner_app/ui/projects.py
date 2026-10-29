@@ -47,7 +47,7 @@ class ProjectsMixin:
                 "connectedVertices": v.connectedVerticesEnabled, "connectedObjects": v.connectedObjectsEnabled,
                 "groupMode": v.groupModeEnabled, "localTransforms": v.localTransforms, "visibility": dict(v.visibility),
                 "ignoredPotentialIssues": list(v.ignoredPotentialIssues),
-                "showGrid": v.showGrid, "floors": v.floors, "showMeasurements": v.showMeasurements, "measurementPrecision": v.measurementPrecision,
+                "showGrid": v.showGrid, "roomStyle": "Tinted" if v.floors else "Canvas", "solidRooms": v.solidRooms, "showMeasurements": v.showMeasurements, "measurementPrecision": v.measurementPrecision,
                 "buildSettings": {"wallWidths": list(v.wallPresetWidths), "openingSizes": dict(v.openingDefaultSizes),
                                   "miscSizes": dict(v.miscDefaultSizes),
                                   **({"imperialSizes": dict(v.imperialDefaultSizes)} if v.imperialDefaultSizes else {})},
@@ -146,6 +146,7 @@ class ProjectsMixin:
         return True
 
     def SaveStartupFile(self):
+        self.sidebarTabs.setCurrentWidget(self.buildScrollArea)
         choice = self.ShowAppMessage("Save Startup File",
                     "Use the current scene as the default for new projects?", "warning",
                     informativeText = "This will replace the startup file with the current scene, settings, and panel layout.",
@@ -226,6 +227,7 @@ class ProjectsMixin:
         self.viewport.CancelInteraction()
 
     def ConfirmProjectReplacement(self):
+        self.sidebarTabs.setCurrentWidget(self.buildScrollArea)
         self.FinishProjectInteraction()
         self.RefreshProjectDirty()
         if not self.projectDirty:
@@ -242,6 +244,9 @@ class ProjectsMixin:
     def NewProject(self):
         if not self.ConfirmProjectReplacement():
             return False
+        self.exportPanel.EndExportGesture()
+        previousExport = (list(self.exportPanel.exportUndoHistory), list(self.exportPanel.exportRedoHistory),
+                          self.exportPanel.ExportHistoryState(), dict(self.activityLog.exportLinks))
         previousData = self.BuildProjectData()
         previousPath = self.projectPath
         previousSaved = self.savedSceneSignature, self.savedSettingsSignature
@@ -253,6 +258,10 @@ class ProjectsMixin:
         if self.LoadStartupProject():
             return True
         self.ApplyProject(DecodeProject(previousData, definitions), previousPath)
+        self.exportPanel.exportUndoHistory, self.exportPanel.exportRedoHistory = previousExport[:2]
+        self.exportPanel.RestoreExportHistory(previousExport[2])
+        self.activityLog.exportLinks = previousExport[3]
+        self.activityLog.changed.emit()
         self.savedSceneSignature, self.savedSettingsSignature = previousSaved
         self.recoverySourcePath, self.recoveryBackupPath = previousRecovery
         self.RefreshProjectDirty()
@@ -362,6 +371,7 @@ class ProjectsMixin:
         v.setFocus()
 
     def OpenProject(self, path = None):
+        self.sidebarTabs.setCurrentWidget(self.buildScrollArea)
         if path is None:
             filename, chosenFilter = QtWidgets.QFileDialog.getOpenFileName(self, "Open Project", str(self.BrowseDirectory()),
                                                                           "Planner Projects (*.plan);;All Files (*)")
@@ -372,6 +382,9 @@ class ProjectsMixin:
         self.RememberBrowseFolder(path)
         if not self.ConfirmProjectReplacement():
             return False
+        self.exportPanel.EndExportGesture()
+        previousExport = (list(self.exportPanel.exportUndoHistory), list(self.exportPanel.exportRedoHistory),
+                          self.exportPanel.ExportHistoryState(), dict(self.activityLog.exportLinks))
         previousData = self.BuildProjectData()
         previousPath = self.projectPath
         previousSaved = self.savedSceneSignature, self.savedSettingsSignature
@@ -384,6 +397,10 @@ class ProjectsMixin:
                               if self.activityLog.generation != previousActivityGeneration or entry["id"] >= previousActivityNext]
             try:
                 self.ApplyProject(DecodeProject(previousData, definitions), previousPath)
+                self.exportPanel.exportUndoHistory, self.exportPanel.exportRedoHistory = previousExport[:2]
+                self.exportPanel.RestoreExportHistory(previousExport[2])
+                self.activityLog.exportLinks = previousExport[3]
+                self.activityLog.changed.emit()
                 for entry in attemptEntries:
                     if entry["kind"] in ("Application", "Blocked action"):
                         self.activityLog.Add(entry["kind"], entry["summary"], entry["details"])
@@ -437,6 +454,7 @@ class ProjectsMixin:
         return True
 
     def RevertProject(self):
+        self.sidebarTabs.setCurrentWidget(self.buildScrollArea)
         if self.projectPath is None:
             return False
         self.RefreshProjectDirty()
@@ -445,6 +463,7 @@ class ProjectsMixin:
         return self.OpenProject(self.projectPath)
 
     def SaveProject(self, path = None):
+        self.sidebarTabs.setCurrentWidget(self.buildScrollArea)
         if path is None and self.projectPath is None:
             return self.SaveProjectAs()
         path = Path(path).resolve() if path is not None else self.projectPath
@@ -470,10 +489,12 @@ class ProjectsMixin:
         self.recoverySourcePath = self.recoveryBackupPath = None
         self.RememberRecentProject(path)
         self.exportPanel.PopulatePath()
+        self.exportPanel.RefreshControls()
         self.MarkProjectClean()
         return True
 
     def SaveProjectAs(self, path = None):
+        self.sidebarTabs.setCurrentWidget(self.buildScrollArea)
         if path is None:
             suggestedName = self.projectPath.name if self.projectPath is not None else "New Project.plan"
             suggested = self.BrowseDirectory() / suggestedName
@@ -501,6 +522,7 @@ class ProjectsMixin:
         self.recoverySourcePath = self.recoveryBackupPath = None
         try:
             self.exportPanel.SetActive(False)
+            self.sidebarTabs.setCurrentWidget(self.buildScrollArea)
             self.exportPanel.exportZoom = self.exportPanel.exportPanOffset = None
             self.exportPanel.overrides = {}
             self.SetViewportOnlyMode(False)
@@ -565,6 +587,7 @@ class ProjectsMixin:
                 v.newWallWidth = settings["wallWidth"]
             v.showGrid, v.showMeasurements = settings["showGrid"], settings["showMeasurements"]
             v.floors = settings["floors"]
+            v.solidRooms = settings["solidRooms"]
             v.measurementVisibility = dict(settings["measurementVisibility"])
             if self.settingsWindow is not None:
                 self.settingsWindow.RefreshMeasurementVisibility()
@@ -615,7 +638,7 @@ class ProjectsMixin:
             self.exportPanel.overrides = settings.get("exportSettings", {})
             self.exportPanel.ResetExportHistory()
             self.activityLog.Load(settings.get("activityLog"))
-            self.exportPanel.SetActive(self.sidebarTabs.currentWidget() is self.exportPanel)
+            self.exportPanel.SetActive(False)
         finally:
             self.projectLoading = False
         self.MarkProjectClean()

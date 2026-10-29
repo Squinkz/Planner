@@ -5,12 +5,17 @@ import math
 import time
 from planner_app.object_schema import openingFields
 from planner_app.geometry.attachments import AttachedVertexIndices, ConnectedAttachments
-from planner_app.geometry.editing import TransformPoint, OpeningTransformTarget, ReattachTransformedOpening, RebaseMergedOpening, ChooseWallSplit
-from planner_app.geometry.group_movement import (ProjectGroupTravel, GroupOpeningLimits,
+from planner_app.geometry.editing import TransformPoint, OpeningTransformTarget, ReattachTransformedOpening, RebaseMergedOpening, ChooseWallSplit, OpeningOrientationChanges, PointerRotation
+from planner_app.selection_copy import OpeningCopyTargets, RemapCopiedGroups
+from planner_app.geometry.selection_edits import MoveObjectRecord, ReflectionObjectRecord, PlanMoveSelection, PlanSelectionReflection
+from planner_app.geometry.linear_edits import PlanSubdivision, PlanDissolution
+from planner_app.geometry.group_movement import (OpeningTransferLength, PlanOpeningTransfer, ProjectGroupTravel, GroupOpeningLimits,
     BoundGroupTravel, TranslatedOpeningFraction, AttachedConstraintPoint)
 from .geometry import CollisionPass
 from planner_app.history_edits import SceneEdit, ReferenceImageEdit
 from planner_app.furnishing_parts import FurnishingParts, FurnishingCollisionFootprints
+from planner_app.furnishing_imports import ResolveFurnishingImports
+from planner_app.project_codec import EncodeFurnishingDefinitions
 from planner_app.graphics.path_operations import Paths
 from PySide6 import QtCore, QtGui, QtWidgets
 from planner_app.models import (
@@ -25,6 +30,20 @@ def SnapshotPointMatches(point, x, y):
     # Signed zero can affect angle calculations; retain snapshot signs as well.
     return ((x != 0 or math.copysign(1, pointX) == math.copysign(1, x))
             and (y != 0 or math.copysign(1, pointY) == math.copysign(1, y)))
+
+
+def NativeEditAffine(operation, *values):
+    if operation == "reflection":
+        center, angle, horizontal = values
+        transform = QtGui.QTransform().translate(*center).rotate(angle)
+        transform.scale(-1 if horizontal else 1, 1 if horizontal else -1)
+        transform.rotate(-angle).translate(-center[0], -center[1])
+        return transform.m11(), transform.m12(), transform.m21(), transform.m22(), transform.dx(), transform.dy()
+    if operation == "point":
+        point, frame = values
+        target = QtGui.QTransform(*frame).map(QtCore.QPointF(*point))
+        return target.x(), target.y()
+    raise ValueError("Unknown edit affine operation")
 
 
 class SceneEditingMixin:
@@ -85,41 +104,39 @@ class SceneEditingMixin:
         for obj in objects[1:]:
             bounds = bounds.united(self.ObjectFootprint(obj)[0])
         sharedOrigin = QtCore.QPointF(self.rotationPivot) if self.rotationPivot is not None else bounds.center()
-        radians = math.radians(angle % 360)
-        cosine, sine = math.cos(radians), math.sin(radians)
-        vertices = {}
-        openingTargets = []
-        for obj in objects:
-            origin = (obj.middleVertex if isinstance(obj, AngleGuide) else (obj.firstVertex + obj.secondVertex) / 2) if localOrigins else sharedOrigin
-            if isinstance(obj, Window):
-                target, targetDirection = OpeningTransformTarget((obj.firstVertex.x(), obj.firstVertex.y()),
-                    (obj.secondVertex.x(), obj.secondVertex.y()), (origin.x(), origin.y()), (x, y), cosine, sine)
-                openingTargets.append((obj, target, targetDirection))
-            else:
-                for index, vertex in enumerate(ObjectControlPoints(obj)):
-                    vertices[(id(obj), index)] = (obj, index, QtCore.QPointF(vertex), origin)
+        models = {id(obj): obj for obj in objects}
+        records = [MoveObjectRecord(id(obj), tuple((point.x(), point.y()) for point in ObjectControlPoints(obj)),
+            isinstance(obj, Window), 2 if isinstance(obj, AngleGuide) else None) for obj in objects]
+        attachments = []
         originalIndex = self.selectedVertex
-        if self.connectedEnabled:
-            for obj in objects:
-                if isinstance(obj, (Window, Label)) or isinstance(obj, Furnishing) and type(obj) is not Furnishing:
-                    continue
-                origin = (obj.middleVertex if isinstance(obj, AngleGuide) else (obj.firstVertex + obj.secondVertex) / 2) if localOrigins else sharedOrigin
-                indices = (None,) if self.connectedObjectsEnabled or self.connectedVerticesEnabled else ()
-                for index in indices:
-                    self.selectedVertex = index
+        try:
+            if self.connectedEnabled and (self.connectedObjectsEnabled or self.connectedVerticesEnabled):
+                for obj in objects:
+                    if isinstance(obj, (Window, Label)) or isinstance(obj, Furnishing) and type(obj) is not Furnishing:
+                        continue
+                    self.selectedVertex = None
                     for attached, vertexIndex, vertex in self.AttachedVertices(obj):
-                        vertices.setdefault((id(attached), vertexIndex), (attached, vertexIndex, vertex, origin))
-        self.selectedVertex = originalIndex
+                        models.setdefault(id(attached), attached)
+                        attachments.append((id(obj), id(attached), vertexIndex, (vertex.x(), vertex.y())))
+        finally:
+            self.selectedVertex = originalIndex
+        guides = [(key, len(ObjectControlPoints(obj)), (obj.textOffset.x(), obj.textOffset.y()))
+                  for key, obj in models.items() if isinstance(obj, MeasurementGuide)]
+        points, openingTargets, offsets = PlanMoveSelection(records, attachments, guides, (x, y), angle,
+            (sharedOrigin.x(), sharedOrigin.y()), localOrigins,
+            originsMatch = lambda first, second: first == second or QtCore.QPointF(*first) == QtCore.QPointF(*second))
         self.dragConstraints = []
-        for obj, index, vertex, origin in vertices.values():
-            target = QtCore.QPointF(*TransformPoint((vertex.x(), vertex.y()), (origin.x(), origin.y()), (x, y), cosine, sine))
-            SetControlPoint(obj, index, target)
+        for key, index, point in points:
+            SetControlPoint(models[key], index, QtCore.QPointF(*point))
+        for key, offset in offsets:
+            models[key].textOffset = QtCore.QPointF(*offset)
         # Stretching a connected neighbor must carry its openings by the same
         # anchor/fraction rules as a canvas drag before validating collisions.
         if not self.FitWallOpenings(before, validateFurnishings = False, validateScene = False):
             self.RestoreState(before)
             return "This move would overlap an object or obstruct an opening."
-        for opening, target, targetDirection in openingTargets:
+        for key, target, targetDirection in openingTargets:
+            opening = models[key]
             parent = opening.parentWall
             placement = ReattachTransformedOpening(target, targetDirection, (parent.firstVertex.x(), parent.firstVertex.y()),
                                                     (parent.secondVertex.x(), parent.secondVertex.y()))
@@ -127,15 +144,14 @@ class SceneEditingMixin:
                 self.RestoreState(before)
                 return "Doors and windows must stay on their wall. Select the wall to move or rotate them together."
             opening.centerFraction, flipped = placement
-            if flipped:
-                for name in ("hingeAtSecond", "swingsOutwards", "panelsFlipped"):
-                    if hasattr(opening, name):
-                        setattr(opening, name, not getattr(opening, name))
+            fields = {name: getattr(opening, name) for name in ("hingeAtSecond", "swingsOutwards", "panelsFlipped") if hasattr(opening, name)}
+            for name, value in OpeningOrientationChanges(fields, flipped).items():
+                setattr(opening, name, value)
         if not self.OpeningsValid(before = before):
             self.RestoreState(before)
             return "This move would overlap an object or obstruct an opening."
-        for obj, index, vertex, origin in vertices.values():
-            self.PropagateMiter(obj, index)
+        for key, index, point in points:
+            self.PropagateMiter(models[key], index)
         self.RecordEdit(before)
         self.selectionChanged.emit()
         self.update()
@@ -152,71 +168,50 @@ class SceneEditingMixin:
             bounds = bounds.united(self.ObjectFootprint(obj)[0])
         sharedCenter = bounds.center()
         command = "flipHorizontal" if horizontal else "flipVertical"
-        transforms = {}
+        models = {id(obj): obj for obj in objects}
+        records = []
         for obj in objects:
-            center = (obj.middleVertex if isinstance(obj, AngleGuide) else
-                      (obj.firstVertex + obj.secondVertex) / 2) if self.localTransforms else sharedCenter
-            transform = QtGui.QTransform().translate(center.x(), center.y())
-            angle = 0.0
-            if self.localTransforms:
-                direction = obj.secondVertex - obj.firstVertex
-                angle = math.degrees(math.atan2(direction.y(), direction.x())) - 90
-            transform.rotate(angle)
-            transform.scale(-1 if horizontal else 1, 1 if horizontal else -1)
-            transform.rotate(-angle)
-            transform.translate(-center.x(), -center.y())
-            transforms[id(obj)] = transform
-        # Capture attachments before reflecting their parents. Unselected wall
-        # children follow the parent once, rather than being transformed twice.
-        openingTargets = []
+            kind = "opening" if isinstance(obj, Window) else "artwork" if type(obj) is Furnishing else "text" if isinstance(obj, Label) else "geometry"
+            records.append(ReflectionObjectRecord(id(obj), tuple((point.x(), point.y()) for point in ObjectControlPoints(obj)), kind,
+                obj.angle if kind in ("artwork", "text") and not self.localTransforms else 0,
+                getattr(obj, command) if kind == "artwork" else False,
+                (obj.textOffset.x(), obj.textOffset.y()) if isinstance(obj, MeasurementGuide) else None,
+                2 if isinstance(obj, AngleGuide) else None,
+                obj.length if kind in ("artwork", "text") and not self.localTransforms else None))
+        openings = []
         for opening in self.windows:
-            transform = transforms.get(id(opening.parentWall), transforms.get(id(opening)))
-            if transform is not None:
-                first, second = transform.map(opening.firstVertex), transform.map(opening.secondVertex)
-                openingTargets.append((opening, (first + second) / 2, second - first))
-        for obj in objects:
-            if isinstance(obj, Window):
-                continue
-            transform = transforms[id(obj)]
-            if type(obj) is Furnishing or isinstance(obj, Label):
-                center = (obj.firstVertex + obj.secondVertex) / 2
-                target = QtCore.QPointF(center) if self.localTransforms else transform.map(center)
-                if type(obj) is Furnishing:
-                    if value is not None and value == getattr(obj, command):
-                        continue
-                    setattr(obj, command, not getattr(obj, command))
-                # Text stays readable. Furnishing artwork reflects through its
-                # existing flip flags, keeping width and length positive.
-                if not self.localTransforms:
-                    obj.angle = -obj.angle
-                delta = target - center
-                obj.firstVertex += delta
-                obj.secondVertex += delta
+            if id(opening.parentWall) in models or id(opening) in models:
+                models[id(opening)] = opening
+                openings.append((id(opening), id(opening.parentWall),
+                    (opening.firstVertex.x(), opening.firstVertex.y()), (opening.secondVertex.x(), opening.secondVertex.y())))
+        edits, openingTargets = PlanSelectionReflection(records, openings, (sharedCenter.x(), sharedCenter.y()),
+            horizontal, self.localTransforms, value, NativeEditAffine)
+        for key, kind, geometry, flipped, offset in edits:
+            obj = models[key]
+            if kind in ("artwork", "text"):
+                if kind == "artwork":
+                    setattr(obj, command, flipped)
+                obj.firstVertex, obj.secondVertex = QtCore.QPointF(*geometry[0]), QtCore.QPointF(*geometry[1])
             else:
-                points = [transform.map(point) for point in ObjectControlPoints(obj)]
-                for index, point in enumerate(points):
-                    SetControlPoint(obj, index, point)
-                if isinstance(obj, MeasurementGuide):
-                    obj.textOffset = transform.map(obj.textOffset) - transform.map(QtCore.QPointF())
-        for opening, target, direction in openingTargets:
+                for index, point in enumerate(geometry):
+                    SetControlPoint(obj, index, QtCore.QPointF(*point))
+                if offset is not None:
+                    obj.textOffset = QtCore.QPointF(*offset)
+        for key, target, direction in openingTargets:
+            opening = models[key]
             parent = opening.parentWall
-            placement = ReattachTransformedOpening((target.x(), target.y()), (direction.x(), direction.y()),
+            placement = ReattachTransformedOpening(target, direction,
                 (parent.firstVertex.x(), parent.firstVertex.y()), (parent.secondVertex.x(), parent.secondVertex.y()))
             if placement is None:
                 self.RestoreState(before)
                 self.clipboardMessage.emit("Doors and windows must stay on their wall. Include the wall in the selection to flip them together.")
                 return False
             opening.centerFraction, reversedAlongWall = placement
-            if reversedAlongWall and hasattr(opening, "hingeAtSecond"):
-                opening.hingeAtSecond = not opening.hingeAtSecond
-            # Reflection reverses handedness. The parent's normal points the
-            # opposite way to the reflected original normal unless rebased backwards.
-            if not reversedAlongWall:
-                for field in ("swingsOutwards", "panelsFlipped"):
-                    if hasattr(opening, field):
-                        setattr(opening, field, not getattr(opening, field))
-                if isinstance(opening, Fireplace):
-                    opening.depthOffset = -opening.depthOffset
+            fields = {name: getattr(opening, name) for name in ("hingeAtSecond", "swingsOutwards", "panelsFlipped") if hasattr(opening, name)}
+            if isinstance(opening, Fireplace):
+                fields["depthOffset"] = opening.depthOffset
+            for name, value in OpeningOrientationChanges(fields, reversedAlongWall, reflected = True).items():
+                setattr(opening, name, value)
         if not self.OpeningsValid(before = before):
             self.RestoreState(before)
             self.clipboardMessage.emit("This flip would overlap an object or obstruct an opening.")
@@ -243,6 +238,10 @@ class SceneEditingMixin:
             self.selectedVertex = originalIndex
         state["sourceRotationVertices"] = list(vertices.values())
         state["rotationVertices"] = state["sourceRotationVertices"]
+        state["sourceGuideOffsets"] = [(obj, QtCore.QPointF(obj.textOffset))
+            for obj in {id(obj): obj for obj, index, vertex in vertices.values()}.values()
+            if isinstance(obj, MeasurementGuide) and all((id(obj), index) in vertices for index in range(len(ObjectControlPoints(obj))))]
+        state["rotationGuideOffsets"] = state["sourceGuideOffsets"]
         movingIds = {key[0] for key in vertices}
         selectedIds = {id(obj) for obj, index in state["sourceEntries"]}
         state["sourceOpeningStates"] = tuple(entry for entry in self.interactionBefore[3]
@@ -255,6 +254,8 @@ class SceneEditingMixin:
         # and fitted openings. No cumulative transforms or per-frame discovery.
         for obj, index, vertex in state["rotationVertices"]:
             SetControlPoint(obj, index, vertex)
+        for obj, offset in state["rotationGuideOffsets"]:
+            obj.textOffset = QtCore.QPointF(offset)
         self.RestoreOpeningStates(state["rotationOpenings"])
         duplicate = bool(modifiers & QtCore.Qt.KeyboardModifier.ShiftModifier) and not self.ObjectsHaveAssetErrors(
             obj for obj, index in state["sourceEntries"])
@@ -273,6 +274,7 @@ class SceneEditingMixin:
                                     for obj, first, second, width, angle in state["sourceStates"]]
                 state["rotationVertices"] = [(copies[id(obj)], index, vertex)
                                              for obj, index, vertex in state["sourceRotationVertices"] if id(obj) in copies]
+                state["rotationGuideOffsets"] = [(copies[id(obj)], offset) for obj, offset in state["sourceGuideOffsets"] if id(obj) in copies]
                 copyIds = {id(obj) for obj in state["copies"]}
                 state["rotationOpenings"] = tuple(entry for entry in self.CaptureState()[3] if id(entry[0]) in copyIds)
                 self.SetSelection([(copies[id(obj)], index) for obj, index in state["sourceEntries"]])
@@ -280,22 +282,22 @@ class SceneEditingMixin:
             else:
                 state["members"] = list(state["sourceStates"])
                 state["rotationVertices"] = state["sourceRotationVertices"]
+                state["rotationGuideOffsets"] = state["sourceGuideOffsets"]
                 state["rotationOpenings"] = state["sourceOpeningStates"]
                 self.SetSelection(state["sourceEntries"])
                 self.furnishingRotationObject = state["sourceRotationObject"]
             state["object"].selectionMembers = tuple(entry[0] for entry in state["members"])
         self.rotationPivot = QtCore.QPointF(state["pivot"])
         offset = self.ViewportToWorld(position) - state["pivot"]
-        angle = math.degrees(math.atan2(offset.y(), offset.x())) - state["mouseAngle"]
-        if self.snapEnabled != bool(modifiers & QtCore.Qt.KeyboardModifier.AltModifier):
-            angle = round(angle / 15) * 15
+        angle, cosine, sine = PointerRotation((offset.x(), offset.y()), state["mouseAngle"],
+            snapping = self.snapEnabled != bool(modifiers & QtCore.Qt.KeyboardModifier.AltModifier))
         state["object"].angle = angle
-        radians = math.radians(angle)
-        cosine, sine = math.cos(radians), math.sin(radians)
         origin = (state["pivot"].x(), state["pivot"].y())
         for obj, index, vertex in state["rotationVertices"]:
             target = QtCore.QPointF(*TransformPoint((vertex.x(), vertex.y()), origin, None, cosine, sine))
             SetControlPoint(obj, index, target)
+        for obj, offset in state["rotationGuideOffsets"]:
+            obj.textOffset = QtCore.QPointF(*TransformPoint((offset.x(), offset.y()), (0, 0), None, cosine, sine))
         state["rotationValid"] = self.FitWallOpenings(self.interactionBefore, validateFurnishings = False, validateScene = False)
         movedKeys = {(id(obj), index) for obj, index, vertex in state["rotationVertices"]}
         for obj, first, second, width, memberAngle in state["members"]:
@@ -309,10 +311,9 @@ class SceneEditingMixin:
                 state["rotationValid"] = False
             else:
                 obj.centerFraction, flipped = placement
-                if flipped:
-                    for name in ("hingeAtSecond", "swingsOutwards", "panelsFlipped"):
-                        if hasattr(obj, name):
-                            setattr(obj, name, not getattr(obj, name))
+                fields = {name: getattr(obj, name) for name in ("hingeAtSecond", "swingsOutwards", "panelsFlipped") if hasattr(obj, name)}
+                for name, value in OpeningOrientationChanges(fields, flipped).items():
+                    setattr(obj, name, value)
         state["rotationValid"] = state["rotationValid"] and self.OpeningsValid(before = self.interactionBefore)
 
     def AttachedVertices(self, selectedWall, captureAll = False):
@@ -476,6 +477,8 @@ class SceneEditingMixin:
             self.groupSourceEntries = list(self.SelectionEntries())
         self.groupDrag = True
         self.groupEntries = list(self.SelectionEntries())
+        self.groupGuideDepthAnchors = [point for obj, index in self.groupEntries if index is None and type(obj) is MeasurementGuide
+                                      for point in self.GuideDepthEndpoints(obj)]
         vertices = {}
         openings = {}
         constraints = []
@@ -524,11 +527,9 @@ class SceneEditingMixin:
         if any(obj.parentWall is not source for obj, index in entries):
             return False
         sourceDirection = source.secondVertex - source.firstVertex
-        sourceLength = math.hypot(sourceDirection.x(), sourceDirection.y())
-        if sourceLength <= 1e-10:
-            return False
-        across = abs(sourceDirection.x() * delta.y() - sourceDirection.y() * delta.x()) / sourceLength
-        if across * self.basePixelsPerMillimeter * self.zoom <= 1:
+        sourceLength = OpeningTransferLength((sourceDirection.x(), sourceDirection.y()), (delta.x(), delta.y()),
+                                             self.basePixelsPerMillimeter, self.zoom)
+        if sourceLength is None:
             return False
         # Duplication rebuilds selection and may change selectedWall to the last
         # member. Keep the object actually grabbed as the placement anchor.
@@ -545,17 +546,16 @@ class SceneEditingMixin:
             parent = placement.parentWall
             direction = parent.secondVertex - parent.firstVertex
             length = math.hypot(direction.x(), direction.y())
-            sign = -1 if QtCore.QPointF.dotProduct(direction, sourceDirection) < 0 else 1
-            offsets = [(obj, (obj.centerFraction - originalFraction) * sourceLength * sign) for obj, index in entries]
-            lower = max(obj.length / 2 - offset for obj, offset in offsets)
-            upper = min(length - obj.length / 2 - offset for obj, offset in offsets)
-            if lower <= upper:
-                distance = max(lower, min(upper, placement.centerFraction * length))
-                for obj, offset in offsets:
+            plan = PlanOpeningTransfer(sourceLength, originalFraction, length, placement.centerFraction,
+                [(obj.centerFraction, obj.length) for obj, index in entries],
+                QtCore.QPointF.dotProduct(direction, sourceDirection) < 0)
+            if plan is not None:
+                fractions, clipped = plan
+                for (obj, index), fraction in zip(entries, fractions):
                     obj.parentWall = parent
-                    obj.centerFraction = (distance + offset) / length
+                    obj.centerFraction = fraction
                 if self.GroupOpeningsFit(entries):
-                    if abs(distance - placement.centerFraction * length) > .01:
+                    if clipped:
                         self.alignmentGuides = []
                         self.snapApplied = False
                     return True
@@ -579,6 +579,13 @@ class SceneEditingMixin:
             return
         self.groupOpeningPreviews = []
         self.inactiveOpeningPreview = None
+        movementBefore = None
+        if any(type(obj) is Wall for obj, index in self.groupEntries) and any(isinstance(opening, PocketDoor) for opening in self.windows):
+            movedPoints = {(id(obj), index): (obj, index, QtCore.QPointF(ObjectControlPoints(obj)[index]))
+                           for obj, index, original in self.groupMovedVertices}
+            for obj, index, parent, fraction, normalOffset in self.dragConstraints:
+                movedPoints.setdefault((id(obj), index), (obj, index, QtCore.QPointF(ObjectControlPoints(obj)[index])))
+            movementBefore = tuple(movedPoints.values()), self.CaptureOpeningStates()
         before = self.interactionBefore
         for state in before[0]:
             obj = state[0]
@@ -601,6 +608,7 @@ class SceneEditingMixin:
             modifiers & QtCore.Qt.KeyboardModifier.ShiftModifier) and not self.ObjectsHaveAssetErrors(
                 obj for obj, index in self.groupSourceEntries)
         if duplicate != bool(self.dragCopies):
+            movementBefore = None  # A changed copy selection has no previous frame to restore.
             self.walls = [obj for obj in self.walls if not any(obj is copy for copy in self.dragCopies)]
             self.windows = [obj for obj in self.windows if not any(obj is copy for copy in self.dragCopies)]
             self.furnishings = [obj for obj in self.furnishings if not any(obj is copy for copy in self.dragCopies)]
@@ -641,6 +649,7 @@ class SceneEditingMixin:
                 if not self.IsObjectVisible(obj) or id(obj) in movingIds or isinstance(obj, Window) and id(obj.parentWall) in movingIds:
                     continue
                 targets.extend(ObjectControlPoints(obj))
+                targets.extend(self.GuideDepthEndpoints(obj))
             anchors = [vertex for obj, index, vertex in self.groupMovedVertices if not isinstance(obj, AngleGuide)]
             if any(isinstance(obj, Furnishing) for obj, index in self.groupEntries) or all(isinstance(obj, Wall) and index is None for obj, index in self.groupEntries):
                 targets = self.StairSnapTargets() + list(self.SnapVertices())
@@ -651,6 +660,7 @@ class SceneEditingMixin:
             for opening, index in fixedOpenings:
                 anchors.extend(((opening.firstVertex, opening.secondVertex, (opening.firstVertex + opening.secondVertex) / 2)
                                 if index is None else (opening.firstVertex if index == 0 else opening.secondVertex,)))
+            anchors.extend(self.groupGuideDepthAnchors)
         for obj, index in self.groupEntries:
             if isinstance(obj, AngleGuide):
                 anchors.append(ObjectControlPoints(obj)[2 if index is None or index == 3 else index])
@@ -686,7 +696,7 @@ class SceneEditingMixin:
                         stationary.setdefault(parentId, []).append((other.centerFraction, other.firstFraction, other.secondFraction))
             limits = GroupOpeningLimits(numericTravel,
                 ((id(opening.parentWall), *parentGeometry[id(opening.parentWall)],
-                  openingStates[id(opening)][2], opening.length, index) for opening, index in fixedOpenings),
+                  openingStates[id(opening)][2], opening.length, index, self.OpeningTravelBounds(opening)) for opening, index in fixedOpenings),
                 stationary, bool(self.dragCopies))
             boundedDelta = QtCore.QPointF(*BoundGroupTravel((delta.x(), delta.y()), numericTravel, *limits))
             if QtCore.QLineF(delta, boundedDelta).length() > .01:
@@ -720,13 +730,21 @@ class SceneEditingMixin:
             else:
                 vertex = opening.firstVertex if index == 0 else opening.secondVertex
                 self.SetOpeningVertex(opening, index, vertex + delta)
-        if not fixedOpenings or self.GroupOpeningsFit(fixedOpenings):
+        fitValid = not fixedOpenings or self.GroupOpeningsFit(fixedOpenings)
+        if fitValid:
             fixedIds = {id(obj) for obj, index in fixedOpenings}
             openingBefore = tuple((state[0], state[1], state[0].centerFraction, *state[3:])
                                   if id(state[0]) in fixedIds else state for state in before[3])
             # Preview painting validates moving furnishings; release validates the
             # entire scene. Repeating that collision pass here changes no geometry.
-            self.FitWallOpenings((before[0], before[1], before[2], openingBefore), validateFurnishings = False, validateScene = False)
+            fitValid = self.FitWallOpenings((before[0], before[1], before[2], openingBefore), validateFurnishings = False, validateScene = False)
+        if not fitValid and movementBefore is not None:
+            points, openings = movementBefore
+            for obj, index, point in points:
+                SetControlPoint(obj, index, point)
+            self.RestoreOpeningStates(openings)
+            self.alignmentGuides = []
+            self.snapApplied = False
         self.selectionChanged.emit()
         self.update()
 
@@ -737,9 +755,18 @@ class SceneEditingMixin:
         # SetOpeningVertex calls, which may move/restore an opening themselves.
         with self.OpeningCandidatePass(len(openings)):
             for opening, index in openings:
-                if not (self.OpeningFits(opening) and opening.firstFraction >= 0 and opening.secondFraction <= 1):
+                if not (self.OpeningFits(opening) and (isinstance(opening, PocketDoor) or opening.firstFraction >= 0 and opening.secondFraction <= 1)):
                     return False
         return True
+
+    def CaptureOpeningStates(self):
+        return tuple((window, window.parentWall, window.centerFraction, window.length,
+                      window.hingeAtSecond if isinstance(window, (Door, SwingingDoor, SlidingDoor, PocketDoor, CasementWindow)) else None,
+                      window.swingsOutwards if type(window) in (Window, Door, DoubleDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, BarnDoor, BifoldDoor, Fireplace) else
+                      window.panelsFlipped if isinstance(window, SlidingDoor) else None,
+                      window.sillDepth if isinstance(window, SilledWindow) else (window.depth, window.depthOffset, window.material) if isinstance(window, Fireplace) else None,
+                      window.measurementFlipped, window.measurementHidden,
+                      (window.windowWell, window.wellDepth, window.wellDashed)) for window in self.windows)
 
     def CaptureState(self):
         walls = []
@@ -751,7 +778,8 @@ class SceneEditingMixin:
             elif isinstance(wall, AngleGuide):
                 details = (wall.middleVertex.x(), wall.middleVertex.y(), wall.textOffset.x(), wall.textOffset.y())
             elif isinstance(wall, MeasurementGuide):
-                details = (wall.textOffset.x(), wall.textOffset.y())
+                details = ((wall.depth, wall.textOffset.x(), wall.textOffset.y()) if type(wall) is MeasurementGuide else
+                           (wall.textOffset.x(), wall.textOffset.y()))
             elif isinstance(wall, Arrow):
                 details = (wall.solidTip, wall.tipSize, wall.intensity, wall.directionReversed)
             else:
@@ -759,13 +787,7 @@ class SceneEditingMixin:
             walls.append((wall, wall.firstVertex.x(), wall.firstVertex.y(), wall.secondVertex.x(), wall.secondVertex.y(),
                           wall.width, wall.firstMiter, wall.secondMiter, wall.material, sizing, details, wall.measurementHidden))
         walls = tuple(walls)
-        windows = tuple((window, window.parentWall, window.centerFraction, window.length,
-                         window.hingeAtSecond if isinstance(window, (Door, SwingingDoor, SlidingDoor, PocketDoor, CasementWindow)) else None,
-                         window.swingsOutwards if type(window) in (Window, Door, DoubleDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, BarnDoor, BifoldDoor, Fireplace) else
-                         window.panelsFlipped if isinstance(window, SlidingDoor) else None,
-                         window.sillDepth if isinstance(window, SilledWindow) else (window.depth, window.depthOffset, window.material) if isinstance(window, Fireplace) else None,
-                         window.measurementFlipped, window.measurementHidden,
-                         (window.windowWell, window.wellDepth, window.wellDashed)) for window in self.windows)
+        windows = SceneEditingMixin.CaptureOpeningStates(self)
         furnishings = tuple((obj, QtCore.QPointF(obj.firstVertex), QtCore.QPointF(obj.secondVertex), obj.width,
                             obj.behindCounters, obj.flipHorizontal, obj.flipVertical,
                             *((obj.intensity,) if isinstance(obj, NorthArrow) else ()), obj.measurementHidden) for obj in self.furnishings)
@@ -836,6 +858,8 @@ class SceneEditingMixin:
             wall.material = material
             if isinstance(wall, MeasurementGuide):
                 wall.textOffset = QtCore.QPointF(*directionReversed[-2:])
+                if type(wall) is MeasurementGuide:
+                    wall.depth = directionReversed[0] if len(directionReversed) > 2 else 0
             if isinstance(wall, DashedLine):
                 wall.weightClass = directionReversed[0]
             if isinstance(wall, AngleGuide):
@@ -996,21 +1020,16 @@ class SceneEditingMixin:
             return False
         self.EnsureObjectIds()
         source, other = sorted(walls, key = lambda wall: wall.objectId)
-        sourceFirstShared = QtCore.QLineF(vertex, source.firstVertex).length() <= .01
-        otherFirstShared = QtCore.QLineF(vertex, other.firstVertex).length() <= .01
-        otherOuter = other.secondVertex if otherFirstShared else other.firstVertex
-        otherMiter = other.secondMiter if otherFirstShared else other.firstMiter
-        first = otherOuter if sourceFirstShared else source.firstVertex
-        second = source.secondVertex if sourceFirstShared else otherOuter
-        direction = second - first
-        length = math.hypot(direction.x(), direction.y())
-        if length < 1e-8:
-            self.clipboardMessage.emit("Cannot dissolve: the new object would have zero length.")
+        try:
+            first, second, firstMiter, secondMiter, direction, length = PlanDissolution((vertex.x(), vertex.y()),
+                ((source.firstVertex.x(), source.firstVertex.y()), (source.secondVertex.x(), source.secondVertex.y()), source.firstMiter, source.secondMiter),
+                ((other.firstVertex.x(), other.firstVertex.y()), (other.secondVertex.x(), other.secondVertex.y()), other.firstMiter, other.secondMiter))
+        except ValueError as error:
+            self.clipboardMessage.emit(str(error))
             return False
         merged = self.CloneLinearObject(source)
-        merged.firstVertex, merged.secondVertex = QtCore.QPointF(first), QtCore.QPointF(second)
-        merged.firstMiter = otherMiter if sourceFirstShared else source.firstMiter
-        merged.secondMiter = source.secondMiter if sourceFirstShared else otherMiter
+        merged.firstVertex, merged.secondVertex = QtCore.QPointF(*first), QtCore.QPointF(*second)
+        merged.firstMiter, merged.secondMiter = firstMiter, secondMiter
         wallIds = {id(wall) for wall in walls}
         openings = []
         for opening in self.windows:
@@ -1020,15 +1039,16 @@ class SceneEditingMixin:
             clone = self.CloneOpening(opening, merged)
             oldDirection = opening.parentWall.secondVertex - opening.parentWall.firstVertex
             fraction, fits, flipped = RebaseMergedOpening((center.x(), center.y()), (oldDirection.x(), oldDirection.y()),
-                (first.x(), first.y()), (direction.x(), direction.y()), length, clone.length)
+                first, direction, length, clone.length)
             clone.centerFraction = fraction
             if not fits:
                 self.clipboardMessage.emit("Cannot dissolve: an opening would not fit the new wall.")
                 return False
-            if flipped:
-                for flag in ("hingeAtSecond", "swingsOutwards", "panelsFlipped"):
-                    if hasattr(clone, flag):
-                        setattr(clone, flag, not getattr(clone, flag))
+            fields = {name: getattr(clone, name) for name in ("hingeAtSecond", "swingsOutwards", "panelsFlipped") if hasattr(clone, name)}
+            if isinstance(clone, Fireplace):
+                fields["depthOffset"] = clone.depthOffset
+            for name, value in OpeningOrientationChanges(fields, flipped).items():
+                setattr(clone, name, value)
             openings.append((opening, clone))
         candidates = [clone for opening, clone in openings] + [opening for opening in self.windows if id(opening.parentWall) not in wallIds]
         if objectType is Wall and (any(self.OpeningsOverlap(firstOpening, secondOpening) for index, firstOpening in enumerate(candidates)
@@ -1037,9 +1057,16 @@ class SceneEditingMixin:
                     self.furnishings + [wall for wall in self.walls if isinstance(wall, (Stair, Counter))])):
             self.clipboardMessage.emit("Cannot dissolve: objects would overlap on the new wall.")
             return False
+        if (isinstance(merged, Counter) and not self.CounterFits(merged, excludeIds = wallIds)
+                or isinstance(merged, Stair) and not self.StairFits(merged, excludeIds = wallIds)
+                or isinstance(merged, Railing) and not self.WallFits(merged, excludeIds = wallIds)):
+            self.clipboardMessage.emit("Cannot dissolve: the new object would overlap another object.")
+            return False
         before = self.CaptureState()
         for opening, clone in openings:
             opening.parentWall, opening.centerFraction = merged, clone.centerFraction
+            if isinstance(opening, Fireplace):
+                opening.depth, opening.depthOffset = clone.depth, clone.depthOffset
             for flag in ("hingeAtSecond", "swingsOutwards", "panelsFlipped"):
                 if hasattr(clone, flag):
                     setattr(opening, flag, getattr(clone, flag))
@@ -1059,14 +1086,14 @@ class SceneEditingMixin:
 
     def SubdivideWalls(self, objects):
         self.CancelInteraction()
+        selectedIds = {id(obj) for obj in objects}
         walls = [wall for wall in self.walls if type(wall) not in (Pillar, Column, Elevator, AngleGuide)
-                 and any(wall is obj for obj in objects)]
+                 and id(wall) in selectedIds]
         if not walls:
             return False
         splitFractions = {}
         for wall in walls:
-            length = QtCore.QLineF(wall.firstVertex, wall.secondVertex).length()
-            if length < 2e-8:
+            if type(wall) is Wall and QtCore.QLineF(wall.firstVertex, wall.secondVertex).length() < 2e-8:
                 return False
             direction = wall.secondVertex - wall.firstVertex
             fraction = .5 if type(wall) is not Wall else ChooseWallSplit((wall.firstVertex.x(), wall.firstVertex.y()), (direction.x(), direction.y()),
@@ -1077,22 +1104,25 @@ class SceneEditingMixin:
                 self.clipboardMessage.emit("Cannot subdivide: no clear wall segment is available.")
                 return False
             splitFractions[id(wall)] = fraction
+        try:
+            plans, openingMoves = PlanSubdivision(
+                ((id(wall), (wall.firstVertex.x(), wall.firstVertex.y()), (wall.secondVertex.x(), wall.secondVertex.y()),
+                  wall.firstMiter, wall.secondMiter, splitFractions[id(wall)]) for wall in walls),
+                ((index, id(opening.parentWall), opening.centerFraction) for index, opening in enumerate(self.windows)))
+        except ValueError:
+            return False
         before = self.CaptureState()
         replacements = {}
         for wall in walls:
-            midpoint = wall.firstVertex + (wall.secondVertex - wall.firstVertex) * splitFractions[id(wall)]
+            firstPlan, secondPlan, fraction = plans[id(wall)]
             first, second = self.CloneLinearObject(wall), self.CloneLinearObject(wall)
-            first.secondVertex, first.secondMiter = QtCore.QPointF(midpoint), 0.0
-            second.firstVertex, second.firstMiter = QtCore.QPointF(midpoint), 0.0
+            first.secondVertex, first.secondMiter = QtCore.QPointF(*firstPlan[1]), firstPlan[3]
+            second.firstVertex, second.firstMiter = QtCore.QPointF(*secondPlan[0]), secondPlan[2]
             replacements[id(wall)] = (first, second)
-        for opening in self.windows:
-            halves = replacements.get(id(opening.parentWall))
-            if halves is not None:
-                fraction = splitFractions[id(opening.parentWall)]
-                secondHalf = opening.centerFraction > fraction
-                opening.parentWall = halves[int(secondHalf)]
-                opening.centerFraction = ((opening.centerFraction - fraction) / (1 - fraction) if secondHalf
-                                          else opening.centerFraction / fraction)
+        for index, parent, half, fraction in openingMoves:
+            opening = self.windows[index]
+            opening.parentWall = replacements[parent][half]
+            opening.centerFraction = fraction
         self.walls = [part for wall in self.walls for part in replacements.get(id(wall), (wall,))]
         self.objectGroups = [tuple(part for obj in group for part in replacements.get(id(obj), (obj,)))
                              for group in self.objectGroups]
@@ -1138,6 +1168,8 @@ class SceneEditingMixin:
         clone.measurementHidden = source.measurementHidden
         if isinstance(source, MeasurementGuide):
             clone.textOffset = QtCore.QPointF(source.textOffset)
+            if type(source) is MeasurementGuide:
+                clone.depth = source.depth
         if isinstance(source, DashedLine):
             clone.weightClass = source.weightClass
         if isinstance(source, AngleGuide):
@@ -1159,7 +1191,11 @@ class SceneEditingMixin:
             return {}
         copies = {}
         selectedIds = {id(obj) for obj in objects}
-        for obj in objects:
+        # Selection order can differ from paint order. Clone each source list in
+        # its existing order so copied furnishings retain their relative stack.
+        for obj in self.walls + self.furnishings + self.labels:
+            if id(obj) not in selectedIds:
+                continue
             if isinstance(obj, (Label, Furnishing)):
                 copy = obj.Clone()
                 (self.labels if isinstance(obj, Label) else self.furnishings).append(copy)
@@ -1169,29 +1205,58 @@ class SceneEditingMixin:
             else:
                 continue  # Openings are copied after their parents.
             copies[id(obj)] = copy
-        for opening in list(self.windows):
-            if id(opening.parentWall) in copies or id(opening) in selectedIds:
-                copy = self.CloneOpening(opening, copies.get(id(opening.parentWall), opening.parentWall))
-                copies[id(opening)] = copy
-                self.windows.append(copy)
-        for group in groups:
-            members = tuple(copies[id(obj)] for obj in group if id(obj) in copies)
-            if len(members) >= 2:
-                self.objectGroups.append(members)
+        for opening, parent in OpeningCopyTargets(((opening, opening.parentWall) for opening in list(self.windows)), copies, selectedIds):
+            copy = self.CloneOpening(opening, parent)
+            copies[id(opening)] = copy
+            self.windows.append(copy)
+        self.objectGroups.extend(RemapCopiedGroups(groups, copies))
         return copies
 
     def DecomposeFurnishings(self, objects):
         self.CancelInteraction()
-        before = self.CaptureState()
         selectedIds = {id(obj) for obj in objects if type(obj) is Furnishing}
         replacements = {}
+        definitions = self.furnishingDefinitions
+        imported = {}
+        parentDefinitions = {}
         for parent in self.furnishings:
             components = parent.definition.get("components")
             if id(parent) not in selectedIds or not components:
                 continue
-            replacements[id(parent)] = FurnishingParts(parent)
+            try:
+                portable = EncodeFurnishingDefinitions([parent.definition], includeBuiltIns = True)
+                definitions, additions, remapped = ResolveFurnishingImports(portable, definitions, suffix = "decomposed")
+                imported.update(additions)
+                definition = definitions[remapped.get(parent.definition["key"], parent.definition["key"])]
+                candidate = Furnishing(definition)
+                candidate.firstVertex, candidate.secondVertex = QtCore.QPointF(parent.firstVertex), QtCore.QPointF(parent.secondVertex)
+                candidate.width = parent.width
+                candidate.flipHorizontal, candidate.flipVertical = parent.flipHorizontal, parent.flipVertical
+                candidate.behindCounters, candidate.measurementHidden = parent.behindCounters, parent.measurementHidden
+                parts = FurnishingParts(candidate)
+                for part in parts:
+                    if part.definition["key"] != "null":
+                        part.definition = definitions[part.definitionKey]
+                replacements[id(parent)] = parts
+                parentDefinitions[id(parent)] = definition
+            except (OSError, ValueError, KeyError, TypeError) as error:
+                self.clipboardMessage.emit("Cannot decompose furnishing: " + str(error))
+                return False
         if not replacements:
             return False
+        before = self.CaptureState()
+        # History retains the original models. Their equivalent, canonical
+        # definitions must also remain resolvable after undo and save/reopen.
+        for parent in self.furnishings:
+            if id(parent) in parentDefinitions:
+                parent.definition = parentDefinitions[id(parent)]
+                parent.definitionKey = parent.definition["key"]
+        if imported:
+            self.projectFurnishingDefinitions = {**self.projectFurnishingDefinitions, **imported}
+            self.furnishingDefinitions = definitions
+            main = self.window()
+            main.RefreshFurnishingRenderers()
+            main.BuildFurnishTab(refresh = True)
         self.furnishings = [part for obj in self.furnishings for part in replacements.get(id(obj), (obj,))]
         self.objectGroups = [tuple(part for obj in group for part in replacements.get(id(obj), (obj,)))
                              for group in self.objectGroups]

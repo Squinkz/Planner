@@ -1,6 +1,6 @@
 # Help authoring and viewer contract
 
-The canonical end-user guide is [help/README.md](../planner-main/docs/help/README.md), with a table of
+The canonical end-user guide is [help/README.md](../planner-main/help/README.md), with a table of
 contents and a short quickstart. Each topic links back to that page.
 Editing, Export and Shortcuts are maintained here without root-level duplicates.
 Setup, implementation details, asset specifications and porting instructions belong
@@ -15,8 +15,19 @@ code, ordered/unordered lists, ordinary relative links and fenced code blocks
 when needed. Conventional pipe tables and relative image links are also supported;
 use a Markdown renderer with pipe-table support in a future port. Avoid raw HTML,
 Qt-specific markup, task lists, directives,
-wiki links, automatic bare-URL links and renderer-specific heading anchors.
-Link to another Markdown page instead of relying on generated heading IDs.
+wiki links and automatic bare-URL links. Headings receive GitHub-style anchors:
+lowercase text, spaces replaced by hyphens and punctuation removed. Formatting
+does not contribute to the name; Unicode letters, hyphens and underscores remain.
+Duplicate names receive `-1`, `-2` and subsequent available suffixes.
+For example, link within a page or across pages using:
+
+```markdown
+[Installation](#installation)
+[Installation](setup.md#installation)
+```
+
+The checks validate section names against the target page. Heading levels do not
+affect the name.
 For a hard line break within a paragraph, end the source line with a single
 backslash. The viewer keeps the following line in that paragraph without adding
 paragraph spacing. Escaped backslashes and code examples retain their literal
@@ -33,7 +44,7 @@ padding in the viewer; that padding is presentation only and is omitted when
 copying text. Keep source Markdown free of padding characters or custom markup.
 
 Use UTF-8. Keep one level-one title at the beginning of each page. Link labels
-must describe the destination. Keep user pages inside `docs/help`, and use
+must describe the destination. Keep user pages inside `help`, and use
 relative `.md` links. Image paths use forward slashes, with files bundled inside
 the help folder. Do not make Help depend on an Internet connection.
 
@@ -135,8 +146,8 @@ idempotent, including Home, history navigation and UI theme changes.
 
 ## Packaging and validation
 
-Distribute the complete `docs/help` folder at the application resource directory's
-`docs/help` path. The desktop viewer resolves it relative to the application, not
+Distribute the complete `help` folder at the application resource directory's
+`help` path. The desktop viewer resolves it relative to the application, not
 the working directory. A web build must serve these pages as bundled resources
 and translate their relative page links to help navigation.
 

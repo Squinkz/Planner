@@ -56,6 +56,10 @@ def Main():
         assert Rect(export.fileNameField, export).right() == Rect(export.browseButton, export).right()
         assert Rect(export.folderField, export).bottom() < Rect(export.fileNameField, export).top()
         assert export.browseButton.size() == QtCore.QSize(44, 32)
+        assert export.linesColorButton.isVisible() and export.linesColorReset.isVisible()
+        assert Rect(export.wallStyleField, export).bottom() < Rect(export.linesColorButton, export).top()
+        assert Rect(export.linesColorButton, export).bottom() < Rect(export.roomStyleField, export).top()
+        assert Rect(export.linesColorReset, export).bottom() < Rect(export.roomStyleField, export).top()
         before = [Rect(widget, export) for widget in (export.folderField, export.fileNameField, export.typeField, export.scaleModeTabs)]
         actionBefore = Rect(main.exportButton, main.sidebarContentPanel)
         export.scrollArea.verticalScrollBar().setValue(export.scrollArea.verticalScrollBar().maximum())
@@ -68,6 +72,11 @@ def Main():
                 export.scaleModeTabs.setCurrentIndex(mode)
                 app.processEvents()
                 raster = output != "SVG"
+                assert export.optimizedPngNote.isVisible() == (output == "PNG_OPTIMIZED")
+                if output == "PNG_OPTIMIZED":
+                    note = export.optimizedPngNote
+                    assert note.height() >= note.heightForWidth(note.width())
+                    assert Rect(note, export).bottom() < Rect(export.scaleModeTabs, export).top()
                 assert export.compositeSection.isVisible() == raster
                 assert export.resolutionRow.isVisible() == (raster and mode == 0)
                 assert export.architecturalResolutionRow.isVisible() == (raster and mode == 1)

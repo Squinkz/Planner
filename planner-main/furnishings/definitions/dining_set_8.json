@@ -8,7 +8,7 @@
         {
             "furnishing": "chair_dining",
             "x": 750.0,
-            "y": 475.0,
+            "y": 450.0,
             "width": 450.0,
             "length": 500.0,
             "angle": 0.0,
@@ -18,7 +18,7 @@
         {
             "furnishing": "chair_dining",
             "x": 250.0,
-            "y": 475.0,
+            "y": 450.0,
             "width": 450.0,
             "length": 500.0,
             "angle": 0.0,
@@ -28,7 +28,7 @@
         {
             "furnishing": "chair_dining",
             "x": -250.0,
-            "y": 475.0,
+            "y": 450.0,
             "width": 450.0,
             "length": 500.0,
             "angle": 0.0,
@@ -38,7 +38,7 @@
         {
             "furnishing": "chair_dining",
             "x": -750.0,
-            "y": 475.0,
+            "y": 450.0,
             "width": 450.0,
             "length": 500.0,
             "angle": 0.0,
@@ -48,7 +48,7 @@
         {
             "furnishing": "chair_dining",
             "x": -750.0,
-            "y": -475.0,
+            "y": -450.0,
             "width": 450.0,
             "length": 500.0,
             "angle": 180.0,
@@ -58,7 +58,7 @@
         {
             "furnishing": "chair_dining",
             "x": -250.0,
-            "y": -475.0,
+            "y": -450.0,
             "width": 450.0,
             "length": 500.0,
             "angle": 180.0,
@@ -68,7 +68,7 @@
         {
             "furnishing": "chair_dining",
             "x": 250.0,
-            "y": -475.0,
+            "y": -450.0,
             "width": 450.0,
             "length": 500.0,
             "angle": 180.0,
@@ -78,7 +78,7 @@
         {
             "furnishing": "chair_dining",
             "x": 750.0,
-            "y": -475.0,
+            "y": -450.0,
             "width": 450.0,
             "length": 500.0,
             "angle": 180.0,
@@ -88,7 +88,7 @@
         {
             "furnishing": "table_dining_8",
             "x": 0.0,
-            "y": 25.0,
+            "y": 0.0,
             "width": 2400.0,
             "length": 1000.0,
             "angle": 0.0,

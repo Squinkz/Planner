@@ -43,8 +43,8 @@ def Main():
     v.unitsMode = "Centimeters"  # Property assertions below use centimeter values.
     v.snapEnabled = False
     window.sidebarTabs.setCurrentIndex(1)
-    assert set(window.furnishingButtons) == {item["key"] for item in LoadFurnishings() if item["key"] != "null"}
-    assert "desk" in window.furnishingButtons and "null" not in window.furnishingButtons
+    assert set(window.furnishingDimensions) == {item["key"] for item in LoadFurnishings() if item["key"] != "null"}
+    assert "desk" in window.furnishingDimensions and "null" not in window.furnishingDimensions
     assert "null" in window.viewport.furnishingDefinitions
     categories = [label.text() for label in window.furnishScrollArea.findChildren(QtWidgets.QLabel)
                   if label.objectName() == "objectSubheading" and label.isVisible()]

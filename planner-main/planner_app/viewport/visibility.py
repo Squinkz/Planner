@@ -1,4 +1,6 @@
 """Class visibility and undoable hiding of individual scene objects."""
+from itertools import chain
+from planner_app.selection_policy import PlanHideSelection, PlanHideUnselected
 from planner_app.models import Elevator
 from planner_app.models import Door, SwingingDoor, DoubleDoor, Furnishing, OpenDoorway, PocketDoor, BarnDoor, BifoldDoor, SlidingDoor, MeasurementGuide, BoundaryLine, DashedLine, SolidLine, Arrow, Counter, Railing, Stair, Window, Label, NorthArrow, Fireplace
 
@@ -43,32 +45,24 @@ class VisibilityMixin:
 
     def HideSelection(self):
         self.CancelInteraction()
-        objects = {id(obj): obj for obj, index in self.SelectionEntries()}
-        if not objects:
+        proposal = PlanHideSelection(self.SelectionEntries(), self.hiddenObjects,
+                                     ((obj, obj.parentWall) for obj in self.windows))
+        if proposal is None:
             return False
-        # Attached openings disappear together with their parent wall.
-        objects.update((id(obj), obj) for obj in self.windows if id(obj.parentWall) in objects)
         before = self.CaptureState()
-        objects = {**{id(obj): obj for obj in self.hiddenObjects}, **objects}
-        self.hiddenObjects = list(objects.values())
-        self.hiddenObjectIds = set(objects)
+        self.hiddenObjects, self.hiddenObjectIds = proposal
         self.SetSelection([])
         self.RecordEdit(before)
         return True
 
     def HideUnselected(self):
         self.CancelInteraction()
-        selectedIds = {id(obj) for obj, index in self.SelectionEntries()}
-        if not selectedIds:
-            return False
-        objects = self.walls + self.windows + self.furnishings + self.labels
-        hidden = [obj for obj in objects if id(obj) not in selectedIds]
-        hiddenIds = {id(obj) for obj in hidden}
-        if hiddenIds == self.hiddenObjectIds:
+        proposal = PlanHideUnselected(self.SelectionEntries(), chain(self.walls, self.windows, self.furnishings, self.labels),
+                                      self.hiddenObjectIds)
+        if proposal is None:
             return False
         before = self.CaptureState()
-        self.hiddenObjects = hidden
-        self.hiddenObjectIds = hiddenIds
+        self.hiddenObjects, self.hiddenObjectIds = proposal
         self.RecordEdit(before)
         self.selectionChanged.emit()
         self.update()

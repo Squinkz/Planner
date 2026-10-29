@@ -1,0 +1,61 @@
+{
+    "name": "Patio Set",
+    "category": "Outdoor",
+    "children": [
+        {
+            "furnishing": "chair_patio",
+            "x": 345.0,
+            "y": -575.0,
+            "width": 650.0,
+            "length": 650.0,
+            "angle": 180.0,
+            "zIndex": 0,
+            "flipHorizontal": false,
+            "flipVertical": false
+        },
+        {
+            "furnishing": "chair_patio",
+            "x": 345.0,
+            "y": 575.0,
+            "width": 650.0,
+            "length": 650.0,
+            "angle": 0.0,
+            "zIndex": 1,
+            "flipHorizontal": false,
+            "flipVertical": false
+        },
+        {
+            "furnishing": "chair_patio",
+            "x": -345.0,
+            "y": -575.0,
+            "width": 650.0,
+            "length": 650.0,
+            "angle": 180.0,
+            "zIndex": 2,
+            "flipHorizontal": false,
+            "flipVertical": false
+        },
+        {
+            "furnishing": "chair_patio",
+            "x": -345.0,
+            "y": 575.0,
+            "width": 650.0,
+            "length": 650.0,
+            "angle": 0.0,
+            "zIndex": 3,
+            "flipHorizontal": false,
+            "flipVertical": false
+        },
+        {
+            "furnishing": "table_patio",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1600.0,
+            "length": 900.0,
+            "angle": 0.0,
+            "zIndex": 4,
+            "flipHorizontal": false,
+            "flipVertical": false
+        }
+    ]
+}

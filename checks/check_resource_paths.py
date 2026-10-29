@@ -14,8 +14,9 @@ def Main():
         frozen = runpy.run_path(str(app / "planner_app/paths.py"))
     assert frozen["appDirectory"] == app and frozen["externalDirectory"] == executable.parent
     assert frozen["assetsDirectory"] == app / "assets"
+    assert source["bundledFurnishingsDirectory"] == frozen["bundledFurnishingsDirectory"] == app / "furnishings"
     for name, relative in (("furnishingsDirectory", "furnishings"), ("fontsDirectory", "assets/fonts"),
-                           ("themesDirectory", "themes"), ("texturesDirectory", "textures"), ("helpDirectory", "docs/help")):
+                           ("themesDirectory", "themes"), ("texturesDirectory", "textures"), ("helpDirectory", "help")):
         assert source[name] == app / relative
         assert frozen[name] == executable.parent / relative
     print("Resource paths: external editable directories, internal assets and unchanged source layout passed")

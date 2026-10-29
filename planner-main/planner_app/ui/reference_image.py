@@ -6,7 +6,8 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from planner_app.graphics.icons import UiIcon
 from planner_app.graphics.cursors import RotationCursor
 from planner_app.graphics.palette import themeColors
-from planner_app.reference_image import ReadReferenceImage, imageByteLimit
+from planner_app.reference_state import EditReferenceProperty
+from planner_app.reference_image import ReadReferenceImage, ValidateReferenceImage, imageByteLimit
 from .widgets import DragSlider, DragSpinBox, SizeLinkButton
 from .reference_calibration import ReferenceCalibration
 from planner_app.models import Furnishing
@@ -227,32 +228,14 @@ class ReferenceImageController:
         if self.state is None:
             return
         divisor, unused = (1, "°") if name == "angle" else PropertyUnit(name, self.proxy, self.viewport.unitsMode)
-        if name in ("x", "y"):
-            index = 0 if name == "x" else 1
-            position = self.pivot if self.rotating and self.pivot is not None else QtCore.QPointF(*self.state["center"])
-            delta = value * divisor - (position.x() if index == 0 else position.y())
-            self.state["center"][index] += delta
-            if self.pivot is not None:
-                self.pivot += QtCore.QPointF(delta if index == 0 else 0, delta if index == 1 else 0)
-        elif name == "angle":
-            if self.rotating and self.pivot is not None:
-                angle = math.radians(value - self.state["angle"])
-                offset = QtCore.QPointF(*self.state["center"]) - self.pivot
-                center = self.pivot + QtCore.QPointF(offset.x() * math.cos(angle) - offset.y() * math.sin(angle),
-                                                   offset.x() * math.sin(angle) + offset.y() * math.cos(angle))
-                self.state["center"] = [center.x(), center.y()]
-            self.state["angle"] = value
-        else:
-            dimension = "width" if name == "width" else "height"
-            size = max(1, value * divisor)
-            if self.sizeLinkButton.isChecked():
-                other = "height" if name == "width" else "width"
-                otherSize = self.state[other] * size / self.state[dimension]
-                if not 1 <= otherSize <= 1e12:
-                    self.SyncProperties()
-                    return
-                self.state[other] = otherSize
-            self.state[dimension] = size
+        pivot = (self.pivot.x(), self.pivot.y()) if self.pivot is not None else None
+        proposal = EditReferenceProperty(self.state, name, value * divisor, pivot = pivot,
+                                         rotating = self.rotating, linked = self.sizeLinkButton.isChecked())
+        if proposal is None:
+            self.SyncProperties()
+            return
+        self.state, pivot = proposal
+        self.pivot = QtCore.QPointF(*pivot) if pivot is not None else None
         self.SyncProperties()
         self.Changed()
 
@@ -275,6 +258,8 @@ class ReferenceImageController:
         self.RecordHistory()
 
     def Browse(self):
+        if self.viewport.exportOverlay.active:
+            return False
         current = self.state["path"] if self.state else str(self.mainWindow.BrowseDirectory())
         path, unused = QtWidgets.QFileDialog.getOpenFileName(self.mainWindow, "Choose Reference Image", current,
             "Images (*.png *.jpg *.jpeg *.webp *.bmp *.tif *.tiff);;All files (*)")
@@ -287,26 +272,33 @@ class ReferenceImageController:
         self.SyncControls()
 
     def Load(self, path):
+        if self.viewport.exportOverlay.active:
+            return False
         try:
             path = Path(path).resolve()
             if path.stat().st_size > imageByteLimit:
                 raise ValueError("The reference image exceeds 40 MiB.")
             payload = path.read_bytes()
             image = ReadReferenceImage(payload)
+            previous = self.drag["before"] if self.drag is not None else self.state
+            if previous is None:
+                rect = self.viewport.DrawingRect()
+                center = self.viewport.ViewportToWorld(rect.center())
+                scale = min(rect.width() * .8 / image.width(), rect.height() * .8 / image.height())
+                width = image.width() * scale / (self.viewport.basePixelsPerMillimeter * self.viewport.zoom)
+                candidate = {"center": [center.x(), center.y()], "width": max(1, width), "angle": 0.0, "opacity": .5}
+            else:
+                candidate = dict(previous)
+            encoded = base64.b64encode(payload).decode("ascii")
+            candidate.update(path = str(path), data = encoded, visible = True,
+                             height = max(1, candidate["width"] * image.height() / image.width()))
+            candidate = ValidateReferenceImage(candidate, validatedImages = {encoded})
         except (OSError, ValueError, RuntimeError) as error:
             self.mainWindow.ShowAppMessage("Cannot Load Reference Image", str(error), kind = "warning")
             return False
         self.CancelDrag()
         self.calibration.Stop()
-        if self.state is None:
-            rect = self.viewport.DrawingRect()
-            center = self.viewport.ViewportToWorld(rect.center())
-            scale = min(rect.width() * .8 / image.width(), rect.height() * .8 / image.height())
-            width = image.width() * scale / (self.viewport.basePixelsPerMillimeter * self.viewport.zoom)
-            self.state = {"center": [center.x(), center.y()], "width": max(1, width),
-                          "angle": 0.0, "opacity": .5}
-        self.state.update(path = str(path), data = base64.b64encode(payload).decode("ascii"), visible = True,
-                          height = max(1, self.state["width"] * image.height() / image.width()))
+        self.state = candidate
         self.image = image
         self.mainWindow.RememberBrowseFolder(path)
         self.SyncControls()
@@ -315,6 +307,8 @@ class ReferenceImageController:
         return True
 
     def ToggleVisibility(self, enabled):
+        if self.viewport.exportOverlay.active:
+            return
         if enabled and self.state is None:
             if not self.Browse():
                 self.SyncControls()
@@ -331,6 +325,8 @@ class ReferenceImageController:
             self.Hide()
 
     def Show(self):
+        if self.viewport.exportOverlay.active:
+            return
         if self.active or not self.state or not self.state["visible"] or self.mainWindow.sidebarTabs.currentWidget() is not self.mainWindow.visibilityPage:
             return
         main = self.mainWindow

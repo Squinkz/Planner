@@ -1,8 +1,13 @@
 """Grid, alignment, endpoint and oriented-footprint snapping."""
+from planner_app.geometry.endpoint_snapping import NearestRunControlTarget
 from planner_app.models import AngleGuide, ObjectControlPoints
 
 import math
-from planner_app.geometry.snapping import GridIntervals, PrepareTargetIndex, PrepareRayTargets, SnapPoint
+from planner_app.geometry.snapping import GridIntervals, SnapPoint
+from planner_app.geometry.measurements import GuideDepthOffset
+from planner_app.geometry.movement_snapping import (MovementAxes, ConstraintAxes, ConstrainedAngle,
+    ConstrainMovement, SnapMovement)
+from planner_app.geometry.endpoint_snapping import CapEndpoint, AlignmentPlacementCandidates, SelectEndpointSnap
 from planner_app.graphics.path_operations import Paths
 from PySide6 import QtCore
 from planner_app.models import Furnishing, MeasurementGuide, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Label, Window, Fireplace
@@ -14,7 +19,20 @@ class CornerSnapPoint(QtCore.QPointF):
     """A footprint or joined-boundary target, distinct from a control point."""
 
 
+def MovementSnapDistance(x, y):
+    # Qt and Python hypot can differ by one bit. Keep the native metric so
+    # equally close anchors retain the same winning alignment guide.
+    return QtCore.QLineF(0.0, 0.0, x, y).length()
+
+
 class SnappingMixin:
+    def GuideDepthEndpoints(self, guide, vertices = None):
+        if type(guide) is not MeasurementGuide or guide.depth == 0:
+            return ()
+        first, second = vertices if vertices is not None else (guide.firstVertex, guide.secondVertex)
+        offset = QtCore.QPointF(*GuideDepthOffset((first.x(), first.y()), (second.x(), second.y()), guide.depth))
+        return first + offset, second + offset
+
     def GridSteps(self, pixelsPerMillimeter = None):
         # Rendering and snapping share the same visible grid interval.
         if pixelsPerMillimeter is None:
@@ -45,6 +63,8 @@ class SnappingMixin:
                     if wall is self.selectedWall and (self.selectedVertex is None or vertexIndex == self.selectedVertex):
                         continue
                 yield vertex
+            if type(wall) is MeasurementGuide and (self.dragStart is None or wall is not self.selectedWall and id(wall) not in movingIds):
+                yield from self.GuideDepthEndpoints(wall)
 
     def StairSnapTargets(self, source = None):
         movingWalls = {id(wall) for wall, vertexIndex, originalPosition in self.ActiveAttachments()}
@@ -110,16 +130,20 @@ class SnappingMixin:
             targets = [vertex for other in self.walls if type(other) is type(stair) and other is not stair and self.IsObjectVisible(other)
                        for index, vertex in enumerate(ObjectControlPoints(other))
                        if (id(other), index) not in movingVertices]
+            if type(stair) is MeasurementGuide:
+                movingIds = {objectId for objectId, index in movingVertices}
+                targets.extend(vertex for other in self.walls if type(other) is MeasurementGuide and other is not stair
+                               and id(other) not in movingIds and self.IsObjectVisible(other)
+                               for vertex in self.GuideDepthEndpoints(other))
             if self.vertexSnapEnabled:
-                eligible = [vertex for vertex in targets if not angleLocked or
-                            (abs((vertex - constraintOrigin).x() * direction.y() - (vertex - constraintOrigin).y() * direction.x()) <= .01
-                             and QtCore.QPointF.dotProduct(vertex - constraintOrigin, direction) >= 0)]
-                nearest = min(eligible, key = lambda vertex: QtCore.QLineF(position, vertex).length(), default = None)
-                if nearest is not None and QtCore.QLineF(position, nearest).length() * self.basePixelsPerMillimeter * self.zoom < self.vertexSnapRange:
+                numericTargets = [(vertex.x(), vertex.y()) for vertex in targets] if angleLocked else [None] * len(targets)
+                nearest = NearestRunControlTarget((constraintOrigin.x(), constraintOrigin.y()), (direction.x(), direction.y()),
+                    numericTargets, angleLocked, lambda index: QtCore.QLineF(position, targets[index]).length())
+                if nearest is not None and nearest[1] * self.basePixelsPerMillimeter * self.zoom < self.vertexSnapRange:
                     self.alignmentGuides = []
                     self.snapApplied = True
                     self.snapPriority = 0
-                    return QtCore.QPointF(nearest)
+                    return QtCore.QPointF(targets[nearest[0]])
             return self.SnapPosition(position, modifiers, constraintOrigin if angleLocked else None,
                                      direction if angleLocked else None, snapTargets = targets + snapTargets,
                                      alignmentTargets = None if isinstance(stair, AngleGuide) else [opposite])
@@ -129,22 +153,17 @@ class SnappingMixin:
         controlTargets = [vertex for other in self.walls if self.IsObjectVisible(other) and type(other) is joinClass and other is not stair
                           for index, vertex in enumerate((other.firstVertex, other.secondVertex))
                           if (id(other), index) not in movingVertices]
-        if self.vertexSnapEnabled and self.snapEnabled != bool(modifiers & QtCore.Qt.KeyboardModifier.AltModifier):
-            nearest = None
-            nearestDistance = self.vertexSnapRange
-            for vertex in controlTargets:
-                offset = vertex - constraintOrigin
-                if angleLocked and (abs(offset.x() * direction.y() - offset.y() * direction.x()) > .01
-                                    or QtCore.QPointF.dotProduct(offset, direction) < 0):
-                    continue
-                distance = QtCore.QLineF(self.WorldToViewport(position), self.WorldToViewport(vertex)).length()
-                if distance < nearestDistance:
-                    nearest, nearestDistance = vertex, distance
+        if controlTargets and self.vertexSnapEnabled and self.snapEnabled != bool(modifiers & QtCore.Qt.KeyboardModifier.AltModifier):
+            screenPosition = self.WorldToViewport(position)
+            numericTargets = [(vertex.x(), vertex.y()) for vertex in controlTargets] if angleLocked else [None] * len(controlTargets)
+            nearest = NearestRunControlTarget((constraintOrigin.x(), constraintOrigin.y()), (direction.x(), direction.y()),
+                numericTargets, angleLocked, lambda index: QtCore.QLineF(screenPosition, self.WorldToViewport(controlTargets[index])).length(),
+                limit = self.vertexSnapRange)
             if nearest is not None:
                 self.alignmentGuides = []
                 self.snapApplied = True
                 self.snapPriority = 0
-                return QtCore.QPointF(nearest)
+                return QtCore.QPointF(controlTargets[nearest[0]])
         alignmentCandidates = []
         if self.alignmentSnapEnabled:
             aligned = self.SnapPosition(position, modifiers, constraintOrigin if angleLocked else None,
@@ -177,16 +196,11 @@ class SnappingMixin:
                                                             snapTargets = snapTargets)
                                 if self.snapApplied and self.alignmentGuides:
                                     target = snapped - offset
-                                    candidates.append((QtCore.QLineF(corner, snapped).length(), target,
+                                    candidates.append((QtCore.QLineF(corner, snapped).length(), (target.x(), target.y()),
                                                        controlGuides + list(self.alignmentGuides)))
-                    candidates.sort(key = lambda candidate: candidate[0])
-                    candidates.extend((0, candidate, controlGuides) for candidate in (aligned, alignmentOnly))
-                    testedPositions = set()
-                    for distance, candidate, guides in candidates:
-                        coordinates = (candidate.x(), candidate.y())
-                        if coordinates in testedPositions:
-                            continue
-                        testedPositions.add(coordinates)
+                    for coordinates, guides in AlignmentPlacementCandidates(candidates,
+                            (aligned.x(), aligned.y()), (alignmentOnly.x(), alignmentOnly.y()), controlGuides):
+                        candidate = QtCore.QPointF(*coordinates)
                         preview = type(stair)(opposite, candidate, stair.width)
                         fits = (self.StairFits(preview) if isinstance(preview, Stair) else
                                 self.CounterFits(preview) if isinstance(preview, Counter) else self.WallFits(preview))
@@ -200,12 +214,12 @@ class SnappingMixin:
                                 fits = False
                                 break
                         if fits:
-                            alignmentCandidates.append((1, QtCore.QLineF(position, candidate).length(), candidate,
+                            alignmentCandidates.append((1, QtCore.QLineF(position, candidate).length(), coordinates,
                                                         list(dict.fromkeys(guides))))
                             break
                     self.alignmentGuides = controlGuides
                 if not alignmentCandidates:
-                    alignmentCandidates.append((1, QtCore.QLineF(position, aligned).length(), aligned, list(self.alignmentGuides)))
+                    alignmentCandidates.append((1, QtCore.QLineF(position, aligned).length(), (aligned.x(), aligned.y()), list(self.alignmentGuides)))
         runDirection = position - opposite
         runLength = math.hypot(runDirection.x(), runDirection.y())
         runDirection = runDirection / runLength if runLength > 1e-10 else direction
@@ -230,21 +244,11 @@ class SnappingMixin:
                                         direction if angleLocked else None, snapTargets = footprintTargets)
             if not self.snapApplied or self.snapPriority == 2:
                 continue
-            if angleLocked:
-                target = snapped - offset
-            else:
-                # Recover the centerline endpoint from the snapped cap corner,
-                # preserving width as the endpoint changes the run's orientation.
-                delta = snapped - opposite
-                radius = math.hypot(delta.x(), delta.y())
-                halfWidth = stair.width / 2
-                if radius <= halfWidth:
-                    continue
-                runLength = math.sqrt(radius * radius - halfWidth * halfWidth)
-                side = 1 if QtCore.QPointF.dotProduct(offset, normal) > 0 else -1
-                angle = math.atan2(delta.y(), delta.x()) - math.atan2(side * halfWidth, runLength)
-                target = opposite + QtCore.QPointF(math.cos(angle), math.sin(angle)) * runLength
-            candidates.append((self.snapPriority, QtCore.QLineF(position, target).length(),
+            target = CapEndpoint((snapped.x(), snapped.y()), (opposite.x(), opposite.y()),
+                (offset.x(), offset.y()), (normal.x(), normal.y()), stair.width, angleLocked)
+            if target is None:
+                continue
+            candidates.append((self.snapPriority, QtCore.QLineF(position, QtCore.QPointF(*target)).length(),
                                target, list(self.alignmentGuides)))
         candidates.extend(alignmentCandidates)
         # Grid snaps belong to the control vertex, not an offset cap corner.
@@ -252,28 +256,10 @@ class SnappingMixin:
         gridPosition = self.SnapPosition(position, modifiers, constraintOrigin if angleLocked else None,
                                          direction if angleLocked else None, preparedTargets = [])
         if self.snapApplied and self.snapPriority == 2:
-            candidates.append((2, QtCore.QLineF(position, gridPosition).length(), gridPosition, []))
-        if candidates:
-            # Compare snap class before distance across both footprint corners.
-            # A closer grid correction must never beat geometry or alignment.
-            selfAlignments = [candidate for candidate in alignmentCandidates if type(stair) is Wall
-                              and any(abs(coordinate - (opposite.x() if axis == 0 else opposite.y())) <= .01
-                                      for axis, coordinate in candidate[3])]
-            # A wall aligning to its stationary endpoint should become straight,
-            # rather than aligning an offset cap corner to that endpoint's axis.
-            priority, distance, target, guides = min(candidates, key = lambda candidate:
-                (candidate[0], 0 if candidate in selfAlignments else 1, candidate[1]))
-            self.alignmentGuides = guides if priority == 1 else []
-            if type(stair) is Wall:
-                self.alignmentGuides = [(axis, coordinate) for axis, coordinate in self.alignmentGuides
-                                        if abs((target.x() if axis == 0 else target.y()) - coordinate) <= .01]
-            self.snapApplied = True
-            self.snapPriority = priority
-            return target
-        self.alignmentGuides = []
-        self.snapApplied = False
-        self.snapPriority = 3
-        return position
+            candidates.append((2, QtCore.QLineF(position, gridPosition).length(), (gridPosition.x(), gridPosition.y()), []))
+        target, self.snapApplied, self.snapPriority, self.alignmentGuides = SelectEndpointSnap(
+            (position.x(), position.y()), (opposite.x(), opposite.y()), candidates, alignmentCandidates, type(stair) is Wall)
+        return QtCore.QPointF(*target)
 
     def SnapMidpoints(self):
         movingWalls = {id(wall) for wall, vertexIndex, originalPosition in self.ActiveAttachments()}
@@ -329,95 +315,57 @@ class SnappingMixin:
         return QtCore.QPointF(*point)
 
     def SnapObjectMovement(self, anchors, delta, modifiers, snapTargets = None, travelDirection = None):
-        if self.controlHeld:
-            modifiers |= QtCore.Qt.KeyboardModifier.ControlModifier
-        direction = travelDirection
-        if direction is not None:
-            delta = direction * QtCore.QPointF.dotProduct(delta, direction)
-            if QtCore.QPointF.dotProduct(delta, direction) < 0:
-                direction = -direction
-        elif modifiers & QtCore.Qt.KeyboardModifier.ControlModifier:
+        constrained = self.controlHeld or bool(modifiers & QtCore.Qt.KeyboardModifier.ControlModifier)
+        axes = None
+        if travelDirection is None and constrained:
             if self.dragStart is not None:
                 self.axisConstraintOrigin = self.ViewportToWorld(self.dragStart)
             if self.localTransforms and self.dragStart is not None and self.selectedWall is not None:
-                axes = self.TranslationAxes()
-                direction = max(axes, key = lambda axis: abs(QtCore.QPointF.dotProduct(delta, axis)))
-                if QtCore.QPointF.dotProduct(delta, direction) < 0:
-                    direction = -direction
-            elif abs(delta.x()) >= abs(delta.y()):
-                direction = QtCore.QPointF(-1 if delta.x() < 0 else 1, 0)
-            else:
-                direction = QtCore.QPointF(0, -1 if delta.y() < 0 else 1)
-            delta = direction * QtCore.QPointF.dotProduct(delta, direction)
-        numericTargets = []
-        if self.snapEnabled != bool(modifiers & QtCore.Qt.KeyboardModifier.AltModifier):
-            numericTargets = self.NumericSnapTargets(snapTargets)
-            if self.midpointSnapEnabled:
-                numericTargets.extend((vertex.x(), vertex.y(), True) for vertex in self.SnapMidpoints())
-        candidates = []
-        preparedTargetIndex = None
-        rayTargets = None
-        if len(numericTargets) > 32:
-            if direction is None:
-                preparedTargetIndex = PrepareTargetIndex(numericTargets)
-            elif len(anchors) >= 3:
-                rayTargets = PrepareRayTargets(numericTargets)
-        for anchor in anchors:
-            moved = anchor + delta
-            snapped = self.SnapPosition(moved, modifiers, anchor if direction is not None else None,
-                                        direction, snapTargets = snapTargets, preparedTargets = [],
-                                        preparedTargetIndex = preparedTargetIndex, numericTargets = numericTargets, rayTargets = rayTargets)
-            if self.snapApplied:
-                candidates.append((self.snapPriority, QtCore.QLineF(moved, snapped).length(),
-                                   snapped - anchor, list(self.alignmentGuides)))
-        self.alignmentGuides = []
-        self.snapApplied = bool(candidates)
-        self.snapPriority = 3
-        if candidates:
-            priority, distance, delta, guides = min(candidates, key = lambda candidate: candidate[:2])
-            self.snapPriority = priority
-            self.alignmentGuides = guides if priority == 1 else []
-        if direction is not None:
-            # Enforce the movement line after choosing a snap, independently of
-            # the snapping calculation. Snapping can only change travel distance.
-            delta = direction * max(0.0, QtCore.QPointF.dotProduct(delta, direction))
-        return delta
+                axes = tuple((axis.x(), axis.y()) for axis in self.TranslationAxes())
+        delta, direction = ConstrainMovement((delta.x(), delta.y()),
+            (travelDirection.x(), travelDirection.y()) if travelDirection is not None else None, constrained, axes)
+        if self.snapEnabled == bool(modifiers & QtCore.Qt.KeyboardModifier.AltModifier):
+            # No target collection or anchor copies on the disabled path.
+            delta, self.snapApplied, self.snapPriority, self.alignmentGuides = SnapMovement(
+                (), delta, (), 1, 0, False, None, direction)
+            return QtCore.QPointF(*delta)
+        numericTargets = self.NumericSnapTargets(snapTargets)
+        if self.midpointSnapEnabled:
+            numericTargets.extend((vertex.x(), vertex.y(), True) for vertex in self.SnapMidpoints())
+        gridStep = self.GridSteps()[1] if self.gridSnapEnabled and anchors else None
+        delta, self.snapApplied, self.snapPriority, self.alignmentGuides = SnapMovement(
+            [(anchor.x(), anchor.y()) for anchor in anchors], delta, numericTargets,
+            self.basePixelsPerMillimeter * self.zoom, self.vertexSnapRange,
+            self.alignmentSnapEnabled, gridStep, direction, MovementSnapDistance)
+        return QtCore.QPointF(*delta)
 
     def TranslationAxes(self):
         if not self.localTransforms or self.selectedWall is None or isinstance(self.selectedWall, AngleGuide):
             return QtCore.QPointF(1, 0), QtCore.QPointF(0, 1)
         vertices = self.dragSourceVertices or self.dragVertices or (self.selectedWall.firstVertex, self.selectedWall.secondVertex)
-        direction = vertices[1] - vertices[0]
-        length = math.hypot(direction.x(), direction.y())
-        if length < 1e-10:
-            return QtCore.QPointF(1, 0), QtCore.QPointF(0, 1)
-        direction /= length
-        normal = QtCore.QPointF(-direction.y(), direction.x())
-        return (-normal, direction) if isinstance(self.selectedWall, (Furnishing, Pillar)) else (direction, normal)
+        first, second = vertices[0], vertices[1]
+        axes = MovementAxes((first.x(), first.y()), (second.x(), second.y()),
+                            isinstance(self.selectedWall, (Furnishing, Pillar)))
+        return tuple(QtCore.QPointF(*axis) for axis in axes)
 
     def VertexConstraintAxes(self):
-        reference = 0.0
         original = QtCore.QPointF()
         if self.localTransforms and self.selectedWall is not None and self.selectedVertex is not None:
             vertices = self.dragSourceVertices or self.dragVertices
             if vertices is not None:
                 opposite = 2 if isinstance(self.selectedWall, AngleGuide) and self.selectedVertex in (0, 1) else 1 - self.selectedVertex
                 original = vertices[self.selectedVertex] - vertices[opposite]
-                if math.hypot(original.x(), original.y()) > 1e-10:
-                    reference = math.atan2(original.y(), original.x())
         key = (self.localTransforms, original.x(), original.y())
         if key != getattr(self, "vertexConstraintAxesKey", None):
             # Twelve infinite lines give all twenty-four rays at 15 degrees.
-            self.vertexConstraintAxes = tuple(QtCore.QPointF(math.cos(reference + index * math.pi / 12),
-                math.sin(reference + index * math.pi / 12)) for index in range(12))
+            self.vertexConstraintAxes = tuple(QtCore.QPointF(*axis)
+                for axis in ConstraintAxes((original.x(), original.y())))
             self.vertexConstraintAxesKey = key
         return self.vertexConstraintAxes
 
     def ConstrainedVertexAngle(self, direction):
         axis = self.VertexConstraintAxes()[0]
-        reference = math.atan2(axis.y(), axis.x())
-        angleStep = math.radians(15)
-        return reference + round((math.atan2(direction.y(), direction.x()) - reference) / angleStep) * angleStep
+        return ConstrainedAngle((direction.x(), direction.y()), (axis.x(), axis.y()))
 
     def SnapWallEndpoint(self, worldPosition, anchor, modifiers, wall = None):
         if wall is not None:

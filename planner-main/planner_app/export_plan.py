@@ -62,7 +62,7 @@ def PreviewPaintRoles(render):
 
 @PreviewPaintRoles
 def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "png", projectData = None, applyTheme = True, border = None,
-               dpi = None, architecturalScale = None, borderSize = 28, vignetteStrength = 0, texture = None, textureAngle = 0, textureSettings = None, wallStyle = "Material", solidObjects = True, gridOrigin = (0.0, 0.0), preview = False, previewScene = False, clipCache = None, furnishingDefinitions = None, useExportSettings = False, floors = None):
+               dpi = None, architecturalScale = None, borderSize = 28, vignetteStrength = 0, texture = None, textureAngle = 0, textureSettings = None, wallStyle = "Material", solidObjects = True, gridOrigin = (0.0, 0.0), preview = False, previewScene = False, clipCache = None, furnishingDefinitions = None, useExportSettings = False, floors = None, roomStyle = None, solidRooms = None, titleBlock = None):
     """Return a QImage or SVG bytes, using identical layout and scene drawing.
 
     projectData accepts an unsaved scene instead of reading planPath. GUI callers
@@ -79,6 +79,10 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
         raise ValueError("Solid objects must be a boolean.")
     if floors is not None and type(floors) is not bool:
         raise ValueError("Floors must be a boolean.")
+    if roomStyle is not None and roomStyle not in ("Canvas", "Tinted"):
+        raise ValueError("Invalid room style.")
+    if solidRooms is not None and type(solidRooms) is not bool:
+        raise ValueError("Solid rooms must be a boolean.")
     if wallStyle not in ("Material", "Solid", "Outline"):
         raise ValueError("Invalid export wall style.")
     ruler = border in ("Marked", "Ruler")
@@ -93,6 +97,9 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
     from planner_app.graphics.theme import ApplyApplicationTheme
     from planner_app.paths import fontsDirectory
     from planner_app.project_codec import DecodeProject, ReadProjectBytes
+    from planner_app.export_settings import ResolveExportView, ExportPixelSize, NormalizeTitleBlock
+    from planner_app.graphics.title_block import TitleBlockLayout
+    from planner_app.graphics.text import PathTextPainter
     from planner_app.viewport.widget import DrawingViewport
     from planner_app.export_bounds import AutomaticBounds, BorderSize
 
@@ -130,35 +137,36 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
     definitions = (dict(furnishingDefinitions) if furnishingDefinitions is not None else
                    {item["key"]: item for item in LoadFurnishings()})
     walls, windows, furnishings, groups, hidden, settings, savedView, labels = DecodeProject(data, definitions)
-    floors = settings["floors"] if floors is None else floors
+    if roomStyle is None:
+        roomStyle = settings["roomStyle"]
+        if floors is not None:
+            roomStyle = "Tinted" if floors else "Canvas"
+    solidRooms = settings["solidRooms"] if solidRooms is None else solidRooms
     definitions.update(settings["embeddedFurnishings"])
     export = settings["exportSettings"]
     if useExportSettings:
+        titleBlock = export.get("titleBlock")
+    titleBlock = NormalizeTitleBlock(titleBlock) if titleBlock is not None else {}
+    titleBlock.setdefault("projectName", Path(planPath).stem)
+    if previewScene:
+        titleBlock = {}  # The editor preview contains only the drawing.
+    if useExportSettings:
         # Match the Export tab's inherited view and partial option groups. Keep
         # sizing units tied to the editor even when export labels use other units.
-        settings["autoSizingUnitsMode"] = settings["unitsMode"]
-        settings["unitsMode"] = export.get("unitsMode", settings["unitsMode"])
-        for name in ("showGrid", "viewportSettings", "lineworkSettings", "measurementVisibility", "visibility",
-                     "wallMeasurementMode", "wallMeasurementReference", "measurementPrecision", "measurementSettings"):
-            if name not in export:
-                continue
-            if isinstance(export[name], dict):
-                if name == "measurementVisibility":
-                    settings[name] = {key: enabled and settings["showMeasurements"] for key, enabled in settings[name].items()}
-                settings[name].update(export[name])
-            else:
-                settings[name] = export[name]
-        if "measurementVisibility" in export:
-            settings["showMeasurements"] = any(settings["measurementVisibility"].values())
-        if "visibility" in export:
-            settings["visibility"]["World"] = any(value for key, value in settings["visibility"].items() if key != "World")
+        viewKeys = ("unitsMode", "showMeasurements", "showGrid", "viewportSettings", "lineworkSettings",
+                    "measurementVisibility", "visibility", "wallMeasurementMode", "wallMeasurementReference",
+                    "measurementPrecision", "measurementSettings")
+        baseView = {name: settings[name] for name in viewKeys}
+        viewOverrides = {name: export[name] for name in viewKeys if name in export}
+        settings.update(ResolveExportView(baseView, viewOverrides))
         bounds = bounds if bounds is not None else export.get("bounds")
         border = export.get("border", "Ruler + Reference Zones" if "ruler" not in export else "Ruler" if export["ruler"] else "None")
         borderSize = export.get("borderSize", 28)
         ruler = border in ("Marked", "Ruler")
         wallStyle = export.get("wallStyle", "Material")
         solidObjects = export.get("solidObjects", True)
-        floors = export.get("floors", settings["floors"])
+        roomStyle = export.get("roomStyle", settings["roomStyle"])
+        solidRooms = export.get("solidRooms", settings["solidRooms"])
         gridOrigin = export.get("gridOrigin", (0.0, 0.0))
         texture = export.get("texture")
         textureAngle = export.get("textureAngle", 0)
@@ -172,7 +180,7 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
         textureSettings = {name.lower(): export.get("texture" + name, defaults[name.lower()])
                            for name in ("Strength", "Highlights", "Midtones", "Shadows")}
         textureSettings["scaleOverride"] = export.get("textureScale")
-        vignetteStrength = export.get("vignetteStrength", .25) if export.get("vignetteEnabled", False) else 0
+        vignetteStrength = export.get("vignetteStrength", .125) if export.get("vignetteEnabled", False) else 0
         dpi = architecturalScale = None
     if applyTheme:
         from planner_app.ui.app_preferences import LoadAppPreferences
@@ -189,7 +197,7 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
         if useExportSettings:
             for name, role in (("canvasColor", "canvas"), ("linesColor", "objectOutline"),
                                ("linesColor", "wallOutline"), ("borderColor", "rulerBackground"), ("gridColor", "grid")):
-                if name in export:
+                if export.get(name) is not None:
                     palette.themeColors[role] = export[name]
     viewport = DrawingViewport()
     if clipCache is not None:
@@ -200,7 +208,8 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
         viewport.setMinimumSize(0, 0)
         viewport.walls, viewport.windows, viewport.furnishings = walls, windows, furnishings
         viewport.solidObjects = solidObjects
-        viewport.floors = floors
+        viewport.floors = roomStyle == "Tinted"
+        viewport.solidRooms = solidRooms
         viewport.wallStyle = wallStyle
         viewport.labels = labels
         viewport.objectGroups, viewport.hiddenObjects = groups, hidden
@@ -222,21 +231,22 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
         rulerSize = BorderSize(border, borderSize)
         # Linked resolution inputs may land a few floating-point bits above an
         # integer. Stabilize the ceiling without rounding away fractional pixels.
-        imageWidth = max(1, math.ceil(round(pixelWidth, 8))) + 2 * rulerSize
-        imageHeight = max(1, math.ceil(round(pixelHeight, 8))) + 2 * rulerSize
+        imageWidth, imageHeight = ExportPixelSize(bounds, scale, rulerSize)
+        drawingWidth, drawingHeight = imageWidth, imageHeight
+        imageWidth, imageHeight, titleBlockRect = TitleBlockLayout(imageWidth, imageHeight, titleBlock, scale, architecturalScale, outputFormat, dpi)
         # Reject excessive allocations explicitly; never silently reduce scale.
         if ((imageWidth > 32767 or imageHeight > 32767) and not (preview and outputFormat == "svg")
                 or outputFormat == "png" and imageWidth * imageHeight > 100_000_000):
             raise ValueError("Render exceeds 32,767 pixels per side or 100 million pixels. Choose smaller bounds or scale.")
         if preview and outputFormat == "svg" and max(imageWidth, imageHeight) > 16_777_215:
             raise ValueError("SVG preview exceeds the supported numeric range.")
-        viewport.resize(imageWidth, imageHeight)
+        viewport.resize(drawingWidth, drawingHeight)
         viewport.rulerSize = rulerSize
         viewport.zoom = pixelsPerMillimeter / viewport.basePixelsPerMillimeter
         origin = QtCore.QPointF(rulerSize - x * pixelsPerMillimeter,
                                rulerSize + (y + length) * pixelsPerMillimeter)
-        viewport.panOffset = origin - QtCore.QPointF((imageWidth + rulerSize) / 2,
-                                                    (imageHeight + rulerSize) / 2)
+        viewport.panOffset = origin - QtCore.QPointF((drawingWidth + rulerSize) / 2,
+                                                    (drawingHeight + rulerSize) / 2)
         for name in ("showGrid", "showMeasurements", "measurementPrecision", "measurementVisibility", "measurementSettings", "wallMeasurementMode", "wallMeasurementReference",
                      "collisionSettings", "stairStepSizes", "railingSpacings", "imperialAutoSizes", "autoSizingUnitsMode", "unitsMode", "lineworkSettings"):
             setattr(viewport, name, settings[name])
@@ -277,22 +287,7 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
             image.fill(QtCore.Qt.GlobalColor.transparent)
         drawingRect = QtCore.QRectF(rulerSize, rulerSize, pixelWidth, pixelHeight)
         if outputFormat == "svg":
-            class SvgPainter(QtGui.QPainter):
-                def drawText(self, *args):
-                    # Outline exported text so SVG readers cannot substitute fonts.
-                    if len(args) == 2 and isinstance(args[0], QtCore.QPointF):
-                        position, text = args
-                    elif len(args) == 3 and isinstance(args[0], (QtCore.QRect, QtCore.QRectF)):
-                        rect, flags, text = args
-                        metrics = QtGui.QFontMetricsF(self.font(), self.device())
-                        textRect = metrics.boundingRect(QtCore.QRectF(rect), int(flags), text)
-                        position = QtCore.QPointF(textRect.left(), textRect.top() + metrics.ascent())
-                    else:
-                        raise TypeError("Unsupported SVG text drawing arguments.")
-                    textPath = QtGui.QPainterPath()
-                    textPath.addText(position, self.font(), text)
-                    self.fillPath(textPath, self.pen().brush())
-
+            class SvgPainter(PathTextPainter):
                 def restore(self):
                     super().restore()
                     # Qt's SVG backend can retain a previous clip definition when
@@ -306,9 +301,18 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
 
             painter = SvgPainter(image)
         else:
-            painter = QtGui.QPainter(image)
+            painter = PathTextPainter(image)
         try:
-            painter.fillRect(QtCore.QRectF(0, 0, imageWidth, imageHeight), QtGui.QColor(palette.themeColors["canvas"]))
+            if titleBlockRect is None:
+                painter.fillRect(QtCore.QRectF(0, 0, imageWidth, imageHeight), QtGui.QColor(palette.themeColors["canvas"]))
+            else:
+                # The title block paints its own canvas fill. Leave that area
+                # clear so translucent backgrounds are applied only once.
+                background = QtGui.QPainterPath()
+                background.setFillRule(QtCore.Qt.FillRule.OddEvenFill)
+                background.addRect(QtCore.QRectF(0, 0, imageWidth, imageHeight))
+                background.addRect(QtCore.QRectF(*titleBlockRect))
+                painter.fillPath(background, QtGui.QColor(palette.themeColors["canvas"]))
             painter.setFont(viewport.font())
             rulerUnit = viewport.DrawGridBackground(painter, drawingRect, origin, pixelsPerMillimeter,
                                                     gridOnly = previewScene or not ruler, allEdges = ruler, markingsOnly = border == "Marked")
@@ -326,6 +330,14 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
             elif border != "None" and not previewScene:
                 painter.setClipping(False)
                 DrawExportBorder(painter, drawingRect, rulerSize, border)
+            if titleBlockRect is not None:
+                from planner_app.graphics.title_block import DrawTitleBlock, RenderTitleBlockBitmap
+                painter.setClipping(False)
+                if outputFormat == "png":
+                    titleBlockImage = RenderTitleBlockBitmap(titleBlockRect, titleBlock, scale, architecturalScale, dpi = dpi)
+                    painter.drawImage(QtCore.QPointF(titleBlockRect[0], titleBlockRect[1]), titleBlockImage)
+                else:
+                    DrawTitleBlock(painter, titleBlockRect, titleBlock, scale, architecturalScale, outputFormat, dpi)
             if outputFormat == "png":
                 painter.setClipping(False)
                 DrawNormalTexture(painter, QtCore.QRectF(0, 0, imageWidth, imageHeight), texture, textureAngle,
@@ -336,15 +348,18 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
             painter.end()
         if outputFormat == "svg":
             result = VectorizeMaterials(bytes(svgBuffer.data()), materialMarkers)
-            if architecturalScale is not None:
+            if architecturalScale is not None or titleBlockRect is not None:
                 root = ElementTree.fromstring(result)
                 # Preserve the renderer's coordinate system while making its world
                 # millimeters occupy the requested physical millimeters on paper.
-                unitsPerMillimeter = scale * architecturalScale / 1000
+                unitsPerMillimeter = (scale * architecturalScale / 1000 if architecturalScale is not None else
+                                      (300 if dpi is None else dpi) / 25.4)
                 root.set("width", f"{imageWidth / unitsPerMillimeter:.10g}mm")
                 root.set("height", f"{imageHeight / unitsPerMillimeter:.10g}mm")
                 result = ElementTree.tostring(root, encoding = "utf-8", xml_declaration = True)
             return result
+        if dpi is None and titleBlockRect is not None:
+            dpi = 300
         if dpi is not None:
             dotsPerMeter = round(dpi * 1000 / 25.4)
             image.setDotsPerMeterX(dotsPerMeter)

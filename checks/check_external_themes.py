@@ -53,7 +53,7 @@ def Main():
     v.showGrid = False
     originalScene = main.BuildProjectData()["scene"]
     originalHistory = main.ProjectHistory()
-    furnishing = main.findChildren(FurnishingButton)[0]
+    definition = main.viewport.furnishingDefinitions["desk"]
     for uiTheme in ("Light UI", "Neutral UI", "Dark UI"):
         oldCanvas = palette.activeCanvasTheme
         oldCanvasColors = {role: palette.themeColors[role] for role in palette.canvasRoles}
@@ -65,11 +65,11 @@ def Main():
             assert palette.activeUITheme == uiTheme
             assert {role: palette.themeColors[role] for role in palette.uiRoles} == palette.themeDefinitions[uiTheme]["colors"]
     for name in ("Light Canvas", "Blueprint Canvas", "Dark Canvas", "Light Canvas"):
-        oldPreview = furnishing.icon().cacheKey()
+        oldPreview = main.furnishingThumbnails.Icon(definition).cacheKey()
         panel.canvasThemeField.setCurrentText(name)
         app.processEvents()
         assert palette.activeCanvasTheme == name
-        assert oldPreview != furnishing.icon().cacheKey()
+        assert oldPreview == main.furnishingThumbnails.Icon(definition).cacheKey(), "Canvas change needlessly rebuilt a catalog thumbnail"
         assert v.materialBrushes[("Generic", False)].color().name() == palette.themeColors["wallFill"]
         image = v.grab().toImage()
         assert image.pixelColor(v.DrawingRect().center().toPoint()).name() == palette.themeColors["canvas"]

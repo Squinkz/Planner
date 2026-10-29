@@ -7,6 +7,7 @@ from PySide6 import QtCore, QtGui
 from planner_app.graphics import palette
 from planner_app.scene_changes import SceneObject
 from planner_app.geometry.editing import AngleEndpoints
+from planner_app.geometry.sizing import RailingPostCount, StairLandingTrims, StairStepLayout, StairCountForStepSize, sizingCountLimit
 from planner_app.geometry.opening_placement import OpeningVertexFraction, FireplaceCenter
 
 
@@ -40,17 +41,7 @@ class Railing(Wall):
     @property
     def postCount(self):
         length = QtCore.QLineF(self.firstVertex, self.secondVertex).length()
-        if not self.autosize:
-            return max(2, self.manualPostCount)
-        minimum, maximum, target = self.spacingBounds
-        minimumCount = max(1, math.ceil(length / maximum - 1e-10))
-        maximumCount = max(1, math.floor(length / minimum + 1e-10))
-        if minimumCount <= maximumCount:
-            count = max(minimumCount, min(maximumCount, int(length / target + .5)))
-        else:
-            count = min({minimumCount, maximumCount}, key = lambda count:
-                        (max(minimum - length / count, 0, length / count - maximum), abs(length / count - target)))
-        return count + 1
+        return RailingPostCount(length, self.spacingBounds, manualCount = None if self.autosize else self.manualPostCount)
 
     @property
     def segmentWidth(self):
@@ -58,21 +49,22 @@ class Railing(Wall):
 
     def SetAutosize(self, enabled):
         if self.autosize and not enabled:
-            self.manualPostCount = self.postCount
+            self.SetPostCount(self.postCount)
         self.autosize = enabled
 
     def SetPostCount(self, count):
-        self.manualPostCount = max(2, int(count))
+        self.manualPostCount = max(2, min(sizingCountLimit, int(count)))
 
     def SetSegmentWidth(self, size):
         length = QtCore.QLineF(self.firstVertex, self.secondVertex).length()
-        self.manualPostCount = max(1, int(length / max(size, .001) + .5)) + 1
+        self.SetPostCount(max(1, int(length / max(size, .001) + .5)) + 1)
 
 
 @dataclass
 class MeasurementGuide(Wall):
     width: float = 0.0
     textOffset: QtCore.QPointF = field(default_factory = QtCore.QPointF)
+    depth: float = 0.0
 
 
 class BoundaryLine(MeasurementGuide):
@@ -168,9 +160,6 @@ class Stair(Wall):
 
     @property
     def stepCount(self):
-        if not self.autosize:
-            treadCount, stepSize, landingCount = self.StepLayout()
-            return treadCount + landingCount
         treadCount, stepSize, landingCount = self.StepLayout()
         return treadCount + landingCount
 
@@ -180,77 +169,29 @@ class Stair(Wall):
         return stepSize
 
     def LandingTrims(self, stairs):
-        trims = []
-        for vertex, endpoint in ((self.firstVertex, self.secondVertex), (self.secondVertex, self.firstVertex)):
-            direction = endpoint - vertex
-            length = math.hypot(direction.x(), direction.y())
-            trim = 0.0
-            if length > 1e-10:
-                direction /= length
-                for other in stairs:
-                    if other is self:
-                        continue
-                    otherDirection = None
-                    if QtCore.QLineF(vertex, other.firstVertex).length() <= .01:
-                        otherDirection = other.secondVertex - other.firstVertex
-                    elif QtCore.QLineF(vertex, other.secondVertex).length() <= .01:
-                        otherDirection = other.firstVertex - other.secondVertex
-                    if otherDirection is None:
-                        continue
-                    otherLength = math.hypot(otherDirection.x(), otherDirection.y())
-                    if otherLength < 1e-10:
-                        continue
-                    otherDirection /= otherLength
-                    cross = abs(direction.x() * otherDirection.y() - direction.y() * otherDirection.x())
-                    if cross < 1e-6:
-                        continue
-                    dot = QtCore.QPointF.dotProduct(direction, otherDirection)
-                    innerDistance = (other.width / 2 + self.width / 2 * dot) / cross
-                    intersectionDistance = math.hypot(self.width / 2, innerDistance)
-                    if dot < 0 and abs(self.width - other.width) > 1e-6 and intersectionDistance > 2 * max(self.width, other.width):
-                        continue
-                    trim = max(trim, min(length, max(0.0, innerDistance)))
-            trims.append(trim)
-        return tuple(trims)
+        neighbors = [((other.firstVertex.x(), other.firstVertex.y()), (other.secondVertex.x(), other.secondVertex.y()), other.width)
+                     for other in stairs if other is not self]
+        return StairLandingTrims((self.firstVertex.x(), self.firstVertex.y()), (self.secondVertex.x(), self.secondVertex.y()),
+                                 self.width, neighbors)
 
     def StepLayout(self, trims = None):
-        firstTrim, secondTrim = self.LandingTrims(self.sceneStairs) if trims is None else trims
-        runLength = max(0.0, QtCore.QLineF(self.firstVertex, self.secondVertex).length() - firstTrim - secondTrim)
-        landingCount = int(firstTrim > 1e-8) + int(secondTrim > 1e-8)
-        if runLength < 1e-8:
-            return 0, 0.0, landingCount
-        if not self.autosize:
-            treadCount = max(1, self.manualStepCount - landingCount)
-            return treadCount, runLength / treadCount, landingCount
-        minimumSize, maximumSize = self.stepSizeBounds
-        targetSize = (minimumSize + maximumSize) / 2
-        minimumCount = max(1, math.ceil(runLength / maximumSize - 1e-10))
-        maximumCount = math.floor(runLength / minimumSize + 1e-10)
-        if minimumCount <= maximumCount:
-            treadCount = max(minimumCount, min(maximumCount, round(runLength / targetSize)))
-        else:
-            # Short runs sometimes cannot fit a whole number of treads within the range.
-            # Choose the count with the smallest deviation from that range.
-            candidates = {minimumCount, max(1, maximumCount)}
-            treadCount = min(candidates, key = lambda count: (max(minimumSize - runLength / count, 0, runLength / count - maximumSize),
-                                                             abs(runLength / count - targetSize)))
-        return treadCount, runLength / treadCount, landingCount
+        trims = self.LandingTrims(self.sceneStairs) if trims is None else trims
+        length = QtCore.QLineF(self.firstVertex, self.secondVertex).length()
+        return StairStepLayout(length, trims, self.stepSizeBounds, manualCount = None if self.autosize else self.manualStepCount)
 
     def SetAutosize(self, enabled):
         if self.autosize and not enabled:
-            self.manualStepCount = self.stepCount
+            self.SetStepCount(self.stepCount)
         self.autosize = enabled
 
     def SetStepCount(self, count):
         firstTrim, secondTrim = self.LandingTrims(self.sceneStairs)
         landingCount = int(firstTrim > 1e-8) + int(secondTrim > 1e-8)
-        self.manualStepCount = max(landingCount + 1, int(count))
+        self.manualStepCount = max(landingCount + 1, min(sizingCountLimit, int(count)))
 
     def SetStepSize(self, size):
-        firstTrim, secondTrim = self.LandingTrims(self.sceneStairs)
-        runLength = max(0.0, QtCore.QLineF(self.firstVertex, self.secondVertex).length() - firstTrim - secondTrim)
-        landingCount = int(firstTrim > 1e-8) + int(secondTrim > 1e-8)
-        self.manualStepCount = max(1, int(runLength / max(size, .001) + .5)) + landingCount
+        length = QtCore.QLineF(self.firstVertex, self.secondVertex).length()
+        self.manualStepCount = StairCountForStepSize(length, self.LandingTrims(self.sceneStairs), size)
 
 
 @dataclass(init = False)
@@ -278,7 +219,7 @@ class Window(SceneObject):
     @property
     def firstFraction(self):
         parentLength = QtCore.QLineF(self.parentWall.firstVertex, self.parentWall.secondVertex).length()
-        if "opening_bounds" in getattr(self, "geometryIssues", ()):
+        if isinstance(self, PocketDoor) or "opening_bounds" in getattr(self, "geometryIssues", ()):
             return self.centerFraction - self.length / (2 * max(parentLength, 1e-8))
         halfSpan = min(0.5, self.length / (2 * parentLength)) if parentLength > 1e-10 else 0.5
         center = max(halfSpan, min(1 - halfSpan, self.centerFraction))
@@ -291,7 +232,7 @@ class Window(SceneObject):
     @property
     def secondFraction(self):
         parentLength = QtCore.QLineF(self.parentWall.firstVertex, self.parentWall.secondVertex).length()
-        if "opening_bounds" in getattr(self, "geometryIssues", ()):
+        if isinstance(self, PocketDoor) or "opening_bounds" in getattr(self, "geometryIssues", ()):
             return self.centerFraction + self.length / (2 * max(parentLength, 1e-8))
         halfSpan = min(0.5, self.length / (2 * parentLength)) if parentLength > 1e-10 else 0.5
         center = max(halfSpan, min(1 - halfSpan, self.centerFraction))

@@ -1,9 +1,8 @@
 """Embedded reference-image records, independent of scene objects and visibility."""
 import base64
-import math
 from PySide6 import QtCore, QtGui
 
-imageByteLimit = 40 * 1024 * 1024
+from .reference_state import ValidateReferenceState, imageByteLimit
 
 
 def ReadReferenceImage(payload):
@@ -38,13 +37,8 @@ def ReadReferenceImage(payload):
 
 
 def ValidateReferenceImage(record, validatedImages = None):
-    if not isinstance(record, dict):
-        raise ValueError("Invalid reference image settings.")
-    if not isinstance(record.get("path"), str) or "\0" in record["path"]:
-        raise ValueError("Invalid reference image path.")
-    encoded = record.get("data")
-    if not isinstance(encoded, str) or len(encoded) > (imageByteLimit + 2) // 3 * 4:
-        raise ValueError("Invalid embedded reference image.")
+    candidate = ValidateReferenceState(record)
+    encoded = candidate["data"]
     try:
         if validatedImages is None or encoded not in validatedImages:
             ReadReferenceImage(base64.b64decode(encoded, validate = True))
@@ -52,15 +46,4 @@ def ValidateReferenceImage(record, validatedImages = None):
                 validatedImages.add(encoded)
     except (ValueError, TypeError) as error:
         raise ValueError("Invalid embedded reference image: " + str(error)) from error
-    if type(record.get("visible")) is not bool:
-        raise ValueError("Invalid reference image visibility.")
-    center = record.get("center")
-    if not isinstance(center, list) or len(center) != 2:
-        raise ValueError("Invalid reference image position.")
-    values = center + [record.get(name) for name in ("width", "height", "angle", "opacity")]
-    if any(type(value) not in (int, float) or not math.isfinite(value) or abs(value) > 1e12 for value in values):
-        raise ValueError("Invalid reference image dimensions or position.")
-    if record["width"] < 1 or record["height"] < 1 or not 0 <= record["opacity"] <= 1:
-        raise ValueError("Invalid reference image dimensions or opacity.")
-    return {name: list(record[name]) if name == "center" else record[name] for name in
-            ("path", "data", "visible", "center", "width", "height", "angle", "opacity")}
+    return candidate

@@ -9,13 +9,14 @@
    width="60"
    height="60"
    inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   vector-effect="non-scaling-stroke"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:dc="http://purl.org/dc/elements/1.1/" vector-effect="non-scaling-stroke">
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
   <defs
      id="defs1">
     <inkscape:path-effect
@@ -62,12 +63,12 @@
      inkscape:pageopacity="0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="5.6568543"
-     inkscape:cx="-17.500893"
-     inkscape:cy="21.831922"
+     inkscape:zoom="11.313709"
+     inkscape:cx="23.157747"
+     inkscape:cy="33.189824"
      inkscape:window-width="2560"
      inkscape:window-height="1336"
-     inkscape:window-x="-8"
+     inkscape:window-x="2552"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
      inkscape:current-layer="svg1" />
@@ -82,7 +83,9 @@
      y="38.926407"
      rx="0.98093212"
      ry="0.98093212"
-     transform="rotate(-45)"  stroke-width="1" vector-effect="non-scaling-stroke"/>
+     transform="rotate(-45)"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke" />
   <rect
      style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
      id="rect2-8"
@@ -92,7 +95,9 @@
      y="-3.5"
      rx="0.98093212"
      ry="0.98093212"
-     transform="matrix(-0.70710678,-0.70710678,-0.70710678,0.70710678,0,0)"  stroke-width="1" vector-effect="non-scaling-stroke"/>
+     transform="matrix(-0.70710678,-0.70710678,-0.70710678,0.70710678,0,0)"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke" />
   <rect
      style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
      id="rect2-5"
@@ -102,7 +107,9 @@
      y="-3.5"
      rx="0.98093212"
      ry="0.98093212"
-     transform="matrix(0.70710678,0.70710678,0.70710678,-0.70710678,0,0)"  stroke-width="1" vector-effect="non-scaling-stroke"/>
+     transform="matrix(0.70710678,0.70710678,0.70710678,-0.70710678,0,0)"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke" />
   <rect
      style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
      id="rect2-8-5"
@@ -112,15 +119,14 @@
      y="-45.926407"
      rx="0.98093212"
      ry="0.98093212"
-     transform="rotate(135)"  stroke-width="1" vector-effect="non-scaling-stroke"/>
+     transform="rotate(135)"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke" />
   <path
      id="rect1"
      style="display:inline;vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-opacity:1;stroke-width:1"
-     d="M 7,3.4408966 V 1.219732 A 1.219732,1.219732 135 0 1 8.219732,0 H 51.780268 A 1.219732,1.219732 45 0 1 53,1.219732 V 3.4408966 A 3.5591034,3.5591034 45 0 0 56.559103,7 h 2.221165 A 1.219732,1.219732 45 0 1 60,8.219732 l 0,43.560536 A 1.219732,1.219732 135 0 1 58.780268,53 H 56.559103 A 3.5591034,3.5591034 135 0 0 53,56.559103 v 2.221165 A 1.219732,1.219732 135 0 1 51.780268,60 L 8.219732,60 A 1.219732,1.219732 45 0 1 7,58.780268 V 56.559103 A 3.5591034,3.5591034 45 0 0 3.4408966,53 H 1.219732 A 1.219732,1.219732 45 0 1 0,51.780268 V 8.219732 A 1.219732,1.219732 135 0 1 1.219732,7 H 3.4408966 A 3.5591034,3.5591034 135 0 0 7,3.4408966 Z"
-     sodipodi:nodetypes="ccccccccccccc"
-     inkscape:path-effect="#path-effect2"
-     inkscape:original-d="M 7,7 V 0 h 46 v 7 h 7 v 46 h -7 v 7 H 7 V 53 H 0 V 7 Z"
-     transform="matrix(-1,0,0,1,60,0)"  stroke-width="1" vector-effect="non-scaling-stroke"/>
+     d="M 51.779297 0 A 1.219732 1.219732 0 0 1 53 1.2207031 L 53 3.4414062 A 3.5591034 3.5591034 0 0 0 56.558594 7 L 58.779297 7 A 1.219732 1.219732 0 0 1 60 8.2207031 L 60 51.779297 A 1.219732 1.219732 0 0 1 58.779297 53 L 56.558594 53 A 3.5591034 3.5591034 0 0 0 53 56.558594 L 53 58.779297 A 1.219732 1.219732 0 0 1 51.779297 60 L 8.2207031 60 A 1.219732 1.219732 0 0 1 7 58.779297 L 7 56.558594 A 3.5591034 3.5591034 0 0 0 3.4414062 53 L 1.2207031 53 A 1.219732 1.219732 0 0 1 0 51.779297 L 0 8.2207031 A 1.219732 1.219732 0 0 1 1.2207031 7 L 3.4414062 7 A 3.5591034 3.5591034 0 0 0 7 3.4414062 L 7 1.2207031 A 1.219732 1.219732 0 0 1 8.2207031 0 L 51.779297 0 z M 30 27.5 A 2.5 2.5 0 0 0 27.5 30 A 2.5 2.5 0 0 0 30 32.5 A 2.5 2.5 0 0 0 32.5 30 A 2.5 2.5 0 0 0 30 27.5 z "
+     transform="matrix(-1,0,0,1,60,0)" />
   <metadata
      id="metadata1">
     <rdf:RDF>
@@ -138,7 +144,9 @@
      x="55.5"
      y="15"
      rx="1.25"
-     ry="1.25"  stroke-width="1" vector-effect="non-scaling-stroke"/>
+     ry="1.25"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke" />
   <rect
      style="fill:none;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
      id="rect3-1"
@@ -148,7 +156,9 @@
      y="15"
      rx="1.25"
      ry="1.25"
-     transform="scale(-1,1)"  stroke-width="1" vector-effect="non-scaling-stroke"/>
+     transform="scale(-1,1)"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke" />
   <rect
      style="fill:none;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
      id="rect3-6"
@@ -158,7 +168,9 @@
      y="-45"
      rx="1.25"
      ry="1.25"
-     transform="rotate(90)"  stroke-width="1" vector-effect="non-scaling-stroke"/>
+     transform="rotate(90)"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke" />
   <rect
      style="fill:none;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
      id="rect3-1-1"
@@ -168,11 +180,15 @@
      y="-45"
      rx="1.25"
      ry="1.25"
-     transform="matrix(0,-1,-1,0,0,0)"  stroke-width="1" vector-effect="non-scaling-stroke"/>
+     transform="matrix(0,-1,-1,0,0,0)"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke" />
   <circle
      style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linejoin:round;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
      id="path3"
      cx="30"
      cy="30"
-     r="2.5"  stroke-width="1" vector-effect="non-scaling-stroke"/>
+     r="2.5"
+     stroke-width="1"
+     vector-effect="non-scaling-stroke" />
 </svg>

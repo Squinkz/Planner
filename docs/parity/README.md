@@ -75,10 +75,10 @@ comparison pass. Review the difference first. A behavior discovered only in Qt
 should be classified as intentional, a platform detail or a defect before a port
 copies it. A bug is not automatically a new requirement.
 
-Everyday instructions live in the [user guide](../../planner-main/docs/help/README.md), including
-[editing](../../planner-main/docs/help/editing.md), [shortcuts](../../planner-main/docs/help/shortcuts.md),
-[export](../../planner-main/docs/help/export.md), [appearance](../../planner-main/docs/help/appearance.md) and
-[furnishings](../../planner-main/docs/help/furnishings.md). Resource schemas and implementation notes
+Everyday instructions live in the [user guide](../../planner-main/help/README.md), including
+[editing](../../planner-main/help/editing.md), [shortcuts](../../planner-main/help/shortcuts.md),
+[export](../../planner-main/help/export.md), [appearance](../../planner-main/help/appearance.md) and
+[furnishings](../../planner-main/help/furnishings.md). Resource schemas and implementation notes
 are indexed in [technical documentation](../README.md). The
 [editing boundary notes](../EDITING_PORTS.md) and [geometry contracts](../GEOMETRY.md)
 explain implementation boundaries; this specification explains what a port

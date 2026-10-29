@@ -9,6 +9,7 @@ from PySide6 import QtCore, QtGui, QtTest, QtWidgets
 from planner_app.viewport.widget import DrawingViewport
 from planner_app.models import Wall, Furnishing, Label
 from planner_app.units import FormatLength
+from planner_app.graphics.text import PathTextPainter
 
 
 def Main():
@@ -19,7 +20,7 @@ def Main():
     v.snapEnabled = False
     texts = []
 
-    class InfoPainter(QtGui.QPainter):
+    class InfoPainter(PathTextPainter):
         def drawText(self, *args):
             if isinstance(args[-1], str):
                 texts.append(args[-1])
@@ -30,7 +31,7 @@ def Main():
     v.walls = [wall]
     v.SetSelection([(wall, 0)])
     v.dragStart = p(400, 300)
-    with patch.object(QtGui, "QPainter", InfoPainter):
+    with patch("planner_app.viewport.rendering.PathTextPainter", InfoPainter):
         v.grab()
         assert "Length" in texts and "Width" in texts and "3 m" in texts and "24 cm" in texts
         wall.firstVertex = p(-2000, 0)

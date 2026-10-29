@@ -308,6 +308,7 @@ class DrawingViewport(GuideLabelsMixin, AngleGuidesMixin, VisibilityMixin, Group
         self.dimensionBoundaryValues = ()
         self.solidObjects = True
         self.floors = True
+        self.solidRooms = False
         self.wallStyle = "Material"
         self.materialBrushes = {(material, selected): BuildWallBrush(selected = selected, material = material)
                                 for material in wallMaterials for selected in (False, True)}

@@ -27,7 +27,7 @@ def Main():
     assert main.furnishingSortMode == "Category" and not main.furnishingSortDescending
     assert list(main.furnishingSortOptions) == ["Category", "Alphabetical", "Width", "Length", "Area"]
     assert not main.furnishingSortButton.icon().isNull()
-    cards = dict(main.furnishingCards)
+    grids = dict(main.furnishingCategoryGrids)
     definitions = [definition for definition in main.viewport.furnishingDefinitions.values() if definition["key"] != "null"]
     with patch.object(furnishing_search, "FormatLength", wraps = furnishing_search.FormatLength) as formatting:
         for mode in ("Alphabetical", "Width", "Length", "Area"):
@@ -47,8 +47,8 @@ def Main():
                 else:
                     expected = sorted(definitions, key = lambda item: (item[mode.lower()], item["name"].strip().casefold(), item["key"]), reverse = descending)
                 expectedKeys = [item["key"] for item in expected]
-                grid = main.furnishingResultsLayout
-                assert [grid.itemAt(index).widget() for index in range(grid.count())] == [cards[key] for key in expectedKeys]
+                grid = main.furnishingResultsGrid
+                assert list(grid.model().keys) == expectedKeys
                 assert all(widget.isHidden() for widget in main.furnishingCategoryWidgets.values())
                 assert main.furnishingResultsHeading.isHidden()
                 main.furnishingViewButton.click()
@@ -63,14 +63,14 @@ def Main():
                 assert not main.furnishingSortButton.isEnabled()
                 assert [catalog.item(index).data(QtCore.Qt.ItemDataRole.UserRole) for index in range(1, catalog.count())] == [item["key"] for item in matches]
                 main.furnishingViewButton.click()
-                assert [grid.itemAt(index).widget() for index in range(grid.count())] == [cards[item["key"]] for item in matches]
+                assert list(grid.model().keys) == [item["key"] for item in matches]
                 main.furnishingViewButton.click()
                 main.furnishingSearchField.clear()
                 main.furnishingSearchTimer.stop()
                 main.UpdateFurnishingSearch()
                 assert main.furnishingSortButton.isEnabled()
                 main.furnishingViewButton.click()
-                assert not main.furnishingListView and main.furnishingCards == cards
+                assert not main.furnishingListView and main.furnishingCategoryGrids == grids
         assert formatting.call_count == 0, "Sorting reformatted unchanged dimensions"
     # Grouped reversal changes both category order and the order within each category.
     main.SetFurnishingSort("Category")
@@ -78,9 +78,9 @@ def Main():
     categories = list(main.furnishingCategoryWidgets)[::-1]
     layout = main.furnishScrollArea.widget().layout()
     assert [layout.itemAt(index).widget() for index in range(len(categories))] == [main.furnishingCategoryWidgets[category] for category in categories]
-    for category, grid in main.furnishingCategoryLayouts.items():
-        expected = [card for (key, name), card in main.furnishingCategoryCards.items() if name == category][::-1]
-        assert [grid.itemAt(index).widget() for index in range(grid.count())] == expected
+    for category, grid in main.furnishingCategoryGrids.items():
+        expected = list(main.furnishingCategoryKeys[category])[::-1]
+        assert list(grid.model().keys) == expected
     main.furnishingViewButton.click()
     catalog = main.furnishingList
     headings = [catalog.item(index).text() for index in range(catalog.count())
@@ -107,7 +107,7 @@ def Main():
     main.UpdateFurnishingSearch()
     assert main.furnishingList.item(1).text() == "No results"
     main.furnishingViewButton.click()
-    assert main.furnishingNoResults.isVisible() and main.furnishingResultsLayout.count() == 0
+    assert main.furnishingNoResults.isVisible() and main.furnishingResultsGrid.model().rowCount() == 0
     main.furnishingViewButton.click()
     main.furnishingSearchField.clear()
     main.furnishingSearchTimer.stop()
@@ -138,8 +138,8 @@ def Main():
         expected = sorted(definitions, key = lambda item: (
             NominalPlacementSize(item["width"], restored.viewport.unitsMode) * NominalPlacementSize(item["length"], restored.viewport.unitsMode),
             item["name"].strip().casefold(), item["key"]), reverse = descending)
-        grid = restored.furnishingResultsLayout
-        assert [grid.itemAt(index).widget() for index in range(grid.count())] == [restored.furnishingCards[item["key"]] for item in expected]
+        grid = restored.furnishingResultsGrid
+        assert list(grid.model().keys) == [item["key"] for item in expected]
     restored.MarkProjectClean()
     restored.close()
     restoredArea = MainWindow()

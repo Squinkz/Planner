@@ -20,6 +20,8 @@ from planner_app.graphics.theme import gridIntensityDefaults
 from planner_app.preferences import lineworkDefaults
 
 from planner_app.export_bounds import AutomaticBounds, BorderSize
+from planner_app.export_settings import ResolveExportView, ExportScalePerMeter, ExportPixelSize
+from planner_app.graphics.title_block import TitleBlockLayout
 
 from planner_app.units import unitModes, measurementPrecisions, FormatLength, imperialModes
 
@@ -30,12 +32,13 @@ from .widgets import DownwardComboBox, DragSlider, VisibilityItemDelegate, Secti
 from .color_picker import ColorPickerDialog
 from .export_history import ExportHistoryMixin
 from .wall_dimensions import WallDimensionControlsMixin
+from .title_block import TitleBlockControlsMixin
 
 
 
 
 
-class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWidget):
+class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockControlsMixin, QtWidgets.QWidget):
 
     def __init__(self, mainWindow):
 
@@ -146,6 +149,7 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
             "especially when compositing effects are enabled.")
         self.optimizedPngNote.setObjectName("exportFormatNote")
         self.optimizedPngNote.setWordWrap(True)
+        self.optimizedPngNote.setSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Minimum)
         self.optimizedPngNote.hide()
         destinationLayout.addWidget(self.optimizedPngNote)
 
@@ -365,7 +369,7 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
 
         self.sectionButtons, self.sectionContents = {}, {}
 
-        for name in ("Canvas", "Border", "Grid", "Line Weight", "Measurements", "Composite", "Visibility"):
+        for name in ("Canvas", "Border", "Grid", "Line Weight", "Measurements", "Title Block", "Composite", "Visibility"):
 
             section = QtWidgets.QWidget()
 
@@ -418,6 +422,8 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
 
         layout.addStretch(1)
 
+        self.CreateTitleBlockControls(sections["Title Block"])
+
 
 
         canvasForm = QtWidgets.QGridLayout()
@@ -440,7 +446,7 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
 
                                               if definition["type"] == "canvas"),
 
-                                             key = lambda name: (name != "Dark Canvas", name.casefold())))
+                                             key = str.casefold))
 
         self.canvasThemeField.setCurrentText(palette.activeCanvasTheme)
 
@@ -572,7 +578,7 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
 
 
 
-        wallsLabel = QtWidgets.QLabel("Walls")
+        wallsLabel = QtWidgets.QLabel("Wall Style")
         wallsLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight | QtCore.Qt.AlignmentFlag.AlignVCenter)
         self.wallStyleField = DownwardComboBox()
         self.wallStyleField.addItems(("Material", "Solid", "Outline"))
@@ -586,15 +592,24 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
         self.solidObjectsField.setToolTip("Fill objects to hide the canvas and grid behind them")
         canvasChecks = QtWidgets.QGridLayout()
         canvasChecks.setVerticalSpacing(12)
-        canvasForm.addLayout(canvasChecks, 4, 0, 1, 2)
-        canvasChecks.addWidget(QtWidgets.QLabel("Solid Objects"), 0, 0)
-        canvasChecks.addWidget(self.solidObjectsField, 0, 1, QtCore.Qt.AlignmentFlag.AlignLeft)
-        self.floorsField = QtWidgets.QCheckBox()
-        self.floorsField.setAccessibleName("Floors")
-        self.floorsField.setChecked(mainWindow.viewport.floors)
-        self.floorsField.setToolTip("Shade detected rooms using the canvas theme's floor color")
-        canvasChecks.addWidget(QtWidgets.QLabel("Floors"), 1, 0)
-        canvasChecks.addWidget(self.floorsField, 1, 1, QtCore.Qt.AlignmentFlag.AlignLeft)
+        canvasForm.addLayout(canvasChecks, 5, 0, 1, 2)
+        canvasChecks.addWidget(QtWidgets.QLabel("Solid Objects"), 1, 0)
+        canvasChecks.addWidget(self.solidObjectsField, 1, 1, QtCore.Qt.AlignmentFlag.AlignLeft)
+        self.roomStyleField = DownwardComboBox()
+        self.roomStyleField.setAccessibleName("Room Style")
+        self.roomStyleField.addItems(("Canvas", "Tinted"))
+        self.roomStyleField.setCurrentText("Tinted" if mainWindow.viewport.floors else "Canvas")
+        self.roomStyleField.setToolTip("Use the canvas color or the theme's tinted room color")
+        roomStyleLabel = QtWidgets.QLabel("Room Style")
+        roomStyleLabel.setBuddy(self.roomStyleField)
+        canvasForm.addWidget(roomStyleLabel, 4, 0)
+        canvasForm.addWidget(self.roomStyleField, 4, 1)
+        self.solidRoomsField = QtWidgets.QCheckBox()
+        self.solidRoomsField.setAccessibleName("Solid Rooms")
+        self.solidRoomsField.setChecked(mainWindow.viewport.solidRooms)
+        self.solidRoomsField.setToolTip("Hide the grid inside detected rooms")
+        canvasChecks.addWidget(QtWidgets.QLabel("Solid Rooms"), 0, 0)
+        canvasChecks.addWidget(self.solidRoomsField, 0, 1, QtCore.Qt.AlignmentFlag.AlignLeft)
 
         viewport = mainWindow.viewport
 
@@ -836,7 +851,7 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
         vignetteForm = QtWidgets.QGridLayout()
         vignetteForm.addWidget(QtWidgets.QLabel("Enable Vignette"), 0, 0)
         vignetteForm.addWidget(self.enableVignetteField, 0, 1, QtCore.Qt.AlignmentFlag.AlignLeft)
-        checkboxForms = (canvasChecks, gridVisibilityForm, vignetteForm)
+        checkboxForms = (canvasChecks, gridVisibilityForm, self.titleBlockEnableForm, vignetteForm)
         checkboxLabelWidth = max(form.itemAtPosition(0, 0).widget().sizeHint().width() for form in checkboxForms)
         for form in checkboxForms:
             form.setContentsMargins(0, 0, 0, 0)
@@ -855,7 +870,7 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
         strengthRow.setSpacing(8)
         self.vignetteStrengthSlider = DragSlider(QtCore.Qt.Orientation.Horizontal)
         self.vignetteStrengthSlider.setRange(0, 2000)
-        self.vignetteStrengthSlider.setValue(250)
+        self.vignetteStrengthSlider.setValue(125)
         self.vignetteStrengthSlider.setAccessibleName("Vignette strength from 0 to 2")
         strengthRow.addWidget(self.vignetteStrengthSlider, 1)
         self.vignetteStrengthField = UnitSpinBox()
@@ -984,6 +999,9 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
 
         for widget in self.findChildren(QtWidgets.QWidget):
 
+            if widget is self.optimizedPngNote:
+                continue  # Wrapped notes need their natural height, rather than a single control row.
+
             if any(heading is widget or heading.isAncestorOf(widget) for heading in (exportHeading, vignetteHeading, textureHeading, self.wallDimensionWidget)):
 
                 continue
@@ -1036,7 +1054,8 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
         ResizeVisibilityTree()
 
         self.solidObjectsField.toggled.connect(lambda checked: self.SetOverride("solidObjects", checked))
-        self.floorsField.toggled.connect(lambda checked: self.SetOverride("floors", checked))
+        self.roomStyleField.currentTextChanged.connect(lambda style: self.SetOverride("roomStyle", style))
+        self.solidRoomsField.toggled.connect(lambda checked: self.SetOverride("solidRooms", checked))
 
         self.wallStyleField.currentTextChanged.connect(lambda style: self.SetOverride("wallStyle", style))
 
@@ -1121,7 +1140,7 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
 
         v = self.mainWindow.viewport
 
-        return {"canvasTheme": palette.activeCanvasTheme, "showGrid": v.showGrid, "floors": v.floors,
+        return {"canvasTheme": palette.activeCanvasTheme, "showGrid": v.showGrid, "roomStyle": "Tinted" if v.floors else "Canvas", "solidRooms": v.solidRooms,
 
                 "viewportSettings": dict(v.gridIntensities), "lineworkSettings": dict(v.lineworkSettings),
 
@@ -1135,36 +1154,15 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
 
 
     def ResolvedView(self):
-
-        view = copy.deepcopy(self.projectView if self.projectView is not None else self.CaptureView())
-
-        view["autoSizingUnitsMode"] = view["unitsMode"]
-
-        for name, value in self.overrides.items():
-
-            if isinstance(value, dict):
-
-                if name == "measurementVisibility":
-
-                    view[name] = {key: enabled and view["showMeasurements"] for key, enabled in view[name].items()}
-
-                view[name].update(value)
-
-            else:
-
-                view[name] = value
-
-        if "measurementVisibility" in self.overrides:
-
-            view["showMeasurements"] = any(view["measurementVisibility"].values())
-
-        if "visibility" in self.overrides:
-
-            view["visibility"]["World"] = any(value for key, value in view["visibility"].items() if key != "World")
-
+        baseView = self.projectView if self.projectView is not None else self.CaptureView()
+        view = ResolveExportView(baseView, self.overrides)
+        # Saved projects can name a removed or renamed custom theme. Resolve it
+        # before controls index its colours, including while restoring Build.
+        if palette.themeDefinitions.get(view["canvasTheme"], {}).get("type") != "canvas":
+            inheritedTheme = baseView["canvasTheme"]
+            view["canvasTheme"] = (inheritedTheme if palette.themeDefinitions.get(inheritedTheme, {}).get("type") == "canvas"
+                                   else palette.activeCanvasTheme)
         return view
-
-
 
     def ApplyView(self, view):
 
@@ -1183,24 +1181,25 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
 
             main.SetThemes(canvasTheme = view["canvasTheme"], notify = False)
 
-            if "canvasColor" in view:
+            if view.get("canvasColor") is not None:
 
                 palette.themeColors["canvas"] = view["canvasColor"]
 
             for name, role in (("borderColor", "rulerBackground"), ("gridColor", "grid")):
 
-                if name in view:
+                if view.get(name) is not None:
 
                     palette.themeColors[role] = view[name]
 
-            if "linesColor" in view:
+            if view.get("linesColor") is not None:
                 palette.themeColors["objectOutline"] = view["linesColor"]
                 palette.themeColors["wallOutline"] = view["linesColor"]
 
             main.SetLinework(view["lineworkSettings"], notify = False)
 
             v.solidObjects = view.get("solidObjects", True)
-            v.floors = view.get("floors", True)
+            v.floors = view.get("roomStyle", "Tinted") == "Tinted"
+            v.solidRooms = view.get("solidRooms", False)
 
             if (previousCanvasColor != palette.themeColors["canvas"] or previousSolidObjects != v.solidObjects
                     or previousOutlineColor != palette.themeColors["objectOutline"]):
@@ -1235,9 +1234,13 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
             v.exportOverlay.textureAngle = self.overrides.get("textureAngle", 0)
             v.exportOverlay.textureSettings = self.TextureSettings()
 
-            v.exportOverlay.vignetteStrength = self.overrides.get("vignetteStrength", .25) if self.overrides.get("vignetteEnabled", False) else 0
+            v.exportOverlay.vignetteStrength = self.overrides.get("vignetteStrength", .125) if self.overrides.get("vignetteEnabled", False) else 0
 
             v.exportOverlay.borderSize = BorderSize(v.exportOverlay.borderStyle, self.overrides.get("borderSize", 28))
+
+            v.exportOverlay.titleBlock = self.TitleBlockOptions()
+            v.exportOverlay.architecturalScale = (self.overrides.get("architecturalScale", 100)
+                                                  if self.overrides.get("scaleMode") == "Architectural" else None)
 
             v.viewportSceneKey = None
 
@@ -1352,6 +1355,7 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
                         self.mainWindow.transformOrientationButton, self.mainWindow.snapOptionsButton):
             control.setEnabled(not active)
         self.mainWindow.RefreshGroupActions()
+        self.mainWindow.RefreshExportActions()
         self.RefreshControls()
 
 
@@ -1375,16 +1379,7 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
 
 
     def ScalePerMeter(self):
-
-        if self.overrides.get("scaleMode", "Digital") == "Architectural":
-
-            dpi = self.overrides.get("dpi", 300) if self.typeField.currentData() != "SVG" else 96
-
-            return dpi * 1000 / (25.4 * self.overrides.get("architecturalScale", 100))
-
-        return self.overrides.get("scale", 100)
-
-
+        return ExportScalePerMeter(self.overrides, self.typeField.currentData())
 
     def SetScaleUnits(self, units):
 
@@ -1417,6 +1412,8 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
             if name in ("scaleMode", "architecturalScale"):
 
                 self.mainWindow.viewport.exportOverlay.svgKey = None
+                self.mainWindow.viewport.exportOverlay.architecturalScale = (
+                    self.overrides.get("architecturalScale", 100) if self.overrides.get("scaleMode") == "Architectural" else None)
 
             self.mainWindow.viewport.update()
 
@@ -1477,6 +1474,15 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
             return
 
         border = 2 * BorderSize(self.borderField.currentText(), self.overrides.get("borderSize", 28))
+
+        titleBlock = self.TitleBlockOptions()
+        if titleBlock.get("enabled", False):
+            vertical = titleBlock.get("position", "Right") == "Right"
+            minimumWidth, minimumHeight, block = TitleBlockLayout(1, 1, titleBlock, self.ScalePerMeter(), dpi = self.TitleBlockDpi())
+            if axis == (0 if vertical else 1):
+                value -= block[2] if vertical else block[3]
+            else:
+                value = max(minimumHeight if vertical else minimumWidth, value)
 
         value = max(border + 1, value)
 
@@ -1596,7 +1602,7 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
 
         themeColor = QtGui.QColor(palette.themeDefinitions[view["canvasTheme"]]["colors"][role])
 
-        initial = self.overrides.get(option, themeColor.name())
+        initial = self.overrides.get(option) or themeColor.name()
 
         try:
 
@@ -1755,9 +1761,11 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
 
             return
 
+        self.RefreshTitleBlockControls()
+
         view = self.ResolvedView()
 
-        widgets = [self.typeField, self.solidObjectsField, self.floorsField, self.wallStyleField, self.textureField, *self.textureSliders.values(), *self.textureFields.values(), self.vignetteStrengthField, self.enableVignetteField, self.vignetteStrengthSlider, self.canvasThemeField, self.showGridField, self.borderField, self.borderSizeSlider, self.borderSizeField,
+        widgets = [self.typeField, self.solidObjectsField, self.roomStyleField, self.solidRoomsField, self.wallStyleField, self.textureField, *self.textureSliders.values(), *self.textureFields.values(), self.vignetteStrengthField, self.enableVignetteField, self.vignetteStrengthSlider, self.canvasThemeField, self.showGridField, self.borderField, self.borderSizeSlider, self.borderSizeField,
 
                    self.scaleField, self.scaleUnitsField,
 
@@ -1775,7 +1783,8 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
         self.typeField.setCurrentIndex(self.typeField.findData(self.overrides.get("fileType", "PNG")))
 
         self.solidObjectsField.setChecked(view.get("solidObjects", True))
-        self.floorsField.setChecked(view.get("floors", True))
+        self.roomStyleField.setCurrentText(view.get("roomStyle", "Tinted"))
+        self.solidRoomsField.setChecked(view.get("solidRooms", False))
 
         self.wallStyleField.setCurrentText(view.get("wallStyle", "Material"))
 
@@ -1813,8 +1822,8 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
 
         self.enableVignetteField.setChecked(self.overrides.get("vignetteEnabled", False))
 
-        self.vignetteStrengthSlider.setValue(round(self.overrides.get("vignetteStrength", .25) * 1000))
-        self.vignetteStrengthField.setValue(self.overrides.get("vignetteStrength", .25))
+        self.vignetteStrengthSlider.setValue(round(self.overrides.get("vignetteStrength", .125) * 1000))
+        self.vignetteStrengthField.setValue(self.overrides.get("vignetteStrength", .125))
         self.vignetteStrengthReset.setEnabled("vignetteStrength" in self.overrides)
 
         self.vignetteStrengthOptions.setEnabled(self.enableVignetteField.isChecked())
@@ -1852,6 +1861,8 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
         for name, slider in self.textureSliders.items():
             default = defaults[name.lower()]
             value = self.overrides.get("texture" + name, default)
+            if name == "Scale" and value is None:
+                value = default
             slider.setValue(round(value if name == "Angle" else value * 1000))
             self.textureFields[name].setValue(round(value) if name == "Angle" else value)
             self.textureResetButtons[name].setEnabled("texture" + name in self.overrides)
@@ -1923,12 +1934,6 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
 
                 bounds = (-1000, -1000, 2000, 2000)
 
-        pixelsPerMillimeter = self.ScalePerMeter() / 1000
-
-        width = max(1, math.ceil(round(bounds[2] * pixelsPerMillimeter, 8)))
-
-        height = max(1, math.ceil(round(bounds[3] * pixelsPerMillimeter, 8)))
-
         self.borderField.setCurrentText(self.overrides.get("border", "Ruler + Reference Zones" if "ruler" not in self.overrides else "Ruler" if self.overrides["ruler"] else "None"))
 
         style = self.borderField.currentText()
@@ -1955,15 +1960,16 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
 
         self.borderSizeField.setSuffix(" px" if png else " u")
 
-        width += 2 * size
-
-        height += 2 * size
+        width, height = ExportPixelSize(bounds, self.ScalePerMeter(), size)
+        width, height, titleBlockRect = TitleBlockLayout(width, height, self.TitleBlockOptions(), self.ScalePerMeter(),
+                                                        self.overrides.get("architecturalScale", 100) if self.overrides.get("scaleMode") == "Architectural" else None,
+                                                        "png" if png else "svg", self.TitleBlockDpi())
 
         for field, value in zip(self.resolutionFields, (width, height)):
 
             field.setValue(value)
 
-            field.setToolTip(f"{value} pixels, including the border")
+            field.setToolTip(f"{value} pixels, including the border and enabled title block")
 
         self.resolutionLabel.setText(f"Resolution: {width} × {height} pixels")
 
@@ -2212,20 +2218,64 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
 
                           border = self.borderField.currentText(), wallStyle = self.wallStyleField.currentText(),
                           solidObjects = self.solidObjectsField.isChecked(),
-                          floors = self.floorsField.isChecked(),
+                          roomStyle = self.roomStyleField.currentText(), solidRooms = self.solidRoomsField.isChecked(),
                           gridOrigin = main.viewport.gridOrigin,
 
                           borderSize = self.overrides.get("borderSize", 28),
 
+                          titleBlock = self.TitleBlockOptions(),
+
                           texture = self.overrides.get("texture"), textureAngle = self.overrides.get("textureAngle", 0), textureSettings = self.TextureSettings(),
 
-                          vignetteStrength = self.overrides.get("vignetteStrength", .25) if self.overrides.get("vignetteEnabled", False) else 0,
+                          vignetteStrength = self.overrides.get("vignetteStrength", .125) if self.overrides.get("vignetteEnabled", False) else 0,
 
                           dpi = self.overrides.get("dpi", 300) if self.overrides.get("scaleMode") == "Architectural" and outputFormat == "png" else None,
 
                           architecturalScale = self.overrides.get("architecturalScale", 100) if self.overrides.get("scaleMode") == "Architectural" else None)
 
 
+
+    def CaptureExportOverrides(self):
+        view = self.ResolvedView()
+        settings = copy.deepcopy(self.overrides)
+        for name in self.CaptureView():
+            if name != "showMeasurements":
+                settings[name] = copy.deepcopy(view[name])
+        settings["measurementVisibility"] = {key: enabled and view["showMeasurements"]
+                                             for key, enabled in view["measurementVisibility"].items()}
+        settings["visibility"] = {key: enabled and view["visibility"]["World"]
+                                  for key, enabled in view["visibility"].items()}
+        settings.update(fileType = self.typeField.currentData(),
+                        bounds = list(self.mainWindow.viewport.exportOverlay.bounds),
+                        gridOrigin = list(self.mainWindow.viewport.gridOrigin),
+                        solidObjects = self.solidObjectsField.isChecked(),
+                        wallStyle = self.wallStyleField.currentText(),
+                        border = self.borderField.currentText(),
+                        borderSize = int(self.borderSizeField.value()))
+        defaults = {"scale": 100, "scaleUnits": "px/m", "scaleMode": "Digital",
+                    "architecturalScale": 100, "dpi": 300,
+                    "texture": None, "textureAngle": 0, "vignetteEnabled": False, "vignetteStrength": .125}
+        for name, default in defaults.items():
+            settings.setdefault(name, default)
+        # Null represents the Theme choice, not a color sampled from the editor.
+        # In particular, themes may use different wall and object outline colors.
+        for name in ("canvasColor", "linesColor", "borderColor", "gridColor"):
+            settings.setdefault(name, None)
+        texture = self.TextureSettings()
+        for name in ("Strength", "Highlights", "Midtones", "Shadows"):
+            settings["texture" + name] = texture[name.lower()]
+        filenameScale = 1
+        if settings["texture"] is not None:
+            try:
+                filenameScale = TextureMapping(settings["texture"])[2]
+            except ValueError:
+                pass  # The export worker reports invalid/missing textures normally.
+        # Filename tiling ratios may exceed the slider's range. Preserve their
+        # existing mapping instead of clamping it or saving an invalid override.
+        settings["textureScale"] = (texture["scaleOverride"] if texture["scaleOverride"] is not None else
+                                    filenameScale if 0 <= filenameScale <= 4 else None)
+        settings.pop("ruler", None)
+        return settings
 
     def Export(self):
 
@@ -2262,6 +2312,7 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
 
 
 
+        capturedOverrides = self.CaptureExportOverrides()
         main.exportButton.setEnabled(False)
 
         try:
@@ -2275,6 +2326,10 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, QtWidgets.QWid
             if not accepted:
                 return
 
+            self.overrides = capturedOverrides
+            self.mainWindow.ProjectSettingsChanged()
+            self.RefreshControls()
+            self.RecordExportHistory()
             main.exportButton.setText("Exported")
 
             main.exportButton.setToolTip(f"Saved {path}")

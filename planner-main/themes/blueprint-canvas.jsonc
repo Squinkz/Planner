@@ -12,14 +12,14 @@
         "wallFill": "#104466",
         "materialPattern": "#83aec9",
 
-        // Cyan selects individual objects; warm amber distinguishes groups.
-        "selectionOutline": "#70e3ff",
-        "selectionFill": "#155a78",
-        "groupSelectionOutline": "#ffd58a",
-        "groupSelectionFill": "#4a555a",
-        "stairSelectionFill": "#0c4968",
-        "stairGroupSelectionFill": "#354952",
-        "selectionBoxFill": "#2370e3ff",
+        // Warm amber selects individual objects; deeper copper distinguishes groups.
+        "selectionOutline": "#ffd58a",
+        "selectionFill": "#665a49",
+        "groupSelectionOutline": "#f2ac60",
+        "groupSelectionFill": "#815b3d",
+        "stairSelectionFill": "#514e46",
+        "stairGroupSelectionFill": "#65503d",
+        "selectionBoxFill": "#23ffd58a",
 
         // Dimensions stay subordinate to the main white linework.
         "measurementLine": "#a4c9df",

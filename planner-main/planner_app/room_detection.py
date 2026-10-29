@@ -1,52 +1,30 @@
 """Shared, geometry-cached wall boundaries for room tinting and measurements."""
-import math
 from PySide6 import QtCore, QtGui
-from .models import Wall, Pillar, Column, Elevator, RoomLabel
-from .viewport.spatial_index import BoundsIndex
+from .models import Wall, Pillar, Column, Elevator, RoomLabel, Stair
+from .measurement_units import imperialModes
+from .geometry.spatial_index import BoundsIndex
+from .geometry.room_regions import ClassifyRoomContours, PlanRoomRegions, FindContainingRegion
+
+
+def PrepareRoomContours(contours):
+    coordinates = [[(point.x(), point.y()) for point in polygon] for polygon in contours]
+    bounds = []
+    for polygon in contours:
+        rect = polygon.boundingRect()
+        bounds.append((rect.left(), rect.top(), rect.right(), rect.bottom()))
+    contains = lambda index, point: contours[index].containsPoint(QtCore.QPointF(*point), QtCore.Qt.FillRule.OddEvenFill)
+    return coordinates, bounds, contains
 
 
 def ClassifyBoundaryContours(contours):
-    """Return nesting depths and immediate children without flattening geometry."""
-    bounds = [polygon.boundingRect() for polygon in contours]
-    sizes = sorted(max(rect.width(), rect.height()) for rect in bounds if not rect.isEmpty())
-    index = BoundsIndex(sizes[len(sizes) // 2] if sizes else 1)
-    for position, rect in enumerate(bounds):
-        index.Insert(rect, position)
-    depths, children = {}, {}
-    for position, polygon in enumerate(contours):
-        point = polygon[0]
-        # A traced corner can lie a few floating-point steps outside its parent
-        # contour. Sample just inside an edge instead, close enough to preserve
-        # nesting even when the contour contains another wall island.
-        vertices = list(polygon)
-        for first, second in zip(vertices, vertices[1:]):
-            delta = second - first
-            length = math.hypot(delta.x(), delta.y())
-            if not length:
-                continue
-            midpoint = (first + second) / 2
-            epsilon = min(length / 1000, max(1e-6, 16 * math.ulp(max(abs(midpoint.x()), abs(midpoint.y()), 1))))
-            offset = QtCore.QPointF(-delta.y(), delta.x()) * (epsilon / length)
-            candidates = [candidate for candidate in (midpoint + offset, midpoint - offset)
-                          if polygon.containsPoint(candidate, QtCore.Qt.FillRule.OddEvenFill)]
-            if candidates:
-                point = candidates[0]
-                break
-        candidates = index.Query(QtCore.QRectF(point.x() - .0001, point.y() - .0001, .0002, .0002))
-        containing = [other for other in candidates if other != position
-                      and contours[other].containsPoint(point, QtCore.Qt.FillRule.OddEvenFill)]
-        depth = len(containing)
-        depths[position] = depth
-        if containing:
-            parent = min(containing, key = lambda other: bounds[other].width() * bounds[other].height())
-            children.setdefault(parent, []).append(position)
-    return depths, children
+    return ClassifyRoomContours(*PrepareRoomContours(contours))
 
 
 def BuildRoomBoundary(occupied):
     """Classify a world-space wall boundary once for all of its consumers."""
     contours = [polygon for polygon in occupied.toSubpathPolygons() if len(polygon) >= 4]
-    depths, children = ClassifyBoundaryContours(contours)
+    coordinates, bounds, contains = PrepareRoomContours(contours)
+    depths, children = ClassifyRoomContours(coordinates, bounds, contains)
     rooms = QtGui.QPainterPath()
     rooms.setFillRule(QtCore.Qt.FillRule.OddEvenFill)
     count = 0
@@ -61,33 +39,31 @@ def BuildRoomBoundary(occupied):
             exterior.addPolygon(contours[position])
             exterior.closeSubpath()
     regions = []
-    for position, depth in depths.items():
-        if depth % 2 == 0:
-            continue
+    for boundaries, area in PlanRoomRegions(coordinates, depths, children):
         path = QtGui.QPainterPath()
         path.setFillRule(QtCore.Qt.FillRule.OddEvenFill)
-        area = 0.0
-        for boundary in [position] + children.get(position, []):
-            polygon = contours[boundary]
-            path.addPolygon(polygon)
+        for boundary in boundaries:
+            path.addPolygon(contours[boundary])
             path.closeSubpath()
-            # Subtract an origin before the shoelace sum to retain precision
-            # for small rooms at large positive or negative world coordinates.
-            origin = polygon[0]
-            points = [point - origin for point in polygon]
-            value = abs(sum(first.x() * second.y() - second.x() * first.y()
-                            for first, second in zip(points, points[1:] + points[:1]))) / 2
-            area += value if boundary == position else -value
-        regions.append(dict(path = path, bounds = path.boundingRect(), area = max(0.0, area)))
+        regions.append(dict(path = path, bounds = path.boundingRect(), area = area))
     return rooms, count, tuple(regions), exterior
 
 
+def AddStairBoundaries(occupied, stairs, geometry):
+    if stairs:
+        geometry.ConnectedStairPath(stairs)
+        toWorld = QtGui.QTransform().scale(1 / geometry.basePixelsPerMillimeter, -1 / geometry.basePixelsPerMillimeter)
+        occupied = occupied.united(toWorld.map(geometry.stairGeometryPath))
+    return occupied
+
+
 def DetectRooms(walls, geometry):
-    occupied = geometry.ConnectedWallPath(walls)
+    occupied = geometry.ConnectedWallPath([obj for obj in walls if type(obj) in (Wall, Pillar, Column)])
     origin = geometry.WorldToViewport(QtCore.QPointF())
     scale = geometry.basePixelsPerMillimeter * geometry.zoom
     transform = QtGui.QTransform(1 / scale, 0, 0, -1 / scale, -origin.x() / scale, origin.y() / scale)
-    rooms, count, regions, exterior = BuildRoomBoundary(transform.map(occupied))
+    occupied = AddStairBoundaries(transform.map(occupied), [obj for obj in walls if isinstance(obj, Stair)], geometry)
+    rooms, count, regions, exterior = BuildRoomBoundary(occupied)
     geometry.roomRegions = tuple(regions)
     return rooms, count
 
@@ -110,14 +86,16 @@ class RoomDetection(QtCore.QObject):
         previews = list(v.pendingShapeWalls or ([v.pendingWall] if v.pendingWall is not None else []))
         if isinstance(v.arrowPreview, Pillar) and not isinstance(v.arrowPreview, Elevator):
             previews.append(v.arrowPreview)
-        return [obj for obj in previews if type(obj) in (Wall, Pillar, Column)]
+        if isinstance(v.windowDropPreview, Stair):
+            previews.append(v.windowDropPreview)
+        return [obj for obj in previews if type(obj) in (Wall, Pillar, Column, Stair)]
 
     def Check(self):
         v = self.viewport
         changes = v.renderChanges
         previews = tuple((id(obj), obj.firstVertex.x(), obj.firstVertex.y(), obj.secondVertex.x(), obj.secondVertex.y(),
                           obj.width, obj.firstMiter, obj.secondMiter) for obj in self.PreviewWalls())
-        key = changes.wallGeometry, changes.topology, changes.visibility, tuple(v.visibility.items()), previews
+        key = changes.wallGeometry, changes.stairGeometry, changes.topology, changes.visibility, tuple(v.visibility.items()), previews
         if key != self.requested:
             self.Refresh()
             self.requested = key
@@ -136,18 +114,22 @@ class RoomDetection(QtCore.QObject):
     def UpdateBoundary(self):
         """Consume the viewport's already-prepared wall geometry in world units."""
         v = self.viewport
-        signature = v.wallGeometryKey
+        stairs = [obj for obj in list(v.walls) + self.PreviewWalls() if isinstance(obj, Stair) and v.IsObjectVisible(obj)]
+        signature = (v.wallGeometryKey, tuple((id(obj), obj.firstVertex.x(), obj.firstVertex.y(),
+                     obj.secondVertex.x(), obj.secondVertex.y(), obj.width, obj.firstMiter, obj.secondMiter) for obj in stairs))
         if signature == self.signature:
             self.UpdateLabels()
             return
         self.signature = signature
         self.rebuildCount += 1
         toWorld = QtGui.QTransform().scale(1 / v.basePixelsPerMillimeter, -1 / v.basePixelsPerMillimeter)
-        path, count, self.regions, self.exteriorPath = BuildRoomBoundary(toWorld.map(v.wallGeometryPath))
+        occupied = AddStairBoundaries(toWorld.map(v.wallGeometryPath), stairs, v)
+        path, count, self.regions, self.exteriorPath = BuildRoomBoundary(occupied)
         sizes = sorted(max(region["bounds"].width(), region["bounds"].height()) for region in self.regions)
         self.regionIndex = BoundsIndex(sizes[len(sizes) // 2] if sizes else 1)
         for region in self.regions:
-            self.regionIndex.Insert(region["bounds"], region)
+            rect = region["bounds"]
+            self.regionIndex.Insert((rect.left(), rect.top(), rect.right(), rect.bottom()), region)
         self.count = count
         if path != self.path and not (path.isEmpty() and self.path.isEmpty()):
             self.path = path
@@ -160,16 +142,14 @@ class RoomDetection(QtCore.QObject):
                 v.selectionChanged.emit()
 
     def FindRoom(self, point):
-        for region in self.regionIndex.Query(QtCore.QRectF(point.x() - .0001, point.y() - .0001, .0002, .0002)):
-            if region["path"].contains(point):
-                return region
-        return None
+        return FindContainingRegion((point.x(), point.y()), self.regionIndex,
+                                    lambda region: region["path"].contains(point))
 
     def UpdateLabel(self, label):
         region = self.FindRoom((label.firstVertex + label.secondVertex) / 2)
         area = region["area"] if region is not None else None
         v = self.viewport
-        mode = label.unitsOverride or v.unitsMode
+        mode = label.unitsOverride or ("Feet and Inches" if v.unitsMode in imperialModes else "Meters")
         changed = (label.areaSquareMillimeters, label.areaUnitsMode) != (area, mode)
         label.areaSquareMillimeters, label.areaUnitsMode = area, mode
         return changed

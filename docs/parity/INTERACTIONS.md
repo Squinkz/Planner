@@ -805,16 +805,17 @@ top edge below it or bottom edge above it. Strict comparisons; an edge exactly
 at the midpoint does not trigger recenter. Otherwise retain pan. Exit restores
 the editing camera and presentation settings.
 
-While Export is active, G and the View menu's grid toggle update the export grid
-override. M and the View menu's measurement toggles update export
-measurement-visibility overrides, including before any export GUI control has
-been changed. The View menu reflects the resolved export grid and measurements.
-These changes use export undo/redo and are saved under export settings. They do
-not modify the editor's grid or measurement visibility; leaving Export restores it.
-Outside Export, the same actions retain their normal editor behavior.
+While Export is active, G/M and the View menu's grid and dimension toggles are
+disabled. Export grid and measurement visibility are changed explicitly through
+the Export controls. The View menu reflects those resolved settings but cannot
+change them. Export control changes use export undo/redo and are saved under
+export settings, without modifying the editor's settings. Outside Export, the
+shortcuts and View menu actions retain their normal editor behavior.
 Tips and FPS remain app preferences. Maximize remains a window layout action,
-and reference-image visibility remains project metadata outside export artwork.
-Coverage: `check_export_measurement_shortcuts.py`.
+and reference images remain outside export artwork. B/Alt+B and both reference
+image View menu entries are disabled during Export; reference browse, load,
+visibility and setup entry points also reject requests during Export.
+Coverage: `check_export_shortcuts.py`. See the [shortcut audit](../EXPORT_SHORTCUT_AUDIT.md).
 
 Opening Options from Export switches to Build before showing either a new or
 existing Options dialog. The editor camera/settings are restored, and export

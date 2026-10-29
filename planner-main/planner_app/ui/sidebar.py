@@ -11,8 +11,10 @@ from planner_app.models import OpenDoorway, Door, SwingingDoor, DoubleDoor, Slid
 from planner_app.ui.menus import AddMenuButton
 from planner_app.ui.export_panel import ExportPanel
 from planner_app.ui.furnishing_list import FurnishingCatalogList
+from planner_app.ui.furnishing_grid import FurnishingGridView
+from planner_app.graphics.furnishing_thumbnails import FurnishingThumbnailCache
 from planner_app.ui.widgets import (
-    VisibilityItemDelegate, CollapsibleSectionHeading, DownwardComboBox, FurnishingButton, FurnishingIconLayout, SectionHeading, SidebarTabBar, WallWidthSelector, WindowButton, WallToolButton,
+    VisibilityItemDelegate, CollapsibleSectionHeading, DownwardComboBox, FurnishingIconLayout, SectionHeading, SidebarTabBar, WallWidthSelector, WindowButton, WallToolButton,
 )
 
 
@@ -382,6 +384,7 @@ class SidebarMixin:
         self.groupModeShortcut = QtGui.QShortcut(QtGui.QKeySequence("Ctrl+Tab"), self)
         self.groupModeShortcut.setAutoRepeat(False)
         self.groupModeShortcut.activated.connect(self.groupModeButton.click)
+        self.editorShortcuts.append(self.groupModeShortcut)
         toolbarLayout.addWidget(self.groupModeButton, 0, QtCore.Qt.AlignmentFlag.AlignLeft)
         self.groupActionButtons = {}
         # Keep internal keys stable when editing the user-facing tooltip labels.
@@ -514,6 +517,7 @@ class SidebarMixin:
                             ("W", QtWidgets.QAbstractSlider.SliderAction.SliderSingleStepAdd)):
             shortcut = QtGui.QShortcut(QtGui.QKeySequence(key), self)
             shortcut.activated.connect(lambda action = action: self.wallWidthSelector.slider.triggerAction(action))
+            self.editorShortcuts.append(shortcut)
         toolsLayout.addSpacing(16)
         toolsLayout.addWidget(SectionHeading("Objects", "Objects"))
         toolsLayout.addSpacing(8)
@@ -556,7 +560,7 @@ class SidebarMixin:
                                     (self.casementWindowButton, "Casement"), (self.awningWindowButton, "Awning"),
                                     (self.doubleCasementWindowButton, "Double Casement"))),
                       ("Miscellaneous", ((self.stairButton, "Stair"), (self.counterButton, "Counter"), (self.railingButton, "Railing"), (self.pillarButton, "Pillar"), (self.columnButton, "Column"), (self.fireplaceButton, "Fireplace"), (self.elevatorButton, "Elevator"))),
-                      ("Annotations", ((self.labelButton, "Label"), (self.roomLabelButton, "Room Label"), (self.arrowButton, "Arrow"), (self.measurementGuideButton, "Measure"), (self.boundaryLineButton, "Boundary"), (self.dashedLineButton, "Dashed Line"), (self.solidLineButton, "Solid Line"), (self.angleGuideButton, "Angle"), (self.northArrowButton, "North"))))
+                      ("Annotations", ((self.labelButton, "Label"), (self.roomLabelButton, "Room Label"), (self.arrowButton, "Arrow"), (self.measurementGuideButton, "Dimension"), (self.boundaryLineButton, "Boundary"), (self.dashedLineButton, "Dashed Line"), (self.solidLineButton, "Solid Line"), (self.angleGuideButton, "Angle"), (self.northArrowButton, "North"))))
         self.buildObjectLayouts = {}
         for category, buttons in categories:
             heading = QtWidgets.QLabel(category)
@@ -681,15 +685,12 @@ class SidebarMixin:
                 continue
             for category in definition.get("categories", [definition["category"]]):
                 categories.setdefault(category, []).append(definition)
-        self.furnishingButtons = {}
-        self.furnishingCards = {}
-        self.furnishingDimensionLabels = {}
-        self.furnishingCategoryCards = {}
-        self.furnishingCategoryDimensionLabels = {}
+        if not refresh:
+            self.furnishingThumbnails = FurnishingThumbnailCache()
+        self.furnishingDimensions = {}
+        self.furnishingCategoryKeys = {}
         self.furnishingCategoryWidgets = {}
-        self.furnishingCategoryLayouts = {}
-        self.furnishingCardStorage = QtWidgets.QWidget(furnishingsPage)
-        self.furnishingCardStorage.hide()
+        self.furnishingCategoryGrids = {}
         for category in sorted(categories, key = lambda name: (name.casefold() in ("misc", "miscellaneous"), name.casefold())):
             definitions = sorted(categories[category], key = lambda item: (item["name"].strip().casefold(), item["key"]))
             categoryWidget = QtWidgets.QWidget()
@@ -700,36 +701,11 @@ class SidebarMixin:
             heading.setObjectName("objectSubheading")
             categoryLayout.addWidget(heading)
             categoryLayout.addSpacing(6)
-            grid = FurnishingIconLayout()
+            grid = FurnishingGridView(self)
             self.furnishingCategoryWidgets[category] = categoryWidget
-            self.furnishingCategoryLayouts[category] = grid
-            for definition in definitions:
-                button = FurnishingButton(definition)
-                self.furnishingButtons.setdefault(definition["key"], button)
-                dimensions = QtWidgets.QLabel()
-                dimensions.setObjectName("furnishingDimensions")
-                dimensions.setWordWrap(True)
-                dimensions.setFixedWidth(64)
-                dimensions.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter | QtCore.Qt.AlignmentFlag.AlignTop)
-                self.furnishingDimensionLabels.setdefault(definition["key"], dimensions)
-                self.furnishingCategoryDimensionLabels[(definition["key"], category)] = dimensions
-                caption = QtWidgets.QLabel(definition["name"])
-                caption.setObjectName("openingIconCaption")
-                caption.setWordWrap(True)
-                caption.setFixedWidth(64)
-                caption.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter | QtCore.Qt.AlignmentFlag.AlignTop)
-                iconWidget = QtWidgets.QWidget()
-                self.furnishingCards.setdefault(definition["key"], iconWidget)
-                self.furnishingCategoryCards[(definition["key"], category)] = iconWidget
-                iconLayout = QtWidgets.QVBoxLayout(iconWidget)
-                iconLayout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
-                iconLayout.setContentsMargins(0, 0, 0, 0)
-                iconLayout.setSpacing(4)
-                iconLayout.addWidget(button, 0, QtCore.Qt.AlignmentFlag.AlignHCenter)
-                iconLayout.addWidget(dimensions)
-                iconLayout.addWidget(caption)
-                grid.addWidget(iconWidget)
-            categoryLayout.addLayout(grid)
+            self.furnishingCategoryGrids[category] = grid
+            self.furnishingCategoryKeys[category] = tuple(definition["key"] for definition in definitions)
+            categoryLayout.addWidget(grid)
             categoryLayout.addSpacing(16)
             furnishingsLayout.addWidget(categoryWidget)
         self.furnishingResultsWidget = QtWidgets.QWidget()
@@ -740,8 +716,8 @@ class SidebarMixin:
         self.furnishingResultsHeading = resultsHeading
         resultsHeading.setObjectName("objectSubheading")
         resultsLayout.addWidget(resultsHeading)
-        self.furnishingResultsLayout = FurnishingIconLayout()
-        resultsLayout.addLayout(self.furnishingResultsLayout)
+        self.furnishingResultsGrid = FurnishingGridView(self)
+        resultsLayout.addWidget(self.furnishingResultsGrid)
         self.furnishingNoResults = QtWidgets.QLabel("No results")
         self.furnishingNoResults.setObjectName("furnishingNoResults")
         self.furnishingNoResults.setContentsMargins(0, 12, 0, 0)
@@ -761,7 +737,6 @@ class SidebarMixin:
         self.furnishingDimensionMode = None
         self.furnishingSearchActive = False
         self.furnishingResultKeys = ()
-        self.furnishingCategoryOrderKey = None
         self.furnishingSearchTimer = QtCore.QTimer(self.furnishingSearchField)
         self.furnishingSearchTimer.setSingleShot(True)
         self.furnishingSearchTimer.setInterval(120)
@@ -819,12 +794,8 @@ class SidebarMixin:
         definitions = list(self.viewport.furnishingDefinitions.values())
         mode = self.viewport.unitsMode
         if mode != self.furnishingDimensionMode:
-            for definition in definitions:
-                if definition["key"] == "null":
-                    continue
-                dimensions = FurnishingDimensionText(definition, mode)
-                for category in definition.get("categories", [definition["category"]]):
-                    self.furnishingCategoryDimensionLabels[(definition["key"], category)].setText(dimensions)
+            self.furnishingDimensions = {definition["key"]: FurnishingDimensionText(definition, mode)
+                                         for definition in definitions if definition["key"] != "null"}
             self.furnishingDimensionMode = mode
         results = (FindFurnishings(definitions, query, self.viewport.unitsMode) if query else
                    SortFurnishings(definitions, self.furnishingSortMode, self.furnishingSortDescending, self.viewport.unitsMode))
@@ -836,35 +807,20 @@ class SidebarMixin:
         flat = bool(query) or self.furnishingSortMode != "Category"
         self.furnishingResultsHeading.setVisible(bool(query))
         if flat:
-            if not self.furnishingSearchActive:
-                for category, grid in self.furnishingCategoryLayouts.items():
-                    self.furnishingCategoryWidgets[category].hide()
-                    while grid.count():
-                        card = grid.takeAt(grid.count() - 1).widget()
-                        card.hide()
-                        card.setParent(self.furnishingCardStorage)
-                    grid.invalidate()
-            if not self.furnishingSearchActive or resultKeys != self.furnishingResultKeys:
-                # Batch insertions in a hidden container; retain shared cards
-                # and layout items rather than reparenting them per keystroke.
-                self.furnishingResultsWidget.hide()
-                self.furnishingResultsLayout.SetWidgets([self.furnishingCards[key] for key in resultKeys])
+            for widget in self.furnishingCategoryWidgets.values():
+                widget.hide()
+            self.furnishingResultsGrid.SetKeys(resultKeys)
             self.furnishingResultsWidget.show()
         else:
             self.furnishingResultsWidget.hide()
-            categoryOrderKey = self.furnishingSortDescending
-            if self.furnishingSearchActive or self.furnishingCategoryOrderKey != categoryOrderKey:
-                self.furnishingResultsLayout.SetWidgets([])
-                categories = list(self.furnishingCategoryLayouts)
-                if self.furnishingSortDescending:
-                    categories.reverse()
-                for position, category in enumerate(categories):
-                    grid = self.furnishingCategoryLayouts[category]
-                    cards = [card for (key, cardCategory), card in self.furnishingCategoryCards.items() if cardCategory == category]
-                    grid.SetWidgets(cards[::-1] if self.furnishingSortDescending else cards)
-                    self.furnishScrollArea.widget().layout().insertWidget(position, self.furnishingCategoryWidgets[category])
-                    self.furnishingCategoryWidgets[category].show()
-                self.furnishingCategoryOrderKey = categoryOrderKey
+            categories = list(self.furnishingCategoryGrids)
+            if self.furnishingSortDescending:
+                categories.reverse()
+            for position, category in enumerate(categories):
+                keys = self.furnishingCategoryKeys[category]
+                self.furnishingCategoryGrids[category].SetKeys(keys[::-1] if self.furnishingSortDescending else keys)
+                self.furnishScrollArea.widget().layout().insertWidget(position, self.furnishingCategoryWidgets[category])
+                self.furnishingCategoryWidgets[category].show()
         self.furnishingNoResults.setVisible(flat and not results)
         self.furnishingSearchActive = flat
         self.furnishingResultKeys = resultKeys if flat else ()

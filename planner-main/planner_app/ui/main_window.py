@@ -21,6 +21,15 @@ from .reference_image import ReferenceImageController
 from planner_app.activity_log import ActivityLog
 
 
+# The application filter sees every Qt event, including stylesheet repolishing.
+# Keep the input whitelist outside the callback to avoid rebuilding it per event.
+handledApplicationEvents = frozenset(getattr(QtCore.QEvent.Type, name) for name in (
+    "KeyPress", "KeyRelease", "ShortcutOverride", "MouseMove", "MouseButtonPress",
+    "MouseButtonRelease", "MouseButtonDblClick", "Wheel", "UngrabMouse",
+    "ApplicationDeactivate", "WindowDeactivate", "Hide", "DragEnter", "DragMove",
+    "Drop", "Polish", "Show", "Enter", "Leave", "EnabledChange", "Resize"))
+
+
 class MainWindow(AppPreferencesMixin, AppearanceMixin, FurnishingCatalogMixin, DialogsMixin, SessionMixin, ProjectsMixin, HeaderMixin, SidebarMixin, PropertiesMixin, QtWidgets.QMainWindow):
     def __init__(self):
         ConfigureGarbageCollection()
@@ -123,6 +132,8 @@ class MainWindow(AppPreferencesMixin, AppearanceMixin, FurnishingCatalogMixin, D
         # Modifier releases can arrive in a different Planner window from their
         # presses. Track modifiers before dialogs or reference tools consume them.
         eventType = event.type()
+        if eventType not in handledApplicationEvents:
+            return False
         if (eventType in (QtCore.QEvent.Type.KeyPress, QtCore.QEvent.Type.KeyRelease)
                 and isinstance(watched, QtWidgets.QWidget)
                 and event.key() in (QtCore.Qt.Key.Key_Alt, QtCore.Qt.Key.Key_Control, QtCore.Qt.Key.Key_Shift)):
@@ -180,7 +191,7 @@ class MainWindow(AppPreferencesMixin, AppearanceMixin, FurnishingCatalogMixin, D
             self.RefreshHeldModifiers(QtCore.Qt.KeyboardModifier.NoModifier)
         elif watched is self and eventType in (QtCore.QEvent.Type.WindowDeactivate, QtCore.QEvent.Type.Hide):
             self.CancelHeldInput()
-        if (event.type() in (QtCore.QEvent.Type.DragEnter, QtCore.QEvent.Type.DragMove, QtCore.QEvent.Type.Drop)
+        if (eventType in (QtCore.QEvent.Type.DragEnter, QtCore.QEvent.Type.DragMove, QtCore.QEvent.Type.Drop)
                 and isinstance(watched, QtWidgets.QWidget) and watched.window() is self
                 and event.mimeData().hasUrls()):
             urls = event.mimeData().urls()
@@ -189,26 +200,25 @@ class MainWindow(AppPreferencesMixin, AppearanceMixin, FurnishingCatalogMixin, D
                 # Use the normal replacement prompt, recovery and failure handling.
                 event.setDropAction(QtCore.Qt.DropAction.CopyAction)
                 event.accept()
-                if event.type() == QtCore.QEvent.Type.Drop:
+                if eventType == QtCore.QEvent.Type.Drop:
                     self.viewport.StopDragPan()
                     self.OpenProject(path)
             else:
                 event.ignore()
             return True
-        referenceKey = (self.referenceImage.active and event.type() in
+        referenceKey = (self.referenceImage.active and eventType in
                         (QtCore.QEvent.Type.ShortcutOverride, QtCore.QEvent.Type.KeyPress, QtCore.QEvent.Type.KeyRelease)
                         and isinstance(watched, QtWidgets.QWidget) and watched.window() is self
                         and not any(isinstance(widget, (QtWidgets.QLineEdit, QtWidgets.QAbstractSpinBox, QtWidgets.QTextEdit,
                                                        QtWidgets.QPlainTextEdit, QtWidgets.QComboBox))
                                     for widget in (watched, QtWidgets.QApplication.focusWidget())))
         if (watched is self.viewport or referenceKey) and self.referenceImage.HandleEvent(event):
-            if event.type() == QtCore.QEvent.Type.MouseMove:
+            if eventType == QtCore.QEvent.Type.MouseMove:
                 self.viewport.UpdateDragPan(event.position(), event.buttons())
-            elif (event.type() == QtCore.QEvent.Type.MouseButtonRelease
+            elif (eventType == QtCore.QEvent.Type.MouseButtonRelease
                   or self.referenceImage.drag is None and self.referenceImage.calibration.draggedPoint is None):
                 self.viewport.StopDragPan()
             return True
-        eventType = event.type()
         if (eventType in (QtCore.QEvent.Type.ShortcutOverride, QtCore.QEvent.Type.KeyPress)
                 and isinstance(watched, QtWidgets.QWidget) and watched.window() is self
                 and event.key() == QtCore.Qt.Key.Key_Space
@@ -254,8 +264,8 @@ class MainWindow(AppPreferencesMixin, AppearanceMixin, FurnishingCatalogMixin, D
                                                QtWidgets.QPlainTextEdit, QtWidgets.QComboBox))
                             for widget in (watched, QtWidgets.QApplication.focusWidget()))
                 and (event.key() in (QtCore.Qt.Key.Key_D, QtCore.Qt.Key.Key_S, QtCore.Qt.Key.Key_Delete,
-                                    QtCore.Qt.Key.Key_T, QtCore.Qt.Key.Key_Tab, QtCore.Qt.Key.Key_Q, QtCore.Qt.Key.Key_W,
-                                    QtCore.Qt.Key.Key_H)
+                                    QtCore.Qt.Key.Key_T, QtCore.Qt.Key.Key_Q, QtCore.Qt.Key.Key_W,
+                                    QtCore.Qt.Key.Key_H, QtCore.Qt.Key.Key_G, QtCore.Qt.Key.Key_M, QtCore.Qt.Key.Key_B)
                      and not event.modifiers() & QtCore.Qt.KeyboardModifier.ControlModifier
                      or event.modifiers() & QtCore.Qt.KeyboardModifier.ControlModifier
                      and event.key() in (QtCore.Qt.Key.Key_A, QtCore.Qt.Key.Key_V, QtCore.Qt.Key.Key_X,
@@ -264,6 +274,7 @@ class MainWindow(AppPreferencesMixin, AppearanceMixin, FurnishingCatalogMixin, D
             event.accept()
             return True
         if (watched is self.viewport
+                and not self.viewport.exportOverlay.active
                 and eventType in (QtCore.QEvent.Type.ShortcutOverride, QtCore.QEvent.Type.KeyPress)
                 and event.key() == QtCore.Qt.Key.Key_Tab
                 and event.modifiers() == QtCore.Qt.KeyboardModifier.NoModifier):
@@ -319,14 +330,16 @@ class MainWindow(AppPreferencesMixin, AppearanceMixin, FurnishingCatalogMixin, D
                 self.ToggleViewportOnlyMode()
             event.accept()
             return True
-        if (watched is self.mainSplitter.handle(1)
-                and eventType == QtCore.QEvent.Type.MouseButtonDblClick
+        if (eventType == QtCore.QEvent.Type.MouseButtonDblClick
+                and watched is self.mainSplitter.handle(1)
                 and event.button() == QtCore.Qt.MouseButton.LeftButton):
             availableWidth = sum(self.mainSplitter.sizes())
             self.mainSplitter.setSizes([max(0, availableWidth - 460), 460])
             event.accept()
             return True
-        if watched is self.sidebarContentSplitter.handle(1):
+        if (eventType in (QtCore.QEvent.Type.MouseButtonDblClick, QtCore.QEvent.Type.MouseButtonPress,
+                          QtCore.QEvent.Type.MouseButtonRelease)
+                and watched is self.sidebarContentSplitter.handle(1)):
             if (eventType == QtCore.QEvent.Type.MouseButtonDblClick
                     and event.button() == QtCore.Qt.MouseButton.LeftButton):
                 self.propertiesDividerDragging = False
@@ -399,6 +412,13 @@ class MainWindow(AppPreferencesMixin, AppearanceMixin, FurnishingCatalogMixin, D
                 else:
                     command()
             event.accept()
+            return True
+        if (eventType == QtCore.QEvent.Type.Wheel and self.viewport.guiDragActive
+                and not self.viewport.guiDragCancelled and self.viewport.guiDragKind == "wall-circle"
+                and isinstance(watched, QtWidgets.QWidget) and watched is not self.viewport
+                and (watched.window() is self or self.isAncestorOf(watched))):
+            # Native drags can deliver wheel events to the source palette button.
+            self.viewport.wheelEvent(event)
             return True
         if (eventType == QtCore.QEvent.Type.Wheel and self.viewport.openingPlacementMode is not None
                 and isinstance(watched, QtWidgets.QWidget) and watched is not self.viewport

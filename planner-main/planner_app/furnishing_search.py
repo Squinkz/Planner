@@ -3,8 +3,8 @@ import math
 import re
 import unicodedata
 from functools import lru_cache
-from planner_app.units import MetricUnit, ParseImperialLength, FormatLength, imperialModes
-from planner_app.catalog import FurnishingCategories
+from planner_app.measurement_units import MetricUnit, ParseImperialLength, FormatLength, imperialModes
+from planner_app.catalog_metadata import FurnishingCategories
 from planner_app.placement_sizing import FurnishingPlacementSize, NominalPlacementSize
 
 

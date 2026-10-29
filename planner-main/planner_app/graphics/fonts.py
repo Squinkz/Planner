@@ -5,6 +5,7 @@ from planner_app.paths import fontsDirectory
 
 fontFamily = "Noto Sans"
 fontFiles = ("NotoSans-Regular.ttf", "NotoSans-SemiBold.ttf", "NotoSans-Bold.ttf")
+fontSources = {}
 
 
 def LoadApplicationFonts(app = None):
@@ -23,6 +24,8 @@ def LoadApplicationFonts(app = None):
         if fontId < 0:
             raise RuntimeError(f"Could not load bundled font: {path}")
         fontIds.append(fontId)
+        for family in QtGui.QFontDatabase.applicationFontFamilies(fontId):
+            fontSources.setdefault(family, []).append(path)
     app.plannerFontIds = tuple(fontIds)
     font = QtGui.QFont(fontFamily, 10)
     # Preserve glyph proportions at small sizes instead of the Windows default

@@ -32,7 +32,7 @@ the main window. Source paths below are relative to the application directory
 | `planner_app/ui/problems.py` | Modeless current-scene problem inspection, repair, location and ignored suggestions |
 | `planner_app/ui/help_viewer.py` | Native Markdown help rendering and navigation |
 | `planner_app/ui/about.py` | Standalone About splash and bundled license notices |
-| `docs/help/` | Bundled user guide, independent of the renderer |
+| `help/` | Bundled user guide, independent of the renderer |
 | `planner_app/viewport/` | Interaction, placement, geometry, snapping and painting |
 | `assets/` | UI SVGs, cursor bitmaps and fonts |
 | `furnishings/` | Definitions, user definitions and SVG graphics |

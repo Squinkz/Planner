@@ -9,8 +9,11 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from planner_app.models import OpenDoorway, Door, SwingingDoor, DoubleDoor, Furnishing, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, SlidingDoor, MeasurementGuide, BoundaryLine, DashedLine, SolidLine, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Label, RoomLabel, Window, NorthArrow, Fireplace
 from .geometry import CollisionPass
 from planner_app.geometry.opening_placement import (ProjectOpening, OpeningGap,
-    BlockedOpeningIntervals, OpeningPlacementSpan, CenteredOpeningSpan)
+    BlockedOpeningIntervals, OpeningPlacementSpan, CenteredOpeningSpan, OpeningVertexFraction)
 from planner_app.geometry.opening_collisions import OpeningCollisionIndex
+from planner_app.geometry.reserved_doors import ReservedDoorWithinHost, ReservedDoorWallContact, ReservedDoorPlacementBounds, ReservedDoorEditCenter
+from planner_app.geometry.opening_candidates import OpeningFacingChanges, FireplaceDepthSnap, FireplacePlacementCandidates
+from .placement_types import OpeningFacingPolicy
 from planner_app.geometry.attachments import FitOpeningCenters, OpeningWithinWall, OpeningIntervalsOverlap
 from planner_app.placement_sizing import NominalPlacementSize, FurnishingPlacementSize
 
@@ -65,7 +68,7 @@ class PlacementMixin:
         fireplace.depthOffset = offset
         center = (fireplace.firstVertex + fireplace.secondVertex) / 2 + normal * offset
         originalFraction = fireplace.centerFraction
-        placements = [(3, float("inf"), QtCore.QPointF(), [])]
+        placements = [(3, float("inf"), (0.0, 0.0), [])]
         snapTargets = self.StairSnapTargets(source)
         # Snap the complete footprint, including both front/back faces, rather
         # than the two opening endpoints on the parent wall's centerline.
@@ -74,34 +77,24 @@ class PlacementMixin:
             if self.snapApplied:
                 correction = snapped - anchor
                 placements.append((self.snapPriority, QtCore.QLineF(anchor, snapped).length(),
-                                   correction, list(self.alignmentGuides)))
+                                   (correction.x(), correction.y()), list(self.alignmentGuides)))
         offsetSnap = None
         offsetTargets = ([-limit, limit] if self.cornerSnapEnabled else []) + ([0.0] if self.midpointSnapEnabled else [])
         if offsetTargets and self.alignmentSnapEnabled and self.snapEnabled != bool(modifiers & QtCore.Qt.KeyboardModifier.AltModifier):
-            target = min(offsetTargets, key = lambda target: abs(target - offset))
-            if abs(target - offset) * self.basePixelsPerMillimeter * self.zoom <= self.vertexSnapRange:
-                offsetSnap = target
+            offsetSnap = FireplaceDepthSnap(offset, offsetTargets, self.basePixelsPerMillimeter, self.zoom, self.vertexSnapRange)
         wallLength = QtCore.QLineF(fireplace.parentWall.firstVertex, fireplace.parentWall.secondVertex).length()
-        halfSpan = fireplace.length / (2 * wallLength)
         self.alignmentGuides = []
         self.snapApplied = False
-        for priority, distance, correction, guides in sorted(placements, key = lambda candidate: candidate[:2]):
-            fraction = originalFraction + QtCore.QPointF.dotProduct(correction, direction) / wallLength
-            depthOffset = offset + QtCore.QPointF.dotProduct(correction, normal)
-            # Center/flush depth snapping must not compete with an independent
-            # sideways alignment (a zero depth correction would always win).
-            applyOffsetSnap = offsetSnap is not None and abs(depthOffset - offset) < 1e-8
-            if applyOffsetSnap:
-                depthOffset = offsetSnap
-            if not halfSpan - 1e-8 <= fraction <= 1 - halfSpan + 1e-8 or abs(depthOffset) > limit + 1e-8:
-                continue
-            fireplace.centerFraction = max(halfSpan, min(1 - halfSpan, fraction))
+        for fraction, depthOffset, guides, snapApplied, snapPriority in FireplacePlacementCandidates(
+                originalFraction, fireplace.length, wallLength, offset, limit,
+                (direction.x(), direction.y()), (normal.x(), normal.y()), placements, offsetSnap):
+            fireplace.centerFraction = fraction
             fireplace.depthOffset = depthOffset
             if not self.OpeningFits(fireplace, source):
                 continue
             self.alignmentGuides = guides
-            self.snapApplied = priority < 3 or applyOffsetSnap
-            self.snapPriority = min(priority, 1) if applyOffsetSnap else priority
+            self.snapApplied = snapApplied
+            self.snapPriority = snapPriority
             break
         else:
             return None
@@ -117,9 +110,10 @@ class PlacementMixin:
         elif shape == "square":
             corners = [center + QtCore.QPointF(x, y) * size / 2 for x, y in ((-1, -1), (1, -1), (1, 1), (-1, 1))]
         else:
-            phase = math.pi / 8 - math.pi / 2
-            corners = [center + QtCore.QPointF(math.cos(phase + index * math.tau / 8),
-                                              math.sin(phase + index * math.tau / 8)) * size for index in range(8)]
+            phase = math.pi / self.circleSegments - math.pi / 2
+            corners = [center + QtCore.QPointF(math.cos(phase + index * math.tau / self.circleSegments),
+                                              math.sin(phase + index * math.tau / self.circleSegments)) * size
+                       for index in range(self.circleSegments)]
         delta = self.SnapObjectMovement(corners + [center], QtCore.QPointF(), modifiers,
                                        snapTargets = self.StairSnapTargets())
         corners = [point + delta for point in corners]
@@ -161,13 +155,13 @@ class PlacementMixin:
         counter.secondVertex += delta
         return counter
 
-    def CounterFits(self, counter):
+    def CounterFits(self, counter, excludeIds = frozenset()):
         if counter.width < 1 or QtCore.QLineF(counter.firstVertex, counter.secondVertex).length() < 1:
             return False
-        blockers = [wall for wall in self.walls if not isinstance(wall, Counter)]
-        return not any(self.JoinedObjectsOverlap(counter, obj, contactTolerance = 1.0) for obj in blockers)
+        blockers = [wall for wall in self.walls if not isinstance(wall, Counter) and id(wall) not in excludeIds]
+        return not any(self.JoinedObjectsOverlap(counter, obj, contactTolerance = 1.0, excludedWalls = excludeIds) for obj in blockers)
 
-    def WallFits(self, wall, blockers = None):
+    def WallFits(self, wall, blockers = None, excludeIds = frozenset()):
         if isinstance(wall, AngleGuide):
             return True
         if isinstance(wall, (Arrow, MeasurementGuide)):
@@ -178,8 +172,11 @@ class PlacementMixin:
             blockers = [obj for obj in self.walls + self.windows + self.furnishings if obj is not wall]
         if blockers is None:
             blockers = (self.furnishings + [obj for obj in self.walls if isinstance(obj, (Counter, Railing, Stair, Elevator))]
-                        + [opening for opening in self.windows if opening.parentWall is not wall])
-        return not any(self.JoinedObjectsOverlap(wall, obj, contactTolerance = 1.0) for obj in blockers)
+                        + [opening for opening in self.windows if opening.parentWall is not wall
+                           and not (isinstance(opening, PocketDoor) and type(wall) is Wall
+                                    and not self.OpeningWallObstructs(opening, wall))])
+        return not any(self.JoinedObjectsOverlap(wall, obj, contactTolerance = 1.0, excludedWalls = excludeIds)
+                       for obj in blockers if id(obj) not in excludeIds)
 
     def FurnishingFits(self, furnishing):
         if isinstance(furnishing, Pillar):
@@ -252,7 +249,10 @@ class PlacementMixin:
     @CollisionPass
     def OpeningFits(self, opening, exclude = None, excludeIds = frozenset()):
         parentLength = QtCore.QLineF(opening.parentWall.firstVertex, opening.parentWall.secondVertex).length()
-        if not OpeningWithinWall(parentLength, opening.length, opening.centerFraction):
+        fits = (ReservedDoorWithinHost(parentLength, opening.length, opening.centerFraction, opening.hingeAtSecond,
+                                  self.ReservedDoorSupport(opening.parentWall)) if isinstance(opening, PocketDoor) else
+                OpeningWithinWall(parentLength, opening.length, opening.centerFraction))
+        if not fits:
             return False
         walls, openings = self.walls, self.windows
         batch = getattr(self, "collisionPassCache", None)
@@ -273,8 +273,7 @@ class PlacementMixin:
                 (bounds.left(), bounds.top(), bounds.right(), bounds.bottom()), id(opening.parentWall))
             walls = (indexedWalls[index] for index in wallIndices)
             openings = (indexedOpenings[index] for index in openingIndices)
-        if any(type(wall) in (Wall, Pillar, Column) and wall is not opening.parentWall and
-               self.JoinedObjectsOverlap(opening, wall, contactTolerance = 1.0) for wall in walls):
+        if any(type(wall) in (Wall, Pillar, Column) and self.OpeningWallObstructs(opening, wall) for wall in walls):
             return False
         return not any(other is not exclude and other is not opening and (not excludeIds or id(other) not in excludeIds)
                        and self.OpeningsOverlap(opening, other)
@@ -302,7 +301,8 @@ class PlacementMixin:
         if len(walls) > 1:
             openingLengths = {}
             for opening in self.windows:
-                openingLengths.setdefault(id(opening.parentWall), []).append(opening.length)
+                size = opening.length / 2 if isinstance(opening, PocketDoor) and (opening.firstFraction < 0 or opening.secondFraction > 1) else opening.length
+                openingLengths.setdefault(id(opening.parentWall), []).append(size)
         for wall in walls:
             if isinstance(wall, AngleGuide):
                 continue
@@ -312,10 +312,12 @@ class PlacementMixin:
             if length < 1e-8 or length < minimumLength - 0.01:
                 return False
         count = len(self.windows) if changed is None else sum(
-            id(opening) in changed or id(opening.parentWall) in changed for opening in self.windows)
+            id(opening) in changed or id(opening.parentWall) in changed
+            or isinstance(opening, PocketDoor) and (opening.firstFraction < 0 or opening.secondFraction > 1) for opening in self.windows)
         with self.OpeningCandidatePass(count):
             for index, opening in enumerate(self.windows):
-                if changed is not None and id(opening) not in changed and id(opening.parentWall) not in changed:
+                if (changed is not None and id(opening) not in changed and id(opening.parentWall) not in changed
+                        and not (isinstance(opening, PocketDoor) and (opening.firstFraction < 0 or opening.secondFraction > 1))):
                     continue
                 if not self.OpeningFits(opening):
                     return False
@@ -337,13 +339,14 @@ class PlacementMixin:
                         or changed is not None and type(wall) is Wall)
                 and (not validateFurnishings or all(self.FurnishingFits(obj) for obj in furnishings)))
 
-    def StairFits(self, stair, exclude = None):
+    def StairFits(self, stair, exclude = None, excludeIds = frozenset()):
         if stair.width < 1 or QtCore.QLineF(stair.firstVertex, stair.secondVertex).length() < 1:
             return False
         for other in self.walls + self.windows + self.furnishings + self.labels:
             # Snapped faces can differ by sub-millimeter amounts after endpoint
             # rotation and screen/world conversion. Treat that as edge contact.
-            if isinstance(other, Stair) or other is exclude or not self.JoinedObjectsOverlap(stair, other, contactTolerance = 1.0):
+            if (isinstance(other, Stair) or other is exclude or id(other) in excludeIds
+                    or not self.JoinedObjectsOverlap(stair, other, contactTolerance = 1.0, excludedWalls = excludeIds)):
                 continue
             return False
         return True
@@ -389,7 +392,8 @@ class PlacementMixin:
         return stair
 
     def MinimumOpeningLength(self, wall):
-        lengths = [opening.length for opening in self.windows if opening.parentWall is wall]
+        lengths = [opening.length / 2 if isinstance(opening, PocketDoor) and (opening.firstFraction < 0 or opening.secondFraction > 1)
+                   else opening.length for opening in self.windows if opening.parentWall is wall]
         return sum(lengths)
 
     def FitWallOpenings(self, before = None, validateFurnishings = True, validateScene = True):
@@ -401,12 +405,27 @@ class PlacementMixin:
             openingsByParent.setdefault(id(opening.parentWall), []).append(opening)
         for wall in self.walls:
             siblings = openingsByParent.get(id(wall), ())
-            openings = sorted(siblings, key = lambda opening: opening.centerFraction)
+            # Reserved halves follow their supporting wall faces, independently
+            # of where a shared control point divides the collinear segments.
+            parked = {id(opening) for opening in siblings if isinstance(opening, PocketDoor)}
+            oldWall = oldWalls.get(id(wall))
+            for opening in siblings:
+                if id(opening) not in parked:
+                    continue
+                if oldWall is not None and (wall.firstVertex.x(), wall.firstVertex.y(), wall.secondVertex.x(), wall.secondVertex.y()) != oldWall[1:5]:
+                    center = ReservedDoorEditCenter(oldWall[1:3], oldWall[3:5],
+                        (wall.firstVertex.x(), wall.firstVertex.y()), (wall.secondVertex.x(), wall.secondVertex.y()),
+                        oldCenters.get(id(opening), opening.centerFraction), followStretch)
+                    if center is None:
+                        return False
+                    opening.centerFraction = center
+                if not self.OpeningFits(opening):
+                    return False
+            openings = sorted((opening for opening in siblings if id(opening) not in parked), key = lambda opening: opening.centerFraction)
             if not openings:
                 continue
             parentLength = QtCore.QLineF(wall.firstVertex, wall.secondVertex).length()
-            remainingLength = sum(opening.length for opening in siblings)
-            oldWall = oldWalls.get(id(wall))
+            remainingLength = sum(opening.length for opening in openings) if parked else sum(opening.length for opening in siblings)
             previous, fixedEnd = None, 0
             if not followStretch and oldWall is not None:
                 oldFirst, oldSecond = QtCore.QPointF(oldWall[1], oldWall[2]), QtCore.QPointF(oldWall[3], oldWall[4])
@@ -428,11 +447,12 @@ class PlacementMixin:
         if initialState is not None:
             opening.centerFraction, opening.length = initialState
         original = (opening.firstFraction, opening.secondFraction)
+        bounds = self.ReservedDoorSupport(opening.parentWall) if isinstance(opening, PocketDoor) else (0, 1)
         if fromCenter:
             parent = opening.parentWall
             gapStart, gapEnd = OpeningGap(opening.centerFraction,
                 ((other.firstFraction, other.secondFraction) for other in self.windows
-                 if other is not opening and other.parentWall is parent))
+                 if other is not opening and other.parentWall is parent), *bounds)
             first, second = parent.firstVertex, parent.secondVertex
             fractions = CenteredOpeningSpan((first.x(), first.y()), (second.x(), second.y()),
                 (position.x(), position.y()), vertexIndex, opening.centerFraction, gapStart, gapEnd)
@@ -441,7 +461,17 @@ class PlacementMixin:
                 return
             opening.SetFractions(*fractions)
         else:
-            opening.SetVertex(vertexIndex, position)
+            if isinstance(opening, PocketDoor):
+                first, second = opening.parentWall.firstVertex, opening.parentWall.secondVertex
+                fraction = OpeningVertexFraction((first.x(), first.y()), (second.x(), second.y()), (position.x(), position.y()),
+                    vertexIndex, opening.secondFraction if vertexIndex == 0 else opening.firstFraction, bounds)
+                if fraction is not None:
+                    if vertexIndex == 0:
+                        opening.firstFraction = fraction
+                    else:
+                        opening.secondFraction = fraction
+            else:
+                opening.SetVertex(vertexIndex, position)
             for other in self.windows:
                 if other is opening or other.parentWall is not opening.parentWall:
                     continue
@@ -502,24 +532,45 @@ class PlacementMixin:
             reach = wall.width * self.basePixelsPerMillimeter * self.zoom / 2 + 24
             if distance <= reach and distance < nearestDistance:
                 parentLength = math.sqrt(lengthSquared)
+                reservedDoor = issubclass(openingType, PocketDoor)
+                support = self.ReservedDoorSupport(wall) if reservedDoor else (0, 1)
+                hingeAtSecond = isinstance(exclude, PocketDoor) and exclude.hingeAtSecond
                 gapStart, gapEnd = OpeningGap(fraction,
                     ((other.firstFraction, other.secondFraction) for other in self.windows
-                     if other is not exclude and other.parentWall is wall and (not excludeIds or id(other) not in excludeIds)))
+                     if other is not exclude and other.parentWall is wall and (not excludeIds or id(other) not in excludeIds)), *support)
                 if (gapEnd - gapStart) * parentLength < 1.0:
                     continue
                 parentCorners = self.ObjectCorners(wall)
+                ignoredWalls = {id(wall)}
+                if reservedDoor:
+                    first, second = (wall.firstVertex.x(), wall.firstVertex.y()), (wall.secondVertex.x(), wall.secondVertex.y())
+                    ignoredWalls.update(id(other) for other in solidWalls if type(other) is Wall and
+                        ReservedDoorWallContact(first, second, wall.width,
+                            (other.firstVertex.x(), other.firstVertex.y()), (other.secondVertex.x(), other.secondVertex.y()), support) is not None)
+                    if support != (0, 1):
+                        parentCorners = [point + direction * (support[0] if QtCore.QPointF.dotProduct(point - wall.firstVertex, direction) / lengthSquared < .5 else support[1] - 1)
+                                         for point in parentCorners]
                 parentBounds = QtGui.QPolygonF(parentCorners).boundingRect()
                 blocked = BlockedOpeningIntervals([(point.x(), point.y()) for point in parentCorners],
                     (wall.firstVertex.x(), wall.firstVertex.y()), numericDirection, lengthSquared,
-                    (polygon for owner, bounds, polygon in preparedPolygons if owner is not wall and parentBounds.intersects(bounds)))
+                    (polygon for owner, bounds, polygon in preparedPolygons if id(owner) not in ignoredWalls and parentBounds.intersects(bounds)), support)
                 gapStart, gapEnd = OpeningGap(fraction, blocked, gapStart, gapEnd)
                 if (gapEnd - gapStart) * parentLength < 1.0:
                     continue
                 span, minimumCenter, maximumCenter, center = OpeningPlacementSpan(length, parentLength, fraction, gapStart, gapEnd)
+                if reservedDoor:
+                    bounds = ReservedDoorPlacementBounds(parentLength, span * parentLength, hingeAtSecond, (gapStart, gapEnd))
+                    minimumCenter = max(minimumCenter, bounds[0] + span / 2)
+                    maximumCenter = min(maximumCenter, bounds[1] - span / 2)
+                    if minimumCenter > maximumCenter:
+                        continue
+                    center = max(minimumCenter, min(maximumCenter, center))
                 midpoint = wall.firstVertex + direction * center
                 anchors = (midpoint, midpoint - direction * (span / 2), midpoint + direction * (span / 2))
                 # A raw placement is a fallback, not a zero-distance snap target.
                 placements = [(3, float("inf"), openingType(wall, center - span / 2, center + span / 2), [])]
+                if reservedDoor:
+                    placements[0][2].hingeAtSecond = hingeAtSecond
                 if openingType is not Fireplace and numericSnapTargets is None:
                     # The scene and drag exclusions stay fixed throughout this
                     # query; share one target snapshot across all three anchors.
@@ -538,6 +589,8 @@ class PlacementMixin:
                         continue
                     snappedCenter = max(minimumCenter, min(maximumCenter, snappedCenter))
                     candidate = openingType(wall, snappedCenter - span / 2, snappedCenter + span / 2)
+                    if reservedDoor:
+                        candidate.hingeAtSecond = hingeAtSecond
                     correctionDistance = QtCore.QLineF(self.WorldToViewport(anchor), self.WorldToViewport(snapped)).length()
                     placements.append((self.snapPriority, correctionDistance, candidate, self.alignmentGuides))
                 for priority, correctionDistance, candidate, guides in sorted(placements, key = lambda placement: placement[:2]):
@@ -582,25 +635,15 @@ class PlacementMixin:
         return preview
 
     def OrientDoor(self, door, position):
-        direction = door.secondVertex - door.firstVertex
-        length = math.hypot(direction.x(), direction.y())
-        if length < 1e-10:
+        policy = OpeningFacingPolicy(type(door))
+        if not policy[0] and policy[1] is None:
             return
-        direction /= length
-        offset = self.ViewportToWorld(position) - (door.firstVertex + door.secondVertex) / 2
-        along = QtCore.QPointF.dotProduct(offset, direction)
-        across = QtCore.QPointF.dotProduct(offset, QtCore.QPointF(-direction.y(), direction.x()))
-        # A small axis dead zone avoids flickering when the pointer is on a divider.
-        pixelsPerMillimeter = self.basePixelsPerMillimeter * self.zoom
-        if isinstance(door, (Door, SwingingDoor, SlidingDoor, PocketDoor, CasementWindow)) and abs(along) * pixelsPerMillimeter > 2:
-            door.hingeAtSecond = along < 0 if isinstance(door, SlidingDoor) else along > 0
-        if abs(across) * pixelsPerMillimeter > 2:
-            if isinstance(door, SlidingDoor):
-                door.panelsFlipped = across < 0
-            elif type(door) in (Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow):
-                door.swingsOutwards = across > 0
-            elif isinstance(door, (Door, DoubleDoor, BarnDoor, BifoldDoor)):
-                door.swingsOutwards = across < 0
+        first, second = door.firstVertex, door.secondVertex
+        worldPosition = self.ViewportToWorld(position)
+        changes = OpeningFacingChanges((first.x(), first.y()), (second.x(), second.y()),
+            (worldPosition.x(), worldPosition.y()), self.basePixelsPerMillimeter * self.zoom, policy)
+        for field, value in changes.items():
+            setattr(door, field, value)
 
     def PlaceWindow(self, position, openingType = Window, modifiers = None, placement = None):
         window = placement if placement is not None else self.FindWindowPlacement(position, openingType = openingType, modifiers = modifiers)

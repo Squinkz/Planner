@@ -1,0 +1,36 @@
+// Neutral editor-inspired charcoal with silver linework and muted sand selections.
+{
+    "name": "Charcoal Canvas",
+    "type": "canvas",
+    "extends": "Dark Canvas",
+    "colors": {
+        "canvas": "#252526",
+        "roomFill": "#2d2d2e",
+        "grid": "#7e7e80",
+        "objectOutline": "#dedee0",
+        "wallOutline": "#c2c2c5",
+        "wallFill": "#38383a",
+        "materialPattern": "#7c7c80",
+        "selectionOutline": "#c6bba6",
+        "selectionFill": "#4c4942",
+        "groupSelectionOutline": "#e2d8c5",
+        "groupSelectionFill": "#605b50",
+        "stairSelectionFill": "#3f3d38",
+        "stairGroupSelectionFill": "#4f4b43",
+        "selectionBoxFill": "#23c6bba6",
+        "measurementLine": "#a2a2a6",
+        "rulerBackground": "#202021",
+        "rulerMajorTick": "#a0a0a4",
+        "rulerMinorTick": "#606063",
+        "rulerText": "#cbcbce",
+        "overlayFill": "#ed202021",
+        "performanceText": "#eea080",
+        "invalidOutline": "#7c7c80",
+        "warningFill": "#583c34",
+        "warningOutline": "#f0a18c",
+        "errorBorder": "#9a6259",
+        "errorFill": "#f03e2c2c",
+        "errorText": "#f4b2a6",
+        "missing": "#eea080"
+    }
+}

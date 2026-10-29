@@ -31,28 +31,23 @@ def Main():
         "Inches": '50" × 1"',
         "Feet and Inches": '4\' 2" × 1"',
     }
-    card = main.furnishingCards["desk"]
-    label = main.furnishingDimensionLabels["desk"]
-    assert card.layout().itemAt(1).widget() is label
-    assert card.layout().itemAt(0).widget() is main.furnishingButtons["desk"]
-    assert card.layout().itemAt(2).widget().text() == definition["name"]
+    grids = dict(main.furnishingCategoryGrids)
     for mode, text in expected.items():
         settings.SetUnitsMode(mode)
-        assert label.text() == text, (mode, label.text())
+        assert main.furnishingDimensions["desk"] == text, (mode, main.furnishingDimensions["desk"])
     definition["width"], definition["length"] = 11.6 * 25.4, 12.5 * 25.4
     settings.SetUnitsMode("Inches")
-    assert label.text() == '12" × 13"'
+    assert main.furnishingDimensions["desk"] == '12" × 13"'
     settings.SetUnitsMode("Feet and Inches")
-    assert label.text() == '1\' 0" × 1\' 1"'
+    assert main.furnishingDimensions["desk"] == '1\' 0" × 1\' 1"'
     definition["width"], definition["length"] = originalWidth, originalLength
     settings.SetUnitsMode("Adaptive Metric")
     main.furnishingSearchField.setText("desk")
     main.UpdateFurnishingSearch()
-    assert main.furnishingCards["desk"] is card
-    assert main.furnishingDimensionLabels["desk"] is label
-    expectedText = label.text()
+    assert main.furnishingCategoryGrids == grids
+    expectedText = main.furnishingDimensions["desk"]
     main.BuildFurnishTab(refresh = True)
-    assert main.furnishingDimensionLabels["desk"].text() == expectedText
+    assert main.furnishingDimensions["desk"] == expectedText
     main.furnishingSearchField.clear()
     main.UpdateFurnishingSearch()
     app.processEvents()

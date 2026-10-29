@@ -94,6 +94,11 @@ def Main():
             painter.end()
             thicknesses.append(sum(lineImage.pixelColor(x, 50).alpha() > 0 for x in range(width)))
         assert thicknesses[0] == thicknesses[1] and thicknesses[0] > 0
+        # Later canvas edits import child assets, so retain their bytes after
+        # this temporary catalog's image files are removed.
+        for item in loaded.values():
+            if not item.get("graphicData"):
+                item["graphicData"] = Path(item["imagePath"]).read_bytes()
     main = MainWindow()
     main.show()
     app.processEvents()

@@ -1,16 +1,15 @@
 """Desktop history adapter; portable record algorithms live in edit_transactions.
 
-Qt value semantics, retained-size estimates and model validation stay here.
+Qt value semantics, retained-size estimates and model identity resolution stay here.
 See docs/EDITING_PORTS.md for capture/gesture/signal responsibilities intentionally
 left in the desktop layer. Full captures remain temporary interaction state.
 """
 import sys
 from itertools import count
 from PySide6 import QtCore
-from .edit_transactions import SparseSceneEdit, stateCategories
+from .edit_transactions import SparseSceneEdit, stateCategories, ValidateSceneMemberships
+from .history_records import ApplyReferenceChanges, historyLimit, historyByteBudget
 
-historyLimit = 200
-historyByteBudget = 16 * 1024 * 1024
 editTokens = count(1)
 
 
@@ -44,19 +43,11 @@ class SceneEdit(SparseSceneEdit):
         self.byteSize = RetainedBytes((self.changes, groups, hidden, orders, selection)) + 128
 
     def ValidateState(self, result):
-        members = {id(entry[0]) for category in stateCategories for entry in result[category]}
-        walls = {id(entry[0]) for entry in result[0] if type(entry[0]).__name__ == "Wall"}
-        if any(id(entry[1]) not in walls for entry in result[3]):
-            raise ValueError("History opening has no parent wall.")
-        grouped = set()
-        for group in result[6]:
-            ids = {id(obj) for obj in group}
-            if len(ids) < 2 or len(ids) != len(group) or ids - members or ids & grouped:
-                raise ValueError("Invalid history group.")
-            grouped.update(ids)
-        hiddenIds = {id(obj) for obj in result[7]}
-        if hiddenIds - members or len(hiddenIds) != len(result[7]):
-            raise ValueError("Invalid hidden history objects.")
+        members = (id(entry[0]) for category in stateCategories for entry in result[category])
+        walls = (id(entry[0]) for entry in result[0] if type(entry[0]).__name__ == "Wall")
+        openingParents = (id(entry[1]) for entry in result[3])
+        groups = (tuple(id(obj) for obj in group) for group in result[6])
+        ValidateSceneMemberships(members, walls, openingParents, groups, (id(obj) for obj in result[7]))
 
 
 class ReferenceImageEdit(SceneEdit):
@@ -73,12 +64,4 @@ class ReferenceImageEdit(SceneEdit):
         return state
 
     def ApplyReference(self, record, forward, validate = False):
-        if record is None:
-            raise ValueError("Reference history has no image.")
-        result = dict(record, center = list(record["center"]))
-        source, target = (0, 1) if forward else (1, 0)
-        for name, values in self.referenceChanges.items():
-            if validate and result[name] != values[source]:
-                raise ValueError("Reference history does not match the current image.")
-            result[name] = list(values[target]) if name == "center" else values[target]
-        return result
+        return ApplyReferenceChanges(record, self.referenceChanges, forward, validate = validate)

@@ -72,7 +72,7 @@ def Main():
     panel.vignetteStrengthField.setValue(.375)
     assert panel.vignetteStrengthSlider.value() == 375
     panel.vignetteStrengthReset.click()
-    assert "vignetteStrength" not in panel.overrides and panel.vignetteStrengthField.value() == .25
+    assert "vignetteStrength" not in panel.overrides and panel.vignetteStrengthField.value() == .125
     panel.vignetteStrengthField.setValue(0)
     assert panel.vignetteStrengthSlider.value() == 0
     assert panel.Render("png") == baseline

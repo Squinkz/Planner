@@ -1,133 +1,27 @@
 """Read-only checks for current scene problems, shared with recovery validation."""
-import math
 import hashlib
 import json
 import re
-from itertools import combinations
 from PySide6 import QtCore
 from .furnishing_assets import FurnishingAssetProblems
+from .coincident_records import PlanCoincidentRemoval
 from .geometry_recovery import FindGeometryIssue, GeometryRepairText
 from .models import Furnishing, Window, Wall, Pillar, Column, Counter, Stair, Railing, Elevator
 from .project_codec import EncodeObjectRecord
 from .viewport.geometry import CollisionPass
-from .units import FormatLength
-
-
-potentialAngleTolerance = .5
-potentialDistanceTolerance = 5.0
-endpointTolerance = .01
-
-
-def PotentialWallIssue(viewport, wall, code, label, description, cluster, target, related = ()):
-    changes = tuple((obj, index, QtCore.QPointF(target)) for obj, index in cluster["endpoints"])
-    objects = {id(obj): obj for obj in (wall, *related, *(entry[0] for entry in changes))}
-    source = cluster["point"]
-    coordinates = [FormatLength(value, viewport.unitsMode, decimals = 4)
-                   for value in (source.x(), source.y(), target.x(), target.y())]
-    repairText = f"Repair will move the endpoint from ({coordinates[0]}, {coordinates[1]}) to ({coordinates[2]}, {coordinates[3]})."
-    if len(changes) > 1:
-        repairText += f"\nAll {len(changes)} endpoints at this junction will move together."
-    # Use persistent IDs and geometry, never the runtime IDs embedded in some
-    # issue codes. This survives save/reopen without hiding changed geometry.
-    signature = dict(kind = code.split(":")[1], primary = wall.objectId or 0,
-        objects = sorted((obj.objectId or 0, obj.firstVertex.x(), obj.firstVertex.y(),
-                          obj.secondVertex.x(), obj.secondVertex.y(), float(obj.width)) for obj in objects.values()),
-        changes = sorted((obj.objectId or 0, index, target.x(), target.y()) for obj, index, target in changes))
-    fingerprint = hashlib.sha256(json.dumps(signature, sort_keys = True, separators = (",", ":")).encode("utf-8")).hexdigest()
-    return dict(object = wall, objects = tuple(objects.values()), code = code, label = label,
-                description = description, repair = changes, repairText = repairText, potential = True, fingerprint = fingerprint)
+from .geometry.wall_diagnostics import WallDiagnosticRecord, PlanPotentialWallRepairs
 
 
 def FindPotentialWallIssues(viewport, gridStep):
-    walls = [wall for wall in viewport.walls if type(wall) is Wall
-             and all(math.isfinite(value) for point in (wall.firstVertex, wall.secondVertex) for value in (point.x(), point.y()))
-             and QtCore.QLineF(wall.firstVertex, wall.secondVertex).length() >= 1]
-    clusters, buckets, membership = [], {}, {}
-    for wall in walls:
-        for index, vertex in enumerate((wall.firstVertex, wall.secondVertex)):
-            cell = math.floor(vertex.x() / endpointTolerance), math.floor(vertex.y() / endpointTolerance)
-            candidates = sorted({candidate for dx in (-1, 0, 1) for dy in (-1, 0, 1)
-                                 for candidate in buckets.get((cell[0] + dx, cell[1] + dy), ())})
-            clusterIndex = next((candidate for candidate in candidates
-                                 if QtCore.QLineF(vertex, clusters[candidate]["point"]).length() <= endpointTolerance), None)
-            if clusterIndex is None:
-                clusterIndex = len(clusters)
-                clusters.append(dict(point = QtCore.QPointF(vertex), endpoints = []))
-                buckets.setdefault(cell, []).append(clusterIndex)
-            clusters[clusterIndex]["endpoints"].append((wall, index))
-            membership[id(wall), index] = clusterIndex
-    issues = []
-    for wall in walls:
-        direction = wall.secondVertex - wall.firstVertex
-        angle = math.degrees(math.atan2(direction.y(), direction.x()))
-        deviation = abs((angle + 45) % 90 - 45)
-        if 1e-6 < deviation <= potentialAngleTolerance + 1e-9:
-            # Prefer moving a free endpoint over disturbing a larger junction.
-            index = min((1, 0), key = lambda index: len(clusters[membership[id(wall), index]]["endpoints"]))
-            cluster = clusters[membership[id(wall), index]]
-            vertex = wall.firstVertex if index == 0 else wall.secondVertex
-            opposite = wall.secondVertex if index == 0 else wall.firstVertex
-            target = (QtCore.QPointF(vertex.x(), opposite.y()) if abs(direction.x()) >= abs(direction.y())
-                      else QtCore.QPointF(opposite.x(), vertex.y()))
-            if QtCore.QLineF(vertex, target).length() > endpointTolerance:
-                issues.append(PotentialWallIssue(viewport, wall, "potential:axis", "Wall almost aligned to an axis",
-                    f"The wall is {deviation:.4g}\u00b0 from {'horizontal' if abs(direction.x()) >= abs(direction.y()) else 'vertical'}.",
-                    cluster, target))
-    gapBuckets = {}
-    for clusterIndex, cluster in enumerate(clusters):
-        point = cluster["point"]
-        if math.isfinite(gridStep) and gridStep > 0:
-            originX, originY = viewport.gridOrigin
-            target = QtCore.QPointF(originX + round((point.x() - originX) / gridStep) * gridStep,
-                                   originY + round((point.y() - originY) / gridStep) * gridStep)
-            distance = QtCore.QLineF(point, target).length()
-            if endpointTolerance < distance <= min(potentialDistanceTolerance, gridStep * .05):
-                wall, index = cluster["endpoints"][0]
-                issues.append(PotentialWallIssue(viewport, wall, f"potential:grid:{index}", "Endpoint just off grid",
-                    f"The endpoint is {FormatLength(distance, viewport.unitsMode, decimals = 4)} from a grid intersection. "
-                    f"Checked grid spacing: {FormatLength(gridStep, viewport.unitsMode, decimals = 4)}.", cluster, target))
-        for (first, firstIndex), (second, secondIndex) in combinations(cluster["endpoints"], 2):
-            if first is second:
-                continue
-            firstFar = first.secondVertex if firstIndex == 0 else first.firstVertex
-            secondFar = second.secondVertex if secondIndex == 0 else second.firstVertex
-            firstDirection, secondDirection = firstFar - point, secondFar - point
-            lengths = math.hypot(firstDirection.x(), firstDirection.y()) * math.hypot(secondDirection.x(), secondDirection.y())
-            if lengths < 1e-8:
-                continue
-            angle = math.degrees(math.acos(max(-1, min(1, QtCore.QPointF.dotProduct(firstDirection, secondDirection) / lengths))))
-            if not 1e-6 < abs(angle - 90) <= potentialAngleTolerance + 1e-9:
-                continue
-            moving, movingIndex, reference = second, 1 - secondIndex, first
-            if len(clusters[membership[id(first), 1 - firstIndex]]["endpoints"]) < len(clusters[membership[id(second), 1 - secondIndex]]["endpoints"]):
-                moving, movingIndex, reference = first, 1 - firstIndex, second
-            movingCluster = clusters[membership[id(moving), movingIndex]]
-            referenceDirection = firstDirection if reference is first else secondDirection
-            normal = QtCore.QPointF(-referenceDirection.y(), referenceDirection.x()) / math.hypot(referenceDirection.x(), referenceDirection.y())
-            target = point + normal * QtCore.QPointF.dotProduct(movingCluster["point"] - point, normal)
-            if QtCore.QLineF(movingCluster["point"], target).length() > endpointTolerance:
-                issues.append(PotentialWallIssue(viewport, moving, f"potential:right-angle:{id(reference)}:{movingIndex}",
-                    "Almost right-angle join", f"Walls {first.objectId} and {second.objectId} meet at {angle:.4f}\u00b0, "
-                    f"{abs(angle - 90):.4g}\u00b0 from a right angle. The shared junction will stay fixed.",
-                    movingCluster, target, related = (reference,)))
-        cell = math.floor(point.x() / potentialDistanceTolerance), math.floor(point.y() / potentialDistanceTolerance)
-        for dx in (-1, 0, 1):
-            for dy in (-1, 0, 1):
-                for otherIndex in gapBuckets.get((cell[0] + dx, cell[1] + dy), ()):
-                    other = clusters[otherIndex]
-                    if {id(obj) for obj, index in cluster["endpoints"]} & {id(obj) for obj, index in other["endpoints"]}:
-                        continue
-                    distance = QtCore.QLineF(point, other["point"]).length()
-                    if not endpointTolerance < distance <= potentialDistanceTolerance:
-                        continue
-                    moving, fixed = (cluster, other) if len(cluster["endpoints"]) <= len(other["endpoints"]) else (other, cluster)
-                    wall, index = moving["endpoints"][0]
-                    targetWall, targetIndex = fixed["endpoints"][0]
-                    issues.append(PotentialWallIssue(viewport, wall, f"potential:gap:{index}:{id(targetWall)}:{targetIndex}",
-                        "Nearby endpoints are not connected", f"The endpoints are {FormatLength(distance, viewport.unitsMode, decimals = 4)} apart. "
-                        "Repair will join them at the existing target endpoint.", moving, fixed["point"],
-                        related = tuple(obj for obj, index in fixed["endpoints"])))
-        gapBuckets.setdefault(cell, []).append(clusterIndex)
+    objects = {id(wall): wall for wall in viewport.walls if type(wall) is Wall}
+    records = (WallDiagnosticRecord(key, wall.objectId, (wall.firstVertex.x(), wall.firstVertex.y()),
+                                    (wall.secondVertex.x(), wall.secondVertex.y()), wall.width)
+               for key, wall in objects.items())
+    issues = PlanPotentialWallRepairs(records, gridStep, viewport.gridOrigin, viewport.unitsMode)
+    for issue in issues:
+        issue["object"] = objects[issue["object"]]
+        issue["objects"] = tuple(objects[key] for key in issue["objects"])
+        issue["repair"] = tuple((objects[key], index, QtCore.QPointF(*target)) for key, index, target in issue["repair"])
     return issues
 
 
@@ -203,24 +97,19 @@ def FindSceneProblems(viewport, includePotential = True, gridStep = None, includ
 
 def RepairCoincidentObjects(viewport, issues):
     selected = {id(issue["object"]) for issue in issues}
-    groups = [group for group in viewport.CoincidentObjectGroups(includeHidden = True) if any(id(obj) in selected for obj in group[1:])]
-    if not groups:
+    replacements = PlanCoincidentRemoval(viewport.CoincidentObjectGroups(includeHidden = True), viewport.IsObjectVisible, selectedIds = selected)
+    if not replacements:
         return False
     before = viewport.CaptureState()
-    replacements = {}
-    for group in groups:
-        keeper = next((obj for obj in group if viewport.IsObjectVisible(obj)), group[0])
-        replacements.update({id(obj): keeper for obj in group if obj is not keeper})
     parents = {id(keeper) for keeper in replacements.values() if type(keeper) is Wall}
     for opening in viewport.windows:
         if id(opening.parentWall) in replacements:
             opening.parentWall = replacements[id(opening.parentWall)]
     # Reparenting can make children of duplicate walls coincide too. Preserve
     # distinct openings and remove only exact child copies on the retained walls.
-    for group in viewport.CoincidentObjectGroups(includeHidden = True):
-        if isinstance(group[0], Window) and id(group[0].parentWall) in parents:
-            keeper = next((obj for obj in group if viewport.IsObjectVisible(obj)), group[0])
-            replacements.update({id(obj): keeper for obj in group if obj is not keeper})
+    childGroups = (group for group in viewport.CoincidentObjectGroups(includeHidden = True)
+                   if isinstance(group[0], Window) and id(group[0].parentWall) in parents)
+    replacements.update(PlanCoincidentRemoval(childGroups, viewport.IsObjectVisible))
     removed = set(replacements)
     viewport.walls = [obj for obj in viewport.walls if id(obj) not in removed]
     viewport.windows = [obj for obj in viewport.windows if id(obj) not in removed]

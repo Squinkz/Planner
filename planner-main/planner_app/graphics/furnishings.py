@@ -1,4 +1,5 @@
 """Furnishing SVG selection colors and viewport painting."""
+from planner_app.geometry.compound_furnishings import CompoundAuthoredBounds
 
 import math
 import re
@@ -141,18 +142,7 @@ def FurnishingContainsPoint(furnishing, renderer, worldPosition, tolerance):
 
 
 def CompoundFurnishingSvg(components):
-    from planner_app.furnishing_limits import FurnishingExpansionSizes
-    FurnishingExpansionSizes([{"components": components}])
-    corners = []
-    for child in components:
-        angle = math.radians(child["angle"])
-        cosine, sine = math.cos(angle), math.sin(angle)
-        for x in (-child["width"] / 2, child["width"] / 2):
-            for y in (-child["length"] / 2, child["length"] / 2):
-                corners.append((child["x"] + x * cosine - y * sine,
-                                child["y"] + x * sine + y * cosine))
-    left, right = min(x for x, y in corners), max(x for x, y in corners)
-    bottom, top = min(y for x, y in corners), max(y for x, y in corners)
+    left, bottom, right, top = CompoundAuthoredBounds(components)
     width, length = right - left, top - bottom
     namespace = "{http://www.w3.org/2000/svg}"
     root = ElementTree.Element(namespace + "svg", {"viewBox": f"{left} {-top} {width} {length}",

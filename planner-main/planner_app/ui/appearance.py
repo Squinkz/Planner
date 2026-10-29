@@ -103,7 +103,22 @@ class AppearanceMixin:
             self.RefreshFurnishingRenderers()
         for widget in self.findChildren(FurnishingButton):
             widget.RefreshIcon()
+        if uiChanged:
+            for grid in (*self.furnishingCategoryGrids.values(), self.furnishingResultsGrid):
+                grid.RefreshMetrics()
+        else:
+            for grid in (*self.furnishingCategoryGrids.values(), self.furnishingResultsGrid):
+                grid.viewport().update()
         self.furnishingList.RefreshIcons()
+        quickSearch = getattr(self, "furnishingQuickSearch", None)
+        if quickSearch is not None:
+            for row in range(quickSearch.results.count()):
+                item = quickSearch.results.item(row)
+                definition = self.viewport.furnishingDefinitions.get(item.data(QtCore.Qt.ItemDataRole.UserRole))
+                if definition is not None:
+                    icon = self.furnishingThumbnails.Icon(definition)
+                    if item.icon().cacheKey() != icon.cacheKey():
+                        item.setIcon(icon)
         self.wallWidthSelector.icons = [WallPresetIcon(index) for index in range(4)]
         self.wallWidthSelector.update()
         self.materialIcons = {material: MaterialIcon(material) for material in wallMaterials}

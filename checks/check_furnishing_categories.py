@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "planner-main"))
-from PySide6 import QtWidgets
+from PySide6 import QtCore, QtWidgets
 from planner import MainWindow
 from planner_app.catalog import LoadFurnishings
 from planner_app.furnishing_search import FindFurnishings
@@ -55,21 +55,20 @@ def Main():
         main.BuildFurnishTab(refresh = True)
         main.sidebarTabs.setCurrentIndex(1)
         app.processEvents()
-        cards = [main.furnishingCategoryCards[("multi", category)] for category in ("Office", "Study")]
-        assert cards[0] is not cards[1]
-        assert all(card.isVisible() and card.findChild(FurnishingButton).definition is catalog["multi"] for card in cards)
+        grids = [main.furnishingCategoryGrids[category] for category in ("Office", "Study")]
+        assert grids[0] is not grids[1]
+        assert all(grid.isVisible() and "multi" in grid.model().keys for grid in grids)
         for query in ("Study", "Office", "*"):
             main.furnishingSearchField.setText(query)
             main.UpdateFurnishingSearch()
-            results = [main.furnishingResultsLayout.itemAt(index).widget().findChild(FurnishingButton).definition["key"]
-                       for index in range(main.furnishingResultsLayout.count())]
+            results = list(main.furnishingResultsGrid.model().keys)
             assert results.count("multi") == 1 and len(results) == len(set(results))
         main.furnishingSearchField.clear()
         v.unitsMode = "Millimeters"
         main.UpdateFurnishingSearch()
-        assert all(card.isVisible() for card in cards)
-        labels = [main.furnishingCategoryDimensionLabels[("multi", category)] for category in ("Office", "Study")]
-        assert labels[0].text() == labels[1].text()
+        assert all(grid.isVisible() and "multi" in grid.model().keys for grid in grids)
+        dimensions = [grid.model().index(grid.model().keys.index("multi"), 0).data(QtCore.Qt.ItemDataRole.UserRole + 1) for grid in grids]
+        assert dimensions[0] == dimensions[1]
         children = [{"furnishing": "desk", "x": -600}, {"furnishing": "chair_dining", "x": 600}]
         with patch.object(main, "ShowAppMessage") as dialogs, warnings.catch_warnings(record = True):
             saved = main.SaveUserFurnishing("Desk", "Office, Study, office", children)

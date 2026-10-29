@@ -1,4 +1,4 @@
-// A playful two-ink print palette: indigo drafting with raspberry and mint accents.
+// A playful two-ink print palette: indigo drafting with raspberry and coral accents.
 {
     "name": "Risograph Canvas",
     "type": "canvas",
@@ -14,10 +14,10 @@
         "materialPattern": "#9390b5",
         "selectionOutline": "#a94168",
         "selectionFill": "#efd0d3",
-        "groupSelectionOutline": "#247b70",
-        "groupSelectionFill": "#cbe3cf",
+        "groupSelectionOutline": "#c35b68",
+        "groupSelectionFill": "#efbfc1",
         "stairSelectionFill": "#f2dfdb",
-        "stairGroupSelectionFill": "#dcead8",
+        "stairGroupSelectionFill": "#f3d4cf",
         "selectionBoxFill": "#23a94168",
         "measurementLine": "#8d5679",
         "rulerBackground": "#eae0d4",

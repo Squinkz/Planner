@@ -1,0 +1,27 @@
+{
+    "name": "Houseplant 3",
+    "image": "plant_med3",
+    "width": 600,
+    "length": 600,
+    "icon": null,
+    "category": [
+        "Living Room",
+        "Entry",
+        "Office"
+    ],
+    "inherits": null,
+    "children": [],
+    "keywords": [
+        "plant",
+        "houseplant",
+        "pot",
+        "potted",
+        "planter",
+        "foliage",
+        "greenery",
+        "leaves",
+        "indoor",
+        "decorative",
+        "decor"
+    ]
+}

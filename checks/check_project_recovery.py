@@ -34,6 +34,22 @@ def Main():
     decoded, notices = RecoverProject(template, definitions, defaults)
     assert not notices and template == original
     assert decoded[5]["unitsMode"] == template["settings"]["unitsMode"]
+    for legacyFloors, roomStyle, expected in ((False, None, "Canvas"), (True, None, "Tinted"),
+                                              (True, "Canvas", "Canvas"), ("false", None, "Tinted")):
+        legacy = copy.deepcopy(template)
+        legacy["settings"].pop("roomStyle", None)
+        legacy["settings"]["floors"] = legacyFloors
+        legacy["settings"]["wallWidth"] = "invalid"
+        legacy["settings"]["exportSettings"] = {"floors": False}
+        if roomStyle is not None:
+            legacy["settings"]["roomStyle"] = roomStyle
+        originalLegacy = copy.deepcopy(legacy)
+        recovered, repairs = RecoverProject(legacy, definitions, defaults)
+        assert recovered[5]["roomStyle"] == expected, (legacyFloors, roomStyle)
+        assert recovered[5]["exportSettings"]["roomStyle"] == "Canvas"
+        assert legacy == originalLegacy, "Recovery modified its input"
+        assert not any("unknown editor setting: floors" in notice for notice in repairs)
+        assert any("invalid floors" in notice for notice in repairs) == (type(legacyFloors) is not bool)
     damaged = copy.deepcopy(template)
     damaged["settings"]["unitsMode"] = "Bad Units"
     damaged["settings"]["lineworkSettings"]["baseWidth"] = -5

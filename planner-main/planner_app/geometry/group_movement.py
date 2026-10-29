@@ -2,6 +2,27 @@
 import math
 
 
+def OpeningTransferLength(direction, delta, pixelsPerMillimeter, zoom):
+    length = math.hypot(*direction)
+    if length <= 1e-10:
+        return None
+    across = abs(direction[0] * delta[1] - direction[1] * delta[0]) / length
+    return None if across * pixelsPerMillimeter * zoom <= 1 else length
+
+
+def PlanOpeningTransfer(sourceLength, sourceFraction, targetLength, targetFraction, openings, reversedAlongWall):
+    """Fit a rigid opening group without changing order or relative distances."""
+    sign = -1 if reversedAlongWall else 1
+    offsets = [(fraction - sourceFraction) * sourceLength * sign for fraction, length in openings]
+    lower = max(length / 2 - offset for (fraction, length), offset in zip(openings, offsets))
+    upper = min(targetLength - length / 2 - offset for (fraction, length), offset in zip(openings, offsets))
+    if lower > upper:
+        return None
+    distance = max(lower, min(upper, targetFraction * targetLength))
+    fractions = [(distance + offset) / targetLength for offset in offsets]
+    return fractions, abs(distance - targetFraction * targetLength) > .01
+
+
 def ProjectGroupTravel(delta, parentDirections):
     """Sequentially project onto fixed parent axes, retaining the last axis.
 
@@ -25,17 +46,20 @@ def GroupOpeningLimits(travel, openings, stationary, duplicate = False):
     """Intersect fixed-parent travel limits in original opening/blocker order.
 
     Openings: (parent key, direction, length, original fraction, size, vertex index).
+    An optional seventh field supplies reserved-space bounds for pocket/barn doors.
     Stationary: parent key -> ordered (center, first fraction, second fraction).
     A selected endpoint constrains the axis, but does not add whole-opening bounds.
     Copies ignore source/neighbour intervals; final collision validation decides.
     """
     minimum, maximum = -float("inf"), float("inf")
-    for parent, direction, length, fraction, size, vertexIndex in openings:
+    for record in openings:
+        parent, direction, length, fraction, size, vertexIndex = record[:6]
         if vertexIndex is not None:
             continue
         sign = 1 if direction[0] * travel[0] + direction[1] * travel[1] >= 0 else -1
         center = fraction * length
-        lower, upper = size / 2 - center, length - size / 2 - center
+        low, high = record[6] if len(record) > 6 else (0, 1)
+        lower, upper = low * length + size / 2 - center, high * length - size / 2 - center
         for otherCenter, firstFraction, secondFraction in (() if duplicate else stationary.get(parent, ())):
             if otherCenter < fraction:
                 lower = max(lower, secondFraction * length + size / 2 - center)

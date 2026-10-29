@@ -11,6 +11,13 @@ from PySide6 import QtCore, QtGui, QtTest, QtWidgets
 from fixtures.parity_examples import ExampleWindow, InstallScene
 from planner_app.models import Counter
 from planner_app.placement_sizing import NominalPlacementSize
+from planner_app.viewport import rendering
+
+
+class ObservedTips(dict):
+    def __getitem__(self, key):
+        self.drawn.append(key)
+        return super().__getitem__(key)
 
 
 def Main():
@@ -52,7 +59,23 @@ def Main():
                         # never resize it as though it were a drawn wall.
                         v.UpdateInteraction(position + p(80, 60), QtCore.Qt.KeyboardModifier.ControlModifier)
                         assert len(v.pendingShapeWalls or [v.pendingWall]) == count
-                        v.grab()  # Use the ordinary joined-wall preview renderer.
+                        if shape == "circle":
+                            zoom = v.zoom
+                            # Exercise native source delivery, partial wheel ticks,
+                            # trackpad deltas and reverse scrolling without zooming.
+                            for angle, pixels, expectedCount in ((60, 0, 8), (60, 0, 9), (0, 4, 10), (-120, 0, 9),
+                                                                 (-2400, 0, 3), (720, 0, 9)):
+                                wheel = QtGui.QWheelEvent(p(button.rect().center()), p(button.mapToGlobal(button.rect().center())),
+                                    QtCore.QPoint(0, pixels), QtCore.QPoint(0, angle), left, noMods,
+                                    QtCore.Qt.ScrollPhase.NoScrollPhase, False)
+                                QtWidgets.QApplication.sendEvent(button, wheel)
+                                assert wheel.isAccepted() and v.circleSegments == expectedCount
+                                assert len(v.pendingShapeWalls) == expectedCount and v.zoom == zoom
+                        tips = ObservedTips(rendering.toolTipRows)
+                        tips.drawn = []
+                        with patch.object(rendering, "toolTipRows", tips):
+                            v.grab()  # Use the ordinary joined-wall preview renderer.
+                        assert tips.drawn == (["segments", "cancelMove"] if shape == "circle" else ["cancelMove"]), tips.drawn
                         drop = QtGui.QDropEvent(position, copy, mime, left, noMods)
                         v.dropEvent(drop)
                         assert drop.isAccepted()
@@ -67,13 +90,14 @@ def Main():
                     QtTest.QTest.mouseRelease(button, left, pos = center.toPoint())
                     drag.exec.assert_called_once()
                 assert not v.guiDragActive and v.pendingWall is None and not v.pendingShapeWalls
+                count = 9 if shape == "circle" else count
                 assert len(v.walls) == count and len(v.undoHistory) == 1
                 assert {id(wall) for wall, index in v.SelectionEntries()} == {id(wall) for wall in v.walls}
                 assert all(wall.width == 150 and wall.material == v.newWallMaterial for wall in v.walls)
                 worldCenter = v.ViewportToWorld(position)
                 for wall in v.walls:
                     length = QtCore.QLineF(wall.firstVertex, wall.secondVertex).length()
-                    expected = 2 * size * math.sin(math.pi / 8) if shape == "circle" else size
+                    expected = 2 * size * math.sin(math.pi / count) if shape == "circle" else size
                     assert abs(length - expected) < 1e-7
                     if shape == "circle":
                         assert abs(QtCore.QLineF(worldCenter, wall.firstVertex).length() - size) < 1e-7
@@ -111,6 +135,7 @@ def Main():
         InstallScene(main, [])
         v.unitsMode = "Millimeters"
         v.snapEnabled = True
+        v.circleSegments = 8
         for shape in ("line", "square", "circle"):
             walls = v.FindWallToolPlacement(position + p(17, 11), shape, noMods)
             expected = 2000 * math.sin(math.pi / 8) if shape == "circle" else 1000

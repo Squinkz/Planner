@@ -21,7 +21,7 @@ Planner/
   themes/
   textures/
   assets/fonts/
-  docs/help/
+  help/
   _internal/
 ```
 

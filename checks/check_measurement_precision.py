@@ -8,6 +8,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "planner-main"))
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 from PySide6 import QtCore, QtGui, QtWidgets
+from planner_app.graphics.text import PathTextPainter
 from planner import MainWindow, Wall
 from planner_app.project_codec import DecodeProject
 from planner_app.units import FormatLength, GridUnit, measurementPrecisions, unitModes
@@ -30,7 +31,7 @@ def Main():
     geometry = v.CaptureState()
     drawn = []
 
-    class RecordingPainter(QtGui.QPainter):
+    class RecordingPainter(PathTextPainter):
         def drawText(self, *arguments):
             drawn.append(arguments[-1])
             return super().drawText(*arguments)
@@ -43,7 +44,7 @@ def Main():
         for mode in unitModes[:4]:
             panel.unitsField.setCurrentText(mode)
             drawn.clear()
-            with patch.object(QtGui, "QPainter", RecordingPainter):
+            with patch("planner_app.viewport.rendering.PathTextPainter", RecordingPainter):
                 v.grab()
             expected = FormatLength(rounded, mode, includeUnit = False)
             assert expected in drawn, (precision, mode, drawn)
@@ -64,14 +65,14 @@ def Main():
         divisor, unit = GridUnit(v.GridSteps()[0], v.unitsMode)
         observedUnits.add(unit)
         drawn.clear()
-        with patch.object(QtGui, "QPainter", RecordingPainter):
+        with patch("planner_app.viewport.rendering.PathTextPainter", RecordingPainter):
             v.grab()
         expected = FormatLength(1234.6, v.unitsMode, adaptive = unit, precision = "Medium", includeUnit = False)
         assert expected in drawn and unit in drawn, (unit, drawn)
         # Explicit units do not change with zoom.
         panel.unitsField.setCurrentText("Meters")
         drawn.clear()
-        with patch.object(QtGui, "QPainter", RecordingPainter):
+        with patch("planner_app.viewport.rendering.PathTextPainter", RecordingPainter):
             v.grab()
         assert "1.235" in drawn
         panel.unitsField.setCurrentText("Adaptive Metric")
@@ -99,7 +100,7 @@ def Main():
     assert v.measurementPrecision == "Low"
     panel.precisionField.setCurrentText("Medium")
     assert v.measurementPrecision == "Medium" and main.ProjectSettings()["measurementPrecision"] == "Medium"
-    with patch.object(QtGui, "QPainter", RecordingPainter):
+    with patch("planner_app.graphics.text.PathTextPainter", RecordingPainter), patch("planner_app.viewport.rendering.PathTextPainter", RecordingPainter):
         drawn.clear()
         image = RenderPlan("precision.plan", 100, (-1500, -1000, 3000, 2000), projectData = main.BuildProjectData(), applyTheme = False)
     assert not image.isNull() and "1235" in drawn

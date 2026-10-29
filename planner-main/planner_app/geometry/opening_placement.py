@@ -3,13 +3,13 @@ import math
 from .polygons import SplitPolygon
 
 
-def ProjectOpening(first, second, position):
+def ProjectOpening(first, second, position, bounds = (0.0, 1.0)):
     directionX, directionY = second[0] - first[0], second[1] - first[1]
     lengthSquared = directionX * directionX + directionY * directionY
     if lengthSquared < 1.0:
         return None
     offsetX, offsetY = position[0] - first[0], position[1] - first[1]
-    fraction = max(0.0, min(1.0, (offsetX * directionX + offsetY * directionY) / lengthSquared))
+    fraction = max(bounds[0], min(bounds[1], (offsetX * directionX + offsetY * directionY) / lengthSquared))
     projected = (first[0] + directionX * fraction, first[1] + directionY * fraction)
     return (directionX, directionY), lengthSquared, fraction, projected
 
@@ -26,13 +26,16 @@ def OpeningGap(fraction, intervals, gapStart = 0.0, gapEnd = 1.0):
     return gapStart, gapEnd
 
 
-def BlockedOpeningIntervals(parentCorners, first, direction, lengthSquared, polygons):
+def BlockedOpeningIntervals(parentCorners, first, direction, lengthSquared, polygons, limits = (0.0, 1.0)):
+    # Work locally: absolute-coordinate shoelace products lose small areas when
+    # an otherwise ordinary wall is translated far from the world origin.
+    parentCorners = [(x - first[0], y - first[1]) for x, y in parentCorners]
     area = sum(parentCorners[index][0] * parentCorners[(index + 1) % 4][1]
                - parentCorners[(index + 1) % 4][0] * parentCorners[index][1] for index in range(4))
     orientation = 1 if area > 0 else -1
     blocked = []
     for polygon in polygons:
-        points = polygon
+        points = [(x - first[0], y - first[1]) for x, y in polygon]
         for index, edgeFirst in enumerate(parentCorners):
             points, outside = SplitPolygon(points, edgeFirst, parentCorners[(index + 1) % 4], orientation)
             if len(points) < 3:
@@ -44,9 +47,9 @@ def BlockedOpeningIntervals(parentCorners, first, direction, lengthSquared, poly
                               for index in range(len(points))))
         if overlapArea < 1e-6:
             continue
-        bounds = [((point[0] - first[0]) * direction[0] + (point[1] - first[1]) * direction[1]) / lengthSquared
+        bounds = [(point[0] * direction[0] + point[1] * direction[1]) / lengthSquared
                   for point in points]
-        blocked.append((max(0.0, min(bounds)), min(1.0, max(bounds))))
+        blocked.append((max(limits[0], min(bounds)), min(limits[1], max(bounds))))
     return blocked
 
 
@@ -57,7 +60,7 @@ def OpeningPlacementSpan(length, parentLength, fraction, gapStart, gapEnd):
     return span, minimumCenter, maximumCenter, center
 
 
-def OpeningVertexFraction(first, second, position, vertexIndex, oppositeFraction):
+def OpeningVertexFraction(first, second, position, vertexIndex, oppositeFraction, bounds = (0.0, 1.0)):
     directionX, directionY = second[0] - first[0], second[1] - first[1]
     lengthSquared = directionX * directionX + directionY * directionY
     if lengthSquared < 1e-10:
@@ -65,13 +68,13 @@ def OpeningVertexFraction(first, second, position, vertexIndex, oppositeFraction
     fraction = ((position[0] - first[0]) * directionX + (position[1] - first[1]) * directionY) / lengthSquared
     minimumSpan = min(1.0, 1.0 / math.sqrt(lengthSquared))
     if vertexIndex == 0:
-        return max(0.0, min(oppositeFraction - minimumSpan, fraction))
-    return min(1.0, max(oppositeFraction + minimumSpan, fraction))
+        return max(bounds[0], min(oppositeFraction - minimumSpan, fraction))
+    return min(bounds[1], max(oppositeFraction + minimumSpan, fraction))
 
 
 def CenteredOpeningSpan(first, second, position, vertexIndex, center, gapStart, gapEnd):
     """Resize around a fixed center, stopping both ends at the nearest limit."""
-    projection = ProjectOpening(first, second, position)
+    projection = ProjectOpening(first, second, position, (gapStart, gapEnd))
     if projection is None:
         return None
     direction, lengthSquared, fraction, projected = projection

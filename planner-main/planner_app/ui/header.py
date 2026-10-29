@@ -31,9 +31,11 @@ class HeaderMixin:
             button.clicked.connect(lambda checked = False, path = path: self.OpenProject(path))
 
     def BuildHeader(self, sidebarLayout):
+        self.editorShortcuts = []
         self.deselectShortcut = QtGui.QShortcut(QtGui.QKeySequence("Ctrl+Shift+A"), self)
         self.deselectShortcut.setAutoRepeat(False)
         self.deselectShortcut.activated.connect(self.viewport.DeselectAll)
+        self.editorShortcuts.append(self.deselectShortcut)
         sidebarHeader = QtWidgets.QWidget()
         headerLayout = QtWidgets.QHBoxLayout(sidebarHeader)
         headerLayout.setContentsMargins(0, 0, 0, 0)
@@ -201,6 +203,8 @@ class HeaderMixin:
             shortcut = QtGui.QShortcut(QtGui.QKeySequence(shortcutText), self)
             shortcut.setAutoRepeat(False)
             shortcut.activated.connect(lambda option = option: self.SetViewOption(option))
+            if option in ("showGrid", "showMeasurements", "referenceImage"):
+                self.editorShortcuts.append(shortcut)
         self.viewMenu.addSeparator()
         self.activityLogButton = AddMenuButton(self.viewMenu, "Activity Log", iconName = UiIcon("view_list"))
         self.activityLogButton.clicked.connect(lambda checked = False: self.activityLog.Show())
@@ -208,6 +212,7 @@ class HeaderMixin:
         self.referenceImageEditShortcut = QtGui.QShortcut(QtGui.QKeySequence("Alt+B"), self)
         self.referenceImageEditShortcut.setAutoRepeat(False)
         self.referenceImageEditShortcut.activated.connect(lambda: self.SetViewOption("editReferenceImage"))
+        self.editorShortcuts.append(self.referenceImageEditShortcut)
         viewButton.clicked.connect(self.ShowViewMenu)
         self.viewMenu.aboutToShow.connect(lambda: viewButton.setChecked(True))
         self.viewMenu.aboutToHide.connect(lambda: viewButton.setChecked(False))
@@ -284,13 +289,25 @@ class HeaderMixin:
         self.settingsWindow.raise_()
         self.settingsWindow.activateWindow()
 
-    def ShowViewMenu(self):
+    def RefreshExportActions(self):
+        exporting = self.viewport.exportOverlay.active
+        for shortcut in self.editorShortcuts:
+            shortcut.setEnabled(not exporting)
+        for option in ("showGrid", "showMeasurements", "referenceImage"):
+            button = self.viewOptions[option]
+            button.setEnabled(not exporting)
+            button.setCursor(QtCore.Qt.CursorShape.ArrowCursor if exporting else QtCore.Qt.CursorShape.PointingHandCursor)
+            button.setToolTip("Use the Export tab controls" if exporting and option != "referenceImage" else
+                              "Reference images are unavailable in Export" if exporting else "")
         button = self.menuButtons["Setup Reference Image"]
-        enabled = bool(self.referenceImage.state and self.referenceImage.state["visible"])
+        enabled = not exporting and bool(self.referenceImage.state and self.referenceImage.state["visible"])
         button.setEnabled(enabled)
         button.setCursor(QtCore.Qt.CursorShape.PointingHandCursor if enabled else QtCore.Qt.CursorShape.ArrowCursor)
         mode = QtGui.QIcon.Mode.Normal if enabled else QtGui.QIcon.Mode.Disabled
         button.iconLabel.setPixmap(UiIcon("image").pixmap(QtCore.QSize(18, 18), mode))
+
+    def ShowViewMenu(self):
+        self.RefreshExportActions()
         view = self.exportPanel.ResolvedView() if self.exportPanel.projectView is not None else None
         for option, button in self.viewOptions.items():
             showMeasurements = view["showMeasurements"] if view is not None else self.viewport.showMeasurements
@@ -319,6 +336,11 @@ class HeaderMixin:
         self.viewMenu.popup(viewButton.mapToGlobal(QtCore.QPoint(0, viewButton.height())))
 
     def SetViewOption(self, option):
+        if (self.viewport.exportOverlay.active and not self.exportPanel.applying
+                and (option in ("referenceImage", "editReferenceImage", "showGrid", "showMeasurements")
+                     or option in self.viewport.measurementVisibility)):
+            self.viewMenu.hide()
+            return
         if option in ("referenceImage", "editReferenceImage"):
             if option == "editReferenceImage" and not (self.referenceImage.state and self.referenceImage.state["visible"]):
                 return
@@ -329,17 +351,6 @@ class HeaderMixin:
             if option == "editReferenceImage":
                 self.sidebarTabs.setCurrentWidget(self.visibilityPage)
                 self.referenceImage.Show()
-            return
-        panel = self.exportPanel
-        if (option in ("showGrid", "showMeasurements") or option in self.viewport.measurementVisibility) and panel.projectView is not None and not panel.applying:
-            view = panel.ResolvedView()
-            if option == "showGrid":
-                panel.SetOverride("showGrid", not view["showGrid"])
-            elif option == "showMeasurements":
-                panel.SetOverride("measurementVisibility", dict.fromkeys(self.viewport.measurementVisibility, not view["showMeasurements"]))
-            else:
-                panel.SetOverride("measurementVisibility", not (view["showMeasurements"] and view["measurementVisibility"][option]), key = option)
-            self.viewMenu.hide()
             return
         if option == "viewportOnlyMode":
             self.viewMenu.hide()

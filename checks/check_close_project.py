@@ -78,7 +78,8 @@ def Main():
         assert "referenceImage" not in main.ProjectSettings() and "exportSettings" not in main.ProjectSettings()
         assert main.ProjectSettings()["snap"] == settings["snap"]
         assert main.ProjectSettings()["localTransforms"] == settings["localTransforms"]
-        assert main.isVisible() and main.sidebarTabs.currentWidget() is main.exportPanel
+        assert main.isVisible() and main.sidebarTabs.currentWidget() is main.buildScrollArea
+        assert not main.viewport.exportOverlay.active
         # New Project still restores the startup scene, and Close stays empty after relaunch.
         with patch.object(main, "ShowAppMessage", return_value = QtWidgets.QMessageBox.StandardButton.Discard) as notices:
             assert main.NewProject() and v.walls and v.windows and v.furnishings and v.labels, notices.call_args_list

@@ -1,7 +1,7 @@
 """Selection property controls, mixed values and atomic bulk edits."""
 from planner_app.dimension_policy import AvailableDimensionActions
 
-from planner_app.models import Elevator, AngleGuide, ObjectControlPoints, SetControlPoint
+from planner_app.models import Elevator, AngleGuide, ObjectControlPoints, SetControlPoint, sizingCountLimit
 
 import math
 from PySide6 import QtCore, QtWidgets
@@ -10,6 +10,8 @@ from planner_app.models import OpenDoorway, Door, SwingingDoor, DoubleDoor, Furn
 from planner_app.ui.widgets import DownwardComboBox, DragSpinBox, DragSlider, SizeLinkButton
 from planner_app.units import PropertyUnit, FormatLength, FormatArea, imperialModes, unitModes
 from planner_app.geometry.junctions import BuildWallJunction
+from planner_app.property_edits import (PropertyScale, PlanPropertyTargets, RequestedPropertyMatches,
+    LinkedPropertySizes, PlanLinearPropertySize)
 from planner_app.furnishing_assets import FurnishingAssetProblems
 
 
@@ -150,7 +152,7 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
         for fieldName, text, label in (("stepCount", "Step count", self.stepCountLabel), ("stepSize", "Tread depth", self.stepSizeLabel)):
             spinBox = DragSpinBox()
             spinBox.setDecimals(0 if fieldName == "stepCount" else 2)
-            spinBox.setRange(1 if fieldName == "stepCount" else .01, 100000)
+            spinBox.setRange(1 if fieldName == "stepCount" else .01, sizingCountLimit if fieldName == "stepCount" else 100000)
             spinBox.setSuffix("" if fieldName == "stepCount" else " cm")
             spinBox.setSingleStep(1)
             spinBox.setKeyboardTracking(False)
@@ -743,7 +745,7 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
             for fieldName, text in (("stepCount", "Post Count" if isRailing else "Step count"), ("stepSize", "Segment Width" if isRailing else "Tread depth")):
                 self.wallProperties.layout().labelForField(self.stairStepWidgets[fieldName]).setText(text)
             countBlocker = QtCore.QSignalBlocker(self.propertyFields["stepCount"])
-            self.propertyFields["stepCount"].setRange(2 if isRailing else 1, 100000)
+            self.propertyFields["stepCount"].setRange(2 if isRailing else 1, sizingCountLimit)
             del countBlocker
             limits = self.viewport.AutoSizingLimits("railings" if isRailing else "stairs")
             minimumText = FormatLength(limits["minimum"], self.viewport.unitsMode, "cm")
@@ -775,7 +777,7 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
             if fieldName == "width" and isinstance(wall, Fireplace):
                 spinBox.setMinimum(wall.parentWall.width / 10)
             if fieldName in ("length", "doorSize"):
-                maximum = (1 - wall.firstFraction) * QtCore.QLineF(wall.parentWall.firstVertex, wall.parentWall.secondVertex).length() / 1000 if isWindow else 1e9
+                maximum = self.viewport.OpeningLengthLimit(wall) / 1000 if isWindow else 1e9
                 minimum = 0.001 if isWindow else max(0.001, self.viewport.MinimumOpeningLength(wall) / 1000)
                 if isFurnishing:
                     minimum = .1
@@ -829,7 +831,7 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
                         spinBox.setMinimum(max(obj.parentWall.width for obj in objects) / 10)
                     if fieldName in ("length", "doorSize"):
                         minimum = max(.001, max((self.viewport.MinimumOpeningLength(obj) / 1000 for obj in objects), default = .001)) if not isWindow else .001
-                        maximum = min(((1 - obj.firstFraction) * QtCore.QLineF(obj.parentWall.firstVertex, obj.parentWall.secondVertex).length() / 1000
+                        maximum = min((self.viewport.OpeningLengthLimit(obj) / 1000
                                        for obj in objects), default = 1e9) if isWindow else 1e9
                         if isFurnishing:
                             minimum = .1
@@ -907,15 +909,13 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
 
     def EditSelectionProperty(self, callback, *arguments):
         entries = self.viewport.SelectionEntries()
-        if len(entries) <= 1:
-            return False
-        if len({Wall if type(obj) in (Wall, Pillar, Column) else type(obj) for obj, index in entries}) > 1:
-            return True
         fieldName = arguments[0] if callback.__name__ == "EditProperty" else None
-        if fieldName in ("x", "y", "miter"):
-            targets = [(obj, index) for obj, index in entries if index is not None]
-        else:
-            targets = list({id(obj): (obj, index) for obj, index in entries}.values())
+        positions = PlanPropertyTargets([(id(obj), type(obj).__name__, index) for obj, index in entries], fieldName)
+        if positions is None:
+            return False
+        if positions is False:
+            return True
+        targets = [entries[position] for position in positions]
         before = self.viewport.CaptureState()
         primary = self.viewport.selectedWall, self.viewport.selectedVertex
         self.bulkPropertyEdit = True
@@ -933,21 +933,17 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
             requested = arguments[1]
             for obj, index in targets:
                 if fieldName in ("length", "doorSize"):
-                    actual = QtCore.QLineF(obj.firstVertex, obj.secondVertex).length() / (2000 if fieldName == "doorSize" else 10 if isinstance(obj, Furnishing) else 1000)
+                    rawValue = QtCore.QLineF(obj.firstVertex, obj.secondVertex).length()
                 elif fieldName == "width":
-                    actual = obj.depth / 10 if isinstance(obj, Fireplace) else obj.width / (1000 if isinstance(obj, Stair) else 10)
+                    rawValue = obj.depth if isinstance(obj, Fireplace) else obj.width
                 elif fieldName == "miter":
-                    actual = obj.firstMiter if index == 0 else obj.secondMiter
+                    rawValue = obj.firstMiter if index == 0 else obj.secondMiter
                 elif fieldName in ("x", "y"):
                     vertex = obj.firstVertex if index == 0 else obj.secondVertex
-                    actual = (vertex.x() if fieldName == "x" else vertex.y()) / 1000
+                    rawValue = vertex.x() if fieldName == "x" else vertex.y()
                 else:
                     continue
-                if fieldName != "miter":
-                    oldDivisor, unused = PropertyUnit(fieldName, obj, "Adaptive Metric")
-                    divisor, unused = PropertyUnit(fieldName, obj, self.viewport.unitsMode)
-                    actual *= oldDivisor / divisor
-                if not math.isclose(actual, requested, abs_tol = 1e-6):
+                if not RequestedPropertyMatches(fieldName, type(obj).__name__, rawValue, requested, self.viewport.unitsMode):
                     valid = False
                     break
         if not valid:
@@ -1029,18 +1025,12 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
         elif fieldName == "width":
             wall.width = millimeters
         else:
-            millimeters = max(millimeters, self.viewport.MinimumOpeningLength(wall))
-            direction = wall.secondVertex - wall.firstVertex
-            oldLength = math.hypot(direction.x(), direction.y())
-            if oldLength > 0:
-                if isinstance(wall, Pillar):
-                    center = (wall.firstVertex + wall.secondVertex) / 2
-                    halfAxis = direction * (millimeters / oldLength / 2)
-                    wall.firstVertex, wall.secondVertex = center - halfAxis, center + halfAxis
-                else:
-                    wall.secondVertex = wall.firstVertex + direction * (millimeters / oldLength)
-            else:
-                wall.secondVertex = wall.firstVertex + QtCore.QPointF(millimeters, 0)
+            first, second = PlanLinearPropertySize((wall.firstVertex.x(), wall.firstVertex.y()),
+                (wall.secondVertex.x(), wall.secondVertex.y()), millimeters, self.viewport.MinimumOpeningLength(wall),
+                centered = isinstance(wall, Pillar))
+            if first is not None:
+                wall.firstVertex = QtCore.QPointF(*first)
+            wall.secondVertex = QtCore.QPointF(*second)
             self.viewport.PropagateMiter(wall, 1)
 
     def EditProperty(self, fieldName, value):
@@ -1091,7 +1081,7 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
             self.RefreshProperties()
             return
         before = self.viewport.CaptureState()
-        millimeters = value * (10.0 if fieldName in ("sillDepth", "wellDepth") or fieldName == "width" and not isinstance(wall, Stair) or fieldName == "length" and isinstance(wall, Furnishing) else 1000.0)
+        millimeters = value * PropertyScale(fieldName, type(wall).__name__)
         if fieldName == "doorSize" and isinstance(wall, (SlidingDoor, PocketDoor)):
             millimeters *= 2
         sizeValid = True
@@ -1099,12 +1089,11 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
             if self.sizeLinkButton.isChecked():
                 oldWidth = wall.depth if isinstance(wall, Fireplace) else wall.width
                 oldLength = QtCore.QLineF(wall.firstVertex, wall.secondVertex).length()
-                original = oldWidth if fieldName == "width" else oldLength
-                if min(oldWidth, oldLength) <= 0:
+                sizes = LinkedPropertySizes(oldWidth, oldLength, fieldName, millimeters)
+                if sizes is None:
                     self.RefreshProperties()
                     return False
-                factor = millimeters / original
-                width, length = oldWidth * factor, oldLength * factor
+                width, length = sizes
                 self.ApplySizeProperty(wall, "width", width)
                 self.ApplySizeProperty(wall, "length", length)
                 actualWidth = wall.depth if isinstance(wall, Fireplace) else wall.width

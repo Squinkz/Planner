@@ -1,0 +1,10 @@
+{
+    "name": "Patio Chair",
+    "image": "chair_patio",
+    "width": 650,
+    "length": 650,
+    "category": [
+        "Outdoor"
+    ],
+    "keywords": []
+}

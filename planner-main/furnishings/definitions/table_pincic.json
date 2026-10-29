@@ -1,0 +1,12 @@
+{
+    "name": "Picnic Table",
+    "image": "table_picnic",
+    "width": 1800,
+    "length": 1500,
+    "icon": null,
+    "category": "Outdoor",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+    ]
+}

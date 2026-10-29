@@ -32,12 +32,15 @@ def GroupContourBounds(bounds):
     return list(components.values())
 
 
-def TraceBoundaryContours(fillContours, extent, joinContours = True, fillRule = 1, state = None, edgeCache = None):
+def TraceBoundaryContours(fillContours, extent, joinContours = True, fillRule = 1, state = None, edgeCache = None,
+                          weldTolerance = 0.0):
     """Trace prepared numeric contours; return rings/segments and reusable state.
 
     Each contour is (left, top, right, bottom, edgeTuples), where an edge is
     (x1, y1, x2, y2). Extent is the source path's (width, height). Caches are
     supplied explicitly by their owner; coordinates keep the caller's units.
+    A positive weldTolerance closes narrower empty seams in those same units;
+    zero retains strict source boundaries and the original tracing behavior.
     """
     edgeCoordinates = [edge for contour in fillContours for edge in contour[4]]
     if edgeCache is None:
@@ -49,7 +52,7 @@ def TraceBoundaryContours(fillContours, extent, joinContours = True, fillRule = 
     contourCounts = {}
     for contour in fillContours:
         contourCounts[contour] = contourCounts.get(contour, 0) + 1
-    traceMode = (joinContours, fillRule)
+    traceMode = (joinContours, fillRule, weldTolerance)
     previousEdges = {}
     changedBounds = []
     if state is not None and state[0] == traceMode:
@@ -57,7 +60,7 @@ def TraceBoundaryContours(fillContours, extent, joinContours = True, fillRule = 
         for contour in contourCounts.keys() | state[1].keys():
             if contourCounts.get(contour, 0) != state[1].get(contour, 0):
                 left, top, right, bottom = contour[:4]
-                margin = max(.0001, 16 * max(math.ulp(value) for value in contour[:4]))
+                margin = max(.0001, weldTolerance, 16 * max(math.ulp(value) for value in contour[:4]))
                 changedBounds.append((left - margin, top - margin, right + margin, bottom + margin))
     reusable = {}
     activeBounds = None
@@ -65,7 +68,7 @@ def TraceBoundaryContours(fillContours, extent, joinContours = True, fillRule = 
         previous = previousEdges.get(coordinates)
         left, top, right, bottom = edgeBounds[index]
         if previous is not None:
-            margin = max(.0001, 16 * max(math.ulp(value) for value in coordinates))
+            margin = max(.0001, weldTolerance, 16 * max(math.ulp(value) for value in coordinates))
             if not any(left - margin < changedRight and right + margin > changedLeft
                        and top - margin < changedBottom and bottom + margin > changedTop
                        for changedLeft, changedTop, changedRight, changedBottom in changedBounds):
@@ -92,7 +95,7 @@ def TraceBoundaryContours(fillContours, extent, joinContours = True, fillRule = 
         # intersections along their far ends. Distant cached edges need no
         # spatial cells, while a cold/full rebuild still indexes everything.
         left, top, right, bottom = activeBounds
-        margin = max(.0001, 16 * max(math.ulp(value) for value in activeBounds))
+        margin = max(.0001, weldTolerance, 16 * max(math.ulp(value) for value in activeBounds))
         for index, bounds in enumerate(edgeBounds):
             if (bounds[0] <= right + margin and bounds[2] >= left - margin
                     and bounds[1] <= bottom + margin and bounds[3] >= top - margin):
@@ -117,23 +120,25 @@ def TraceBoundaryContours(fillContours, extent, joinContours = True, fillRule = 
         splits = [0.0, 1.0]
         left, top, right, bottom = edgeBounds[edgeIndex]
         # Only edges in intersecting spatial cells can split this segment.
-        cells = tuple(Cells(edgeBounds[edgeIndex]))
+        edgeMargin = max(1e-8, weldTolerance)
+        cells = tuple(Cells((left - edgeMargin, top - edgeMargin, right + edgeMargin, bottom + edgeMargin)))
         candidates = []
         for otherIndex in sorted({index for cell in cells for index in edgeBuckets.get(cell, ())}):
             if otherIndex == edgeIndex:
                 continue
             otherLeft, otherTop, otherRight, otherBottom = edgeBounds[otherIndex]
-            if (right + 1e-8 < otherLeft or otherRight + 1e-8 < left
-                    or bottom + 1e-8 < otherTop or otherBottom + 1e-8 < top):
+            if (right + edgeMargin < otherLeft or otherRight + edgeMargin < left
+                    or bottom + edgeMargin < otherTop or otherBottom + edgeMargin < top):
                 continue
             candidates.append(otherIndex)
-        probeCells = Cells((left - .00001, top - .00001, right + .00001, bottom + .00001))
+        probeMargin = max(.00001, weldTolerance)
+        probeCells = Cells((left - probeMargin, top - probeMargin, right + probeMargin, bottom + probeMargin))
         contours = [index for index in sorted({index for cell in probeCells for index in fillBuckets.get(cell, ())})
-                    if fillContours[index][0] <= right + .00001 and fillContours[index][2] >= left - .00001
-                    and fillContours[index][1] <= bottom + .00001 and fillContours[index][3] >= top - .00001]
+                    if fillContours[index][0] <= right + probeMargin and fillContours[index][2] >= left - probeMargin
+                    and fillContours[index][1] <= bottom + probeMargin and fillContours[index][3] >= top - probeMargin]
         # An unchanged edge only needs retracing if a nearby edge or fill
         # changes. Keep exterior segments outside the edited intersection.
-        edgeKey = (coordinates, tuple(edgeCoordinates[index] for index in candidates),
+        edgeKey = (coordinates, weldTolerance, tuple(edgeCoordinates[index] for index in candidates),
                    tuple(fillContours[index] for index in contours))
         cached = edgeCache.pop(edgeKey, None)
         if cached is not None:
@@ -158,6 +163,16 @@ def TraceBoundaryContours(fillContours, extent, joinContours = True, fillRule = 
                     fraction = ((position[0] - first[0]) * direction[0] + (position[1] - first[1]) * direction[1]) / lengthSquared
                     if 0 < fraction < 1:
                         splits.append(fraction)
+            if weldTolerance > 0:
+                # A pillar may cover only the middle of a long wall face, with
+                # a tiny gap that prevents exact edge intersections. Split at
+                # its nearby corners before deciding which seam pieces weld.
+                for position in ((otherFirstX, otherFirstY), (otherSecondX, otherSecondY)):
+                    offsetX, offsetY = position[0] - first[0], position[1] - first[1]
+                    if abs(offsetX * direction[1] - offsetY * direction[0]) <= weldTolerance * math.sqrt(lengthSquared):
+                        fraction = (offsetX * direction[0] + offsetY * direction[1]) / lengthSquared
+                        if 0 < fraction < 1:
+                            splits.append(fraction)
         splits.sort()
         normal = (-direction[1] / math.sqrt(lengthSquared), direction[0] / math.sqrt(lengthSquared))
         for start, end in zip(splits, splits[1:]):
@@ -177,8 +192,9 @@ def TraceBoundaryContours(fillContours, extent, joinContours = True, fillRule = 
             # side of a nearly horizontal edge after an alignment snap.
             # Use signed crossings without relative-coordinate comparisons.
             filledSides = []
-            for probe in ((midpoint[0] + probeOffset[0], midpoint[1] + probeOffset[1]),
-                          (midpoint[0] - probeOffset[0], midpoint[1] - probeOffset[1])):
+            probes = [(midpoint[0] + probeOffset[0], midpoint[1] + probeOffset[1]),
+                      (midpoint[0] - probeOffset[0], midpoint[1] - probeOffset[1])]
+            for probe in probes:
                 probeX, probeY = probe[0], probe[1]
                 winding = 0
                 cell = (math.floor(probeX / cellSize), math.floor(probeY / cellSize))
@@ -198,7 +214,20 @@ def TraceBoundaryContours(fillContours, extent, joinContours = True, fillRule = 
                             if cross < 0:
                                 winding -= 1
                 filledSides.append(winding != 0)
-            leftFilled, rightFilled = filledSides
+                if (weldTolerance > probeScale and len(filledSides) == 2
+                        and filledSides[0] != filledSides[1]):
+                    # Only probe across a narrow empty seam when another source
+                    # can cover its far side. Keep the tiny probes above so thin
+                    # filled junction slivers retain their exterior boundaries.
+                    side = -1 if filledSides[0] else 1
+                    weldProbe = (midpoint[0] + normal[0] * weldTolerance * side,
+                                 midpoint[1] + normal[1] * weldTolerance * side)
+                    if any(fillContours[index][0] <= weldProbe[0] <= fillContours[index][2]
+                           and fillContours[index][1] <= weldProbe[1] <= fillContours[index][3] for index in contours):
+                        probes.append(weldProbe)
+            if len(filledSides) == 3 and filledSides[2]:
+                continue
+            leftFilled, rightFilled = filledSides[:2]
             if leftFilled == rightFilled:
                 continue
             startPoint = (first[0] + direction[0] * start, first[1] + direction[1] * start)
@@ -221,7 +250,7 @@ def TraceBoundaryContours(fillContours, extent, joinContours = True, fillRule = 
     endpointBuckets = {}
     endpointPoints = []
     exactEndpoints = {}
-    endpointTolerance = 1e-6
+    endpointTolerance = max(1e-6, weldTolerance)
     for first, second in boundaryEdges:
         endpointKeys = []
         for point in (first, second):

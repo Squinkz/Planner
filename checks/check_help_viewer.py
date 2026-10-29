@@ -59,7 +59,7 @@ def Main():
             iterator = block.begin()
             while not iterator.atEnd():
                 fragment = iterator.fragment()
-                if fragment.charFormat().isAnchor():
+                if fragment.charFormat().isAnchor() and fragment.charFormat().anchorHref():
                     destinations.append(fragment.charFormat().anchorHref())
                     assert fragment.charFormat().foreground().color() == QtGui.QColor(themeColors["info"])
                     assert fragment.charFormat().fontUnderline()
@@ -121,7 +121,7 @@ def Main():
         textLeft = browser.viewport().mapTo(helpWindow, QtCore.QPoint(20, 0)).x()
         assert helpWindow.backButton.mapTo(helpWindow, QtCore.QPoint()).x() == textLeft
         assert helpWindow.grab().save(str(captures / "home-small.png"))
-        for page in sorted((workspace / "planner-main" / "docs" / "help").glob("*.md")):
+        for page in sorted((workspace / "planner-main" / "help").glob("*.md")):
             assert helpWindow.ShowPage(page)
             app.processEvents()
             assert browser.toPlainText() and browser.horizontalScrollBar().maximum() == 0, page

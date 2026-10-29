@@ -86,7 +86,14 @@ def Main():
         for mode in ("Millimeters", "Centimeters", "Meters", "Adaptive Metric", "Feet and Inches", "Inches"):
             v.unitsMode = mode
             v.roomDetection.Check()
-            assert label.TextLayout()[4][-1][0] == FormatArea(14440000, mode)
+            defaultMode = "Feet and Inches" if mode in ("Feet and Inches", "Inches") else "Meters"
+            assert label.TextLayout()[4][-1][0] == FormatArea(14440000, defaultMode)
+            for override in ("Millimeters", "Centimeters", "Meters", "Feet and Inches", "Inches"):
+                label.unitsOverride = override
+                v.roomDetection.UpdateLabels(force = True)
+                assert label.TextLayout()[4][-1][0] == FormatArea(14440000, override)
+            label.unitsOverride = None
+            v.roomDetection.UpdateLabels(force = True)
             assert main.BuildProjectData()["scene"] == saved and v.CaptureState() == captured
         # Furniture motion doesn't cause room-area lookup or room detection.
         desk = Furnishing(v.furnishingDefinitions["desk"], p(500, 500))
@@ -153,7 +160,7 @@ def Main():
         source.unitsMode, source.autoSizingUnitsMode = "Millimeters", "Feet and Inches"
         original = label.areaSquareMillimeters, label.areaUnitsMode
         PrepareExportScene(source)
-        assert source.labels[0] is not label and source.labels[0].areaUnitsMode == "Millimeters"
+        assert source.labels[0] is not label and source.labels[0].areaUnitsMode == "Meters"
         assert (label.areaSquareMillimeters, label.areaUnitsMode) == original
         source.close()
         drawLabels = RenderingMixin.DrawLabels
@@ -168,7 +175,8 @@ def Main():
                 output = RenderPlan(path, 100, bounds = [-3000, -3000, 6000, 6000], projectData = data,
                                     outputFormat = format, applyTheme = False, useExportSettings = True)
                 assert output if format == "png" else QtSvg.QSvgRenderer(output).isValid()
-        assert observed and all(value == (14440000, data["settings"]["unitsMode"]) for value in observed)
+        defaultMode = "Feet and Inches" if data["settings"]["unitsMode"] in ("Feet and Inches", "Inches") else "Meters"
+        assert observed and all(value == (14440000, defaultMode) for value in observed)
         observed.clear()
         data["settings"].setdefault("exportSettings", {})["unitsMode"] = "Feet and Inches"
         with patch.object(RenderingMixin, "DrawLabels", DrawLabels):

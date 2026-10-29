@@ -10,7 +10,7 @@ order. Children reference their source definitions. User JSON is written under
 receive `_2`, `_3`, etc. as needed without replacing existing references. The UI
 serializes comma-separated categories as a category list. Creation/decomposition
 are undoable scene edits; removing scene children does not delete catalog files.
-See the [user furnishing guide](../../planner-main/docs/help/furnishings.md) for the workflow.
+See the [user furnishing guide](../../planner-main/help/furnishings.md) for the workflow.
 
 ## Definition fields
 
@@ -50,7 +50,7 @@ then their total score, with names and keys breaking ties.
 An explicit keyword list replaces inherited keywords; `[]` clears them. Numeric
 queries resolve against definition dimensions, with selected-unit matches ranked
 first (centimeters for Adaptive Metric). The user-facing query examples belong
-in the [furnishing search guide](../../planner-main/docs/help/furnishings.md).
+in the [furnishing search guide](../../planner-main/help/furnishings.md).
 
 ## Compound definitions
 

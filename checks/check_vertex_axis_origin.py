@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "planner-main"))
 from PySide6 import QtCore, QtGui, QtTest, QtWidgets
 from planner_app.models import Wall, Stair, Counter, Railing, Arrow, MeasurementGuide
 from planner_app.viewport.widget import DrawingViewport
+from planner_app.graphics.text import PathTextPainter
 
 
 def Main():
@@ -23,7 +24,7 @@ def Main():
     none = QtCore.Qt.KeyboardModifier.NoModifier
     left = QtCore.Qt.MouseButton.LeftButton
     texts = []
-    originalDrawText = QtGui.QPainter.drawText
+    originalDrawText = PathTextPainter.drawText
 
     def CaptureText(painter, *arguments):
         texts.extend(argument for argument in arguments if isinstance(argument, str))
@@ -65,12 +66,12 @@ def Main():
                     offset = vertex - origin
                     assert abs(offset.x() * direction.y() - offset.y() * direction.x()) < .01
                 if objectType is Wall and index == 0 and not snapEnabled:
-                    with patch.object(QtGui.QPainter, "drawText", CaptureText):
+                    with patch.object(PathTextPainter, "drawText", CaptureText):
                         viewport.grab()
                     assert "Switch axis origin" in texts
                     texts.clear()
                     viewport.UpdateInteraction(cursor, none)
-                    with patch.object(QtGui.QPainter, "drawText", CaptureText):
+                    with patch.object(PathTextPainter, "drawText", CaptureText):
                         viewport.grab()
                     assert not any("Switch axis origin" in text for text in texts)
                     viewport.UpdateInteraction(cursor, ctrl)

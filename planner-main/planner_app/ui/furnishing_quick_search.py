@@ -119,8 +119,7 @@ class FurnishingQuickSearch(QtWidgets.QFrame):
         dimensionMetrics = self.resultDelegate.dimensionStyle.fontMetrics()
         dimensionWidth = 64
         for definition in matches:
-            button = self.mainWindow.furnishingButtons.get(definition["key"])
-            item = QtWidgets.QListWidgetItem(button.icon() if button is not None else QtGui.QIcon(), definition["name"].strip())
+            item = QtWidgets.QListWidgetItem(self.mainWindow.furnishingThumbnails.Icon(definition), definition["name"].strip())
             item.setData(QtCore.Qt.ItemDataRole.UserRole, definition["key"])
             dimensions = FurnishingDimensionText(definition, self.viewport.unitsMode)
             item.setData(QtCore.Qt.ItemDataRole.UserRole + 1, dimensions)

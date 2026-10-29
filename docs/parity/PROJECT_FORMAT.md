@@ -135,6 +135,18 @@ as an inherited value even if it presently renders identically. Legacy projects
 without `snap.corners` inherit that flag from `snap.vertices`, preserving their
 previous combined snapping preference.
 
+A successful GUI export captures all effective export controls as explicit
+`exportSettings`, including complete visibility, dimension, grid and line-weight
+groups, crop, scaling, theme and compositing defaults. Later editor changes do
+not replace this snapshot. Cancelled, declined or failed exports do not capture
+it. The capture is a project edit and participates in export undo/redo.
+Color values may be `null` to explicitly retain the Theme choice under the
+captured `canvasTheme`; this preserves distinct wall and object outline colors.
+`textureScale: null` retains a fixed filename's tiling ratio when it exceeds
+the scale control's range, rather than changing the output or saving an invalid value.
+Editor-only construction sizes and automatic-sizing units are not captured.
+`check_export_snapshot.py` covers capture, persistence and isolation.
+
 `settings.wallMeasurementMode` is `All`, `Exterior` or `Exterior stacked`.
 New projects default to Exterior stacked; older files without the field load All.
 `settings.wallMeasurementReference` is `Centerline` or `Wall faces`, defaulting
@@ -154,11 +166,22 @@ project view restored on leaving Export.
 project/session. An unset folder resolves to the plan's directory, or the app
 directory for an unsaved plan. These are not global browsing preferences.
 
-Optional `settings.floors` stores the editor's floor shading, defaulting to true.
-`settings.exportSettings.floors` is a separate optional boolean override. Without
-an override, Export inherits the editor's value; overrides affect previews, saved
-files and the CLI's saved-settings path. No room geometry is serialized. Both
-values require actual booleans. Coverage: `check_export_floors.py`.
+Optional `settings.roomStyle` stores the editor's room appearance: `"Canvas"`
+uses the canvas color and `"Tinted"` uses the theme's room fill. The default is
+`"Tinted"`. Optional `settings.solidRooms` defaults to false; when true, grid
+strokes are clipped out of detected room interiors independently of room style.
+`solidRooms` requires an actual boolean.
+
+`settings.exportSettings.roomStyle` and `settings.exportSettings.solidRooms` are
+independent optional overrides. Without an override, Export inherits the editor's
+corresponding value; overrides affect previews, saved files and the CLI's
+saved-settings path. No room geometry is serialized.
+
+Legacy `settings.floors` and `settings.exportSettings.floors` booleans remain
+accepted when loading and recovering projects: true maps to `"Tinted"`, false to
+`"Canvas"`. An explicit `roomStyle` takes precedence at the same scope. Legacy
+values still require actual booleans; new saves use `roomStyle` and `solidRooms`.
+Coverage: `check_export_floors.py`, `check_project_recovery.py`.
 
 `buildSettings.wallWidths`, `openingSizes` and `miscSizes` retain metric source
 defaults in centimeters. Optional `buildSettings.imperialSizes` maps wall preset

@@ -74,7 +74,7 @@ def Main():
         assert [child["furnishing"] for child in data["children"]] == ["desk", "chair_dining"]
         assert [child["zIndex"] for child in data["children"]] == [0, 1]
         assert data["children"][1]["width"] == 550 and data["children"][1]["angle"] == 90
-        assert "work_corner" in main.furnishingButtons and not main.furnishingButtons["work_corner"].icon().isNull()
+        assert "work_corner" in main.furnishingDimensions and not main.furnishingThumbnails.Icon(main.viewport.furnishingDefinitions["work_corner"]).isNull()
         assert main.sidebarTabs.count() == 4 and main.sidebarTabs.currentIndex() == 1
         saved = v.furnishingDefinitions["work_corner"]
         corners = [point for obj in v.furnishings for point in v.ObjectCorners(obj)]
@@ -131,12 +131,13 @@ def Main():
         assert {v.furnishingDefinitions[key]["name"] for key in ("desk_2", "desk_3", "desk_4")} == {"Desk", "desk", "DESK"}
         assert all(path.read_bytes() == originals[path.name] for path in (folder / "definitions").glob("*.json"))
         assert any(item["key"] == "work_corner" for item in LoadFurnishings(folder))
-        # Display names may match built-ins, but file keys remain distinct.
-        (folder / "definitions_user/desk.json").write_text(json.dumps(data))
+        # Manually installed user definitions override the built-in file key.
+        (folder / "definitions_user/desk.json").write_text(json.dumps({"name": "Custom Desk", "image": "desk", "width": 1400}))
         (folder / "definitions_user/shadow.json").write_text(json.dumps({"name": "Desk", "children": data["children"]}))
         with warnings.catch_warnings(record = True):
             loaded = {item["key"]: item for item in LoadFurnishings(folder)}
-        assert not loaded["desk"]["isUser"] and loaded["shadow"]["name"] == "Desk"
+        assert loaded["desk"]["isUser"] and loaded["desk"]["name"] == "Custom Desk" and loaded["desk"]["width"] == 1400
+        assert loaded["shadow"]["name"] == "Desk"
         # Invalid new definitions do not damage existing same-name definitions.
         before = path.read_bytes()
         with patch.object(main, "ShowAppMessage", return_value = QtWidgets.QMessageBox.StandardButton.Save):

@@ -1,5 +1,5 @@
 """Action eligibility follows potential ambient dimensions, never selection bounds."""
-from dataclasses import dataclass
+from .dimension_actions import DimensionActions, ImmediateDimensionActions, PlanDimensionActions
 from .geometry.measurements import EffectiveWallSplitSettings
 from PySide6 import QtCore, QtGui
 from .models import (Wall, Pillar, Column, Elevator, Stair, Counter, Railing, Window, Fireplace,
@@ -8,28 +8,13 @@ from .models import (Wall, Pillar, Column, Elevator, Stair, Counter, Railing, Wi
                      MeasurementGuide, BoundaryLine)
 
 
-@dataclass(frozen = True)
-class DimensionActions:
-    canHide: bool = False
-    canFlip: bool = False
-
-
 def AvailableDimensionActions(viewport, obj):
-    if obj is None or not viewport.IsObjectVisible(obj):
+    if obj is None:
         return DimensionActions()
-    # Standalone dimension annotations draw independently of the ambient master.
-    if isinstance(obj, MeasurementGuide):
-        return DimensionActions(canHide = not isinstance(obj, BoundaryLine))
-    if not viewport.showMeasurements:
-        return DimensionActions()
-    category = ("stairs" if isinstance(obj, Stair) else "counters" if isinstance(obj, Counter) else
-                "railings" if isinstance(obj, Railing) else "walls")
-    if not viewport.measurementVisibility[category]:
-        return DimensionActions()
-    if not isinstance(obj, Window) and type(obj) not in (Wall, Pillar, Column, Stair, Counter, Railing):
-        return DimensionActions()
-    if isinstance(obj, Elevator):
-        return DimensionActions()
+    kind = type(obj).__name__
+    immediate = ImmediateDimensionActions(kind, viewport.IsObjectVisible(obj), viewport.showMeasurements, viewport.measurementVisibility)
+    if immediate is not None:
+        return immediate
     key = viewport.SceneRenderKey(("dimension-actions", id(obj)))
     cache = getattr(viewport, "dimensionActionCache", None)
     if cache is None:
@@ -37,20 +22,12 @@ def AvailableDimensionActions(viewport, obj):
     if key in cache:
         return cache[key]
     stacked = viewport.wallMeasurementMode == "Exterior stacked"
-    settings = (dict(viewport.measurementSettings, doors = 0, windows = 0, stairs = 2, counters = 2)
-                if stacked else EffectiveWallSplitSettings(viewport.measurementSettings, viewport.wallMeasurementMode))
-    canFlip = False
-    openingCategory = None
-    if isinstance(obj, Window):
-        if obj.parentWall.measurementHidden or not viewport.IsObjectVisible(obj.parentWall):
-            return DimensionActions()
-        openingCategory = ("doors" if isinstance(obj, (Door, DoubleDoor, SwingingDoor, SlidingDoor,
-                           PocketDoor, BarnDoor, BifoldDoor, OpenDoorway)) else "windows")
-        split = settings[openingCategory]
-        if split == 2 and not isinstance(obj, Fireplace):
-            return DimensionActions()
-        canFlip = not obj.measurementHidden and viewport.wallMeasurementMode == "All" and split == 1 and type(obj) in (
-            Door, DoubleDoor, SlidingDoor, BarnDoor, Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow)
+    opening = isinstance(obj, Window)
+    immediate, settings, canFlip = PlanDimensionActions(kind, viewport.wallMeasurementMode, viewport.measurementSettings,
+        obj.measurementHidden, parentHidden = obj.parentWall.measurementHidden if opening else False,
+        parentVisible = viewport.IsObjectVisible(obj.parentWall) if opening else True)
+    if immediate is not None:
+        return immediate
     walls = [wall for wall in viewport.walls if type(wall) in (Wall, Pillar, Column) and viewport.IsObjectVisible(wall)]
     path = viewport.ConnectedWallPath(walls)
     if viewport.wallMeasurementMode != "All":

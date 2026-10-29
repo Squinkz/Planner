@@ -34,4 +34,4 @@ checks/tmp*/
 .env
 .env.*
 
-/planner-main/docs/help/DO.NOT.EDIT.ANYTHING.IN.THIS.FOLDER
+/planner-main/help/DO.NOT.EDIT.ANYTHING.IN.THIS.FOLDER

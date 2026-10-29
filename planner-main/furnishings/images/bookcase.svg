@@ -9,10 +9,11 @@
    width="90"
    height="30"
    inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   vector-effect="non-scaling-stroke"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg" vector-effect="non-scaling-stroke">
+   xmlns:svg="http://www.w3.org/2000/svg">
   <defs
      id="defs1">
     <inkscape:path-effect
@@ -43,30 +44,24 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#494949"
      inkscape:zoom="7.9936"
-     inkscape:cx="18.452262"
+     inkscape:cx="18.514812"
      inkscape:cy="23.456265"
      inkscape:window-width="2560"
      inkscape:window-height="1336"
-     inkscape:window-x="-8"
+     inkscape:window-x="2552"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
      inkscape:current-layer="svg1" />
-  <path stroke-width="1" vector-effect="non-scaling-stroke"
+  <path
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
      id="rect1"
      transform="scale(1,-1)"
      style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1"
      d="m 2.5,-29 h 85 v 26.5 h -85 z"
      sodipodi:nodetypes="ccccc" />
-  <rect stroke-width="1"
-     vector-effect="non-scaling-stroke"
-     style="display:none;fill:#992121;fill-opacity:1;stroke:none;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1;vector-effect:non-scaling-stroke"
-     id="planner-bounds"
-     width="60"
-     height="35"
-     x="0"
-     y="-37.5"
-     transform="scale(1,-1)" />
-  <rect stroke-width="1"
+  <rect
+     stroke-width="1"
      vector-effect="non-scaling-stroke"
      style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
      id="rect2-8"
@@ -75,7 +70,9 @@
      x="0"
      y="-2.5"
      transform="scale(1,-1)" />
-  <path stroke-width="1" vector-effect="non-scaling-stroke"
+  <path
+     stroke-width="1"
+     vector-effect="non-scaling-stroke"
      id="rect2-8-1"
      style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7"
      d="M 2.5,0 H 30 V 1.5619496 A 0.93805044,0.93805044 135 0 1 29.06195,2.5 H 2.5 Z m 0,87.5 H 29.06195 A 0.93805044,0.93805044 45 0 1 30,88.43805 V 90 H 2.5 Z"

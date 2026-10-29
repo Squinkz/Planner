@@ -9,6 +9,7 @@ data = [(str(path), "assets/" + path.name) for path in sorted(assets.iterdir())
         if path.is_dir() and path.name != "fonts"]
 data += [(str(path), "assets") for path in sorted(assets.iterdir()) if path.is_file()]
 data += [(str(app / "vendor"), "vendor"), (str(app / "startup.plan"), ".")]
+data += [(str(app / "furnishings" / name), "furnishings/" + name) for name in ("definitions", "images")]
 licenseFiles = ("LICENSES.txt", "COPYING", "ASSET_LICENSE.txt", "BRANDING_LICENSE.txt")
 data += [(str(app / name), ".") for name in licenseFiles]
 for package in ("PySide6", "PySide6_Essentials", "PySide6_Addons", "shiboken6"):

@@ -217,6 +217,8 @@ def Main():
         assert v.SelectionEntries()
         main.sidebarTabs.setCurrentWidget(main.exportPanel)
         main.ApplyProject(DecodeProject(saved, v.furnishingDefinitions), None)
+        assert not overlay.active, "Loading a project should return to Build"
+        main.sidebarTabs.setCurrentWidget(main.exportPanel)
         assert overlay.bounds == tuple(saved["settings"]["exportSettings"]["bounds"])
         initialZoom = v.zoom
         main.exportPanel.scaleField.setValue(500)
@@ -246,6 +248,7 @@ def Main():
         v.grab()
         assert overlay.snapshot is not snapshot, "Extending the crop did not capture the new area"
         main.ApplyProject(DecodeProject(saved, v.furnishingDefinitions), None)
+        main.sidebarTabs.setCurrentWidget(main.exportPanel)
         main.exportPanel.scaleField.setValue(500)
         main.exportPanel.borderField.setCurrentText("Ruler")
         main.exportPanel.sectionButtons["Canvas"].setChecked(True)

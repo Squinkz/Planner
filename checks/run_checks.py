@@ -42,6 +42,7 @@ with tempfile.TemporaryDirectory() as sessionFolder:
     # Full catalog theme changes, repeated session launches and integration renders
     # run substantially slower on hosted Windows workers than locally.
     timeouts = {"check_external_themes.py": 120, "check_furnishings_on_counters.py": 60,
+                "check_angled_mask_clipping.py": 120,
                 "check_about_dialog.py": 60, "check_app_preferences.py": 60, "check_canvas_theme_refresh.py": 60,
                 "check_export_settings.py": 60, "check_export_solid_objects.py": 60,
                 "check_export_cli_settings.py": 120, "check_parity_rendering.py": 60,

@@ -23,7 +23,7 @@ class ArrowPropertiesMixin:
             self.lineWeightField.addItem("Dimensions" if weight == "Measurements" else weight, weight)
         self.lineWeightField.setMinimumHeight(rowHeight)
         self.lineWeightField.currentIndexChanged.connect(lambda index: self.EditArrowProperty("weightClass", self.lineWeightField.itemData(index)))
-        for name, label in (("length", "Length"), ("solidTip", "Solid tip"),
+        for name, label in (("length", "Length"), ("depth", "Depth"), ("solidTip", "Solid tip"),
                             ("tipSize", "Tip size"), ("width", "Tail thickness"), ("intensity", "Intensity")):
             if name == "solidTip":
                 control = QtWidgets.QCheckBox()
@@ -44,6 +44,10 @@ class ArrowPropertiesMixin:
                 control.editingFinished.connect(lambda name = name, control = control:
                     self.EditArrowProperty(name, control.value()) if control.mixedValue and control.mixedEdited else None)
             control.setMinimumHeight(rowHeight)
+            if name == "depth":
+                control.setAccessibleName("Dimension guide depth")
+                control.setToolTip("Extend perpendicular lines from both ticks. Positive extends below the guide; "
+                                   "negative extends above. Zero hides the lines.")
             if name == "intensity":
                 row = QtWidgets.QWidget()
                 row.setMinimumHeight(rowHeight)
@@ -88,6 +92,7 @@ class ArrowPropertiesMixin:
         self.wallProperties.hide()
         self.doorProperties.hide()
         guide = isinstance(arrows[0], MeasurementGuide)
+        dimensionGuide = type(arrows[0]) is MeasurementGuide
         if not guide:
             self.arrowDirectionButton.setIcon(HeaderIcon("Undo" if arrows[0].directionReversed else "Redo"))
         weighted = isinstance(arrows[0], DashedLine)
@@ -103,10 +108,10 @@ class ArrowPropertiesMixin:
         self.selectionLabel.setText(f"{name} (#{arrows[0].objectId:04d})" if len(arrows) == 1 else f"{len(arrows)} {name.lower()}s selected")
         for fieldName, field in self.arrowFields.items():
             row = self.arrowIntensityValue.parentWidget() if fieldName == "intensity" else field
-            self.arrowProperties.layout().setRowVisible(row, not guide or fieldName == "length")
+            self.arrowProperties.layout().setRowVisible(row, dimensionGuide if fieldName == "depth" else not guide or fieldName == "length")
         self.RefreshGuidePointProperties(entries)
         for name, control in self.arrowFields.items():
-            if guide and name != "length":
+            if (name == "depth" and not dimensionGuide) or (guide and name not in ("length", "depth")):
                 continue
             values = [QtCore.QLineF(obj.firstVertex, obj.secondVertex).length() if name == "length" else getattr(obj, name) for obj in arrows]
             blocker = QtCore.QSignalBlocker(control)
@@ -119,10 +124,10 @@ class ArrowPropertiesMixin:
                 control.setValue(round(values[0] * 100))
                 self.arrowIntensityValue.setText("(different)" if mixed else f"{values[0]:.2f}")
             else:
-                divisor, unit = MetricUnit(self.viewport.unitsMode, "m" if name == "length" else "mm")
+                divisor, unit = MetricUnit(self.viewport.unitsMode, "m" if name in ("length", "depth") else "mm")
                 control.setDecimals(0 if unit == "mm" else 3)
-                control.setRange(1 / divisor, 1e9 / divisor)
-                control.setSingleStep(10 / divisor if name == "length" else 1 / divisor)
+                control.setRange(-1e9 / divisor if name == "depth" else 1 / divisor, 1e9 / divisor)
+                control.setSingleStep(10 / divisor if name in ("length", "depth") else 1 / divisor)
                 control.mixedValue = mixed
                 control.mixedEdited = False
                 control.commonSuffix = " " + unit
@@ -166,11 +171,17 @@ class ArrowPropertiesMixin:
             return
         if name == "weightClass" and (value not in lineWeightClasses or any(not isinstance(obj, DashedLine) for obj in arrows)):
             return
+        if name == "depth" and (any(type(obj) is not MeasurementGuide for obj in arrows) or not math.isfinite(value)):
+            return
+        if name == "depth":
+            divisor, unit = MetricUnit(self.viewport.unitsMode, "m")
+            if abs(value * divisor) > 1e9:
+                return
         before = self.viewport.CaptureState()
         for arrow in arrows:
             converted = value
-            if name in ("length", "width", "tipSize"):
-                divisor, unit = MetricUnit(self.viewport.unitsMode, "m" if name == "length" else "mm")
+            if name in ("length", "depth", "width", "tipSize"):
+                divisor, unit = MetricUnit(self.viewport.unitsMode, "m" if name in ("length", "depth") else "mm")
                 converted *= divisor
             if name == "length":
                 run = arrow.secondVertex - arrow.firstVertex

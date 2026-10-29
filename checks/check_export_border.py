@@ -105,6 +105,7 @@ def Main():
 
     saved = main.BuildProjectData(includeHistory = False)
     main.ApplyProject(DecodeProject(saved, v.furnishingDefinitions), None)
+    main.sidebarTabs.setCurrentWidget(panel)
     assert panel.overrides["border"] == "Marked" and panel.overrides["borderSize"] == 45
     assert panel.borderSizeField.value() == 45
 
@@ -149,8 +150,31 @@ def Main():
     saved = main.BuildProjectData(includeHistory = False)
     assert DecodeProject(saved, v.furnishingDefinitions)[5]["exportSettings"]["border"] == "Ruler + Reference Zones"
     panel.typeField.setCurrentIndex(panel.typeField.findData("PNG"))
+    app.processEvents()
     v.grab()
     assert not v.exportOverlay.previewError and len(v.exportOverlay.rulerStrips) == 4
+    class BorderRecordingPainter(QtGui.QPainter):
+        def drawImage(self, *args):
+            self.bitmapCount += 1
+            super().drawImage(*args)
+
+    for style in ("Plain", "Frame", "Corner Marks", "Reference Zones", "Marked", "Ruler", "Ruler + Reference Zones"):
+        panel.borderField.setCurrentText(style)
+        panel.typeField.setCurrentIndex(panel.typeField.findData("SVG"))
+        v.grab()
+        surface = QtGui.QImage(v.size(), QtGui.QImage.Format.Format_ARGB32)
+        surface.fill(QtCore.Qt.GlobalColor.transparent)
+        painter = BorderRecordingPainter(surface)
+        painter.bitmapCount = 0
+        with patch.object(v.rasterCacheBudget, "Prepare", wraps = v.rasterCacheBudget.Prepare) as prepareBorder:
+            v.exportOverlay.DrawCropRulers(painter, v.DrawingRect())
+        painter.end()
+        assert painter.bitmapCount == 0, f"{style} uses raster images in SVG preview"
+        assert not v.exportOverlay.rulerStrips
+        assert not any(call.args[0] == "rulers" for call in prepareBorder.call_args_list), "SVG borders must not allocate raster strips"
+    panel.typeField.setCurrentIndex(panel.typeField.findData("PNG"))
+    v.grab()
+    assert len(v.exportOverlay.rulerStrips) == 4, "Switching back to PNG should restore raster border strips"
     x, y, width, height = v.exportOverlay.bounds
     topCenter = v.WorldToViewport(QtCore.QPointF(x + width / 2, y + height))
     factor = v.basePixelsPerMillimeter * v.zoom / (v.exportOverlay.scale / 1000)

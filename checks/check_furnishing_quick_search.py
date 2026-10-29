@@ -57,7 +57,7 @@ def Main():
     for index in range(popup.results.count()):
         item = popup.results.item(index)
         key = item.data(QtCore.Qt.ItemDataRole.UserRole)
-        assert item.data(QtCore.Qt.ItemDataRole.UserRole + 1) == main.furnishingDimensionLabels[key].text()
+        assert item.data(QtCore.Qt.ItemDataRole.UserRole + 1) == main.furnishingDimensions[key]
     assert popup.resultDelegate.dimensionStyle.font().pointSizeF() < popup.results.font().pointSizeF()
     searchPanel = popup.findChild(QtWidgets.QFrame, "furnishingQuickSearchField")
     pixels = popup.grab().toImage()

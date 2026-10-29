@@ -1,5 +1,5 @@
 """Shared application and distribution version."""
-appVersion = "0.1.2"
+appVersion = "0.1.3"
 releaseStage = "alpha"
 version = f"{appVersion}-{releaseStage}" if releaseStage else appVersion
 displayVersion = f"{releaseStage.capitalize()} {appVersion}" if releaseStage else appVersion

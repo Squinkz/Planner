@@ -5,7 +5,7 @@
    preserveAspectRatio="none"
    version="1.1"
    id="svg1"
-   sodipodi:docname="shower_square3.svg"
+   sodipodi:docname="shower_square1.svg"
    width="90"
    height="90"
    inkscape:version="1.4 (86a8ad7, 2024-10-11)"
@@ -145,12 +145,12 @@
      inkscape:pageopacity="0"
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#494949"
-     inkscape:zoom="5.6568542"
-     inkscape:cx="-13.788582"
-     inkscape:cy="43.398679"
+     inkscape:zoom="32"
+     inkscape:cx="38.125"
+     inkscape:cy="46.640625"
      inkscape:window-width="2560"
      inkscape:window-height="1336"
-     inkscape:window-x="-8"
+     inkscape:window-x="2552"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
      inkscape:current-layer="svg1" />
@@ -168,24 +168,32 @@
      sodipodi:nodetypes="ccccc"
      stroke-width="1"
      vector-effect="non-scaling-stroke" />
-  <path vector-effect="non-scaling-stroke" stroke-width="1"
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
      id="rect2"
      style="fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;vector-effect:non-scaling-stroke"
      d="M 14.325901,6 H 75.674099 A 8.3259007,8.3259007 45 0 1 84,14.325901 V 72.674099 A 8.3259007,8.3259007 135 0 1 75.674099,81 H 14.325901 A 8.3259007,8.3259007 45 0 1 6,72.674099 V 14.325901 A 8.3259007,8.3259007 135 0 1 14.325901,6 Z"
      sodipodi:nodetypes="ccccc"
      inkscape:path-effect="#path-effect2"
      inkscape:original-d="M 6,6 H 84 V 81 H 6 Z" />
-  <path vector-effect="non-scaling-stroke" stroke-width="1"
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
      style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1;paint-order:normal;vector-effect:non-scaling-stroke"
      d="M 8.451019,8.4262068 81.693089,78.426698"
      id="path2"
      sodipodi:nodetypes="cc" />
-  <path vector-effect="non-scaling-stroke" stroke-width="1"
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
      style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1;paint-order:normal;vector-effect:non-scaling-stroke"
      d="M 81.692971,8.5731789 8.4523704,78.575139"
      id="path3"
      sodipodi:nodetypes="cc" />
-  <path vector-effect="non-scaling-stroke" stroke-width="1"
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
      id="rect3-7"
      style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
      d="m 45.000001,21.20755 a 5,5 45 0 1 5,5 5,5 135 0 1 -5,5 5,5 45 0 1 -5,-5 5,5 135 0 1 5,-5 z"
@@ -193,7 +201,9 @@
      inkscape:original-d="m 40.000001,21.20755 h 10 v 10 h -10 z"
      transform="matrix(1.3184528,0,0,1.3184528,-14.330376,-10.699418)"
      sodipodi:nodetypes="ccccc" />
-  <path vector-effect="non-scaling-stroke" stroke-width="1"
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
      id="rect3"
      style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
      d="M 46.250001,-3.0747913e-8 V 24.545273 H 45.000002 A 1.2500007,1.2500007 45 0 1 43.750001,23.295272 V -3.0747913e-8"
@@ -201,22 +211,30 @@
      inkscape:original-d="M 46.250001,-3.0747913e-8 V 24.545273 h -2.5 V -3.0747913e-8"
      transform="matrix(1,0,0,0.91666667,0,2.5)"
      sodipodi:nodetypes="cccc" />
-  <path vector-effect="non-scaling-stroke" stroke-width="1"
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
      id="rect4"
      style="fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
      d="m 41.000001,0 h 8 v 2.5 h -8 z" />
-  <path vector-effect="non-scaling-stroke" stroke-width="1"
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
      id="rect4-2"
      style="fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
      d="m 58.182306,0 h 8 v 2.5 h -8 z" />
-  <path vector-effect="non-scaling-stroke" stroke-width="1"
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
      id="rect4-2-1"
      style="display:none;fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
      d="m 59.182,2.5 h 6 V 3.7040883 A 1.2959117,1.2959117 135 0 1 63.886088,5 H 60.477912 A 1.2959117,1.2959117 45 0 1 59.182,3.7040883 Z"
      inkscape:path-effect="#path-effect8"
      inkscape:original-d="m 59.182,2.5 h 6 V 5 h -6 z"
      sodipodi:nodetypes="ccccc" />
-  <path vector-effect="non-scaling-stroke" stroke-width="1"
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
      id="rect4-2-1-9"
      style="display:inline;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
      d="m 59.182,2.5 h 6 V 3.7040883 A 1.2959117,1.2959117 135 0 1 63.886088,5 H 60.477912 A 1.2959117,1.2959117 45 0 1 59.182,3.7040883 Z"
@@ -224,19 +242,27 @@
      inkscape:original-d="m 59.182,2.5 h 6 V 5 h -6 z"
      sodipodi:nodetypes="ccccc"
      transform="matrix(-1,0,0,1,139.182,87.5)" />
-  <path vector-effect="non-scaling-stroke" stroke-width="1"
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
      id="rect4-2-6"
      style="fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
      d="m 31.817694,0 h -8 v 2.5 h 8 z" />
-  <path vector-effect="non-scaling-stroke" stroke-width="1"
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
      id="rect4-2-6-1"
      style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
      d="M 5,85 H 0 v 5 h 5 z" />
-  <path vector-effect="non-scaling-stroke" stroke-width="1"
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
      id="rect4-2-6-1-4"
      style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
      d="m 90,85 h -5 v 5 h 5 z" />
-  <path vector-effect="non-scaling-stroke" stroke-width="1"
+  <path
+     vector-effect="non-scaling-stroke"
+     stroke-width="1"
      style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-dasharray:none;stroke-opacity:1;paint-order:normal;vector-effect:non-scaling-stroke"
      d="m 45,87 v 3"
      id="path4" />
@@ -244,17 +270,23 @@
      id="planner-fixed-0"
      transform="matrix(3.3406631,-3.3406631,3.3406617,3.3406617,-114.31741,140.94557)"
      style="display:inline;stroke:#000000;stroke-width:1;stroke-opacity:1">
-    <path vector-effect="non-scaling-stroke" stroke-width="1"
+    <path
+       vector-effect="non-scaling-stroke"
+       stroke-width="1"
        id="path1-68"
        style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
        d="m 39.488277,9.2604161 a 1.0583332,1.0583331 0 0 1 -1.058333,1.0583339 1.0583332,1.0583331 0 0 1 -1.058333,-1.0583339 1.0583332,1.0583331 0 0 1 1.058333,-1.058333 1.0583332,1.0583331 0 0 1 1.058333,1.058333 z" />
-    <path vector-effect="non-scaling-stroke" stroke-width="1"
+    <path
+       vector-effect="non-scaling-stroke"
+       stroke-width="1"
        id="path1-68-1"
-       style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
+       style="display:none;vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1"
        d="M 39.157548,9.2604162 A 0.7276043,0.72760392 0 0 1 38.429944,9.9880207 0.7276043,0.72760392 0 0 1 37.702339,9.2604162 0.7276043,0.72760392 0 0 1 38.429944,8.5328124 0.7276043,0.72760392 0 0 1 39.157548,9.2604162 Z" />
-    <path vector-effect="non-scaling-stroke" stroke-width="1"
+    <path
+       vector-effect="non-scaling-stroke"
+       stroke-width="1"
        id="path8"
-       style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
-       d="m 37.91545,8.7459224 1.028987,1.0289875 m 0,-1.0289872 -1.028988,1.0289877" />
+       style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1"
+       d="m 37.681589,8.5120617 1.496707,1.4967073 m 0,-1.4967068 -1.496708,1.4967078" />
   </g>
 </svg>

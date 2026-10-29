@@ -1,0 +1,108 @@
+{
+    "name": "Dining Set 8B",
+    "category": [
+        "Dining Room",
+        "Kitchen"
+    ],
+    "children": [
+        {
+            "furnishing": "chair_dining",
+            "x": 850.0,
+            "y": 0.0,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 270.0,
+            "zIndex": 0,
+            "flipHorizontal": false,
+            "flipVertical": false
+        },
+        {
+            "furnishing": "chair_dining",
+            "x": -850.0,
+            "y": 0.0,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 90.0,
+            "zIndex": 1,
+            "flipHorizontal": false,
+            "flipVertical": false
+        },
+        {
+            "furnishing": "chair_dining",
+            "x": 500.0,
+            "y": -400.0,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 180.0,
+            "zIndex": 2,
+            "flipHorizontal": false,
+            "flipVertical": false
+        },
+        {
+            "furnishing": "chair_dining",
+            "x": -500.0,
+            "y": -400.0,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 180.0,
+            "zIndex": 3,
+            "flipHorizontal": false,
+            "flipVertical": false
+        },
+        {
+            "furnishing": "chair_dining",
+            "x": 0.0,
+            "y": -400.0,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 180.0,
+            "zIndex": 4,
+            "flipHorizontal": false,
+            "flipVertical": false
+        },
+        {
+            "furnishing": "chair_dining",
+            "x": -500.0,
+            "y": 400.0,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 0.0,
+            "zIndex": 5,
+            "flipHorizontal": false,
+            "flipVertical": false
+        },
+        {
+            "furnishing": "chair_dining",
+            "x": 500.0,
+            "y": 400.0,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 0.0,
+            "zIndex": 6,
+            "flipHorizontal": false,
+            "flipVertical": false
+        },
+        {
+            "furnishing": "chair_dining",
+            "x": 0.0,
+            "y": 400.0,
+            "width": 450.0,
+            "length": 500.0,
+            "angle": 0.0,
+            "zIndex": 7,
+            "flipHorizontal": false,
+            "flipVertical": false
+        },
+        {
+            "furnishing": "table_dining_6",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1800.0,
+            "length": 900.0,
+            "angle": 0.0,
+            "zIndex": 8,
+            "flipHorizontal": false,
+            "flipVertical": false
+        }
+    ]
+}

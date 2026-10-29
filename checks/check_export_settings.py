@@ -255,7 +255,9 @@ def Main():
         assert panel.visibilityItems["Walls"].checkState(0) == QtCore.Qt.CheckState.PartiallyChecked
         # Discard these extra tree edits by loading the saved sparse overrides.
         main.ApplyProject(DecodeProject(saved, main.viewport.furnishingDefinitions), None)
-        assert panel.overrides == overrides and main.viewport.gridIntensities["overall"] == .725
+        assert panel.overrides == overrides
+        assert main.sidebarTabs.currentWidget() is main.buildScrollArea
+        assert main.viewport.gridIntensities["overall"] == view["viewportSettings"]["overall"]
         main.sidebarTabs.setCurrentIndex(0)
         assert panel.CaptureView() == view, {key: (view[key], value) for key, value in panel.CaptureView().items() if value != view[key]}
         # Opening another, older project clears overrides, even from Export.
@@ -287,8 +289,8 @@ def Main():
         assert recovered.exportPanel.sectionButtons["Canvas"].isChecked()
         assert recovered.exportPanel.sectionButtons["Grid"].isChecked()
         assert not recovered.exportPanel.sectionButtons["Visibility"].isChecked()
-        assert recovered.sidebarTabs.currentWidget() is recovered.exportPanel
-        assert recovered.viewport.gridIntensities["overall"] == .725
+        assert recovered.sidebarTabs.currentWidget() is recovered.buildScrollArea
+        assert recovered.viewport.gridIntensities["overall"] == view["viewportSettings"]["overall"]
         recovered.sidebarTabs.setCurrentIndex(0)
         assert recovered.exportPanel.CaptureView() == view
         recovered.close()

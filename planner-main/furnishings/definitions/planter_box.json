@@ -1,0 +1,12 @@
+{
+    "name": "Planter Box 1",
+    "image": "planter_box",
+    "width": 1000,
+    "length": 400,
+    "icon": null,
+    "category": "Outdoor",
+    "inherits": null,
+    "children": [],
+    "keywords": [
+    ]
+}

@@ -79,9 +79,9 @@ def Child():
                 CompareDirect(v)
             # Nonintegral device movement keeps a fresh, unfiltered render.
             v.panOffset += point(.25 / ratio, .4 / ratio)
-            with patch.object(v, "DrawGridBackground", wraps = v.DrawGridBackground) as grid:
+            with patch.object(v, "DrawScene", wraps = v.DrawScene) as draw:
                 v.grab()
-                assert not any(call.kwargs.get("gridOnly", False) for call in grid.call_args_list)
+                assert draw.call_count == 1 and draw.call_args.kwargs.get("dirtyRects") is None, "Fractional movement reused shifted pixels"
             CompareDirect(v)
             v.isPanning = False
             with patch.object(v, "DrawScene", wraps = v.DrawScene) as draw:

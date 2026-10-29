@@ -141,22 +141,21 @@ def Main():
     main.sidebarTabs.setCurrentIndex(1)
     app.processEvents()
     field = main.furnishingSearchField
-    cards = dict(main.furnishingCards)
-    buttons = dict(main.furnishingButtons)
+    grids = dict(main.furnishingCategoryGrids)
     field.setFocus()
     QtTest.QTest.keyClicks(field, "bEd")
     QtTest.QTest.qWait(180)
     assert main.furnishingResultsWidget.isVisible()
     assert all(not widget.isVisible() for widget in main.furnishingCategoryWidgets.values())
-    results = [main.furnishingResultsLayout.itemAt(index).widget() for index in range(main.furnishingResultsLayout.count())]
+    results = main.furnishingResultsGrid.model().keys
     assert len(results) == len(FindFurnishings(catalog, "bed", main.viewport.unitsMode))
-    assert all("bed" in button.definition["searchText"] for button in buttons.values() if button.isVisible())
-    assert all(main.furnishingCards[key] is card for key, card in cards.items())
+    assert all("bed" in main.viewport.furnishingDefinitions[key]["searchText"] for key in results)
+    assert main.furnishingCategoryGrids == grids
     assert field.hasFocus()
     main.grab().save("screenshots/furnishing-search.png")
     field.setText("zzzz no match")
     QtTest.QTest.qWait(180)
-    assert main.furnishingNoResults.isVisible() and main.furnishingResultsLayout.count() == 0
+    assert main.furnishingNoResults.isVisible() and main.furnishingResultsGrid.model().rowCount() == 0
     assert main.furnishingSearchClearAction.isVisible()
     clearButton = main.furnishingSearchClearButton
     assert clearButton is not None and clearButton.isVisible()
@@ -180,13 +179,13 @@ def Main():
     assert not field.text() and not main.furnishingSearchClearAction.isVisible()
     QtTest.QTest.qWait(180)
     assert not main.furnishingResultsWidget.isVisible()
-    assert all(button.isVisible() for button in buttons.values())
+    assert all(grid.isVisible() for grid in grids.values())
     field.setText("w:120 l:60")
     QtTest.QTest.qWait(180)
-    assert main.furnishingButtons["desk"].isVisible()
+    assert "desk" in main.furnishingResultsGrid.model().keys
     main.BuildFurnishTab(refresh = True)
     assert main.furnishingSearchField.text() == "w:120 l:60"
-    assert main.furnishingButtons["desk"].isVisible()
+    assert "desk" in main.furnishingResultsGrid.model().keys
     main.close()
     print("PASS: substring/keyword search, mm/cm/m priority, pairs, axis filters, debounce and reusable draggable cards.")
 

@@ -1,0 +1,28 @@
+{
+    "name": "Patio Set with Umbrella",
+    "category": "Outdoor",
+    "children": [
+        {
+            "furnishing": "patio_set",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 1600.0,
+            "length": 1800.0,
+            "angle": 0.0,
+            "zIndex": 0,
+            "flipHorizontal": false,
+            "flipVertical": false
+        },
+        {
+            "furnishing": "umbrella_patio",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 2500.0,
+            "length": 2500.0,
+            "angle": 0.0,
+            "zIndex": 1,
+            "flipHorizontal": false,
+            "flipVertical": false
+        }
+    ]
+}

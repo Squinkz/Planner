@@ -1,5 +1,6 @@
 """Temporary two-point reference-image calibration and a one-use unit choice."""
 import math
+from planner_app.reference_state import CalibrateReferenceState
 from PySide6 import QtCore, QtGui, QtWidgets
 from planner_app.graphics.icons import UiIcon
 from planner_app.graphics.palette import themeColors
@@ -154,21 +155,15 @@ class ReferenceCalibration:
     def Apply(self, distance):
         if not self.active or len(self.points) != 2:
             return "Choose two points before setting the distance."
-        measured = QtCore.QLineF(*self.points).length()
-        if not math.isfinite(distance) or distance <= 0 or measured <= 1e-6:
-            return "Enter a distance greater than zero."
         reference = self.reference
-        factor = distance / measured
-        # Keep the first picked point fixed while uniformly scaling the image.
-        anchor = self.points[0]
-        center = anchor + (QtCore.QPointF(*reference.state["center"]) - anchor) * factor
-        width, height = reference.state["width"] * factor, reference.state["height"] * factor
-        values = (center.x(), center.y(), width, height)
-        if any(not math.isfinite(value) or abs(value) > 1e12 for value in values) or min(width, height) < 1:
-            return "That distance would make the reference image too small or too large."
-        reference.state.update(center = [center.x(), center.y()], width = width, height = height)
-        if reference.pivot is not None:
-            reference.pivot = anchor + (reference.pivot - anchor) * factor
+        pivot = (reference.pivot.x(), reference.pivot.y()) if reference.pivot is not None else None
+        points = [(point.x(), point.y()) for point in self.points]
+        try:
+            state, pivot = CalibrateReferenceState(reference.state, *points, distance, pivot = pivot)
+        except ValueError as error:
+            return str(error)
+        reference.state = state
+        reference.pivot = QtCore.QPointF(*pivot) if pivot is not None else None
         reference.SyncProperties()
         reference.Changed()
         return None

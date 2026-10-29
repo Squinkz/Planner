@@ -31,8 +31,8 @@ def Main():
     assert main.furnishingSearchPanel.isAncestorOf(button)
     assert not button.isChecked() and not main.furnishingListView and catalog.isHidden()
     assert main.furnishScrollArea.isVisible() and not button.icon().isNull()
-    grid = next(grid for grid in main.furnishingCategoryLayouts.values() if grid.count() >= 6)
-    firstRow = [grid.itemAt(index).geometry() for index in range(6)]
+    grid = next(grid for grid in main.furnishingCategoryGrids.values() if grid.model().rowCount() >= 6)
+    firstRow = [grid.visualRect(grid.model().index(index, 0)) for index in range(6)]
     assert len({rect.y() for rect in firstRow[:5]}) == 1, "Default sidebar should fit five tiles per row"
     assert firstRow[5].y() > firstRow[0].y(), "Default sidebar should wrap after five tiles"
     availableWidth = sum(main.mainSplitter.sizes())
@@ -44,7 +44,7 @@ def Main():
         assert selector.property("modeSelector") is True
         selector.setAttribute(QtCore.Qt.WidgetAttribute.WA_UnderMouse, False)
         assert selector.grab().toImage().pixelColor(5, 5).name() == QtGui.QColor(themeColors["activeBackground"]).name()
-    cards = dict(main.furnishingCategoryCards)
+    categories = dict(main.furnishingCategoryKeys)
     headerPositions = [widget.mapToGlobal(QtCore.QPoint()) for widget in (main.furnishingSearchPanel, main.furnishingViewPanel)]
     main.furnishScrollArea.verticalScrollBar().setValue(main.furnishScrollArea.verticalScrollBar().maximum())
     app.processEvents()
@@ -53,18 +53,18 @@ def Main():
     app.processEvents()
     assert button.isChecked() and main.furnishingListView and catalog.isVisible()
     assert button.grab().toImage().pixelColor(5, 5).name() == QtGui.QColor(themeColors["activeBackground"]).name()
-    assert main.furnishScrollArea.isHidden() and main.furnishingCategoryCards == cards
+    assert main.furnishScrollArea.isHidden() and main.furnishingCategoryKeys == categories
     headings = [catalog.item(row).text() for row in range(catalog.count())
                 if catalog.item(row).data(QtCore.Qt.ItemDataRole.UserRole + 2)]
     assert headings == list(main.furnishingCategoryWidgets)
-    assert catalog.count() == len(main.furnishingCategoryCards) + len(headings)
+    assert catalog.count() == sum(len(keys) for keys in main.furnishingCategoryKeys.values()) + len(headings)
     for row in range(catalog.count()):
         item = catalog.item(row)
         key = item.data(QtCore.Qt.ItemDataRole.UserRole)
         if key is None:
             assert not item.flags() & QtCore.Qt.ItemFlag.ItemIsSelectable
         else:
-            assert item.data(QtCore.Qt.ItemDataRole.UserRole + 1) == main.furnishingDimensionLabels[key].text()
+            assert item.data(QtCore.Qt.ItemDataRole.UserRole + 1) == main.furnishingDimensions[key]
     catalog.verticalScrollBar().setValue(catalog.verticalScrollBar().maximum())
     app.processEvents()
     assert headerPositions == [widget.mapToGlobal(QtCore.QPoint()) for widget in (main.furnishingSearchPanel, main.furnishingViewPanel)]
@@ -110,7 +110,7 @@ def Main():
     QtTest.QTest.mouseClick(button, QtCore.Qt.MouseButton.LeftButton)
     app.processEvents()
     assert main.furnishScrollArea.isVisible() and catalog.isHidden()
-    assert main.furnishingResultsLayout.count() == len(FindFurnishings(main.viewport.furnishingDefinitions.values(), "chair", "Inches"))
+    assert main.furnishingResultsGrid.model().rowCount() == len(FindFurnishings(main.viewport.furnishingDefinitions.values(), "chair", "Inches"))
     QtTest.QTest.mouseClick(button, QtCore.Qt.MouseButton.LeftButton)
     main.furnishingSearchField.clear()
     main.furnishingSearchTimer.stop()
@@ -122,7 +122,7 @@ def Main():
     assert main.furnishingListView and button.isChecked()
     item = catalog.item(1)
     key = item.data(QtCore.Qt.ItemDataRole.UserRole)
-    assert item.icon().cacheKey() == main.furnishingButtons[key].icon().cacheKey(), "List retained an old theme icon"
+    assert item.icon().cacheKey() == main.furnishingThumbnails.Icon(main.viewport.furnishingDefinitions[key]).cacheKey(), "List retained an old theme icon"
     main.resize(1000, 720)
     app.processEvents()
     assert not catalog.horizontalScrollBar().isVisible()

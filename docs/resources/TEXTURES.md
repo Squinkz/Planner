@@ -3,7 +3,7 @@
 Normal-map resources live directly in `textures/` and are enumerated at startup.
 Restart after adding or renaming resources. The PNG compositor consumes the
 resolved mapping and lighting defaults described below. For operating its controls,
-see [Exporting and printing](../../planner-main/docs/help/export.md).
+see [Exporting and printing](../../planner-main/help/export.md).
 
 ## Image format
 
@@ -96,7 +96,7 @@ contains a decimal point**, all four are read as ordinary numbers. For example,
 Tiled sampling uses **source texture pixels per output pixel**. Filename scales
 must be positive; zero is reserved for bypassing compositing in an export override.
 Sampling filters handle scale changes. For adjusting the control and comparing
-tile sizes, see [Exporting and printing](../../planner-main/docs/help/export.md).
+tile sizes, see [Exporting and printing](../../planner-main/help/export.md).
 
 The export schema accepts scales from **0 to 4**. Stretch sampling maps one
 image to the complete output; tiled sampling uses the ratio above.

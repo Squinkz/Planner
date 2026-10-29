@@ -1,0 +1,1393 @@
+{
+  "format": "Planner Project",
+  "version": 1,
+  "scene": {
+    "objects": [
+      {
+        "type": "Wall",
+        "id": 53,
+        "measurementHidden": false,
+        "first": [
+          -99.99999999999989,
+          700.000000000001
+        ],
+        "second": [
+          600.0,
+          700.0
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 63,
+        "measurementHidden": false,
+        "first": [
+          660.0000000000001,
+          1999.99
+        ],
+        "second": [
+          660.0000000000001,
+          -1100.01
+        ],
+        "width": 120.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 55,
+        "measurementHidden": false,
+        "first": [
+          660.0000000000001,
+          -1100.01
+        ],
+        "second": [
+          2600.0,
+          -1099.9999999999998
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 56,
+        "measurementHidden": false,
+        "first": [
+          2600.0,
+          -1099.9999999999998
+        ],
+        "second": [
+          2600.0,
+          2000.0000000000002
+        ],
+        "width": 120.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 57,
+        "measurementHidden": false,
+        "first": [
+          660.0000000000001,
+          1999.99
+        ],
+        "second": [
+          -160.0000000000009,
+          2000.0
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 58,
+        "measurementHidden": false,
+        "first": [
+          -160.0000000000009,
+          2000.0
+        ],
+        "second": [
+          -160.00000000000023,
+          -1099.9999999999998
+        ],
+        "width": 120.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 61,
+        "measurementHidden": false,
+        "first": [
+          660.0000000000001,
+          1999.99
+        ],
+        "second": [
+          2600.0,
+          2000.0000000000002
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 72,
+        "measurementHidden": false,
+        "first": [
+          -160.00000000000023,
+          2000.0000000000002
+        ],
+        "second": [
+          -2099.999999999999,
+          2000.0000000000002
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 74,
+        "measurementHidden": false,
+        "first": [
+          -160.00000000000023,
+          -1099.9999999999998
+        ],
+        "second": [
+          660.0000000000008,
+          -1100.01
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 76,
+        "measurementHidden": false,
+        "first": [
+          -160.00000000000023,
+          -1099.9999999999998
+        ],
+        "second": [
+          -2099.999999999999,
+          -1099.9999999999998
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 83,
+        "measurementHidden": false,
+        "first": [
+          -99.99999999999989,
+          200.0
+        ],
+        "second": [
+          600.0,
+          200.0
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Pillar",
+        "id": 84,
+        "measurementHidden": false,
+        "first": [
+          250.0000000000004,
+          299.9999999999999
+        ],
+        "second": [
+          250.0000000000004,
+          599.9999999999999
+        ],
+        "width": 699.9999999999993,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 99,
+        "measurementHidden": false,
+        "first": [
+          4599.999999999999,
+          700.000000000001
+        ],
+        "second": [
+          5299.999999999999,
+          700.0
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 100,
+        "measurementHidden": false,
+        "first": [
+          5359.999999999998,
+          1999.9899999999998
+        ],
+        "second": [
+          5359.999999999998,
+          -1100.0100000000002
+        ],
+        "width": 120.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 101,
+        "measurementHidden": false,
+        "first": [
+          5359.999999999998,
+          -1100.0100000000002
+        ],
+        "second": [
+          7299.999999999999,
+          -1099.9999999999998
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 102,
+        "measurementHidden": false,
+        "first": [
+          7299.999999999999,
+          -1099.9999999999998
+        ],
+        "second": [
+          7299.999999999999,
+          2000.0000000000002
+        ],
+        "width": 120.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 103,
+        "measurementHidden": false,
+        "first": [
+          5359.999999999998,
+          1999.9899999999998
+        ],
+        "second": [
+          4539.999999999999,
+          1999.9899999999998
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 104,
+        "measurementHidden": false,
+        "first": [
+          4539.999999999999,
+          1999.9899999999998
+        ],
+        "second": [
+          4540.0,
+          -1100.01
+        ],
+        "width": 120.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 105,
+        "measurementHidden": false,
+        "first": [
+          5359.999999999998,
+          1999.9899999999998
+        ],
+        "second": [
+          7299.999999999999,
+          2000.0000000000002
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 106,
+        "measurementHidden": false,
+        "first": [
+          4540.0,
+          1999.99
+        ],
+        "second": [
+          2600.0,
+          2000.0000000000002
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 107,
+        "measurementHidden": false,
+        "first": [
+          4540.0,
+          -1100.01
+        ],
+        "second": [
+          5359.999999999999,
+          -1100.0100000000002
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 108,
+        "measurementHidden": false,
+        "first": [
+          4540.0,
+          -1100.01
+        ],
+        "second": [
+          2600.0,
+          -1099.9999999999998
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 109,
+        "measurementHidden": false,
+        "first": [
+          4599.999999999999,
+          200.0
+        ],
+        "second": [
+          5299.999999999999,
+          200.0
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Pillar",
+        "id": 110,
+        "measurementHidden": false,
+        "first": [
+          4949.999999999999,
+          299.9999999999999
+        ],
+        "second": [
+          4949.999999999999,
+          599.9999999999999
+        ],
+        "width": 699.9999999999993,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 123,
+        "measurementHidden": false,
+        "first": [
+          5299.999999999999,
+          -4850.0
+        ],
+        "second": [
+          4599.999999999998,
+          -4850.0
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 124,
+        "measurementHidden": false,
+        "first": [
+          4540.0,
+          -6150.0
+        ],
+        "second": [
+          4539.999484536082,
+          -3049.9899999999975
+        ],
+        "width": 120.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 125,
+        "measurementHidden": false,
+        "first": [
+          4539.999484536082,
+          -3049.9899999999975
+        ],
+        "second": [
+          2599.999999999999,
+          -3049.999999999999
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 126,
+        "measurementHidden": false,
+        "first": [
+          2599.999999999999,
+          -3049.999999999999
+        ],
+        "second": [
+          2599.999999999999,
+          -6150.0
+        ],
+        "width": 120.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 127,
+        "measurementHidden": false,
+        "first": [
+          4540.0,
+          -6150.0
+        ],
+        "second": [
+          5359.999484536082,
+          -6149.989999999999
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 128,
+        "measurementHidden": false,
+        "first": [
+          5359.999484536082,
+          -6149.989999999999
+        ],
+        "second": [
+          5359.999484536081,
+          -3049.9899999999975
+        ],
+        "width": 120.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 129,
+        "measurementHidden": false,
+        "first": [
+          4540.0,
+          -6150.0
+        ],
+        "second": [
+          2599.999999999999,
+          -6150.0
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 130,
+        "measurementHidden": false,
+        "first": [
+          5359.999484536081,
+          -6149.989999999999
+        ],
+        "second": [
+          7299.999999999998,
+          -6149.999999999998
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 131,
+        "measurementHidden": false,
+        "first": [
+          5359.999484536081,
+          -3049.9899999999975
+        ],
+        "second": [
+          4539.999484536081,
+          -3049.9899999999975
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 132,
+        "measurementHidden": false,
+        "first": [
+          5359.999484536081,
+          -3049.9899999999975
+        ],
+        "second": [
+          7299.999999999998,
+          -3049.999999999998
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 133,
+        "measurementHidden": false,
+        "first": [
+          5299.999999999999,
+          -4349.999999999998
+        ],
+        "second": [
+          4599.999999999998,
+          -4349.999999999997
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Pillar",
+        "id": 134,
+        "measurementHidden": false,
+        "first": [
+          4949.999999999998,
+          -4449.999999999998
+        ],
+        "second": [
+          4949.999999999998,
+          -4750.0
+        ],
+        "width": 700.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 135,
+        "measurementHidden": false,
+        "first": [
+          599.9999999999998,
+          -4850.0
+        ],
+        "second": [
+          -99.99999999999989,
+          -4850.0
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 136,
+        "measurementHidden": false,
+        "first": [
+          -159.99878048780516,
+          -6150.01
+        ],
+        "second": [
+          -159.99878048780516,
+          -3050.0099999999993
+        ],
+        "width": 120.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 137,
+        "measurementHidden": false,
+        "first": [
+          -159.99878048780516,
+          -3050.0099999999993
+        ],
+        "second": [
+          -2100.0,
+          -3050.0
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 138,
+        "measurementHidden": false,
+        "first": [
+          -2100.0,
+          -3050.0
+        ],
+        "second": [
+          -2100.0,
+          -6150.0
+        ],
+        "width": 120.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 139,
+        "measurementHidden": false,
+        "first": [
+          -159.99878048780516,
+          -6150.01
+        ],
+        "second": [
+          659.9987804878065,
+          -6149.9899900233095
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 140,
+        "measurementHidden": false,
+        "first": [
+          659.9987804878065,
+          -6149.9899900233095
+        ],
+        "second": [
+          659.9987804878051,
+          -3049.9899900233086
+        ],
+        "width": 120.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 141,
+        "measurementHidden": false,
+        "first": [
+          -159.99878048780516,
+          -6150.01
+        ],
+        "second": [
+          -2100.0,
+          -6150.0
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 142,
+        "measurementHidden": false,
+        "first": [
+          659.9987804878056,
+          -6149.9899900233095
+        ],
+        "second": [
+          2599.999999999999,
+          -6150.0
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 143,
+        "measurementHidden": false,
+        "first": [
+          659.9987804878051,
+          -3049.9899900233086
+        ],
+        "second": [
+          -159.99878048780607,
+          -3050.0099999999993
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 144,
+        "measurementHidden": false,
+        "first": [
+          659.9987804878051,
+          -3049.9899900233086
+        ],
+        "second": [
+          2599.999999999999,
+          -3049.999999999999
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 145,
+        "measurementHidden": false,
+        "first": [
+          599.9999999999998,
+          -4350.0
+        ],
+        "second": [
+          -99.99999999999989,
+          -4350.0
+        ],
+        "width": 200.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Pillar",
+        "id": 146,
+        "measurementHidden": false,
+        "first": [
+          249.99999999999977,
+          -4450.0
+        ],
+        "second": [
+          249.99999999999977,
+          -4750.0
+        ],
+        "width": 699.9999999999993,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 173,
+        "measurementHidden": false,
+        "first": [
+          7299.999999999998,
+          -6149.999999999998
+        ],
+        "second": [
+          7299.999999999998,
+          -3049.9999999999977
+        ],
+        "width": 120.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 174,
+        "measurementHidden": false,
+        "first": [
+          -2099.9999999999995,
+          -1100.0000000000002
+        ],
+        "second": [
+          -2099.9999999999995,
+          1999.9999999999998
+        ],
+        "width": 120.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Wall",
+        "id": 175,
+        "measurementHidden": false,
+        "first": [
+          -2099.9999999999995,
+          -1100.0000000000002
+        ],
+        "second": [
+          -2099.999999999999,
+          -3050.0
+        ],
+        "width": 120.0,
+        "material": "Generic",
+        "firstMiter": 0.0,
+        "secondMiter": 0.0
+      },
+      {
+        "type": "Door",
+        "id": 59,
+        "measurementHidden": false,
+        "parent": 2,
+        "center": 0.38144329897728946,
+        "length": 800.0,
+        "hingeAtSecond": false,
+        "swingsOutwards": false,
+        "measurementFlipped": false
+      },
+      {
+        "type": "BarnDoor",
+        "id": 64,
+        "measurementHidden": false,
+        "parent": 1,
+        "center": 0.3870967741935484,
+        "length": 2200.0,
+        "hingeAtSecond": false,
+        "swingsOutwards": false,
+        "measurementFlipped": false
+      },
+      {
+        "type": "BarnDoor",
+        "id": 87,
+        "measurementHidden": false,
+        "parent": 5,
+        "center": 0.6129032258064516,
+        "length": 2200.0,
+        "hingeAtSecond": true,
+        "swingsOutwards": true,
+        "measurementFlipped": false
+      },
+      {
+        "type": "Door",
+        "id": 94,
+        "measurementHidden": false,
+        "parent": 9,
+        "center": 0.639175257731959,
+        "length": 799.9999999999999,
+        "hingeAtSecond": true,
+        "swingsOutwards": true,
+        "measurementFlipped": false
+      },
+      {
+        "type": "Door",
+        "id": 111,
+        "measurementHidden": false,
+        "parent": 14,
+        "center": 0.38144329897728974,
+        "length": 800.0,
+        "hingeAtSecond": false,
+        "swingsOutwards": false,
+        "measurementFlipped": false
+      },
+      {
+        "type": "BarnDoor",
+        "id": 112,
+        "measurementHidden": false,
+        "parent": 13,
+        "center": 0.3870967741935484,
+        "length": 2200.0,
+        "hingeAtSecond": false,
+        "swingsOutwards": false,
+        "measurementFlipped": false
+      },
+      {
+        "type": "BarnDoor",
+        "id": 115,
+        "measurementHidden": false,
+        "parent": 17,
+        "center": 0.6129032258064516,
+        "length": 2200.0,
+        "hingeAtSecond": true,
+        "swingsOutwards": true,
+        "measurementFlipped": false
+      },
+      {
+        "type": "Door",
+        "id": 116,
+        "measurementHidden": false,
+        "parent": 21,
+        "center": 0.6391752577367529,
+        "length": 799.9999999999999,
+        "hingeAtSecond": true,
+        "swingsOutwards": true,
+        "measurementFlipped": false
+      },
+      {
+        "type": "Door",
+        "id": 147,
+        "measurementHidden": false,
+        "parent": 26,
+        "center": 0.3814431346248436,
+        "length": 800.0,
+        "hingeAtSecond": false,
+        "swingsOutwards": false,
+        "measurementFlipped": false
+      },
+      {
+        "type": "BarnDoor",
+        "id": 148,
+        "measurementHidden": false,
+        "parent": 25,
+        "center": 0.38709575831636206,
+        "length": 2200.0,
+        "hingeAtSecond": false,
+        "swingsOutwards": false,
+        "measurementFlipped": false
+      },
+      {
+        "type": "BarnDoor",
+        "id": 151,
+        "measurementHidden": false,
+        "parent": 29,
+        "center": 0.6129032258064516,
+        "length": 2200.0,
+        "hingeAtSecond": true,
+        "swingsOutwards": true,
+        "measurementFlipped": false
+      },
+      {
+        "type": "Door",
+        "id": 152,
+        "measurementHidden": false,
+        "parent": 33,
+        "center": 0.6391753536089618,
+        "length": 799.9999999999999,
+        "hingeAtSecond": true,
+        "swingsOutwards": true,
+        "measurementFlipped": false
+      },
+      {
+        "type": "Door",
+        "id": 153,
+        "measurementHidden": false,
+        "parent": 38,
+        "center": 0.38144368781077687,
+        "length": 800.0,
+        "hingeAtSecond": false,
+        "swingsOutwards": false,
+        "measurementFlipped": false
+      },
+      {
+        "type": "BarnDoor",
+        "id": 154,
+        "measurementHidden": false,
+        "parent": 37,
+        "center": 0.3870967741935483,
+        "length": 2200.0,
+        "hingeAtSecond": false,
+        "swingsOutwards": false,
+        "measurementFlipped": false
+      },
+      {
+        "type": "BarnDoor",
+        "id": 157,
+        "measurementHidden": false,
+        "parent": 41,
+        "center": 0.6129032258064516,
+        "length": 2200.0,
+        "hingeAtSecond": true,
+        "swingsOutwards": true,
+        "measurementFlipped": false
+      },
+      {
+        "type": "Door",
+        "id": 158,
+        "measurementHidden": false,
+        "parent": 45,
+        "center": 0.6391754845562965,
+        "length": 799.9999999999999,
+        "hingeAtSecond": true,
+        "swingsOutwards": true,
+        "measurementFlipped": false
+      },
+      {
+        "type": "CasementWindow",
+        "id": 177,
+        "measurementHidden": false,
+        "parent": 18,
+        "center": 0.6907216494804271,
+        "length": 600.0000000000001,
+        "hingeAtSecond": true,
+        "swingsOutwards": true,
+        "measurementFlipped": false,
+        "windowWell": false,
+        "wellDepth": 600.0,
+        "wellDashed": false
+      },
+      {
+        "type": "Window",
+        "id": 178,
+        "measurementHidden": false,
+        "parent": 18,
+        "center": 0.3814432989690721,
+        "length": 600.0000000000001,
+        "swingsOutwards": true,
+        "measurementFlipped": false,
+        "windowWell": false,
+        "wellDepth": 600.0,
+        "wellDashed": false
+      },
+      {
+        "type": "CasementWindow",
+        "id": 179,
+        "measurementHidden": false,
+        "parent": 19,
+        "center": 0.3453608247443224,
+        "length": 600.0,
+        "hingeAtSecond": false,
+        "swingsOutwards": false,
+        "measurementFlipped": false,
+        "windowWell": false,
+        "wellDepth": 600.0,
+        "wellDashed": false
+      },
+      {
+        "type": "Window",
+        "id": 180,
+        "measurementHidden": false,
+        "parent": 19,
+        "center": 0.6546391752556777,
+        "length": 600.0000000000002,
+        "swingsOutwards": false,
+        "measurementFlipped": false,
+        "windowWell": false,
+        "wellDepth": 600.0,
+        "wellDashed": false
+      },
+      {
+        "type": "CasementWindow",
+        "id": 181,
+        "measurementHidden": false,
+        "parent": 6,
+        "center": 0.34536082474432245,
+        "length": 599.9999999999999,
+        "hingeAtSecond": false,
+        "swingsOutwards": true,
+        "measurementFlipped": false,
+        "windowWell": false,
+        "wellDepth": 600.0,
+        "wellDashed": false
+      },
+      {
+        "type": "Window",
+        "id": 182,
+        "measurementHidden": false,
+        "parent": 6,
+        "center": 0.6546391752556775,
+        "length": 600.0000000000001,
+        "swingsOutwards": true,
+        "measurementFlipped": false,
+        "windowWell": false,
+        "wellDepth": 600.0,
+        "wellDashed": false
+      },
+      {
+        "type": "CasementWindow",
+        "id": 183,
+        "measurementHidden": false,
+        "parent": 7,
+        "center": 0.6907216494845358,
+        "length": 599.9999999999999,
+        "hingeAtSecond": true,
+        "swingsOutwards": false,
+        "measurementFlipped": false,
+        "windowWell": false,
+        "wellDepth": 600.0,
+        "wellDashed": false
+      },
+      {
+        "type": "Window",
+        "id": 184,
+        "measurementHidden": false,
+        "parent": 7,
+        "center": 0.38144329896907175,
+        "length": 600.0000000000001,
+        "swingsOutwards": false,
+        "measurementFlipped": false,
+        "windowWell": false,
+        "wellDepth": 600.0,
+        "wellDashed": false
+      },
+      {
+        "type": "CasementWindow",
+        "id": 193,
+        "measurementHidden": false,
+        "parent": 31,
+        "center": 0.6907217316648245,
+        "length": 600.0000000000001,
+        "hingeAtSecond": true,
+        "swingsOutwards": false,
+        "measurementFlipped": false,
+        "windowWell": false,
+        "wellDepth": 600.0,
+        "wellDashed": false
+      },
+      {
+        "type": "Window",
+        "id": 194,
+        "measurementHidden": false,
+        "parent": 31,
+        "center": 0.3814434633296486,
+        "length": 600.0000000000001,
+        "swingsOutwards": false,
+        "measurementFlipped": false,
+        "windowWell": false,
+        "wellDepth": 600.0,
+        "wellDashed": false
+      },
+      {
+        "type": "CasementWindow",
+        "id": 195,
+        "measurementHidden": false,
+        "parent": 30,
+        "center": 0.34536082474226787,
+        "length": 600.0,
+        "hingeAtSecond": false,
+        "swingsOutwards": true,
+        "measurementFlipped": false,
+        "windowWell": false,
+        "wellDepth": 600.0,
+        "wellDashed": false
+      },
+      {
+        "type": "Window",
+        "id": 196,
+        "measurementHidden": false,
+        "parent": 30,
+        "center": 0.6546391752577319,
+        "length": 600.0000000000002,
+        "swingsOutwards": true,
+        "measurementFlipped": false,
+        "windowWell": false,
+        "wellDepth": 600.0,
+        "wellDashed": false
+      },
+      {
+        "type": "CasementWindow",
+        "id": 197,
+        "measurementHidden": false,
+        "parent": 43,
+        "center": 0.3453609219526984,
+        "length": 599.9999999999999,
+        "hingeAtSecond": false,
+        "swingsOutwards": false,
+        "measurementFlipped": false,
+        "windowWell": false,
+        "wellDepth": 600.0,
+        "wellDashed": false
+      },
+      {
+        "type": "Window",
+        "id": 198,
+        "measurementHidden": false,
+        "parent": 43,
+        "center": 0.6546390780473017,
+        "length": 600.0000000000001,
+        "swingsOutwards": false,
+        "measurementFlipped": false,
+        "windowWell": false,
+        "wellDepth": 600.0,
+        "wellDashed": false
+      },
+      {
+        "type": "CasementWindow",
+        "id": 199,
+        "measurementHidden": false,
+        "parent": 42,
+        "center": 0.6907218439053882,
+        "length": 599.9999999999999,
+        "hingeAtSecond": true,
+        "swingsOutwards": true,
+        "measurementFlipped": false,
+        "windowWell": false,
+        "wellDepth": 600.0,
+        "wellDashed": false
+      },
+      {
+        "type": "Window",
+        "id": 200,
+        "measurementHidden": false,
+        "parent": 42,
+        "center": 0.3814436878107768,
+        "length": 600.0000000000001,
+        "swingsOutwards": true,
+        "measurementFlipped": false,
+        "windowWell": false,
+        "wellDepth": 600.0,
+        "wellDashed": false
+      }
+    ],
+    "groups": [],
+    "hidden": []
+  },
+  "settings": {
+    "wallWidth": 200.0,
+    "wallMaterial": "Generic",
+    "wallShape": "line",
+    "doorType": "Door",
+    "windowType": "Window",
+    "snapEnabled": true,
+    "snap": {
+      "grid": true,
+      "vertices": true,
+      "corners": true,
+      "midpoints": true,
+      "alignment": true
+    },
+    "connectedVertices": false,
+    "connectedObjects": false,
+    "groupMode": true,
+    "localTransforms": false,
+    "visibility": {
+      "World": true,
+      "Walls": true,
+      "Doors": true,
+      "Windows": true,
+      "Fireplaces": true,
+      "Elevators": true,
+      "Stairs": true,
+      "Counters": true,
+      "Railings": true,
+      "Furnishings": true,
+      "Labels": true,
+      "Arrows": true,
+      "Measurement guides": true,
+      "Boundary lines": true,
+      "Dashed lines": true,
+      "Solid lines": true,
+      "North arrows": true
+    },
+    "ignoredPotentialIssues": [],
+    "showGrid": true,
+    "roomStyle": "Tinted",
+    "solidRooms": false,
+    "showMeasurements": false,
+    "measurementPrecision": "Medium",
+    "buildSettings": {
+      "wallWidths": [
+        10.0,
+        15.0,
+        20.0,
+        30.0
+      ],
+      "openingSizes": {
+        "Door": 90.0,
+        "SlidingDoor": 90.0,
+        "PocketDoor": 90.0,
+        "BarnDoor": 90.0,
+        "BifoldDoor": 120.0,
+        "OpenDoorway": 90.0,
+        "Window": 120.0,
+        "SilledWindow": 120.0,
+        "CasementWindow": 60.0,
+        "AwningWindow": 120.0,
+        "DoubleCasementWindow": 120.0,
+        "SwingingDoor": 90.0,
+        "DoubleDoor": 180.0
+      },
+      "miscSizes": {
+        "Stair": 100.0,
+        "Counter": 60.0,
+        "Railing": 8.0,
+        "Pillar": 30.0,
+        "Column": 30.0,
+        "Fireplace": 120.0,
+        "Elevator": 120.0
+      }
+    },
+    "viewportSettings": {
+      "overall": 1.0,
+      "major": 0.169,
+      "minor": 0.083,
+      "origin": 0.305
+    },
+    "lineworkSettings": {
+      "baseWidth": 4.0,
+      "walls": 1.0,
+      "architectural": 0.5,
+      "furnishings": 0.25,
+      "dimensions": 0.25
+    },
+    "measurementSettings": {
+      "doors": 1,
+      "windows": 1,
+      "stairs": 2,
+      "counters": 2
+    },
+    "measurementVisibility": {
+      "walls": true,
+      "stairs": false,
+      "counters": false,
+      "railings": false
+    },
+    "collisionSettings": {
+      "walls": false,
+      "architectural": false,
+      "furnishings": false
+    },
+    "railingSpacings": {
+      "minimum": 90.0,
+      "maximum": 150.0,
+      "target": 120.0
+    },
+    "stairStepSizes": {
+      "minimum": 25.0,
+      "maximum": 30.0
+    },
+    "unitsMode": "Millimeters",
+    "wallMeasurementMode": "Exterior stacked"
+  },
+  "view": {
+    "zoom": 0.8695652173913048,
+    "pan": [
+      -305.3440803798835,
+      -588.7447514107847
+    ]
+  }
+}

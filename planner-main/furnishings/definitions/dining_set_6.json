@@ -8,7 +8,7 @@
         {
             "furnishing": "chair_dining",
             "x": 500.0,
-            "y": -425.0,
+            "y": -400.0,
             "width": 450.0,
             "length": 500.0,
             "angle": 180.0,
@@ -18,7 +18,7 @@
         {
             "furnishing": "chair_dining",
             "x": -500.0,
-            "y": -425.0,
+            "y": -400.0,
             "width": 450.0,
             "length": 500.0,
             "angle": 180.0,
@@ -28,7 +28,7 @@
         {
             "furnishing": "chair_dining",
             "x": 0.0,
-            "y": -425.0,
+            "y": -400.0,
             "width": 450.0,
             "length": 500.0,
             "angle": 180.0,
@@ -38,7 +38,7 @@
         {
             "furnishing": "chair_dining",
             "x": -500.0,
-            "y": 425.0,
+            "y": 400.0,
             "width": 450.0,
             "length": 500.0,
             "angle": 0.0,
@@ -48,7 +48,7 @@
         {
             "furnishing": "chair_dining",
             "x": 500.0,
-            "y": 425.0,
+            "y": 400.0,
             "width": 450.0,
             "length": 500.0,
             "angle": 0.0,
@@ -58,7 +58,7 @@
         {
             "furnishing": "chair_dining",
             "x": 0.0,
-            "y": 425.0,
+            "y": 400.0,
             "width": 450.0,
             "length": 500.0,
             "angle": 0.0,
@@ -68,7 +68,7 @@
         {
             "furnishing": "table_dining_6",
             "x": 0.0,
-            "y": 25.0,
+            "y": 0.0,
             "width": 1800.0,
             "length": 900.0,
             "angle": 0.0,

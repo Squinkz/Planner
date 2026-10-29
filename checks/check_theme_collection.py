@@ -24,7 +24,8 @@ def Main():
     expectedUI = {"Dark UI", "Light UI", "Heather UI", "Neutral UI", "Dark Fire UI", "Dark Ice UI", "Light Fire UI",
                   "Light Ice UI", "Driftwood UI", "Sage UI", "Candy Shop UI", "Periwinkle UI"}
     expectedCanvas = {"Dark Canvas", "Light Canvas", "Blueprint Canvas", "Deep Blueprint Canvas", "Cyanotype Canvas",
-                      "Cyan Blueprint Canvas", "Vellum Canvas", "Graphite Canvas", "Sepia Canvas", "Redline Canvas", "Risograph Canvas"}
+                      "Cyan Blueprint Canvas", "Vellum Canvas", "Graphite Canvas", "Sepia Canvas", "Redline Canvas", "Risograph Canvas",
+                      "Charcoal Canvas", "Ember Canvas"}
     assert expectedUI | expectedCanvas <= themes.keys()
     for name in expectedUI:
         colors = themes[name]["colors"]

@@ -24,8 +24,8 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="11.313708"
-     inkscape:cx="57.054678"
-     inkscape:cy="7.7339804"
+     inkscape:cx="68.324196"
+     inkscape:cy="11.711457"
      inkscape:window-width="2560"
      inkscape:window-height="1336"
      inkscape:window-x="2552"
@@ -267,14 +267,14 @@
        vector-effect="non-scaling-stroke"
        stroke-width="1"
        id="path1-68-1"
-       style="vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1"
+       style="display:none;vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1"
        d="M 39.157548,9.2604162 A 0.7276043,0.72760392 0 0 1 38.429944,9.9880207 0.7276043,0.72760392 0 0 1 37.702339,9.2604162 0.7276043,0.72760392 0 0 1 38.429944,8.5328124 0.7276043,0.72760392 0 0 1 39.157548,9.2604162 Z" />
     <path
        vector-effect="non-scaling-stroke"
        stroke-width="1"
        id="path8"
-       style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1"
-       d="m 37.91545,8.7459224 1.028987,1.0289875 m 0,-1.0289872 -1.028988,1.0289877" />
+       style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:0.999999;stroke-miterlimit:7.7;stroke-opacity:1"
+       d="m 37.681589,8.5120609 1.49671,1.4967101 m 0,-1.4967096 -1.496711,1.4967106" />
   </g>
   <g
      id="planner-fixed-0-1"
@@ -290,13 +290,13 @@
        vector-effect="non-scaling-stroke"
        stroke-width="1"
        id="path1-68-1-2"
-       style="vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1"
+       style="display:none;vector-effect:non-scaling-stroke;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1"
        d="M 39.157548,9.2604162 A 0.7276043,0.72760392 0 0 1 38.429944,9.9880207 0.7276043,0.72760392 0 0 1 37.702339,9.2604162 0.7276043,0.72760392 0 0 1 38.429944,8.5328124 0.7276043,0.72760392 0 0 1 39.157548,9.2604162 Z" />
     <path
        vector-effect="non-scaling-stroke"
        stroke-width="1"
        id="path8-3"
-       style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1"
-       d="m 37.91545,8.7459224 1.028987,1.0289875 m 0,-1.0289872 -1.028988,1.0289877" />
+       style="vector-effect:non-scaling-stroke;fill:#ffffff;stroke:#000000;stroke-width:0.999999;stroke-miterlimit:7.7;stroke-opacity:1"
+       d="m 37.681589,8.5120609 1.49671,1.4967101 m 0,-1.4967096 -1.496711,1.4967106" />
   </g>
 </svg>

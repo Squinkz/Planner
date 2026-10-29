@@ -510,6 +510,8 @@ class InteractionMixin:
                         originalStair = type(self.selectedWall)(self.dragVertices[0], self.dragVertices[1], self.selectedWall.width)
                         anchors = self.ObjectCorners(originalStair) + list(self.dragVertices) + [(self.dragVertices[0] + self.dragVertices[1]) / 2]
                         snapTargets = self.StairSnapTargets(self.selectedWall) + list(self.SnapVertices())
+                    if type(self.selectedWall) is MeasurementGuide:
+                        anchors.extend(self.GuideDepthEndpoints(self.selectedWall, self.dragVertices))
                     worldDelta = self.SnapObjectMovement(anchors, worldDelta, modifiers, snapTargets = snapTargets)
                     target = self.dragVertices[anchorIndex] + worldDelta
                 else:
@@ -574,7 +576,8 @@ class InteractionMixin:
                 self.UpdateInteraction(self.lastInteractionPosition or event.position(), event.modifiers())
             event.accept()
             return
-        if self.pendingWall is not None and self.wallDrawShape == "circle":
+        if (self.guiDragActive and not self.guiDragCancelled and self.guiDragKind == "wall-circle"
+                or self.pendingWall is not None and not self.guiDragActive and self.wallDrawShape == "circle"):
             delta = event.angleDelta().y()
             if delta:
                 self.circleWheelDelta += delta

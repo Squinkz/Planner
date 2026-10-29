@@ -3,6 +3,7 @@ import re
 from functools import lru_cache
 from PySide6 import QtCore, QtGui
 from planner_app.graphics.fonts import fontFamily
+from planner_app.graphics.text import OutlineFont
 
 
 def ShapedTextPath(text, font):
@@ -21,9 +22,14 @@ def ShapedTextPath(text, font):
         # without asking an invalid native font for glyph metadata or outlines.
         if not rawFont.isValid():
             continue
+        outlineFont = OutlineFont(font.family(), int(font.weight()), font.pixelSize())
+        if outlineFont is not None and rawFont == selectedFont:
+            pathFont = outlineFont
+        else:
+            pathFont = rawFont
         for glyph, position in zip(run.glyphIndexes(), run.positions()):
             glyphs.append((rawFont == selectedFont, glyph))
-            path.addPath(QtGui.QTransform().translate(position.x(), position.y() - line.ascent()).map(rawFont.pathForGlyph(glyph)))
+            path.addPath(QtGui.QTransform().translate(position.x(), position.y() - line.ascent()).map(pathFont.pathForGlyph(glyph)))
     return path, line.horizontalAdvance(), glyphs
 
 

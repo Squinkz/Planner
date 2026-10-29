@@ -1,0 +1,36 @@
+// Warm smoky graphite with ivory linework and terracotta selections.
+{
+    "name": "Ember Canvas",
+    "type": "canvas",
+    "extends": "Dark Canvas",
+    "colors": {
+        "canvas": "#2b2625",
+        "roomFill": "#342e2b",
+        "grid": "#8e7d71",
+        "objectOutline": "#e8dbcd",
+        "wallOutline": "#ccbaaa",
+        "wallFill": "#423731",
+        "materialPattern": "#907b68",
+        "selectionOutline": "#f09d7b",
+        "selectionFill": "#684337",
+        "groupSelectionOutline": "#e8bb91",
+        "groupSelectionFill": "#70563e",
+        "stairSelectionFill": "#51392f",
+        "stairGroupSelectionFill": "#594532",
+        "selectionBoxFill": "#23f09d7b",
+        "measurementLine": "#b4a08e",
+        "rulerBackground": "#241f1e",
+        "rulerMajorTick": "#ac9784",
+        "rulerMinorTick": "#6d5b50",
+        "rulerText": "#d8c5b1",
+        "overlayFill": "#ed241f1e",
+        "performanceText": "#f4ac82",
+        "invalidOutline": "#907b68",
+        "warningFill": "#60452c",
+        "warningOutline": "#f2c17e",
+        "errorBorder": "#a3675b",
+        "errorFill": "#f0452b28",
+        "errorText": "#f5afa0",
+        "missing": "#f09d7b"
+    }
+}

@@ -18,6 +18,25 @@ def PackageDistribution(distribution, build, version):
     return destination
 
 
+def CopyExternalResources(source, distribution):
+    external = ("furnishings/definitions_user", "furnishings/images_user", "themes", "textures", "assets/fonts", "help")
+    manifest = {}
+    for relative in external:
+        shutil.copytree(source / relative, distribution / relative,
+                        ignore = shutil.ignore_patterns("__pycache__", "*.pyc", "DO.NOT.EDIT.ANYTHING.IN.THIS.FOLDER"))
+        assert not (distribution / "_internal" / relative).exists(), relative + " was accidentally bundled"
+        for path in sorted((distribution / relative).rglob("*")):
+            if path.is_file():
+                name = path.relative_to(distribution).as_posix()
+                digest = hashlib.sha256(path.read_bytes()).hexdigest()
+                assert hashlib.sha256((source / name).read_bytes()).hexdigest() == digest
+                manifest[name] = digest
+    for name in ("definitions", "images"):
+        assert (distribution / "_internal/furnishings" / name).is_dir(), "Missing bundled furnishings: " + name
+        assert not (distribution / "furnishings" / name).exists(), "Default furnishings must be internal: " + name
+    return manifest
+
+
 def Main():
     if sys.platform != "win32":
         raise SystemExit("Build the Windows executable on Windows.")
@@ -62,18 +81,7 @@ def Main():
     subprocess.run([sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean",
                     "--distpath", str(root / "dist"), "--workpath", str(build / "pyinstaller"),
                     str(root / "tools/Planner.spec")], cwd = root, env = environment, check = True)
-    external = ("furnishings", "themes", "textures", "assets/fonts", "docs/help")
-    manifest = {}
-    for relative in external:
-        shutil.copytree(source / relative, distribution / relative,
-                        ignore = shutil.ignore_patterns("__pycache__", "*.pyc", "DO.NOT.EDIT.ANYTHING.IN.THIS.FOLDER"))
-        assert not (distribution / "_internal" / relative).exists(), relative + " was accidentally bundled"
-        for path in sorted((distribution / relative).rglob("*")):
-            if path.is_file():
-                name = path.relative_to(distribution).as_posix()
-                digest = hashlib.sha256(path.read_bytes()).hexdigest()
-                assert hashlib.sha256((source / name).read_bytes()).hexdigest() == digest
-                manifest[name] = digest
+    manifest = CopyExternalResources(source, distribution)
     (build / "external-resources.json").write_text(json.dumps(manifest, indent = 2), encoding = "utf-8")
     reportPath = build / "smoke-report.json"
     reportPath.unlink(missing_ok = True)

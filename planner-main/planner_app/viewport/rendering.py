@@ -1,4 +1,5 @@
 """Viewport grid, scene painting, dimensions, rulers and selection feedback."""
+from planner_app.graphics.text import PathTextPainter
 from planner_app.models import AngleGuide, ObjectControlPoints
 
 from planner_app.models import Elevator
@@ -21,15 +22,17 @@ from planner_app.graphics.linework import LinePen
 from planner_app.graphics.furnishings import DrawFurnishing, SelectedFurnishingRenderer, FurnishingArtworkBounds, FurnishingRenderer
 from planner_app.paths import furnishingsDirectory
 from planner_app.graphics.symbols import DrawOpeningSymbol, DrawStairSymbol, DrawStairArrows, WallOpeningPolygons
-from planner_app.geometry.stair_annotations import StairArrowRuns
+from planner_app.geometry.stair_annotations import StairArrowRuns, StairEndpointNeighbors
 from planner_app.graphics.arrows import ArrowPaths, ConnectedArrowDirections, ConnectedArrowCorners
 from planner_app.models import OpenDoorway, Door, SwingingDoor, DoubleDoor, Furnishing, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, SlidingDoor, MeasurementGuide, BoundaryLine, DashedLine, SolidLine, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Label, Window, NorthArrow, Fireplace
 from planner_app.units import MetricUnit, FormatLength, PropertyUnit, GridUnit, imperialModes
 from planner_app.graphics.measurement_text import MeasurementTextPath
 from planner_app.geometry.measurement_stacks import BuildMeasurementStacks, VisibleWallDimensionSpans, StackedDimensionLengths
+from planner_app.geometry.measurements import GuideDepthOffset
 from .geometry import CollisionPass
 from .diagnostics import MeasurePaint
 from .edit_cache import EditPaintCacheMixin
+from .polygon_clipping import SubtractConvexPolygon
 
 toolTipRows = {
     "searchFurnishings": ("Space", "Search furnishings"),
@@ -72,7 +75,7 @@ class RenderingMixin(EditPaintCacheMixin):
         renderStart = perf_counter()
         diagnostics = self.renderDiagnostics if self.renderDiagnostics is not None and self.renderDiagnostics.enabled else None
         self.rasterCacheBudget.Enforce()
-        with QtGui.QPainter(self) as painter:
+        with PathTextPainter(self) as painter:
             drawingRect = self.DrawingRect()
             origin = self.WorldToViewport(QtCore.QPointF())
             pixelsPerMillimeter = self.basePixelsPerMillimeter * self.zoom
@@ -100,7 +103,7 @@ class RenderingMixin(EditPaintCacheMixin):
                              self.zoom, self.basePixelsPerMillimeter, self.rulerSize, self.showGrid, self.unitsMode,
                              tuple(self.gridIntensities.items()), self.font().toString(), tuple(themeColors.items()),
                              self.referenceImage.revision if self.referenceImage is not None else 0,
-                             self.roomDetection.Check(), self.floors)
+                             self.roomDetection.Check(), self.floors, self.solidRooms)
             backgroundChanged = backgroundKey != self.viewportBackgroundKey
             frameBytes = math.ceil(self.width() * ratio) * math.ceil(self.height() * ratio) * 4
             frameFitsBudget = frameBytes <= min(self.viewportSceneByteLimit, self.viewportRasterByteLimit)
@@ -123,7 +126,7 @@ class RenderingMixin(EditPaintCacheMixin):
                 self.viewportSceneKey = sceneKey
                 self.viewportPanRaster = self.viewportPanKey = self.viewportPanOrigin = self.viewportPanState = None
                 if self.showMeasurements:
-                    with QtGui.QPainter(self.viewportScene) as scenePainter:
+                    with PathTextPainter(self.viewportScene) as scenePainter:
                         scenePainter.setFont(self.viewportBackgroundFont)
                         scenePainter.setClipRect(drawingRect)
                         scenePainter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
@@ -160,12 +163,25 @@ class RenderingMixin(EditPaintCacheMixin):
                 self.viewportBackgroundKey = self.viewportBackground = None
             elif backgroundChanged:
                 ratio = self.devicePixelRatioF()
-                if self.rasterCacheBudget.Prepare("background", frameBytes):
-                    self.viewportBackground = QtGui.QPixmap(math.ceil(self.width() * ratio), math.ceil(self.height() * ratio))
-                    self.viewportBackground.setDevicePixelRatio(ratio)
+                recyclePan = (cachePan and self.viewportPanRaster is not None
+                              and self.viewportPanRaster.size() == QtCore.QSize(math.ceil(self.width() * ratio), math.ceil(self.height() * ratio))
+                              and self.viewportPanRaster.devicePixelRatioF() == ratio)
+                if recyclePan:
+                    # Fractional movement needs fresh pixels, but not a fresh
+                    # allocation. Transfer the surface before repainting it.
+                    self.rasterCacheBudget.Clear("background", "pan-repaint")
+                    self.viewportBackground = self.viewportPanRaster
+                    self.viewportPanRaster = self.viewportPanKey = self.viewportPanOrigin = self.viewportPanState = None
+                if recyclePan or self.rasterCacheBudget.Prepare("background", frameBytes):
+                    if not recyclePan:
+                        self.viewportBackground = QtGui.QPixmap(math.ceil(self.width() * ratio), math.ceil(self.height() * ratio))
+                        self.viewportBackground.setDevicePixelRatio(ratio)
                     self.viewportBackground.fill(QtGui.QColor(themeColors["canvas"]))
-                    with QtGui.QPainter(self.viewportBackground) as backgroundPainter:
-                        self.viewportRulerUnit = self.DrawGridBackground(backgroundPainter, drawingRect, origin, pixelsPerMillimeter)
+                    with PathTextPainter(self.viewportBackground) as backgroundPainter:
+                        # Pan rasters only own canvas pixels. Rulers are painted
+                        # on the viewport below, once at the current camera.
+                        self.viewportRulerUnit = self.DrawGridBackground(backgroundPainter, drawingRect, origin, pixelsPerMillimeter,
+                                                                       gridOnly = cachePan)
                         self.viewportBackgroundFont = backgroundPainter.font()
                     self.viewportBackgroundKey = backgroundKey
                 else:
@@ -198,7 +214,7 @@ class RenderingMixin(EditPaintCacheMixin):
                     # Transfer the opaque background instead of retaining a duplicate.
                     scene = self.viewportBackground
                     self.viewportBackground = self.viewportBackgroundKey = None
-                    with QtGui.QPainter(scene) as scenePainter:
+                    with PathTextPainter(scene) as scenePainter:
                         scenePainter.setFont(painter.font())
                         scenePainter.setClipRect(drawingRect)
                         scenePainter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
@@ -255,7 +271,7 @@ class RenderingMixin(EditPaintCacheMixin):
                                 dirtyRects.append(QtCore.QRectF(rasterRect.left(), bottom, rasterRect.width(), 1 / ratio))
                             for rect in dirtyRects:
                                 dirtyPath.addRect(rect)
-                            with QtGui.QPainter(self.viewportPanRaster) as panPainter:
+                            with PathTextPainter(self.viewportPanRaster) as panPainter:
                                 panPainter.setFont(painter.font())
                                 panPainter.setClipPath(dirtyPath)
                                 panPainter.fillRect(drawingRect, QtGui.QColor(themeColors["canvas"]))
@@ -269,7 +285,7 @@ class RenderingMixin(EditPaintCacheMixin):
                     else:
                         self.viewportPanRaster = self.viewportBackground
                         self.viewportBackground = self.viewportBackgroundKey = None
-                        with QtGui.QPainter(self.viewportPanRaster) as panPainter:
+                        with PathTextPainter(self.viewportPanRaster) as panPainter:
                             panPainter.setFont(painter.font())
                             panPainter.setClipRect(drawingRect)
                             panPainter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
@@ -321,7 +337,9 @@ class RenderingMixin(EditPaintCacheMixin):
                         continue
                 painter.restore()
             # Nearby handles do not depend on Snap. Draw the selection last at shared vertices.
-            handleWalls = [wall for wall in visibleWalls + visibleCounters + visibleWindows + visibleStairs + visibleRailings + visibleArrows + visibleGuides if id(wall) not in highlightedIds]
+            handleWalls = ([] if self.isPanning else
+                [wall for wall in visibleWalls + visibleCounters + visibleWindows + visibleStairs + visibleRailings + visibleArrows + visibleGuides
+                 if id(wall) not in highlightedIds])
             if self.selectedWall is not None and self.inactiveOpeningPreview is None:
                 handleWalls.extend(highlightedObjects)
             hoverPosition = self.hoverPosition
@@ -490,17 +508,19 @@ class RenderingMixin(EditPaintCacheMixin):
                         tips.insert(0, "center")
                     elif referenceMode in ("move", "pivot"):
                         tips.insert(0, "axes")
+            elif self.guiDragActive and not self.guiDragCancelled:
+                tips = ["cancelMove"]
+                if self.guiDragKind == "wall-circle":
+                    tips.insert(0, "segments")
+                elif (isinstance(self.windowDropPreview, Window)
+                        and not isinstance(self.windowDropPreview, OpenDoorway)):
+                    tips.insert(0, "hinge" if isinstance(self.windowDropPreview, SwingingDoor) else "face")
             elif self.pendingWall is not None:
                 if self.wallDrawShape in ("square", "circle"):
                     tips = ["segments"] if self.wallDrawShape == "circle" else []
                     tips.extend([self.wallDrawShape, "center", "cancelDraw"])
                 else:
                     tips = ["angle", "cancelDraw"]
-            elif self.guiDragActive and not self.guiDragCancelled:
-                tips = ["cancelMove"]
-                if (isinstance(self.windowDropPreview, Window)
-                        and not isinstance(self.windowDropPreview, OpenDoorway)):
-                    tips.insert(0, "hinge" if isinstance(self.windowDropPreview, SwingingDoor) else "face")
             elif self.openingPlacementMode is not None:
                 doorMode = self.openingPlacementMode == "Door"
                 tips = ["doorType" if doorMode else "windowType"]
@@ -635,7 +655,7 @@ class RenderingMixin(EditPaintCacheMixin):
                 background = QtGui.QPixmap(width, height)
                 background.setDevicePixelRatio(ratio)
                 background.fill(QtGui.QColor(themeColors["canvas"]))
-                with QtGui.QPainter(background) as backgroundPainter:
+                with PathTextPainter(background) as backgroundPainter:
                     self.DrawGridBackground(backgroundPainter, drawingRect, origin, pixelsPerMillimeter)
                 self.referenceFocusBackground, self.referenceFocusKey = background, backgroundKey
         painter.save()
@@ -650,7 +670,7 @@ class RenderingMixin(EditPaintCacheMixin):
                     tile = QtGui.QPixmap(min(256, width - left), min(256, height - top))
                     tile.setDevicePixelRatio(ratio)
                     tile.fill(QtGui.QColor(themeColors["canvas"]))
-                    with QtGui.QPainter(tile) as tilePainter:
+                    with PathTextPainter(tile) as tilePainter:
                         tilePainter.translate(-left / ratio, -top / ratio)
                         self.DrawGridBackground(tilePainter, drawingRect, origin, pixelsPerMillimeter)
                     painter.drawPixmap(QtCore.QPointF(left / ratio, top / ratio), tile)
@@ -731,6 +751,8 @@ class RenderingMixin(EditPaintCacheMixin):
             key = (id(obj), type(obj), first.x(), first.y(), second.x(), second.y(), obj.width, obj.measurementHidden)
             if isinstance(obj, MeasurementGuide):
                 key += (obj.textOffset.x(), obj.textOffset.y())
+                if type(obj) is MeasurementGuide:
+                    key += (obj.depth,)
             if isinstance(obj, DashedLine):
                 key += (obj.weightClass,)
             if isinstance(obj, AngleGuide):
@@ -769,11 +791,41 @@ class RenderingMixin(EditPaintCacheMixin):
             diagnostics.RecordPhase("scene-key", started)
         return key
 
+    def CutOpeningPolygons(self, polygons, cuts):
+        result = QtGui.QPainterPath()
+        result.setFillRule(QtCore.Qt.FillRule.WindingFill)
+        for polygon in polygons:
+            fragments = [list(polygon)]
+            for cutBounds, cutPolygon in cuts:
+                nextFragments = []
+                for fragment in fragments:
+                    if QtGui.QPolygonF(fragment).boundingRect().intersects(cutBounds):
+                        nextFragments.extend(SubtractConvexPolygon(fragment, cutPolygon))
+                    else:
+                        nextFragments.append(fragment)
+                fragments = nextFragments
+            for fragment in fragments:
+                area = sum(point.x() * fragment[(index + 1) % len(fragment)].y()
+                           - fragment[(index + 1) % len(fragment)].x() * point.y() for index, point in enumerate(fragment))
+                result.addPolygon(QtGui.QPolygonF(fragment if area >= 0 else list(reversed(fragment))))
+                result.closeSubpath()
+        return result
+
     def DrawScene(self, painter, drawingRect, origin, pixelsPerMillimeter, dirtyRects = None,
-                  drawAnnotations = True, retainAnnotations = False):
+                  drawAnnotations = True, retainAnnotations = False, bakePassageClips = False, passageClearance = None):
+        bakePassageClips = (bakePassageClips or bool(self.windows)
+                           and painter.paintEngine().type() == QtGui.QPaintEngine.Type.SVG)
+        if passageClearance is None:
+            passageClearance = 0
+            # Remove clipped wall-stroke fringes in both room styles. Canvas
+            # passages get explicit thin edges instead of leftover stroke ink.
+            # Retain destination sampling/DPR through transparent recording.
+            inverseDevice, invertible = painter.deviceTransform().inverted()
+            if invertible:
+                passageClearance = math.hypot(inverseDevice.m11(), inverseDevice.m12(), inverseDevice.m21(), inverseDevice.m22())
         if not self.solidObjects:
             device = ObjectPaintDevice(self.size(), themeColors["canvas"])
-            sourcePainter = QtGui.QPainter(device)
+            sourcePainter = PathTextPainter(device)
             originalRenderers = (self.furnishingRenderers, self.selectedFurnishingRenderers, self.groupedFurnishingRenderers)
             try:
                 sourcePainter.setFont(painter.font())
@@ -786,7 +838,8 @@ class RenderingMixin(EditPaintCacheMixin):
                      {key: getattr(renderer, "solidRenderer", renderer) for key, renderer in renderers.items()})
                     for renderers in originalRenderers)
                 sceneState = self.DrawScene(sourcePainter, drawingRect, origin, pixelsPerMillimeter,
-                                            dirtyRects, drawAnnotations = False)
+                                            dirtyRects, drawAnnotations = False, bakePassageClips = bakePassageClips,
+                                            passageClearance = passageClearance)
             finally:
                 sourcePainter.end()
                 self.solidObjects = False
@@ -1031,24 +1084,108 @@ class RenderingMixin(EditPaintCacheMixin):
                           if not (self.inactiveOpeningPreview is not None and self.dragStart is not None
                                   and id(opening) in detachedIds)] + ([self.windowDropPreview] if isinstance(self.windowDropPreview, Window) else [])
         visibleWindows = [opening for opening in visibleWindows if self.IsObjectVisible(opening)]
+        # Parent projection/fraction clamping is scene geometry, not camera work.
+        # Keep detached world endpoints under the existing revision key, then
+        # transform them at the exact current camera position for native pixels.
+        worldOpeningPositions = prepared.get("openingPositions")
+        if worldOpeningPositions is None:
+            worldOpeningPositions = prepared["openingPositions"] = {
+                id(opening): (opening.firstVertex, opening.secondVertex) for opening in visibleWindows}
+        openingPositions = {key: (self.WorldToViewport(first), self.WorldToViewport(second))
+                            for key, (first, second) in worldOpeningPositions.items()}
         painter.save()
         doorwayClip = QtGui.QPainterPath()
         doorwayClip.setFillRule(QtCore.Qt.FillRule.OddEvenFill)
         doorwayClip.addRect(drawingRect)
-        doorwayOpenings = QtGui.QPainterPath()
-        doorwayOpenings.setFillRule(QtCore.Qt.FillRule.WindingFill)
         openingClipRect = drawingRect.adjusted(-2, -2, 2, 2)
+        # A scrolled pan raster only paints these exposed strips. Distant holes
+        # enlarge Qt's clip work even though none of their pixels can be written.
+        openingPaintRects = ([rect.adjusted(-2, -2, 2, 2) for rect in dirtyRects]
+                             if self.isPanning and dirtyRects is not None else (openingClipRect,))
+        jambNeighbors = prepared.setdefault("openingJambNeighbors", {})
+        openingCuts = []
+        openingCutPolygons = []
         for opening in visibleWindows:
             # Actual wall cuts end at the square-capped jambs. Do not enlarge
             # them along with the separate stair occlusion clearance below.
-            for polygon in WallOpeningPolygons(opening, self.WorldToViewport(opening.firstVertex),
-                                                self.WorldToViewport(opening.secondVertex), pixelsPerMillimeter, self.lineWidths["walls"]):
-                for path in (doorwayClip, doorwayOpenings):
-                    if self.isPanning and path is doorwayClip and not polygon.boundingRect().intersects(openingClipRect):
-                        continue
-                    path.addPolygon(polygon)
-                    path.closeSubpath()
-        painter.setClipPath(doorwayClip, QtCore.Qt.ClipOperation.IntersectClip)
+            firstPoint, secondPoint = openingPositions[id(opening)]
+            # Clear the stroke's antialias fringe across passages. Only
+            # the wall-normal clearance grows; jamb positions stay exact.
+            for polygonIndex, polygon in enumerate(WallOpeningPolygons(opening, firstPoint, secondPoint, pixelsPerMillimeter, self.lineWidths["walls"],
+                                                                       outlineClearance = passageClearance)):
+                convexCuts = [polygon]
+                if passageClearance > 0 and (not isinstance(opening, PocketDoor) or polygonIndex == 0):
+                    # Protect a jamb only where another wall actually meets it;
+                    # blanket protection leaves short fringes at small scales.
+                    along = polygon[1] - polygon[0]
+                    length = math.hypot(along.x(), along.y())
+                    across = polygon[0] - polygon[3]
+                    thickness = math.hypot(across.x(), across.y())
+                    if length > 1e-10 and thickness > 1e-10:
+                        neighborKey = id(opening), polygonIndex
+                        protected = jambNeighbors.get(neighborKey)
+                        if protected is None:
+                            worldFirst, worldSecond = worldOpeningPositions[id(opening)]
+                            worldDirection = worldSecond - worldFirst
+                            worldLength = math.hypot(worldDirection.x(), worldDirection.y())
+                            halfWidth = (opening.parentWall.width if isinstance(opening, Fireplace) else opening.width) / 2
+                            worldNormal = QtCore.QPointF(-worldDirection.y(), worldDirection.x()) * (halfWidth / max(worldLength, 1e-20))
+                            jambTolerance = .1
+                            run = secondPoint - firstPoint
+                            runSquared = QtCore.QPointF.dotProduct(run, run)
+                            protected = []
+                            for endpoint in ((polygon[0] + polygon[3]) / 2, (polygon[1] + polygon[2]) / 2):
+                                fraction = QtCore.QPointF.dotProduct(endpoint - firstPoint, run) / max(runSquared, 1e-20)
+                                position = worldFirst + (worldSecond - worldFirst) * fraction
+                                jambPoints = (position, position + worldNormal, position - worldNormal)
+                                touchesWall = False
+                                for wall in visibleWalls:
+                                    if wall is opening.parentWall:
+                                        continue
+                                    bounds, corners, _ = self.ObjectFootprint(wall)
+                                    if not any(bounds.adjusted(-jambTolerance, -jambTolerance, jambTolerance, jambTolerance).contains(jambPoint) for jambPoint in jambPoints):
+                                        continue
+                                    footprint = QtGui.QPolygonF(corners)
+                                    if any(footprint.containsPoint(jambPoint + offset, QtCore.Qt.FillRule.OddEvenFill)
+                                           for jambPoint in jambPoints
+                                           for offset in (QtCore.QPointF(), QtCore.QPointF(jambTolerance, 0), QtCore.QPointF(-jambTolerance, 0),
+                                                          QtCore.QPointF(0, jambTolerance), QtCore.QPointF(0, -jambTolerance),
+                                                          QtCore.QPointF(jambTolerance, jambTolerance), QtCore.QPointF(-jambTolerance, jambTolerance),
+                                                          QtCore.QPointF(jambTolerance, -jambTolerance), QtCore.QPointF(-jambTolerance, -jambTolerance))):
+                                        touchesWall = True
+                                        break
+                                protected.append(touchesWall)
+                            jambNeighbors[neighborKey] = protected
+                        if any(protected):
+                            inset = along / length * min(self.lineWidths["walls"] / 2, length / 2)
+                            firstInset = inset if protected[0] else QtCore.QPointF()
+                            secondInset = inset if protected[1] else QtCore.QPointF()
+                            guard = across / thickness * (passageClearance + self.lineWidths["walls"] / 2)
+                            first, second, third, fourth = polygon
+                            polygon = QtGui.QPolygonF([first - guard, first + firstInset - guard, first + firstInset,
+                                second - secondInset, second - secondInset - guard, second - guard,
+                                third + guard, third - secondInset + guard, third - secondInset,
+                                fourth + firstInset, fourth + firstInset + guard, fourth + guard])
+                            convexCuts = [QtGui.QPolygonF([first + firstInset, second - secondInset,
+                                                          third - secondInset, fourth + firstInset])]
+                            if protected[0]:
+                                convexCuts.append(QtGui.QPolygonF([first - guard, first + firstInset - guard,
+                                                                   fourth + firstInset + guard, fourth + guard]))
+                            if protected[1]:
+                                convexCuts.append(QtGui.QPolygonF([second - secondInset - guard, second - guard,
+                                                                   third + guard, third - secondInset + guard]))
+                if self.isPanning and not any(polygon.boundingRect().intersects(rect) for rect in openingPaintRects):
+                    continue
+                doorwayClip.addPolygon(polygon)
+                doorwayClip.closeSubpath()
+                if bakePassageClips:
+                    openingCutPolygons.extend((cut.boundingRect(), cut) for cut in convexCuts)
+                    cut = QtGui.QPainterPath()
+                    cut.addPolygon(polygon)
+                    cut.closeSubpath()
+                    openingCuts.append(cut)
+        if not bakePassageClips:
+            painter.setClipPath(doorwayClip, QtCore.Qt.ClipOperation.IntersectClip)
         materialKey = prepared.get("materials")
         if materialKey is None:
             materialKey = prepared["materials"] = (self.wallGeometryKey, tuple((type(wall), wall.material) for wall in visibleWalls))
@@ -1106,9 +1243,43 @@ class RenderingMixin(EditPaintCacheMixin):
                         localPath = materialPaths.setdefault(material, QtGui.QPainterPath())
                         localPath.setFillRule(QtCore.Qt.FillRule.WindingFill)
                         localPath.addPath(path)
+            if bakePassageClips:
+                # Clip each owner's simple footprint before regrouping fills.
+                # A boolean against the building-sized compound path can lose
+                # unrelated wall strips when nearly coincident edges collapse.
+                materialPaths = {}
+                owners = {id(wall): wall for wall in visibleWalls}
+                columnPaths = getattr(self, "columnMaterialPaths", {})
+                clippedOwners = set()
+                for owner, polygon in self.wallFillPolygons:
+                    if isinstance(owner, Column):
+                        continue
+                    if columnPaths:
+                        if id(owner) in clippedOwners:
+                            continue
+                        clippedOwners.add(id(owner))
+                        # These owner paths already exclude native column fills.
+                        fragments = [list(polygon) for polygon in viewTransform.map(self.wallMaterialPaths[id(owner)]).toFillPolygons()]
+                    else:
+                        fragments = [list(viewTransform.map(polygon))]
+                    material = owner.material
+                    localPath = materialPaths.setdefault(material, QtGui.QPainterPath())
+                    localPath.setFillRule(QtCore.Qt.FillRule.WindingFill)
+                    localPath.addPath(self.CutOpeningPolygons(fragments, openingCutPolygons))
+                for wallId, ownerPath in self.wallMaterialPaths.items():
+                    if not isinstance(owners[wallId], Column):
+                        continue
+                    clipped = viewTransform.map(ownerPath)
+                    for cut in openingCuts:
+                        if clipped.boundingRect().intersects(cut.boundingRect()):
+                            clipped = clipped.subtracted(cut)
+                    localPath = materialPaths.setdefault(owners[wallId].material, QtGui.QPainterPath())
+                    localPath.setFillRule(QtCore.Qt.FillRule.WindingFill)
+                    localPath.addPath(clipped)
             for material, path in materialPaths.items():
                 brush = QtGui.QBrush(QtGui.QColor(themeColors["wallOutline"])) if self.wallStyle == "Solid" else self.materialBrushes[(material, False)]
-                painter.fillPath(viewTransform.map(path), brush)
+                fillPath = path if bakePassageClips else viewTransform.map(path)
+                painter.fillPath(fillPath, brush)
         if captureEngine is not None:
             captureEngine.captureBackground = True
         for selectedObject in highlightedObjects:
@@ -1163,16 +1334,23 @@ class RenderingMixin(EditPaintCacheMixin):
                     painter.restore()
         painter.restore()
         windowOutlineClip = QtGui.QPainterPath()
+        windowOutlineCuts = []
         windowOutlineClip.setFillRule(QtCore.Qt.FillRule.OddEvenFill)
         windowOutlineClip.addRect(drawingRect)
         for window in visibleWindows:
             if isinstance(window, (Door, SwingingDoor, DoubleDoor, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway, Fireplace)):
                 continue
+            polygon = self.WallPolygon(window)
+            if self.isPanning:
+                bounds = polygon.boundingRect().adjusted(-self.lineWidths["walls"] - 2, -self.lineWidths["walls"] - 2,
+                                                         self.lineWidths["walls"] + 2, self.lineWidths["walls"] + 2)
+                if not any(bounds.intersects(rect) for rect in openingPaintRects):
+                    continue
             openingPath = QtGui.QPainterPath()
-            openingPath.addPolygon(self.WallPolygon(window))
+            openingPath.addPolygon(polygon)
             openingPath.closeSubpath()
             painter.fillPath(openingPath, QtGui.QColor(themeColors["canvas"]))
-            firstPoint, secondPoint = self.WorldToViewport(window.firstVertex), self.WorldToViewport(window.secondVertex)
+            firstPoint, secondPoint = openingPositions[id(window)]
             direction = secondPoint - firstPoint
             length = math.hypot(direction.x(), direction.y())
             if length > 1e-10:
@@ -1184,11 +1362,14 @@ class RenderingMixin(EditPaintCacheMixin):
                                                secondPoint - normal, firstPoint - normal])
                 # Distant openings cannot mask visible outlines. Including their
                 # holes extends Qt's clip raster far beyond the viewport.
-                if not self.isPanning or outlineHole.boundingRect().intersects(openingClipRect):
+                if not self.isPanning or any(outlineHole.boundingRect().intersects(rect) for rect in openingPaintRects):
                     windowOutlineClip.addPolygon(outlineHole)
                     windowOutlineClip.closeSubpath()
+                    if bakePassageClips:
+                        windowOutlineCuts.append((outlineHole.boundingRect(), outlineHole))
         painter.save()
-        painter.setClipPath(windowOutlineClip, QtCore.Qt.ClipOperation.IntersectClip)
+        if not bakePassageClips:
+            painter.setClipPath(windowOutlineClip, QtCore.Qt.ClipOperation.IntersectClip)
         painter.setPen(LinePen(themeColors["wallOutline"], self.lineWidths["walls"]))
         painter.setBrush(QtCore.Qt.BrushStyle.NoBrush)
         columnOutlines = getattr(self, "columnOutlinePaths", ())
@@ -1200,11 +1381,34 @@ class RenderingMixin(EditPaintCacheMixin):
                     clip.addRect(drawingRect)
                     painter.setClipPath(Paths.Difference(clip, viewTransform.map(occluders)),
                                         QtCore.Qt.ClipOperation.IntersectClip)
-                painter.drawPath(viewTransform.map(path))
+                outlinePath = viewTransform.map(path)
+                if bakePassageClips:
+                    # SVG viewers differ in their support for inverse clips.
+                    # Cut the actual stroke/fill geometry at passage openings.
+                    if painter.pen().style() != QtCore.Qt.PenStyle.NoPen:
+                        stroke = Paths.PreparePenStroke(painter.pen())
+                        outlinePath = stroke(outlinePath).intersected(windowOutlineClip)
+                        for cut in openingCuts:
+                            outlinePath = outlinePath.subtracted(cut)
+                        if not occluders.isEmpty():
+                            outlinePath = outlinePath.subtracted(viewTransform.map(occluders))
+                        painter.fillPath(outlinePath, painter.pen().brush())
+                else:
+                    painter.drawPath(outlinePath)
                 painter.restore()
         else:
             strokeDrawn = False
-            if (self.isPanning and captureEngine is None and self.viewportSceneByteLimit > 0
+            if bakePassageClips:
+                if painter.pen().style() != QtCore.Qt.PenStyle.NoPen:
+                    stroke = Paths.PreparePenStroke(painter.pen())
+                    # The stroker emits overlapping winding contours. Normalize
+                    # those before booleans: near-coincident edges can otherwise
+                    # turn a room-sized hole into filled ink in SVG previews.
+                    outlinePath = self.CutOpeningPolygons(stroke(combinedPath).simplified().toFillPolygons(),
+                                                          openingCutPolygons + windowOutlineCuts)
+                    painter.fillPath(outlinePath, painter.pen().brush())
+                strokeDrawn = True
+            if (not strokeDrawn and self.isPanning and captureEngine is None and self.viewportSceneByteLimit > 0
                     and painter.pen().style() == QtCore.Qt.PenStyle.SolidLine):
                 # Qt's complete stroke preserves caps/joins. Preparing it in a
                 # retained device-pixel phase avoids restroking on integer pans,
@@ -1252,14 +1456,19 @@ class RenderingMixin(EditPaintCacheMixin):
         for opening in visibleWindows + openingPreviews:
             if not self.IsObjectVisible(opening):
                 continue
-            if dirtyRects is not None:
-                bounds = QtCore.QRectF(self.WorldToViewport(opening.firstVertex), self.WorldToViewport(opening.secondVertex)).normalized()
+            positions = openingPositions.get(id(opening))
+            firstPoint, secondPoint = (positions if positions is not None else
+                                       (self.WorldToViewport(opening.firstVertex), self.WorldToViewport(opening.secondVertex)))
+            if dirtyRects is not None or self.isPanning:
+                bounds = QtCore.QRectF(firstPoint, secondPoint).normalized()
                 # Swing tips extend a full leaf length from a hinge on the wall
                 # face, not its centerline. Include that offset when a door
                 # re-enters a newly exposed pan strip.
-                padding = (opening.length + opening.width / 2 + getattr(opening, "sillDepth", 0)
+                reach = max(opening.length, opening.depth + abs(opening.depthOffset) if isinstance(opening, Fireplace) else 60)
+                padding = (reach + opening.width / 2 + getattr(opening, "sillDepth", 0)
                            + (opening.wellDepth + 150 if opening.windowWell else 0)) * pixelsPerMillimeter + max(self.lineWidths.values()) + 2
-                if not any(bounds.adjusted(-padding, -padding, padding, padding).intersects(rect) for rect in dirtyRects):
+                if not any(bounds.adjusted(-padding, -padding, padding, padding).intersects(rect)
+                           for rect in (dirtyRects if dirtyRects is not None else (drawingRect,))):
                     continue
             warning = id(opening) in recoveryErrorIds or id(opening) in advisoryIds or id(opening) in invalidArchitecture and self.dragStart is None
             color = (themeColors["warningOutline"] if warning else
@@ -1283,7 +1492,7 @@ class RenderingMixin(EditPaintCacheMixin):
                 painter.setBrush(QtCore.Qt.BrushStyle.NoBrush)
                 painter.drawPath(path)
                 continue
-            DrawOpeningSymbol(painter, self.WorldToViewport(opening.firstVertex), self.WorldToViewport(opening.secondVertex),
+            DrawOpeningSymbol(painter, firstPoint, secondPoint,
                               opening.width * pixelsPerMillimeter, type(opening),
                               opening.hingeAtSecond if isinstance(opening, (Door, SwingingDoor, SlidingDoor, PocketDoor, CasementWindow)) else False,
                               opening.swingsOutwards if type(opening) in (Window, Door, DoubleDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, BarnDoor, BifoldDoor) else False, color,
@@ -1292,7 +1501,8 @@ class RenderingMixin(EditPaintCacheMixin):
                               lineWidth = self.lineWidths["architectural"], wallLineWidth = self.lineWidths["walls"],
                               wallColor = themeColors["warningOutline"] if warning else
                               themeColors["invalidOutline"] if id(opening) in invalidArchitecture or id(opening.parentWall) in invalidWalls else themeColors["wallOutline"],
-                              windowWell = opening.windowWell, wellDepth = opening.wellDepth, wellDashed = opening.wellDashed)
+                              windowWell = opening.windowWell, wellDepth = opening.wellDepth, wellDashed = opening.wellDashed,
+                              drawPassageEdges = not self.floors)
         visibleStairs = [wall for wall in self.walls if isinstance(wall, Stair)]
         invalidStairs = []
         movingStairs = ([self.selectedWall] if isinstance(self.selectedWall, Stair) else []) + [
@@ -1307,18 +1517,7 @@ class RenderingMixin(EditPaintCacheMixin):
         if visibleStairs:
             endpointKey = tuple((id(stair), stair.firstVertex.x(), stair.firstVertex.y(), stair.secondVertex.x(), stair.secondVertex.y()) for stair in visibleStairs)
             if endpointKey != getattr(self, "stairEndpointKey", None):
-                buckets = {}
-                neighbors = {}
-                for stair in visibleStairs:
-                    for vertex in (stair.firstVertex, stair.secondVertex):
-                        cell = (math.floor(vertex.x() / .01), math.floor(vertex.y() / .01))
-                        buckets.setdefault(cell, []).append((stair, vertex))
-                for stair in visibleStairs:
-                    for index, vertex in enumerate((stair.firstVertex, stair.secondVertex)):
-                        x, y = math.floor(vertex.x() / .01), math.floor(vertex.y() / .01)
-                        neighbors[(id(stair), index)] = [other for dx in (-1, 0, 1) for dy in (-1, 0, 1)
-                            for other, point in buckets.get((x + dx, y + dy), ())
-                            if other is not stair and QtCore.QLineF(vertex, point).length() <= .01]
+                neighbors = StairEndpointNeighbors(visibleStairs)
                 self.stairEndpointKey, self.stairEndpointNeighbors = endpointKey, neighbors
             stairPath = self.ConnectedStairPath(visibleStairs)
             connectedStairIds = {id(stair) for stair in visibleStairs
@@ -1728,7 +1927,7 @@ class RenderingMixin(EditPaintCacheMixin):
             if (candidate is not None and candidate.logicalDpiX() == targetPainter.device().logicalDpiX()
                     and candidate.logicalDpiY() == targetPainter.device().logicalDpiY()):
                 picture = candidate
-                painter = painterScope.enter_context(QtGui.QPainter(picture))
+                painter = painterScope.enter_context(PathTextPainter(picture))
                 painter.setFont(targetPainter.font())
                 painter.setRenderHints(targetPainter.renderHints())
             for guide in visibleGuides:
@@ -1750,8 +1949,13 @@ class RenderingMixin(EditPaintCacheMixin):
                 bounds = QtCore.QRectF(firstPoint, secondPoint).normalized().adjusted(-margin, -margin, margin, margin)
                 manualGuide = owners[0] if len(owners) == 1 and type(owners[0]) in (MeasurementGuide, BoundaryLine, DashedLine, SolidLine) else None
                 boundary = isinstance(manualGuide, BoundaryLine)
+                guideExtension = None
                 if manualGuide is not None:
                     bounds = bounds.united(self.MeasurementLabelLayout(manualGuide, painter.fontMetrics())[3].boundingRect())
+                    if type(manualGuide) is MeasurementGuide and manualGuide.depth != 0:
+                        depthX, depthY = GuideDepthOffset((firstVertex.x(), firstVertex.y()), (secondVertex.x(), secondVertex.y()), manualGuide.depth)
+                        guideExtension = QtCore.QPointF(depthX, -depthY) * (self.basePixelsPerMillimeter * self.zoom)
+                        bounds = bounds.united(QtCore.QRectF(firstPoint + guideExtension, secondPoint + guideExtension).normalized().adjusted(-4, -4, 4, 4))
                 if picture is None and not bounds.intersects(drawingRect):
                     continue
                 if screenLength >= 24 - 1e-6 or ((isSelected or isinstance(owners[0], MeasurementGuide)) and screenLength > 1e-8):
@@ -1782,7 +1986,10 @@ class RenderingMixin(EditPaintCacheMixin):
                     if manualGuide is not None and not manualGuide.textOffset.isNull():
                         painter.drawLine(QtCore.QLineF((dimensionStart + dimensionEnd) / 2, labelPosition))
                     for endpoint, dimensionPoint in (() if boundary else ((firstPoint, dimensionStart), (secondPoint, dimensionEnd))):
-                        painter.drawLine(QtCore.QLineF(endpoint + normal * 4, dimensionPoint + normal * 4))
+                        if guideExtension is None:
+                            painter.drawLine(QtCore.QLineF(endpoint + normal * 4, dimensionPoint + normal * 4))
+                        else:
+                            painter.drawLine(QtCore.QLineF(dimensionPoint, dimensionPoint + guideExtension))
                         tick = (direction / screenLength + normal) * 3
                         painter.drawLine(QtCore.QLineF(dimensionPoint - tick, dimensionPoint + tick))
                     painter.save()
@@ -1818,7 +2025,7 @@ class RenderingMixin(EditPaintCacheMixin):
                 picture = QtGui.QPicture()
                 if (picture.logicalDpiX() == painter.device().logicalDpiX()
                         and picture.logicalDpiY() == painter.device().logicalDpiY()):
-                    with QtGui.QPainter(picture) as recorder:
+                    with PathTextPainter(picture) as recorder:
                         recorder.setFont(painter.font())
                         recorder.setRenderHints(painter.renderHints())
                         self.DrawLabels(recorder, pixelsPerMillimeter, highlightedIds, drawOutlines = False,
@@ -1908,12 +2115,12 @@ class RenderingMixin(EditPaintCacheMixin):
         # Choose a metric 1/2/5 interval with enough room for ruler labels.
         majorStep, minorStep = self.GridSteps()
         roomClip = QtGui.QPainterPath()
-        if drawGrid and self.floors:
+        if drawGrid and (self.floors or self.solidRooms):
             cachedRooms = self.roomDetection.path
             if not cachedRooms.isEmpty():
                 transform = QtGui.QTransform().translate(origin.x(), origin.y()).scale(pixelsPerMillimeter, -pixelsPerMillimeter)
                 roomClip = transform.map(cachedRooms)
-        if not roomClip.isEmpty():
+        if self.floors and not roomClip.isEmpty():
             painter.save()
             painter.setClipRect(drawingRect, QtCore.Qt.ClipOperation.IntersectClip)
             painter.fillPath(roomClip, QtGui.QColor(themeColors["roomFill"]))
@@ -1944,6 +2151,20 @@ class RenderingMixin(EditPaintCacheMixin):
         # Keep the ordinary 28-pixel label/tick band against the canvas edge;
         # additional border width extends outward beyond the ruler labels.
         labelOffset = max(0, self.rulerSize - 28)
+        ratio = painter.device().devicePixelRatioF()
+        drawGridLines = self.showGrid and drawGrid and self.gridIntensities["overall"] > 0
+        if gridOnly and not drawGridLines:
+            return rulerUnit
+        rasterRoomClip = None
+        if (drawGridLines and self.solidRooms and not roomClip.isEmpty()
+                and painter.paintEngine().type() == QtGui.QPaintEngine.Type.Raster
+                and not painter.testRenderHint(QtGui.QPainter.RenderHint.Antialiasing)):
+            # Aliased raster backgrounds can clip all grid pens against one room
+            # mask. Vector and antialiased painters retain explicit stroke cuts.
+            rasterRoomClip = QtGui.QPainterPath()
+            rasterRoomClip.setFillRule(QtCore.Qt.FillRule.OddEvenFill)
+            rasterRoomClip.addRect(drawingRect)
+            rasterRoomClip.addPath(roomClip)
 
         for axis in (0, 1):
             axisOrigin = origin.x() if axis == 0 else origin.y()
@@ -1961,18 +2182,21 @@ class RenderingMixin(EditPaintCacheMixin):
                 # Stabilize aliased grid strokes at fractional DPI. Equivalent
                 # whole-device-pixel positions can otherwise land on opposite
                 # sides of a floating-point stroke-coverage threshold.
-                ratio = painter.device().devicePixelRatioF()
                 position = (round(position * ratio, 6) + .000001) / ratio
                 isMajor = gridIndex % majorEvery == 0
                 gridKind = "origin" if gridIndex == 0 else "major" if isMajor else "minor"
                 tickLength = 9 if isMajor else 4
                 if axis == 0:
-                    gridLines[gridKind].append(QtCore.QLineF(position, drawingRect.top(), position, drawingRect.bottom()))
-                    tickLines[isMajor].append(QtCore.QLineF(position, self.rulerSize - tickLength, position, self.rulerSize))
+                    if drawGridLines and self.gridIntensities[gridKind] > 0:
+                        gridLines[gridKind].append(QtCore.QLineF(position, drawingRect.top(), position, drawingRect.bottom()))
+                    if not gridOnly:
+                        tickLines[isMajor].append(QtCore.QLineF(position, self.rulerSize - tickLength, position, self.rulerSize))
                 else:
-                    gridLines[gridKind].append(QtCore.QLineF(drawingRect.left(), position, drawingRect.right(), position))
-                    tickLines[isMajor].append(QtCore.QLineF(self.rulerSize - tickLength, position, self.rulerSize, position))
-                if isMajor:
+                    if drawGridLines and self.gridIntensities[gridKind] > 0:
+                        gridLines[gridKind].append(QtCore.QLineF(drawingRect.left(), position, drawingRect.right(), position))
+                    if not gridOnly:
+                        tickLines[isMajor].append(QtCore.QLineF(self.rulerSize - tickLength, position, self.rulerSize, position))
+                if isMajor and not gridOnly and not markingsOnly:
                     if self.unitsMode in imperialModes:
                         label = FormatLength(abs(gridIndex * minorStep), self.unitsMode, decimals = 4)
                     else:
@@ -1984,16 +2208,31 @@ class RenderingMixin(EditPaintCacheMixin):
 
             # Batch each pen/clip combination instead of resetting painter state
             # for every line. Grid pan cost then scales mainly with line drawing.
-            if self.showGrid and drawGrid:
+            if drawGridLines:
                 painter.save()
                 painter.setClipRect(drawingRect, QtCore.Qt.ClipOperation.IntersectClip)
+                if rasterRoomClip is not None:
+                    painter.setClipPath(rasterRoomClip, QtCore.Qt.ClipOperation.IntersectClip)
                 for gridKind, lines in gridLines.items():
                     intensity = self.gridIntensities["overall"] * self.gridIntensities[gridKind]
                     if lines and intensity > 0:
                         color = QtGui.QColor(themeColors["grid"])
                         color.setAlphaF(min(1.0, intensity))
-                        painter.setPen(QtGui.QPen(color, 1.5 if gridKind == "origin" else 1.0))
-                        painter.drawLines(lines)
+                        width = 1.5 if gridKind == "origin" else 1.0
+                        if self.solidRooms and not roomClip.isEmpty() and rasterRoomClip is None:
+                            # Subtract actual stroke geometry: SVG generators do
+                            # not consistently preserve nonrectangular painter clips.
+                            linePath = QtGui.QPainterPath()
+                            for line in lines:
+                                linePath.moveTo(line.p1())
+                                linePath.lineTo(line.p2())
+                            stroker = QtGui.QPainterPathStroker()
+                            stroker.setWidth(width)
+                            stroker.setCapStyle(QtCore.Qt.PenCapStyle.SquareCap)
+                            painter.fillPath(stroker.createStroke(linePath).subtracted(roomClip), color)
+                        else:
+                            painter.setPen(QtGui.QPen(color, width))
+                            painter.drawLines(lines)
                 painter.restore()
 
             if gridOnly:

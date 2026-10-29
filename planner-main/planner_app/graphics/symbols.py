@@ -121,7 +121,7 @@ def WindowWellPath(firstPoint, secondPoint, width, depth, margin = 150.0, swings
 def DrawOpeningSymbol(painter, firstPoint, secondPoint, width, openingType = Window,
                       hingeAtSecond = False, swingsOutwards = False, color = None, panelsFlipped = False,
                       pixelsPerMillimeter = .2, sillDepth = 40.0, lineWidth = None, wallLineWidth = None, wallColor = None,
-                      windowWell = False, wellDepth = 600.0, wellDashed = False):
+                      windowWell = False, wellDepth = 600.0, wellDashed = False, drawPassageEdges = None):
     lineWidth = defaultLineWidths["architectural"] if lineWidth is None else lineWidth
     wallLineWidth = defaultLineWidths["walls"] if wallLineWidth is None else wallLineWidth
     wallColor = themeColors["wallOutline"] if wallColor is None else wallColor
@@ -133,6 +133,19 @@ def DrawOpeningSymbol(painter, firstPoint, secondPoint, width, openingType = Win
     normal = QtCore.QPointF(-direction.y(), direction.x()) * (width / (2 * length))
     painter.setPen(LinePen(color, lineWidth))
     painter.setBrush(QtCore.Qt.BrushStyle.NoBrush)
+    if drawPassageEdges is None:
+        drawPassageEdges = openingType is OpenDoorway
+    if drawPassageEdges and openingType in (Door, SwingingDoor, DoubleDoor, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, OpenDoorway):
+        edgeColor = QtGui.QColor(color)
+        edgeColor.setAlphaF(edgeColor.alphaF() * .2)
+        painter.setPen(LinePen(edgeColor, lineWidth))
+        firstEdge, secondEdge = firstPoint, secondPoint
+        if openingType in (PocketDoor, BarnDoor):
+            midpoint = (firstPoint + secondPoint) / 2
+            firstEdge, secondEdge = (midpoint, secondPoint) if hingeAtSecond else (firstPoint, midpoint)
+        for side in (-1, 1):
+            painter.drawLine(QtCore.QLineF(firstEdge + normal * side, secondEdge + normal * side))
+        painter.setPen(LinePen(color, lineWidth))
     if openingType is BarnDoor:
         midpoint = (firstPoint + secondPoint) / 2
         parkingEnd = firstPoint if hingeAtSecond else secondPoint
@@ -142,12 +155,14 @@ def DrawOpeningSymbol(painter, firstPoint, secondPoint, width, openingType = Win
         panelStart = midpoint + (openingEnd - midpoint) * .75
         panelEnd = panelStart + parkingEnd - midpoint
         offset = facingNormal + halfThickness
-        painter.setBrush(QtGui.QColor(themeColors["canvas"]))
-        painter.drawPolygon(QtGui.QPolygonF([panelStart + offset + halfThickness, panelEnd + offset + halfThickness,
-                                            panelEnd + offset - halfThickness, panelStart + offset - halfThickness]))
         painter.setPen(LinePen(wallColor, wallLineWidth))
         painter.drawLine(QtCore.QLineF(openingEnd - normal, openingEnd + normal))
         painter.drawLine(QtCore.QLineF(midpoint - normal, midpoint + normal))
+        # The panel is in front of the wall face, including the jamb stroke.
+        painter.setPen(LinePen(color, lineWidth))
+        painter.setBrush(QtGui.QColor(themeColors["canvas"]))
+        painter.drawPolygon(QtGui.QPolygonF([panelStart + offset + halfThickness, panelEnd + offset + halfThickness,
+                                            panelEnd + offset - halfThickness, panelStart + offset - halfThickness]))
         return
     if openingType is PocketDoor:
         midpoint = (firstPoint + secondPoint) / 2
@@ -166,7 +181,7 @@ def DrawOpeningSymbol(painter, firstPoint, secondPoint, width, openingType = Win
         for side in (-1, 1):
             painter.drawLine(QtCore.QLineF(midpoint + panelNormal * side, midpoint + normal * side))
         return
-    if openingType not in (BifoldDoor, SlidingDoor, Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow):
+    if openingType is OpenDoorway:
         painter.setPen(LinePen(wallColor, wallLineWidth))
         painter.drawLine(QtCore.QLineF(firstPoint - normal, firstPoint + normal))
         painter.drawLine(QtCore.QLineF(secondPoint - normal, secondPoint + normal))
@@ -191,9 +206,6 @@ def DrawOpeningSymbol(painter, firstPoint, secondPoint, width, openingType = Win
         painter.drawLine(QtCore.QLineF(secondPoint - normal, secondPoint + normal))
         return
     if openingType is OpenDoorway:
-        # Keep the wall faces visible without filling the opening over the grid.
-        painter.drawLine(QtCore.QLineF(firstPoint - normal, secondPoint - normal))
-        painter.drawLine(QtCore.QLineF(firstPoint + normal, secondPoint + normal))
         return
     if openingType is SlidingDoor:
         midpoint = (firstPoint + secondPoint) / 2
@@ -244,6 +256,10 @@ def DrawOpeningSymbol(painter, firstPoint, secondPoint, width, openingType = Win
                 arc.arcTo(QtCore.QRectF(hinge.x() - leafLength, hinge.y() - leafLength, 2 * leafLength, 2 * leafLength), startAngle, sweep)
                 painter.drawPath(arc)
                 painter.drawLine(QtCore.QLineF(hinge, hinge + swingNormal * leafLength))
+        # Wall jambs own the junction; swing ink must not overpaint them.
+        painter.setPen(LinePen(wallColor, wallLineWidth))
+        painter.drawLine(QtCore.QLineF(firstPoint - normal, firstPoint + normal))
+        painter.drawLine(QtCore.QLineF(secondPoint - normal, secondPoint + normal))
     else:
         # Window perimeter belongs to the opening, including both wall faces.
         for side in (-1, 1):

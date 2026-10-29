@@ -67,7 +67,7 @@ def Main():
         assert v.wallShape == "circle" and main.wallToolButtons["circle"].isChecked()
         assert main.propertiesCollapsed and main.propertiesRestoreHeight == savedUi["propertiesRestoreHeight"]
         assert main.mainSplitter.sizes() == savedUi["mainSplitter"]
-        assert main.sidebarTabs.currentIndex() == 1 and not v.SelectionEntries()
+        assert main.sidebarTabs.currentWidget() is main.buildScrollArea and not v.SelectionEntries()
         assert EncodeScene(v) == initial and len(v.undoHistory) == len(v.redoHistory) == 1
         v.Redo()
         assert EncodeScene(v) == changed

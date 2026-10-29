@@ -2,6 +2,41 @@
 import math
 
 
+def PointerRotation(offset, mouseAngle, initialAngle = None, snapping = False, local = False):
+    """Return angle and rotation components from the captured gesture frame.
+
+    Furnishings ignore the tiny disk around their pivot and snap relative to
+    their captured angle in local mode. Structural selections use a relative
+    angle, including at the pivot, and always snap that delta from zero.
+    """
+    if initialAngle is not None and not math.hypot(*offset) > 1e-8:
+        return None
+    pointerAngle = math.degrees(math.atan2(offset[1], offset[0]))
+    angle = pointerAngle - mouseAngle if initialAngle is None else initialAngle + pointerAngle - mouseAngle
+    if snapping:
+        if initialAngle is None:
+            angle = round(angle / 15) * 15
+        else:
+            origin = initialAngle if local else 0
+            angle = origin + round((angle - origin) / 15) * 15
+    rotation = math.radians(angle if initialAngle is None else angle - initialAngle)
+    return angle, math.cos(rotation), math.sin(rotation)
+
+
+def SelectionResizeCorrection(center, originalCenter, originalWidth, originalLength, bounds, field, sign, centered):
+    """Keep a resized selection's stationary edge at its captured position."""
+    left, top, width, height = bounds
+    boundsCenterX, boundsCenterY = left + width / 2, top + height / 2
+    x, y = center[0] - boundsCenterX, center[1] - boundsCenterY
+    if field == "width" and not centered:
+        anchoredX = originalCenter[0] - sign * originalWidth / 2
+        x = anchoredX - (boundsCenterX - sign * width / 2)
+    elif field == "length" and not centered:
+        anchoredY = originalCenter[1] - sign * originalLength / 2
+        y = anchoredY - (boundsCenterY - sign * height / 2)
+    return x, y
+
+
 def TransformPoint(point, origin, delta, cosine, sine):
     offsetX, offsetY = point[0] - origin[0], point[1] - origin[1]
     target = (origin[0] + (offsetX * cosine - offsetY * sine),
@@ -36,6 +71,25 @@ def RebaseMergedOpening(center, oldDirection, first, direction, length, openingL
     fits = halfSpan <= fraction <= 1 - halfSpan
     flipped = oldDirection[0] * direction[0] + oldDirection[1] * direction[1] < 0
     return fraction, fits, flipped
+
+
+def OpeningOrientationChanges(fields, reversedAlongWall, reflected = False):
+    """Return changed host-relative fields, leaving source data untouched.
+
+    Reversing the tangent exchanges endpoint/hinge identities. Side flags
+    and signed depth also depend on whether the transform reflects handedness.
+    Measurement overrides stay relative to the artwork and are retained.
+    """
+    changes = {}
+    if reversedAlongWall and "hingeAtSecond" in fields:
+        changes["hingeAtSecond"] = not fields["hingeAtSecond"]
+    if bool(reversedAlongWall) != bool(reflected):
+        for name in ("swingsOutwards", "panelsFlipped"):
+            if name in fields:
+                changes[name] = not fields[name]
+        if "depthOffset" in fields:
+            changes["depthOffset"] = -fields["depthOffset"]
+    return changes
 
 
 def AngleEndpoints(first, second, length, angle):

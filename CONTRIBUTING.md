@@ -25,7 +25,7 @@ Preserve appearance and editing behavior when changing rendering or geometry.
 Run the checks appropriate to the change. Furnishing definition files are the
 source of truth for catalog dimensions and composition.
 
-The in-app guide under `planner-main/docs/help/` is maintained separately.
+The in-app guide under `planner-main/help/` is maintained separately.
 Do not edit those files without an explicit request from the project owner.
 
 Before publishing a new asset, record its source and retain applicable notices.

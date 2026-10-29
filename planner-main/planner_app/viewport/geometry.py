@@ -4,6 +4,7 @@ from planner_app.models import AngleGuide, ObjectControlPoints
 import math
 from time import perf_counter
 from functools import wraps
+from planner_app.coincident_records import GroupCoincidentRecords
 from planner_app.preferences import collisionDefaults
 from .polygon_clipping import SubtractConvexPolygon
 from .spatial_index import BoundsIndex
@@ -19,6 +20,8 @@ from planner_app.geometry.footprints import (WallBody, RectangleFootprint, Colum
 from planner_app.geometry.measurements import (MergeMeasurementSegments, FindMeasurementOwners,
     PrepareMeasurementPolygons, ExposedMeasurementSpans, MeasurementOpening,
     PlanMeasurementComponents, BuildOpeningDimensions, EffectiveWallSplitSettings)
+from planner_app.geometry.measurements import GuideDepthOffset
+from planner_app.geometry.reserved_doors import ReservedDoorSupportBounds, ReservedDoorWallContact, ReservedDoorPlacementBounds
 from planner_app.geometry.stair_annotations import StairInsetLines
 from planner_app.graphics.arrows import ArrowPaths, ConnectedArrowDirections, ConnectedArrowCorners
 from planner_app.graphics.path_operations import Paths
@@ -52,6 +55,61 @@ def CollisionPass(function):
 
 
 class GeometryMixin:
+    def ReservedDoorSupport(self, parent, walls = None):
+        if walls is not None:
+            return ReservedDoorSupportBounds((parent.firstVertex.x(), parent.firstVertex.y()),
+                (parent.secondVertex.x(), parent.secondVertex.y()),
+                (((wall.firstVertex.x(), wall.firstVertex.y()), (wall.secondVertex.x(), wall.secondVertex.y()))
+                 for wall in walls if type(wall) is Wall))
+        changes = getattr(self, "renderChanges", None)
+        key = ((changes.wallGeometry, changes.topology) if changes is not None else
+               tuple((id(wall), wall.firstVertex.x(), wall.firstVertex.y(), wall.secondVertex.x(), wall.secondVertex.y())
+                     for wall in self.walls if type(wall) is Wall))
+        if key != getattr(self, "reservedDoorSupportKey", None):
+            self.reservedDoorSupportKey, self.reservedDoorSupportCache = key, {}
+        parentKey = id(parent), parent.firstVertex.x(), parent.firstVertex.y(), parent.secondVertex.x(), parent.secondVertex.y()
+        if parentKey not in self.reservedDoorSupportCache:
+            # Store only two scalar bounds per queried parent, never complete
+            # membership sets for every wall in a subdivided run.
+            if len(self.reservedDoorSupportCache) >= 2048:
+                self.reservedDoorSupportCache.pop(next(iter(self.reservedDoorSupportCache)))
+            self.reservedDoorSupportCache[parentKey] = self.ReservedDoorSupport(parent, self.walls)
+        return self.reservedDoorSupportCache[parentKey]
+
+    def OpeningWallObstructs(self, opening, wall, walls = None, joined = True):
+        if wall is opening.parentWall:
+            return False
+        overlap = self.JoinedObjectsOverlap if joined else self.ObjectsOverlap
+        if isinstance(opening, PocketDoor) and type(wall) is Wall:
+            parent = opening.parentWall
+            contact = ReservedDoorWallContact((parent.firstVertex.x(), parent.firstVertex.y()),
+                (parent.secondVertex.x(), parent.secondVertex.y()), parent.width,
+                (wall.firstVertex.x(), wall.firstVertex.y()), (wall.secondVertex.x(), wall.secondVertex.y()),
+                self.ReservedDoorSupport(parent, walls))
+            if contact == "collinear":
+                return False
+            if contact == "branch":
+                first, second = ((opening.centerFraction, opening.secondFraction) if opening.hingeAtSecond else
+                                 (opening.firstFraction, opening.centerFraction))
+                aperture = OpenDoorway(parent, first, second)
+                aperture.geometryIssues = getattr(opening, "geometryIssues", ())
+                return overlap(aperture, wall, contactTolerance = 1.0)
+        return overlap(opening, wall, contactTolerance = 1.0)
+
+    def OpeningTravelBounds(self, opening):
+        if not isinstance(opening, PocketDoor):
+            return 0, 1
+        parent = opening.parentWall
+        return ReservedDoorPlacementBounds(QtCore.QLineF(parent.firstVertex, parent.secondVertex).length(),
+            opening.length, opening.hingeAtSecond, self.ReservedDoorSupport(parent))
+
+    def OpeningLengthLimit(self, opening):
+        parent = opening.parentWall
+        end = 1.0
+        if isinstance(opening, PocketDoor) and not opening.hingeAtSecond:
+            end = min(self.ReservedDoorSupport(parent)[1], 2 - opening.firstFraction)
+        return (end - opening.firstFraction) * QtCore.QLineF(parent.firstVertex, parent.secondVertex).length()
+
     def CollisionEnabled(self, first, second):
         return AllowsCollision(CollisionFlags(type(first)), CollisionFlags(type(second)),
                                getattr(self, "collisionSettings", collisionDefaults))
@@ -330,24 +388,24 @@ class GeometryMixin:
 
     def CoincidentObjectGroups(self, includeHidden = False):
         """Keep paint order and visual identity consistent for duplicate repairs."""
-        import json
         from planner_app.project_codec import EncodeObjectRecord
         objects = self.walls + self.windows + sorted(self.furnishings, key = lambda obj: not obj.behindCounters) + self.labels
         indices = {id(obj): index for index, obj in enumerate(objects)}
         groups = {}
-        for obj in objects:
-            if not includeHidden and not self.IsObjectVisible(obj):
-                continue
-            if type(obj) is Furnishing:
-                key = ("Furnishing", getattr(obj, "definitionKey", obj.definition["key"]), obj.firstVertex.x(), obj.firstVertex.y(),
-                       obj.secondVertex.x(), obj.secondVertex.y(), obj.width, obj.flipHorizontal, obj.flipVertical)
-            else:
-                record = EncodeObjectRecord(obj, indices)
-                for name in ("id", "measurementHidden", "measurementFlipped", "geometryIssues"):
-                    record.pop(name, None)
-                key = json.dumps(record, sort_keys = True, separators = (",", ":"))
-            groups.setdefault(key, []).append(obj)
-        return [tuple(group) for group in groups.values() if len(group) > 1]
+        def Records():
+            for obj in objects:
+                if not includeHidden and not self.IsObjectVisible(obj):
+                    continue
+                if type(obj) is Furnishing:
+                    record = ("Furnishing", getattr(obj, "definitionKey", obj.definition["key"]), obj.firstVertex.x(), obj.firstVertex.y(),
+                              obj.secondVertex.x(), obj.secondVertex.y(), obj.width, obj.flipHorizontal, obj.flipVertical)
+                    # Preserve the furnishing fast path: no encoded dictionary,
+                    # yielded pair or extra serialization is needed.
+                    groups.setdefault(record, []).append(obj)
+                else:
+                    record = EncodeObjectRecord(obj, indices)
+                    yield obj, record
+        return GroupCoincidentRecords(Records(), groups = groups, consumeRecords = True)
 
     def WallPolygon(self, wall):
         if isinstance(wall, Column):
@@ -487,6 +545,12 @@ class GeometryMixin:
                 first, last = self.WorldToViewport(obj.firstVertex), self.WorldToViewport(obj.secondVertex)
                 path = QtGui.QPainterPath(first)
                 path.lineTo(last)
+                if type(obj) is MeasurementGuide and obj.depth != 0:
+                    offset = QtCore.QPointF(*GuideDepthOffset((obj.firstVertex.x(), obj.firstVertex.y()),
+                                                           (obj.secondVertex.x(), obj.secondVertex.y()), obj.depth))
+                    for endpoint, screen in ((obj.firstVertex, first), (obj.secondVertex, last)):
+                        path.moveTo(screen)
+                        path.lineTo(self.WorldToViewport(endpoint + offset))
                 if not isinstance(obj, BoundaryLine) and not obj.textOffset.isNull():
                     path.moveTo((first + last) / 2)
                     path.lineTo(labelPosition)
@@ -550,6 +614,12 @@ class GeometryMixin:
                 second = self.WorldToViewport(wall.secondVertex)
                 path = QtGui.QPainterPath(first)
                 path.lineTo(second)
+                if type(wall) is MeasurementGuide and wall.depth != 0:
+                    offset = QtCore.QPointF(*GuideDepthOffset((wall.firstVertex.x(), wall.firstVertex.y()),
+                                                           (wall.secondVertex.x(), wall.secondVertex.y()), wall.depth))
+                    for endpoint, screen in ((wall.firstVertex, first), (wall.secondVertex, second)):
+                        path.moveTo(screen)
+                        path.lineTo(self.WorldToViewport(endpoint + offset))
                 if not isinstance(wall, BoundaryLine) and not wall.textOffset.isNull():
                     path.moveTo((first + second) / 2)
                     path.lineTo(labelPosition)
@@ -787,9 +857,16 @@ class GeometryMixin:
         # Remove internal crossing edges from the cached exterior contours,
         # rather than retracing every rectangle and miter triangle underneath.
         endJoinedRuns = bool(walls) and all(type(wall) in (Counter, Stair) for wall in walls)
-        overlapping = ([[index] for index in range(len(components))] if endJoinedRuns else
-                       MergeBounds([(index, polygon.boundingRect().adjusted(-1e-8, -1e-8, 1e-8, 1e-8))
-                                    for index, result in enumerate(results) for owner, polygon in result[1]], len(components)))
+        pillarWeldTolerance = .01 * self.basePixelsPerMillimeter
+        if endJoinedRuns:
+            overlapping = [[index] for index in range(len(components))]
+        else:
+            componentBounds = []
+            for index, result in enumerate(results):
+                for owner, polygon in result[1]:
+                    margin = pillarWeldTolerance if isinstance(owner, Pillar) else 1e-8
+                    componentBounds.append((index, polygon.boundingRect().adjusted(-margin, -margin, margin, margin)))
+            overlapping = MergeBounds(componentBounds, len(components))
         mergedResults = []
         mergedComponents = []
         for group in overlapping:
@@ -801,7 +878,10 @@ class GeometryMixin:
                 polygons.extend(results[index][1])
             if traceContours and len(group) > 1:
                 traceKey = ("overlap", tuple(id(walls[index]) for component in group for index in components[component]))
-                path = self.TraceWallBoundary(path, traceKey = traceKey)
+                weldTolerance = (pillarWeldTolerance if any(isinstance(walls[index], Pillar)
+                    for component in group for index in components[component]) else 0.0)
+                weldOptions = {"weldTolerance": weldTolerance} if weldTolerance else {}
+                path = self.TraceWallBoundary(path, traceKey = traceKey, **weldOptions)
             mergedResults.append((path, polygons))
             mergedComponents.append(sorted(index for component in group for index in components[component]))
         components, results = mergedComponents, mergedResults
@@ -1012,8 +1092,9 @@ class GeometryMixin:
             self.wallFillPolygons = [(polygonWalls[0], polygon)]
             self.wallGeometryKey = geometryKey
             return viewTransform.map(combinedPath)
+        weldOptions = ({"weldTolerance": .01 * geometryScale} if any(isinstance(wall, Pillar) for wall in walls) else {})
         self.wallGeometryPath = (self.TraceWallBoundary(combinedPath, traceKey = ("walls", tuple(id(wall) for wall in walls)),
-                                                      sourcePolygons = tracePolygons)
+                                                      sourcePolygons = tracePolygons, **weldOptions)
                                  if traceContours else combinedPath)
         self.wallFillPolygons = []
         for owner, polygon in list(zip(polygonWalls, polygons[:len(polygonWalls)])) + materialJoins:
@@ -1329,18 +1410,19 @@ class GeometryMixin:
                     self.wallContourCachePoints -= evictedPoints
         return data
 
-    def TraceWallBoundary(self, filledPath, joinContours = True, traceKey = None, sourcePolygons = None):
+    def TraceWallBoundary(self, filledPath, joinContours = True, traceKey = None, sourcePolygons = None, weldTolerance = 0.0):
         prepared = ([self.PreparedWallContour(polygon) for polygon in sourcePolygons] if sourcePolygons is not None else
                     [self.PreparedWallContour(polygon, canonical = True) for polygon in Paths.Contours(filledPath)])
         prepared = [data for data in prepared if not data[0].isEmpty()]
         if not prepared:
             return QtGui.QPainterPath()
-        bounds = [polygon.boundingRect().adjusted(-1e-8, -1e-8, 1e-8, 1e-8) for polygon, contour, edges in prepared]
+        margin = max(1e-8, weldTolerance / 2)
+        bounds = [polygon.boundingRect().adjusted(-margin, -margin, margin, margin) for polygon, contour, edges in prepared]
         components = GroupContourBounds([(rect.left(), rect.top(), rect.right(), rect.bottom()) for rect in bounds])
         outline = QtGui.QPainterPath()
         outline.setFillRule(QtCore.Qt.FillRule.WindingFill)
         for indices in components:
-            key = (joinContours, filledPath.fillRule(),
+            key = (joinContours, filledPath.fillRule(), weldTolerance,
                    tuple(prepared[index][1] for index in indices))
             component = self.wallBoundaryCache.pop(key, None)
             if component is None:
@@ -1351,14 +1433,15 @@ class GeometryMixin:
                     path.closeSubpath()
                 component = self.TraceWallComponent(path, joinContours,
                     traceKey = (traceKey, tuple(indices)) if traceKey is not None else None,
-                    preparedContours = [prepared[index] for index in indices])
+                    preparedContours = [prepared[index] for index in indices],
+                    **({"weldTolerance": weldTolerance} if weldTolerance else {}))
             self.wallBoundaryCache[key] = component
             outline.addPath(component)
         while len(self.wallBoundaryCache) > 128:
             self.wallBoundaryCache.pop(next(iter(self.wallBoundaryCache)))
         return outline
 
-    def TraceWallComponent(self, filledPath, joinContours = True, traceKey = None, preparedContours = None):
+    def TraceWallComponent(self, filledPath, joinContours = True, traceKey = None, preparedContours = None, weldTolerance = 0.0):
         """Adapt canonical contours and retain bounded, numeric trace histories."""
         if preparedContours is None:
             preparedContours = [self.PreparedWallContour(polygon, canonical = True) for polygon in Paths.Contours(filledPath)]
@@ -1375,7 +1458,7 @@ class GeometryMixin:
         state = self.wallTraceState if traceKey is None else stored[0] if stored is not None else None
         bounds = filledPath.boundingRect()
         contours, state = TraceBoundaryContours(fillContours, (bounds.width(), bounds.height()), joinContours,
-                                               filledPath.fillRule().value, state, self.wallBoundaryEdgeCache)
+                                               filledPath.fillRule().value, state, self.wallBoundaryEdgeCache, weldTolerance = weldTolerance)
         if traceKey is None:
             self.wallTraceState = state
         else:
@@ -1709,8 +1792,14 @@ class GeometryMixin:
             labelBounds = self.MeasurementLabelLayout(drawingObject)[3].boundingRect()
             labelWorld = QtCore.QRectF(self.ViewportToWorld(labelBounds.topLeft()), self.ViewportToWorld(labelBounds.bottomRight())).normalized()
             bounds = QtGui.QPolygonF(points).boundingRect().united(labelWorld)
+            depth = drawingObject.depth if type(drawingObject) is MeasurementGuide else 0
+            if depth != 0:
+                offset = QtCore.QPointF(*GuideDepthOffset((drawingObject.firstVertex.x(), drawingObject.firstVertex.y()),
+                                                       (drawingObject.secondVertex.x(), drawingObject.secondVertex.y()), depth))
+                bounds = bounds.united(QtGui.QPolygonF([drawingObject.firstVertex, drawingObject.secondVertex,
+                    drawingObject.firstVertex + offset, drawingObject.secondVertex + offset]).boundingRect())
             footprint = bounds, points, (QtCore.QPointF(1, 0), QtCore.QPointF(0, 1))
-            key = tuple((point.x(), point.y()) for point in points) + ((drawingObject.textOffset.x(), drawingObject.textOffset.y(), self.zoom, self.unitsMode),)
+            key = tuple((point.x(), point.y()) for point in points) + ((drawingObject.textOffset.x(), drawingObject.textOffset.y(), self.zoom, self.unitsMode, depth),)
             drawingObject.footprintCache = key, footprint
             drawingObject.numericCollisionFootprint = None
             return footprint

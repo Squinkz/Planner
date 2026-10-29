@@ -12,6 +12,7 @@ from planner import MainWindow, Wall, Label
 from theme import BuildStyle
 from check_history import Drag
 from planner_app.project_codec import DecodeProject
+from planner_app.graphics.text import PathTextPainter
 
 
 def Main():
@@ -73,7 +74,7 @@ def Main():
     centers = []
     opacities = []
 
-    class TextPainter(QtGui.QPainter):
+    class TextPainter(PathTextPainter):
         def drawText(self, *args):
             if len(args) == 2 and isinstance(args[0], QtCore.QPointF) and args[1] in label.text.split("\n"):
                 advance = QtGui.QFontMetricsF(self.font()).horizontalAdvance(args[1])
@@ -81,13 +82,13 @@ def Main():
                 opacities.append(self.opacity())
             super().drawText(*args)
 
-    with patch.object(QtGui, "QPainter", TextPainter):
+    with patch("planner_app.viewport.rendering.PathTextPainter", TextPainter):
         image = v.grab()
     assert len(centers) == 2 and all(abs(position.x() - center.x()) < .001 for position in centers)
     assert opacities == [.4, .4]
     main.labelIntensitySlider.setValue(0)
     opacities.clear()
-    with patch.object(QtGui, "QPainter", TextPainter):
+    with patch("planner_app.viewport.rendering.PathTextPainter", TextPainter):
         v.grab()
     assert label.intensity == 0 and opacities == [0, 0]
     v.Undo()

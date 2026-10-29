@@ -3,11 +3,14 @@
 import math
 from PySide6 import QtCore, QtGui, QtSvg, QtWidgets
 
+from planner_app.geometry.resize_snapping import SnapResize
+from .snapping import MovementSnapDistance
 from planner_app.graphics.palette import themeColors
 from planner_app.graphics.icons import UiIconPath
 from planner_app.models import Furnishing, Label, Pillar, Column, Fireplace, Wall, Window
 from planner_app.geometry.editing import (TransformPoint, ResizeHandleDimensions, ResizedHandleCenter,
-    PrepareSelectionMembers, SelectionSpan, FitSelectionScale, TransformSelectionMembers)
+    PrepareSelectionMembers, SelectionSpan, FitSelectionScale, TransformSelectionMembers,
+    PointerRotation, SelectionResizeCorrection)
 
 
 from collections import OrderedDict
@@ -274,17 +277,16 @@ class FurnishingHandlesMixin:
         furnishing.secondVertex = center + north * (state["length"] / 2)
         if mode == "rotate":
             offset = self.ViewportToWorld(position) - state["pivot"]
-            if math.hypot(offset.x(), offset.y()) > 1e-8:
-                angle = state["angle"] + math.degrees(math.atan2(offset.y(), offset.x())) - state["mouseAngle"]
-                if self.snapEnabled != bool(modifiers & QtCore.Qt.KeyboardModifier.AltModifier):
-                    origin = state["angle"] if self.localTransforms else 0
-                    angle = origin + round((angle - origin) / 15) * 15
+            rotation = PointerRotation((offset.x(), offset.y()), state["mouseAngle"], state["angle"],
+                self.snapEnabled != bool(modifiers & QtCore.Qt.KeyboardModifier.AltModifier), self.localTransforms)
+            if rotation is not None:
+                angle, cosine, sine = rotation
                 furnishing.angle = angle
-                rotation = math.radians(angle - state["angle"])
-                targetCenter = QtCore.QPointF(*TransformPoint((state["center"].x(), state["center"].y()),
-                    (state["pivot"].x(), state["pivot"].y()), None, math.cos(rotation), math.sin(rotation)))
-                furnishing.firstVertex += targetCenter - center
-                furnishing.secondVertex += targetCenter - center
+                targetCenter = TransformPoint((state["center"].x(), state["center"].y()),
+                    (state["pivot"].x(), state["pivot"].y()), None, cosine, sine)
+                centerDelta = QtCore.QPointF(targetCenter[0] - center.x(), targetCenter[1] - center.y())
+                furnishing.firstVertex += centerDelta
+                furnishing.secondVertex += centerDelta
         else:
             delta = self.ViewportToWorld(position) - self.ViewportToWorld(state["mouseStart"])
             numericNorth = (north.x(), north.y())
@@ -303,56 +305,17 @@ class FurnishingHandlesMixin:
         self.alignmentGuides = []
         if self.snapEnabled == bool(modifiers & QtCore.Qt.KeyboardModifier.AltModifier):
             return width, length
-        north = state["north"]
-        east = QtCore.QPointF(north.y(), -north.x())
-        field, sign = state["handle"][1:3]
-        factor = 2 if state.get("centeredResize", False) else 1
-        targets = self.StairSnapTargets(state.get("fireplace") or state["object"])
-        if field == "corner":
-            eastSign, northSign = sign
-            diagonal = east * (eastSign * state["width"]) + north * (northSign * state["length"])
-            anchor = state["center"] if factor == 2 else state["center"] - diagonal / 2
-            corner = anchor + (east * (eastSign * width) + north * (northSign * length)) / factor
-            snapped = self.SnapPosition(corner, modifiers, anchor, diagonal / math.hypot(diagonal.x(), diagonal.y()),
-                                        snapTargets = targets)
-            scale = factor * QtCore.QPointF.dotProduct(snapped - anchor, diagonal) / QtCore.QPointF.dotProduct(diagonal, diagonal)
-            minimumSize = .001 if isinstance(state["object"], Label) else 1
-            scale = max(minimumSize / min(state["width"], state["length"]), scale)
-            return state["width"] * scale, state["length"] * scale
-        axis = north if field == "length" else east
-        tangent = east if field == "length" else north
-        size = length if field == "length" else width
-        halfSpan = (state["width"] if field == "length" else state["length"]) / 2
-        anchor = state["center"] if factor == 2 else state["center"] - axis * (sign * state[field] / 2)
-        edgeCenter = anchor + axis * (sign * size / factor)
-        candidates = []
-        for offset in (QtCore.QPointF(), tangent * halfSpan, -tangent * halfSpan):
-            point = edgeCenter + offset
-            snapped = self.SnapPosition(point, modifiers, anchor + offset, axis * sign, snapTargets = targets)
-            if self.snapApplied:
-                snappedSize = factor * sign * QtCore.QPointF.dotProduct(snapped - anchor - offset, axis)
-                if snappedSize >= 1:
-                    candidates.append((self.snapPriority, QtCore.QLineF(point, snapped).length(),
-                                       snappedSize, list(self.alignmentGuides)))
-        # An edge can meet a vertex anywhere along its span, not just at its ends.
-        directTargets = [QtCore.QPointF(x, y) for x, y, direct in self.NumericSnapTargets(targets) if direct]
+        targets = self.NumericSnapTargets(self.StairSnapTargets(state.get("fireplace") or state["object"]))
         if self.midpointSnapEnabled:
-            directTargets.extend(self.SnapMidpoints())
-        pixelsPerMillimeter = self.basePixelsPerMillimeter * self.zoom
-        for target in directTargets:
-            offset = target - edgeCenter
-            if abs(QtCore.QPointF.dotProduct(offset, tangent)) > halfSpan + .01:
-                continue
-            distance = abs(QtCore.QPointF.dotProduct(offset, axis))
-            snappedSize = factor * sign * QtCore.QPointF.dotProduct(target - anchor, axis)
-            if distance * pixelsPerMillimeter < self.vertexSnapRange and snappedSize >= 1:
-                candidates.append((0, distance, snappedSize, []))
-        self.alignmentGuides = []
-        self.snapApplied = bool(candidates)
-        if candidates:
-            priority, distance, size, self.alignmentGuides = min(candidates, key = lambda candidate: candidate[:2])
-            self.snapPriority = priority
-        return (width, size) if field == "length" else (size, length)
+            targets.extend((vertex.x(), vertex.y(), True) for vertex in self.SnapMidpoints())
+        north, center = state["north"], state["center"]
+        width, length, self.snapApplied, self.snapPriority, self.alignmentGuides = SnapResize(
+            (north.x(), north.y()), (center.x(), center.y()), state["width"], state["length"],
+            width, length, *state["handle"][1:3], state.get("centeredResize", False),
+            .001 if isinstance(state["object"], Label) else 1, targets,
+            self.basePixelsPerMillimeter * self.zoom, self.vertexSnapRange, self.alignmentSnapEnabled,
+            self.GridSteps()[1] if self.gridSnapEnabled else None, MovementSnapDistance)
+        return width, length
 
     def TransformFurnishingSelection(self, state):
         box = state["object"]
@@ -375,13 +338,9 @@ class FurnishingHandlesMixin:
             for obj, first, second, width, angle in state["members"][1:]:
                 bounds = bounds.united(self.ObjectFootprint(obj)[0])
             field, sign = state["handle"][1:3]
-            correction = center - bounds.center()
-            if field == "width" and not state.get("centeredResize", False):
-                anchoredX = state["center"].x() - sign * state["width"] / 2
-                correction.setX(anchoredX - (bounds.center().x() - sign * bounds.width() / 2))
-            elif field == "length" and not state.get("centeredResize", False):
-                anchoredY = state["center"].y() - sign * state["length"] / 2
-                correction.setY(anchoredY - (bounds.center().y() - sign * bounds.height() / 2))
+            correction = QtCore.QPointF(*SelectionResizeCorrection((center.x(), center.y()),
+                (state["center"].x(), state["center"].y()), state["width"], state["length"],
+                (bounds.x(), bounds.y(), bounds.width(), bounds.height()), field, sign, state.get("centeredResize", False)))
             for obj, first, second, width, angle in state["members"]:
                 obj.firstVertex += correction
                 obj.secondVertex += correction

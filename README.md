@@ -50,7 +50,7 @@ See [licensing scope and redistribution](docs/LICENSING.md) and
 
 ## User guide
 
-Start with [Welcome to Planner and quickstart](planner-main/docs/help/README.md), followed by
+Start with [Welcome to Planner and quickstart](planner-main/help/README.md), followed by
 its linked table of contents. The same guide is available inside Planner from
 **Help > Help**, or **F1**.
 

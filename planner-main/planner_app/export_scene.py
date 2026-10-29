@@ -32,5 +32,5 @@ def PrepareExportScene(viewport):
             else:
                 labels.append(label)
         viewport.labels = labels
-    if viewport.floors or any(isinstance(label, RoomLabel) for label in viewport.labels):
+    if viewport.floors or viewport.solidRooms or any(isinstance(label, RoomLabel) for label in viewport.labels):
         viewport.roomDetection.Refresh(force = True)

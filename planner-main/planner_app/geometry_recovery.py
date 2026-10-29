@@ -2,8 +2,12 @@
 import copy
 import math
 from PySide6 import QtCore
-from .models import Wall, Window, Fireplace
+from .models import Wall, Window, Fireplace, PocketDoor
+from .geometry.reserved_doors import ReservedDoorWithinHost, ReservedDoorSupportBounds
 from .object_schema import openingClasses, openingFields
+from .record_validation import Finite
+from .record_schema import geometryIssueNames
+from .record_repairs import ProposeOpeningGeometry, ProposeObjectGeometry, GeometryRepairText
 from .viewport.geometry import FootprintGeometry
 
 
@@ -11,12 +15,7 @@ class GeometryLoadCancelled(Exception):
     pass
 
 
-geometryIssueNames = ("opening_bounds", "opening_overlap", "opening_obstruction", "fireplace_bounds")
 knownObjectTypes = {"Wall", "Pillar", "Column", "Elevator", "Stair", "Counter", "Railing", "Arrow", "MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide", "Label", "RoomLabel", "Furnishing", "NorthArrow", *openingClasses}
-
-
-def Finite(value, minimum = -1e12, maximum = 1e12):
-    return type(value) in (int, float) and math.isfinite(value) and minimum <= value <= maximum
 
 
 def RecordWall(record):
@@ -77,7 +76,15 @@ def OpeningProblem(index, data, ignored = (), prepared = None):
     parent = prepared[0][record["parent"]] if prepared is not None else RecordWall(records[record["parent"]])
     wallLength = QtCore.QLineF(parent.firstVertex, parent.secondVertex).length()
     half = record["length"] / (2 * wallLength)
-    if "opening_bounds" not in ignored and (record["center"] - half < -1e-8 or record["center"] + half > 1 + 1e-8):
+    supportWalls = None
+    if record["type"] in ("BarnDoor", "PocketDoor"):
+        supportWalls = list(prepared[0].values()) if prepared is not None else [wall for entry in records if (wall := RecordWall(entry)) is not None]
+        bounds = ReservedDoorSupportBounds((parent.firstVertex.x(), parent.firstVertex.y()), (parent.secondVertex.x(), parent.secondVertex.y()),
+            (((wall.firstVertex.x(), wall.firstVertex.y()), (wall.secondVertex.x(), wall.secondVertex.y())) for wall in supportWalls))
+        withinHost = ReservedDoorWithinHost(wallLength, record["length"], record["center"], record.get("hingeAtSecond", False), bounds)
+    else:
+        withinHost = record["center"] - half >= -1e-8 and record["center"] + half <= 1 + 1e-8
+    if "opening_bounds" not in ignored and not withinHost:
         return "opening_bounds", "The opening extends beyond its parent wall."
     sameParent = enumerate(records)
     if prepared is not None:
@@ -104,7 +111,7 @@ def OpeningProblem(index, data, ignored = (), prepared = None):
             continue
         other = records[otherIndex]
         wall = prepared[0][otherIndex] if prepared is not None else RecordWall(records[otherIndex])
-        if "opening_obstruction" not in ignored and wall is not None and geometry.ObjectsOverlap(obj, wall, contactTolerance = 1):
+        if "opening_obstruction" not in ignored and wall is not None and geometry.OpeningWallObstructs(obj, wall, walls = supportWalls, joined = False):
             return "opening_obstruction", f"The opening is obstructed by Wall #{other.get('id', otherIndex + 1)}."
     return None
 
@@ -161,82 +168,24 @@ def FindGeometryIssue(index, data, definitions, prepared = None):
         return issue
     if kind in openingClasses:
         parentIndex = record.get("parent")
-        if type(parentIndex) is not int or not 0 <= parentIndex < len(records) or RecordWall(records[parentIndex]) is None:
+        parent = RecordWall(records[parentIndex]) if type(parentIndex) is int and 0 <= parentIndex < len(records) else None
+        if parent is None:
             issue.update(code = "attachment", description = "The opening has no usable parent wall. Its original position cannot be determined, so Highlight and Repair are unavailable.")
             return issue
-        parent = RecordWall(records[parentIndex])
-        candidate = dict(record)
-        invalidDimensions = False
-        for name, fallback, minimum in (("center", .5, -1e12), ("length", min(900, QtCore.QLineF(parent.firstVertex, parent.secondVertex).length()), 1)):
-            if not Finite(record.get(name), minimum, 1e9 if name == "length" else 1e12):
-                candidate[name] = fallback
-                invalidDimensions = True
-        for name in ("sillDepth", "depth", "depthOffset", "wellDepth"):
-            if name in record or kind == "Fireplace" and name in ("depth", "depthOffset"):
-                minimum = -1e12 if name == "depthOffset" else 1 if name in ("depth", "wellDepth") else 0
-                if not Finite(record.get(name), minimum, 1e9 if name in ("depth", "wellDepth") else 1e12):
-                    candidate[name] = 600 if name == "wellDepth" else 0 if name == "depthOffset" else parent.width if name == "depth" else 40
-                    invalidDimensions = True
-        if invalidDimensions:
-            issue.update(code = "dimensions", description = "The opening has impossible dimensions or coordinates.",
-                         repair = candidate if candidate["length"] >= 1 else None)
+        proposal = ProposeOpeningGeometry(record, parent.width, QtCore.QLineF(parent.firstVertex, parent.secondVertex).length())
+        if proposal is not None:
+            issue.update(proposal)
             return issue
-        if kind == "Fireplace":
-            depth = record.get("depth", parent.width)
-            limit = max(0, (depth - parent.width) / 2)
-            offset = record.get("depthOffset", 0)
-            if depth < parent.width or abs(offset) > limit + 1e-8:
-                depth = max(parent.width, depth)
-                limit = (depth - parent.width) / 2
-                candidate.update(depth = depth, depthOffset = max(-limit, min(limit, offset)))
-                if "fireplace_bounds" not in record.get("geometryIssues", []):
-                    issue.update(code = "fireplace_bounds", description = "The fireplace depth or offset does not fit its wall.", highlight = True, repair = candidate)
-                    return issue
         problem = OpeningProblem(index, data, record.get("geometryIssues", ()), prepared)
         if problem is not None and problem[0] not in record.get("geometryIssues", []):
             issue.update(code = problem[0], description = problem[1], highlight = True, repair = RepairOpening(index, data))
             return issue
         return None
-    candidate = dict(record)
-    for name in (("first", "second", "middle", "textOffset") if kind == "AngleGuide" else ("first", "second")):
-        point = record.get(name)
-        if not isinstance(point, list) or len(point) != 2:
-            candidate[name] = [0, 0]
-        else:
-            candidate[name] = [value if Finite(value) else 0 for value in point]
-    if kind in ("MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine") and "textOffset" in record:
-        point = record["textOffset"]
-        if not isinstance(point, list) or len(point) != 2 or not all(Finite(value) for value in point):
-            candidate["textOffset"] = [0, 0]
-    minimum = 0 if kind in ("MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide") else 1e-8 if kind in ("Label", "RoomLabel") else 1
-    if not Finite(record.get("width"), minimum, 1e9) or kind in ("MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide") and record.get("width") != 0:
-        candidate["width"] = 0 if kind in ("MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide") else data["settings"]["wallWidth"] if kind == "Wall" else definitions.get(record.get("definition"), definitions["null"])["width"]
-    if kind != "AngleGuide" and math.hypot(candidate["second"][0] - candidate["first"][0], candidate["second"][1] - candidate["first"][1]) < 1e-8:
-        candidate["second"] = [candidate["first"][0] + (1000 if candidate["first"][0] <= 1e12 - 1000 else -1000), candidate["first"][1]]
-    for name in ("firstMiter", "secondMiter"):
-        if kind not in ("Label", "RoomLabel", "Furnishing", "NorthArrow") and not Finite(record.get(name), 0, 1):
-            candidate[name] = 0
-    if candidate != record:
+    candidate = ProposeObjectGeometry(record, data["settings"]["wallWidth"], definitions)
+    if candidate is not None:
         issue.update(code = "dimensions", description = "The object has impossible dimensions or coordinates.", repair = candidate)
         return issue
     return None
-
-
-def GeometryRepairText(record, repair):
-    descriptions = []
-    for name, value in repair.items():
-        if isinstance(record, dict) and record.get(name) == value:
-            continue
-        if name in ("first", "second"):
-            descriptions.append(f"{'Start' if name == 'first' else 'End'} position: ({value[0]:g}, {value[1]:g}) mm")
-        elif name == "center":
-            descriptions.append(f"Position along wall: {value * 100:g}%")
-        elif name in ("width", "length", "depth", "sillDepth", "depthOffset"):
-            label = {"sillDepth": "Sill depth", "depthOffset": "Depth offset"}.get(name, name.capitalize())
-            descriptions.append(f"{label}: {value:g} mm")
-        else:
-            descriptions.append(f"{name}: {value}")
-    return "Repair will set:\n" + "\n".join(descriptions)
 
 
 def ResolveGeometry(data, definitions, choose):
@@ -292,11 +241,13 @@ def ActiveGeometryIssues(obj, viewport):
     if isinstance(obj, Window):
         length = QtCore.QLineF(obj.parentWall.firstVertex, obj.parentWall.secondVertex).length()
         half = obj.length / (2 * max(length, 1e-8))
-        if "opening_bounds" in issues and (obj.centerFraction - half < -1e-8 or obj.centerFraction + half > 1 + 1e-8):
+        withinHost = (ReservedDoorWithinHost(length, obj.length, obj.centerFraction, obj.hingeAtSecond, viewport.ReservedDoorSupport(obj.parentWall))
+                      if isinstance(obj, PocketDoor) else obj.centerFraction - half >= -1e-8 and obj.centerFraction + half <= 1 + 1e-8)
+        if "opening_bounds" in issues and not withinHost:
             active.append("opening_bounds")
         if "opening_overlap" in issues and any(other is not obj and other.parentWall is obj.parentWall and viewport.OpeningsOverlap(obj, other) for other in viewport.windows):
             active.append("opening_overlap")
-        if "opening_obstruction" in issues and any(type(wall) is Wall and wall is not obj.parentWall and viewport.JoinedObjectsOverlap(obj, wall, contactTolerance = 1) for wall in viewport.walls):
+        if "opening_obstruction" in issues and any(type(wall) is Wall and viewport.OpeningWallObstructs(obj, wall) for wall in viewport.walls):
             active.append("opening_obstruction")
         if "fireplace_bounds" in issues and isinstance(obj, Fireplace):
             if obj.manualDepth < obj.parentWall.width or abs(obj.manualDepthOffset) > max(0, (obj.manualDepth - obj.parentWall.width) / 2) + 1e-8:

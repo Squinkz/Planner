@@ -153,13 +153,13 @@ class SettingsWindow(WallDimensionControlsMixin, QtWidgets.QDialog):
         self.uiThemeField = DownwardComboBox()
         self.uiThemeField.setAccessibleName("UI Theme")
         self.uiThemeField.addItems(sorted((name for name, theme in themeDefinitions.items() if theme["type"] == "ui"),
-                                         key = lambda name: (name != "Dark UI", name.casefold())))
+                                         key = str.casefold))
         self.uiThemeField.setCurrentText(palette.activeUITheme)
         self.uiThemeField.currentTextChanged.connect(lambda name: mainWindow.SetThemes(uiTheme = name))
         self.canvasThemeField = DownwardComboBox()
         self.canvasThemeField.setAccessibleName("Canvas Theme")
         self.canvasThemeField.addItems(sorted((name for name, theme in themeDefinitions.items() if theme["type"] == "canvas"),
-                                             key = lambda name: (name != "Dark Canvas", name.casefold())))
+                                             key = str.casefold))
         self.canvasThemeField.setCurrentText(palette.activeCanvasTheme)
         self.canvasThemeField.currentTextChanged.connect(lambda name: mainWindow.SetThemes(canvasTheme = name))
         for text, field in (("UI Theme", self.uiThemeField), ("Canvas Theme", self.canvasThemeField)):

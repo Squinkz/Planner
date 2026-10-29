@@ -1,4 +1,5 @@
 """Opaque physical-scene retention during unconstrained wall endpoint drags."""
+from planner_app.graphics.text import PathTextPainter
 import math
 from planner_app.graphics.path_operations import Paths
 from PySide6 import QtCore, QtGui
@@ -38,7 +39,7 @@ class EditPaintCacheMixin:
             # Use guard pixels so the rasterizer does not cut angled edges at
             # the copy boundary. Disjoint write regions prevent double ink.
             patch = device.copy(bounds)
-            with QtGui.QPainter(patch) as localPainter:
+            with PathTextPainter(patch) as localPainter:
                 localPainter.setRenderHints(painter.renderHints())
                 localPainter.translate(-bounds.x() / ratio, -bounds.y() / ratio)
                 localPainter.setClipPath(dirtyPath)
@@ -236,7 +237,7 @@ class EditPaintCacheMixin:
                     left, top = math.floor(rect.left() * ratio), math.floor(rect.top() * ratio)
                     right, bottom = math.ceil(rect.right() * ratio), math.ceil(rect.bottom() * ratio)
                     dirtyRegion |= QtGui.QRegion(left, top, right - left, bottom - top)
-                with QtGui.QPainter(self.viewportEditRaster) as editPainter:
+                with PathTextPainter(self.viewportEditRaster) as editPainter:
                     editPainter.setFont(painter.font())
                     if full:
                         editPainter.drawPixmap(0, 0, self.viewportBackground)

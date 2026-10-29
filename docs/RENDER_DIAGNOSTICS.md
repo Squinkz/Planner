@@ -99,3 +99,11 @@ Pocket recesses retain their narrower cut.
 angled enclosure, all opening variants, zoom/pan changes, floor shading, other
 object layers and PNG/SVG rendering. `check_stair_occlusion_cache.py` retains
 exact mask checks and verifies that camera translation does not rebuild the mask.
+
+`check_angled_mask_clipping.py` compares interior object ink against an isolated
+reference for stairs, counters, railings and furnishings. It includes door,
+window, fireplace and overlapping-column masks, fractional camera positions,
+floor shading, opaque/transparent PNG and painted SVG output, and cropped
+exports. Solid-room grid clipping is checked separately for suppressed interior
+lines and unchanged exterior lines. This complements the topology checks with
+pixel assertions, rather than accepting any nonempty rendered object.

@@ -12,10 +12,12 @@ def RunSmokeTest(reportPath):
     try:
         os.environ["QT_QPA_PLATFORM"] = "offscreen"
         from PySide6 import QtCore, QtGui, QtWidgets
-        from planner_app.paths import appDirectory, externalDirectory, furnishingsDirectory, fontsDirectory, themesDirectory, texturesDirectory, helpDirectory
+        from planner_app.paths import (appDirectory, externalDirectory, furnishingsDirectory, bundledFurnishingsDirectory,
+                                       fontsDirectory, themesDirectory, texturesDirectory, helpDirectory)
         from planner_app.graphics.theme import ApplyApplicationTheme
         from planner_app.graphics import palette
         from planner_app.models import Wall, Furnishing, Label
+        from planner_app.catalog import LoadFurnishings
         from planner_app.project_codec import DecodeProject
         from planner_app.graphics.svg_preview import SvgPreviewRenderer
         from planner_app.optimized_png import EncodeOptimizedPng
@@ -27,6 +29,12 @@ def RunSmokeTest(reportPath):
         for name, directory in resources.items():
             assert directory.is_dir() and directory.is_relative_to(externalDirectory)
             assert not directory.is_relative_to(appDirectory), name
+        for name in ("definitions", "images"):
+            assert (bundledFurnishingsDirectory / name).is_dir()
+            assert not (furnishingsDirectory / name).exists(), "Default furnishings must be internal"
+        for name in ("definitions_user", "images_user"):
+            assert (furnishingsDirectory / name).is_dir()
+            assert not (bundledFurnishingsDirectory / name).exists(), "User furnishings must be external"
         app = QtWidgets.QApplication([])
         app.setApplicationName("Planner")
         app.setStyle("Fusion")
@@ -35,6 +43,9 @@ def RunSmokeTest(reportPath):
         sys.excepthook = lambda *args: callbackErrors.append("".join(traceback.format_exception(*args)))
         window = MainWindow()
         viewport = window.viewport
+        defaults = {item["key"]: item for item in LoadFurnishings(bundledFurnishingsDirectory)}
+        assert defaults["desk"]["imagePath"].is_relative_to(bundledFurnishingsDirectory)
+        assert not defaults["desk"]["isUser"]
         window.sessionTimer.stop()
         window.sessionPollTimer.stop()
         point = QtCore.QPointF

@@ -8,6 +8,7 @@ os.environ["QT_QPA_PLATFORM"] = "offscreen"
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "planner-main"))
 from PySide6 import QtCore, QtGui, QtWidgets
 from planner import MainWindow, Wall
+from planner_app.ui.widgets import FurnishingButton
 
 
 def Main():
@@ -25,8 +26,10 @@ def Main():
     modifiers = QtCore.Qt.KeyboardModifier.NoModifier
     before = viewport.CaptureState()
     history = len(viewport.undoHistory)
+    furnishing = FurnishingButton(viewport.furnishingDefinitions["desk"])
+    furnishing.setParent(main)
     buttons = [main.doorButton, main.openDoorwayButton, main.stairButton, main.counterButton,
-               main.labelButton, next(iter(main.furnishingButtons.values())), *main.wallToolButtons.values()]
+               main.labelButton, furnishing, *main.wallToolButtons.values()]
     for index, button in enumerate(buttons):
         def ExecDrag(drag, actions):
             assert viewport.guiDragActive and not viewport.guiDragCancelled

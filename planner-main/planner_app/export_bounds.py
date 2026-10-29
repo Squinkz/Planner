@@ -1,28 +1,50 @@
 """Visible world-space export bounds, shared by the CLI and viewport preview."""
 import math
-from .models import MeasurementGuide, Furnishing, NorthArrow, Label
+from PySide6 import QtCore, QtGui
+from .models import MeasurementGuide, Furnishing, NorthArrow, Label, Arrow, Fireplace
 from .graphics.furnishings import FurnishingArtworkBounds
-from .graphics.symbols import WindowWellPath
+from .graphics.symbols import DrawOpeningSymbol
+from .graphics.arrows import ArrowPaths, ConnectedArrowDirections, ConnectedArrowCorners
+from .graphics.object_composite import ObjectPaintDevice
 from .models import Window
-
-
-def BorderSize(style, requested = 28):
-    # Nine-pixel major ticks need clearance; labels and unit corners need more.
-    minimum = {"None": 0, "Plain": 1, "Frame": 4, "Corner Marks": 4, "Reference Zones": 28, "Marked": 12, "Ruler": 28, "Ruler + Reference Zones": 56}[style]
-    return max(minimum, requested) if style != "None" else 0
+from .export_settings import BorderSize
 
 
 def AutomaticBounds(viewport):
     minX = minY = math.inf
     maxX = maxY = -math.inf
+    arrows = [obj for obj in viewport.walls if isinstance(obj, Arrow) and viewport.IsObjectVisible(obj)]
+    directions = ConnectedArrowDirections(arrows)
+    corners = ConnectedArrowCorners(arrows, directions)
     for obj in viewport.walls + viewport.windows + viewport.furnishings + viewport.labels:
         if not viewport.IsObjectVisible(obj):
             continue
         points = viewport.ObjectFootprint(obj)[1]
-        if isinstance(obj, Window) and obj.windowWell:
-            bounds = WindowWellPath(obj.firstVertex, obj.secondVertex, obj.width, obj.wellDepth,
-                                    swingsOutwards = not obj.swingsOutwards).boundingRect()
-            points = list(points) + [bounds.topLeft(), bounds.bottomRight()]
+        if isinstance(obj, Window) and not isinstance(obj, Fireplace):
+            # Use the renderer's actual vector commands, in a local screen-space
+            # frame. Physical footprints omit swings, sills and parked leaves.
+            origin = obj.firstVertex
+            delta = obj.secondVertex - origin
+            device = ObjectPaintDevice(QtCore.QSize(1, 1), "#ffffff")
+            with QtGui.QPainter(device) as painter:
+                DrawOpeningSymbol(painter, QtCore.QPointF(), QtCore.QPointF(delta.x(), -delta.y()), obj.width, type(obj),
+                    hingeAtSecond = getattr(obj, "hingeAtSecond", False), swingsOutwards = getattr(obj, "swingsOutwards", False),
+                    panelsFlipped = getattr(obj, "panelsFlipped", False), pixelsPerMillimeter = 1,
+                    sillDepth = getattr(obj, "sillDepth", 40), windowWell = obj.windowWell,
+                    wellDepth = obj.wellDepth, wellDashed = obj.wellDashed)
+            for path, pen, brush, transform, opacity, clip, mask, hints, brushOrigin in device.engine.commands:
+                bounds = transform.map(path).boundingRect()
+                points = list(points) + [origin + QtCore.QPointF(bounds.left(), -bounds.top()),
+                                         origin + QtCore.QPointF(bounds.right(), -bounds.bottom())]
+        if isinstance(obj, Arrow):
+            first, second, showTip = directions[id(obj)]
+            origin = first
+            tail, head = ArrowPaths(QtCore.QPointF(), second - origin, obj.width, obj.solidTip, obj.tipSize, 1, showTip,
+                                    [[point - origin for point in polygon] for polygon in corners[id(obj)]])
+            for path in (tail, head):
+                if not path.isEmpty():
+                    bounds = path.boundingRect().translated(origin)
+                    points = list(points) + [bounds.topLeft(), bounds.bottomRight()]
         if isinstance(obj, MeasurementGuide):
             bounds = viewport.ObjectFootprint(obj)[0]
             points = list(points) + [bounds.topLeft(), bounds.bottomRight()]

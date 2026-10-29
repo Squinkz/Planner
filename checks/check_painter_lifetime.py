@@ -14,6 +14,7 @@ from planner import MainWindow, Wall
 from planner_app.graphics.theme import ApplyApplicationTheme
 from planner_app.ui.color_picker import ColorPlane
 from planner_app.project_codec import DecodeProject
+from planner_app.graphics.text import PathTextPainter
 
 
 def Main():
@@ -31,7 +32,7 @@ def Main():
         failTarget = None
         failMeasurements = False
         recordedLabels = []
-        class TrackedPainter(QtGui.QPainter):
+        class TrackedPainter(PathTextPainter):
             def __init__(self, device):
                 super().__init__(device)
                 painters.append(self)
@@ -56,7 +57,11 @@ def Main():
         previousHook = sys.excepthook
         sys.excepthook = lambda kind, error, traceback: errors.append(error)
         try:
-            with patch.object(QtGui, "QPainter", TrackedPainter), contextlib.redirect_stderr(io.StringIO()):
+            with patch.object(QtGui, "QPainter", TrackedPainter), \
+                    patch("planner_app.viewport.rendering.PathTextPainter", TrackedPainter), \
+                    patch("planner_app.viewport.export_bounds.PathTextPainter", TrackedPainter), \
+                    patch("planner_app.viewport.edit_cache.PathTextPainter", TrackedPainter), \
+                    patch("planner_app.graphics.text.PathTextPainter", TrackedPainter), contextlib.redirect_stderr(io.StringIO()):
                 v.showMeasurements = True
                 v.measurementVisibility = dict.fromkeys(v.measurementVisibility, True)
                 saved = main.BuildProjectData(includeHistory = False)
