@@ -168,7 +168,8 @@ def Main():
         data = main.BuildProjectData()
         assert DecodeProject(data, v.furnishingDefinitions)[5]["unitsMode"] == mode
         v.SetSelection([])
-        with patch("planner_app.viewport.rendering.MeasurementTextPath", wraps = MeasurementTextPath) as drawPath:
+        with patch("planner_app.viewport.rendering.MeasurementTextPath", wraps = MeasurementTextPath) as drawPath, \
+                patch("planner_app.graphics.retained_dimensions.MeasurementTextPath", drawPath):
             v.grab()
             assert drawPath.call_count > 0
             assert any('"' in call.args[0] for call in drawPath.call_args_list)

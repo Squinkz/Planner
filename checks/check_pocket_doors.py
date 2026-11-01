@@ -66,7 +66,10 @@ def Main():
     app.processEvents()
     window.grab().save(str(Path(__file__).resolve().parent.parent / "screenshots" / "pocket-door-preview.png"))
     before = viewport.CaptureState()
+    viewport.connectedEnabled = False
     wall.secondVertex += point(1000, 300)
+    assert not viewport.FitWallOpenings(before), "Detached reserved door followed a rotated supporting wall"
+    viewport.connectedEnabled = viewport.connectedObjectsEnabled = True
     assert viewport.FitWallOpenings(before) and abs(door.length - 1600) < .01
     viewport.DeleteSelected()
     assert not viewport.windows

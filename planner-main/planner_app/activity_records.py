@@ -2,20 +2,85 @@
 import base64
 import hashlib
 import json
+import io
 import math
 import re
 import zlib
 from datetime import datetime
+from threading import Lock
 
 
 activityByteLimit = 64 * 1024 * 1024
 
 
+def ActivityFragments(data, start = 0, includeHeader = True):
+    """Stream transport JSON from an immutable prefix boundary onward."""
+    encoder = json.JSONEncoder(ensure_ascii = False, separators = (",", ":"), allow_nan = False)
+    if includeHeader:
+        yield '{"entries":['
+    entries = data["entries"]
+    rows = entries.IterFrom(start) if hasattr(entries, "IterFrom") else entries
+    for index, entry in enumerate(rows, start):
+        if index:
+            yield ","
+        yield from encoder.iterencode(entry)
+    yield "]"
+    for name, value in data.items():
+        if name != "entries":
+            yield "," + encoder.encode(name) + ":"
+            yield from encoder.iterencode(value)
+    yield "}"
+
+
+class ActivityEncoding:
+    """Frozen checkpoint input: no database, live entries, or Qt on the writer.
+
+    Capture only serializes the mutable tail. Compression and base64 of the
+    complete result run on the recovery worker, with synchronous Encode retained
+    for explicit project saves. One result can be shared safely by both callers.
+    """
+    def __init__(self, data):
+        self.compressor, chunks, byteCount, start = data["entries"].EncodingPrefix(activityByteLimit)
+        self.chunks = tuple(chunks)
+        tail = io.BytesIO()
+        for fragment in ActivityFragments(data, start, includeHeader = False):
+            payload = fragment.encode("utf-8")
+            byteCount += len(payload)
+            if byteCount > activityByteLimit:
+                raise ValueError("The activity log exceeds the 64 MiB limit. Clear the log before saving.")
+            tail.write(payload)
+        self.tail = tail.getvalue()
+        self.record = None
+        self.lock = Lock()
+
+    def Encode(self):
+        with self.lock:
+            if self.record is None:
+                compressor = self.compressor.copy()
+                payload = b"".join((*self.chunks, compressor.compress(self.tail), compressor.flush()))
+                self.record = dict(version = 1, encoding = "zlib-base64", data = base64.b64encode(payload).decode("ascii"))
+            return self.record
+
+
 def EncodeActivityLog(data):
-    raw = json.dumps(data, ensure_ascii = False, separators = (",", ":"), allow_nan = False).encode("utf-8")
-    if len(raw) > activityByteLimit:
-        raise ValueError("The activity log exceeds the 64 MiB limit. Clear the log before saving.")
-    return dict(version = 1, encoding = "zlib-base64", data = base64.b64encode(zlib.compress(raw)).decode("ascii"))
+    entries = data["entries"]
+    prefix = entries.EncodingPrefix(activityByteLimit) if hasattr(entries, "EncodingPrefix") else None
+    if prefix is None:
+        compressor, compressed, byteCount, start = zlib.compressobj(), [], 0, 0
+    else:
+        compressor, compressed, byteCount, start = prefix
+
+
+    for fragment in ActivityFragments(data, start, includeHeader = prefix is None):
+        payload = fragment.encode("utf-8")
+        byteCount += len(payload)
+        if byteCount > activityByteLimit:
+            raise ValueError("The activity log exceeds the 64 MiB limit. Clear the log before saving.")
+        chunk = compressor.compress(payload)
+        if chunk:
+            compressed.append(chunk)
+    compressed.append(compressor.flush())
+    return dict(version = 1, encoding = "zlib-base64", data = base64.b64encode(b"".join(compressed)).decode("ascii"))
 
 
 def EncodeActivityStacks(stacks, sceneLinks, digests, fingerprint):

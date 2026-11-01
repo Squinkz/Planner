@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "planner-main"))
 from PySide6 import QtCore, QtWidgets
 from planner import MainWindow, Wall, Window
 from planner_app.project_recovery import RecoverProject
-from planner_app.project_codec import DecodeProject
+from planner_app.project_codec import DecodeProject, EncodeScene
 from planner_app.geometry_recovery import ActiveGeometryIssues, GeometryLoadCancelled
 from planner_app.graphics.palette import themeColors
 from planner_app.viewport import rendering
@@ -148,6 +148,7 @@ def Main():
             issueDialog.assert_not_called()
         assert main.BuildProjectData() == before
         order = []
+        incomingScene = before['scene']
 
         def ConfirmClose():
             order.append('close')
@@ -156,7 +157,9 @@ def Main():
 
         def CancelIncomingIssue(issue):
             order.append('incoming issue')
-            assert not v.walls and not v.windows and not v.furnishings and not v.labels
+            # Open stages incoming records without clearing the current canvas.
+            # New first installs its empty factory scene before loading startup.
+            assert EncodeScene(v) == incomingScene
             assert main.projectPath is None and getattr(main, 'recoveryWindow', None) is None
             assert main.windowState() == previousWindowState
             assert main.geometry() == previousWindowGeometry
@@ -175,6 +178,7 @@ def Main():
         before = main.BuildProjectData()
         previousStartup = main.startupPath
         main.startupPath = path
+        incomingScene = main.defaultProjectData['scene']
         order.clear()
         with patch.object(main, 'ConfirmProjectReplacement', side_effect = ConfirmClose), patch.object(main, 'ShowGeometryIssue', side_effect = CancelIncomingIssue):
             assert not main.NewProject()

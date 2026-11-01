@@ -18,6 +18,7 @@ from planner_app.units import measurementPrecisions
 
 def Main():
     with ExampleWindow() as (main, folder):
+        main.exportPanel.overrides["scaleMode"] = "Digital"
         v, panel = main.viewport, main.exportPanel
         InstallScene(main, [Wall(QtCore.QPointF(-1500, 0), QtCore.QPointF(1500, 0))])
         v.unitsMode = "Centimeters"
@@ -25,13 +26,14 @@ def Main():
         expectedKeys = {"fileType", "canvasTheme", "canvasColor", "linesColor", "gridColor", "borderColor",
                         "showGrid", "roomStyle", "solidRooms", "solidObjects", "wallStyle", "viewportSettings",
                         "lineworkSettings", "measurementVisibility", "measurementSettings", "wallMeasurementMode",
-                        "wallMeasurementReference", "measurementPrecision", "visibility", "unitsMode", "bounds",
+                        "wallMeasurementReference", "measurementPrecision", "measurementTextSize", "visibility", "unitsMode", "bounds",
                         "gridOrigin", "scale", "scaleUnits", "scaleMode", "architecturalScale", "dpi", "border",
-                        "borderSize", "texture", "textureAngle", "textureScale", "textureStrength", "textureHighlights",
+                        "borderSize", "borderTextSize", "drawOpeningOutlines", "texture", "textureAngle", "textureScale", "textureStrength", "textureHighlights",
                         "textureMidtones", "textureShadows", "vignetteEnabled", "vignetteStrength"}
         for kind in ("PNG", "SVG", "PNG_OPTIMIZED"):
             panel.typeField.setCurrentIndex(panel.typeField.findData(kind))
-            panel.overrides = {"fileType": kind, "viewportSettings": {"minor": .23}, "canvasColor": "#faf8f0"}
+            panel.overrides = {"fileType": kind, "viewportSettings": {"minor": .23}, "canvasColor": "#faf8f0",
+                               "borderTextSize": 1.5, "drawOpeningOutlines": False}
             panel.ApplyView(panel.ResolvedView())
             panel.RefreshControls()
             panel.fileNameField.setText(kind.lower())
@@ -63,6 +65,7 @@ def Main():
             assert palette.themeColors == colors
             assert set(frozen) == expectedKeys, (set(frozen) - expectedKeys, expectedKeys - set(frozen))
             assert frozen["fileType"] == kind and frozen["unitsMode"] == "Centimeters"
+            assert frozen["borderTextSize"] == 1.5 and frozen["drawOpeningOutlines"] is False
             for key in ("viewportSettings", "lineworkSettings", "measurementSettings", "visibility"):
                 assert frozen[key] == expectedView[key], key
             assert frozen["measurementVisibility"] == expectedView["measurementVisibility"]

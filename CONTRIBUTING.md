@@ -9,6 +9,10 @@ py -3.14 -m venv .venv
 .\.venv\Scripts\python.exe checks/run_checks.py
 ```
 
+Checks run in bounded parallel processes by default. Use `--jobs 1` for serial
+debugging, or pass check filenames for a focused run. See the
+[check runner guide](checks/README.md) for reports, isolation and retained captures.
+
 See [development](docs/DEVELOPMENT.md), [architecture](docs/ARCHITECTURE.md),
 [resource authoring](docs/README.md) and the [parity specification](docs/parity/README.md).
 

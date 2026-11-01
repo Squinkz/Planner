@@ -2,12 +2,14 @@
 import json
 import os
 import warnings
+import sqlite3
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from time import monotonic
 from PySide6 import QtCore, QtWidgets
 from planner_app.project_codec import DecodeProject, EncodeUsedFurnishings, ValidateNumber, ValidateEditorUi, projectFileLimit
 from planner_app.graphics.theme import gridIntensityDefaults
+from planner_app.activity_records import ActivityEncoding
 from planner_app.viewport.diagnostics import MeasureRecoveryWrite, MeasureRecoveryCheckpoint
 
 
@@ -91,7 +93,8 @@ class SessionWriter:
                 # ProjectSceneData and ProjectHistory replace their encoded containers
                 # on edits/restores; camera/UI changes keep the same immutable objects.
                 if cached is None or cached[0] is not source:
-                    cached = (source, json.dumps(source, ensure_ascii = False, separators = (",", ":"), allow_nan = False).encode("utf-8"))
+                    value = source.Encode() if isinstance(source, ActivityEncoding) else source
+                    cached = (source, json.dumps(value, ensure_ascii = False, separators = (",", ":"), allow_nan = False).encode("utf-8"))
                     self.chunks[name] = cached
                 chunks.append(b',"' + name.encode("ascii") + b'":' + cached[1])
             projectPayload = json.dumps(project, ensure_ascii = False, separators = (",", ":"), allow_nan = False).encode("utf-8")
@@ -203,7 +206,16 @@ class SessionMixin:
                 "project": {"format": "Planner Project", "version": 1, "scene": self.projectSceneData,
                             "settings": self.ProjectSettings(), "view": view,
                             "history": self.ProjectHistory(), "ui": self.ProjectUiState()}, "ui": ui}
-        activity = self.activityLog.Encode()
+        try:
+            activity = self.activityLog.Encode(deferred = not wait)
+        except (OSError, sqlite3.Error, ValueError, TypeError) as error:
+            self.sessionSignature = None
+            message = str(error)
+            if message != self.sessionError:
+                self.sessionError = message
+                warnings.warn(f"Planner session recovery could not be saved: {message}", RuntimeWarning)
+                v.ShowClipboardError("Session recovery could not be saved.")
+            return False
         if activity is not None:
             data["project"]["activityLog"] = activity
         embedded = EncodeUsedFurnishings(v)
@@ -231,6 +243,9 @@ class SessionMixin:
         return True
 
     def RestoreSession(self, recoveryPath = None):
+        # Project/session loads always return to Build, including older
+        # checkpoints saved while Export was active.
+        self.sidebarTabs.setCurrentWidget(self.buildScrollArea)
         primary = recoveryPath is None
         recoveryPath = self.sessionPath if primary else recoveryPath
         backupPath = self.sessionPath.with_name(self.sessionPath.name + ".bak")
@@ -314,7 +329,6 @@ class SessionMixin:
         self.SetPropertiesCollapsed(ui.get("propertiesCollapsed", False), rememberHeight = False)
         self.propertiesRestoreHeight = restoreHeight
         self.SetPropertiesSplitterSizes(ui["propertiesSplitter"])
-        self.sidebarTabs.setCurrentIndex(ui["tab"])
         for name, item in (self.visibilityItems | self.visibilityGroups).items():
             item.setExpanded(ui["expanded"].get(name, True))
         v = self.viewport

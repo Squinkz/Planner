@@ -113,6 +113,11 @@ def Main():
         assert (list(v.undoHistory), list(v.redoHistory), ref.historyState) == history
         assert main.SaveProject(folder / "reference.plan")
         DecodeProject(json.loads((folder / "reference.plan").read_text(encoding = "utf-8")), v.furnishingDefinitions)
+        # Save returns to Build and closes reference editing. Reopen it and
+        # unlink size before shrinking an image with an extreme aspect ratio.
+        main.sidebarTabs.setCurrentWidget(main.visibilityPage)
+        ref.Show()
+        ref.sizeLinkButton.setChecked(False)
         ref.fields["width"].setValue(100)
         before = ref.Snapshot()
         assert ref.Load(folder / "portrait.png") and ref.state["height"] == ref.state["width"] * 2

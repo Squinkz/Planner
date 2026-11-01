@@ -37,7 +37,7 @@ The original UI gallery remains a dated capture, not a current UI inventory.
    framework-independent test drivers. Reimplement their input events and
    assertions in the target framework.
 2. **Visual:** [reference/GALLERY.md](reference/GALLERY.md) contains 32 actual
-   desktop captures: main tabs, all four export modes, full enabled/disabled
+   desktop captures: main tabs, the four export format/mode combinations at capture time, full enabled/disabled
    Composite sections, every full export section, complete Build palette, picker,
    dropdown, menu, three Settings pages and all Build settings subpages, shared
    idle/hover/pressed/disabled controls and a light-theme example. Beside each
@@ -46,6 +46,9 @@ The original UI gallery remains a dated capture, not a current UI inventory.
    resolved dark/light stylesheets retain the exact theme roles and selectors.
    Their generated arrow/indicator SVGs are archived under `style-assets/` with
    relative URLs, so the references do not depend on expired temporary files.
+   Print, Scale Bar and Title Block were added later; their current controls,
+   rendering and input behavior are covered by the newer scenario-index entries
+   and checks. Historical control-gallery images retain their capture context.
 3. **Portable calculations:** [numeric-examples.json](numeric-examples.json)
    has 15 independently stated expected outputs for wall bodies, rectangular
    footprints, elliptical containment and metric/imperial grid intervals.
@@ -109,7 +112,7 @@ python checks/run_checks.py check_portable_parity.py check_parity_ui_traces.py
 python checks/run_checks.py check_qt_implicit_ui.py
 
 # Key UI rules, using the established isolated Qt runner.
-python checks/run_checks.py check_color_picker.py check_drag_spinboxes.py check_slider_dragging.py check_canvas_cursors.py check_stacker_submenu.py check_export_dropdowns.py check_popup_dialogs.py check_export_scale_modes.py check_export_history.py check_measurement_menu_eligibility.py check_properties_collapse.py
+python checks/run_checks.py check_color_picker.py check_drag_spinboxes.py check_slider_dragging.py check_canvas_cursors.py check_context_submenu.py check_export_dropdowns.py check_popup_dialogs.py check_export_scale_modes.py check_export_history.py check_measurement_menu_eligibility.py check_properties_collapse.py
 
 # Explicitly regenerate baseline evidence after reviewing an intentional change.
 python checks/capture_parity_reference.py
@@ -173,11 +176,11 @@ certify fractional-scale visual parity.
   horizontal Qt styling paints groove/sub-page identically; the gallery therefore
   does not yet establish an amount-fill color reference. This semantic requirement
   needs visual review rather than an automatic copy of either framework's default.
-- During reference generation, switching themes while a retained QMessageBox
-  exists exposed an `AppearanceMixin.SetThemes` assumption that every `icon()`
-  method returns QIcon; QMessageBox returns an enum. The generator destroys its
-  temporary message before switching. This is an observed desktop defect to
-  resolve separately, not behavior a new framework should reproduce.
+- The original reference generator encountered an enum-valued QMessageBox
+  `icon()` during theme changes. Theme refresh now processes only QIcon values;
+  `check_theme_palette.py` retains a standard message box through both UI themes
+  and verifies its warning icon is preserved. The historical capture workaround
+  is no longer a desktop defect that a port needs to reproduce.
 - Undo scene replay intentionally keeps Qt point equality behavior in desktop
   adapters. A port must decide equivalent numeric comparisons explicitly; see
   [editing boundaries](../EDITING_PORTS.md). Do not assume exact JSON-array equality replicates fuzzy

@@ -26,6 +26,8 @@ def AuditThemeSource(path, source):
     # encode material IDs or probe/mask geometry; none supplies display paint.
     internalAssignments = {
         (Path("export_plan.py"), "RenderPlan"): "marker = QtGui.QColor(1, 0, index + 1).name()",
+        (Path("export_bounds.py"), "AutomaticBounds"):
+            'device = ObjectPaintDevice(QtCore.QSize(1, 1), "#ffffff")',
         (Path("graphics/furnishings.py"), "FurnishingSvgRenderer.LetteringBounds"):
             'device = ObjectPaintDevice(self.defaultSize(), "#ffffff")',
         (Path("graphics/furnishings.py"), "FurnishingRenderer"):
@@ -36,6 +38,22 @@ def AuditThemeSource(path, source):
     scopes.extend((cls.name + "." + method.name, method) for cls in tree.body if isinstance(cls, ast.ClassDef)
                   for method in cls.body if isinstance(method, ast.FunctionDef))
     for name, function in scopes:
+        if (path, name) == (Path("pdf_export.py"), "VectorPdfSvg"):
+            # This is a transparent PDF compatibility stroke, not display ink.
+            # Require the complete paired operation; opaque black stays banned.
+            transparentStroke = ast.dump(ast.parse('''if stroke == "none" and element.tag in drawingTags:
+    element.set("stroke", "#000000")
+    element.set("stroke-opacity", "0")''').body[0])
+            for statement in ast.walk(function):
+                if isinstance(statement, ast.If) and ast.dump(statement) == transparentStroke:
+                    internalColors.update(ast.walk(statement))
+            transparentTile = ast.dump(ast.parse('''ElementTree.SubElement(group, namespace + "path", {
+    "d": SvgPathData(ink), "fill": color.name(), "fill-opacity": str(color.alphaF() * opacity),
+    "stroke": "#000000", "stroke-opacity": "0",
+    "fill-rule": "evenodd" if ink.fillRule() == QtCore.Qt.FillRule.OddEvenFill else "nonzero"})''').body[0])
+            for statement in ast.walk(function):
+                if isinstance(statement, ast.Expr) and ast.dump(statement) == transparentTile:
+                    internalColors.update(ast.walk(statement))
         allowed = internalAssignments.get((path, name))
         if allowed is None:
             continue
@@ -61,6 +79,19 @@ def Main():
     maskSource = 'def FurnishingRenderer():\n    maskPalette = {"outline": "#000000", "background": "#ffffff", "missing": "#000000"}\n'
     probeSource = 'class FurnishingSvgRenderer:\n    def LetteringBounds(self):\n        device = ObjectPaintDevice(self.defaultSize(), "#ffffff")\n'
     AuditThemeSource(Path("graphics/furnishings.py"), maskSource + probeSource)
+    pdfSource = '''def VectorPdfSvg():
+    if stroke == "none" and element.tag in drawingTags:
+        element.set("stroke", "#000000")
+        element.set("stroke-opacity", "0")
+'''
+    AuditThemeSource(Path("pdf_export.py"), pdfSource)
+    pdfTileSource = '''def VectorPdfSvg():
+    ElementTree.SubElement(group, namespace + "path", {
+        "d": SvgPathData(ink), "fill": color.name(), "fill-opacity": str(color.alphaF() * opacity),
+        "stroke": "#000000", "stroke-opacity": "0",
+        "fill-rule": "evenodd" if ink.fillRule() == QtCore.Qt.FillRule.OddEvenFill else "nonzero"})
+'''
+    AuditThemeSource(Path("pdf_export.py"), pdfTileSource)
     for path, source in (
             ("ui/export_plan.py", allowed),
             ("export_plan.py", allowed.replace("RenderPlan", "DrawButton")),
@@ -71,6 +102,10 @@ def Main():
             ("graphics/furnishings.py", maskSource.replace("#ffffff", "#ff0000")),
             ("graphics/furnishings.py", probeSource.replace("FurnishingSvgRenderer", "ButtonRenderer")),
             ("graphics/furnishings.py", maskSource + "    ink = '#ff0000'\n"),
+            ("pdf_export.py", pdfSource.replace('"stroke-opacity", "0"', '"stroke-opacity", "1"')),
+            ("pdf_export.py", pdfSource.replace("VectorPdfSvg", "DrawButton")),
+            ("pdf_export.py", pdfTileSource.replace('"stroke-opacity": "0"', '"stroke-opacity": "1"')),
+            ("pdf_export.py", pdfTileSource.replace("VectorPdfSvg", "DrawButton")),
             ("ui/widgets.py", "ink = '#ff0000'\n"),
             ("ui/palette.py", "ink = '#ff0000'\n")):
         try:
@@ -146,6 +181,15 @@ def Main():
             assert any(image.pixelColor(x, y).name() == themeColors[key] for x in range(140) for y in range(100))
         assert palette.activeUITheme == "Dark UI"
         assert not {"uiTheme", "canvasTheme"} & main.BuildProjectData()["settings"].keys()
+        # A standard message box uses an enum-valued icon(), unlike tool buttons.
+        # Retaining one during a UI-theme change must not break icon refresh.
+        message = QtWidgets.QMessageBox(main)
+        message.setIcon(QtWidgets.QMessageBox.Icon.Warning)
+        for name in ("Light UI", "Dark UI"):
+            main.SetThemes(uiTheme = name, notify = False)
+            assert message.icon() == QtWidgets.QMessageBox.Icon.Warning
+        message.deleteLater()
+        QtCore.QCoreApplication.sendPostedEvents(None, QtCore.QEvent.Type.DeferredDelete)
     finally:
         themeColors.clear()
         themeColors.update(previous)

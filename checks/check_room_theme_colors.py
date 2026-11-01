@@ -54,7 +54,11 @@ def Main():
                           if '"name": "' + name + '"' in source.read_text(encoding = "utf-8"))
             assert '"roomFill"' in source.read_text(encoding = "utf-8"), name
             roleColors = definition["colors"]
-            assert roleColors["roomFill"] != roleColors["canvas"], name
+            if name == "Printer-Friendly Canvas":
+                assert QtGui.QColor(roleColors["roomFill"]) == QtGui.QColor("#f3f3f3")
+                assert QtGui.QColor(roleColors["canvas"]) == QtGui.QColor("white")
+            else:
+                assert roleColors["roomFill"] != roleColors["canvas"], name
             assert Contrast(roleColors["objectOutline"], roleColors["roomFill"]) >= 7, name
             assert Contrast(roleColors["measurementLine"], roleColors["roomFill"]) >= 3, name
             palette.SetThemes(canvasTheme = name)

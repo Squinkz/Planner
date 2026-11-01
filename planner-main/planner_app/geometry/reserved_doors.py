@@ -1,5 +1,6 @@
 """Pocket/barn-door reserved space, distinct from the actual doorway aperture."""
 import math
+from .attachments import openingTolerance
 
 
 def ReservedDoorSupportBounds(first, second, walls):
@@ -51,8 +52,9 @@ def ReservedDoorWithinHost(parentLength, length, center, hingeAtSecond, bounds):
     half = length / (2 * parentLength)
     first, second = center - half, center + half
     apertureFirst, apertureSecond = (center, second) if hingeAtSecond else (first, center)
-    return (first >= bounds[0] - 1e-8 and second <= bounds[1] + 1e-8
-            and apertureFirst >= -1e-8 and apertureSecond <= 1 + 1e-8)
+    tolerance = openingTolerance / parentLength
+    return (first >= bounds[0] - tolerance and second <= bounds[1] + tolerance
+            and apertureFirst >= -tolerance and apertureSecond <= 1 + tolerance)
 
 
 def ReservedDoorPlacementBounds(parentLength, length, hingeAtSecond, bounds):

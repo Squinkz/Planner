@@ -124,6 +124,7 @@ def Main():
         reference.Hide()
 
         main.sidebarTabs.setCurrentWidget(main.exportPanel)
+        main.exportPanel.SetScaleOption("scaleMode", "Digital")
         overlay = v.exportOverlay
         x, y, width, length = overlay.bounds
         edge = v.WorldToViewport(point(x, y + length / 2)).toPoint()

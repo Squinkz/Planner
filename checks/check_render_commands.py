@@ -10,12 +10,14 @@ from planner_app.models import Wall, Door, Stair, Counter, Furnishing, Label
 from planner_app.viewport.widget import DrawingViewport
 from planner_app.graphics.theme import ApplyApplicationTheme
 from planner_app.graphics.palette import themeColors
+from planner_app.graphics.text import PathTextPainter
+from image_comparison import ChangedPixels
 
 
 def AnnotationImage(v, state, direct):
     image = QtGui.QImage(v.size(), QtGui.QImage.Format.Format_ARGB32_Premultiplied)
     image.fill(QtGui.QColor(themeColors["canvas"]))
-    painter = QtGui.QPainter(image)
+    painter = PathTextPainter(image)
     painter.setFont(v.font())
     painter.setClipRect(v.DrawingRect())
     painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
@@ -33,8 +35,12 @@ def AnnotationImage(v, state, direct):
 
 def CompareAnnotations(cached, direct, context):
     if cached != direct:
-        changes = [(x, y, cached.pixelColor(x, y).getRgb(), direct.pixelColor(x, y).getRgb())
-                   for y in range(cached.height()) for x in range(cached.width()) if cached.pixel(x, y) != direct.pixel(x, y)]
+        changed, differences = ChangedPixels(cached, direct)
+        # Keep QColor's unpremultiplied channel comparison, including alpha.
+        changes = [(index % cached.width(), index // cached.width(),
+                    cached.pixelColor(index % cached.width(), index // cached.width()).getRgb(),
+                    direct.pixelColor(index % cached.width(), index // cached.width()).getRgb())
+                   for index in (int(value) for value in changed)]
         maximum = max(abs(a - b) for x, y, first, second in changes for a, b in zip(first, second))
         # Match the existing pan comparison's narrow Qt
         # antialiasing tolerance; no change to that check's limits.
@@ -45,7 +51,7 @@ def CompareAnnotations(cached, direct, context):
 def LabelImage(v, highlightedIds, commandKey):
     image = QtGui.QImage(v.size(), QtGui.QImage.Format.Format_ARGB32_Premultiplied)
     image.fill(QtGui.QColor(themeColors["canvas"]))
-    painter = QtGui.QPainter(image)
+    painter = PathTextPainter(image)
     painter.setFont(v.font())
     painter.setClipRect(v.DrawingRect())
     painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)

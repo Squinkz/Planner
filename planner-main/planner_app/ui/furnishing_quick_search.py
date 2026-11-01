@@ -5,6 +5,26 @@ from planner_app.graphics.icons import UiIcon
 from planner_app.graphics.palette import themeColors
 
 
+class FurnishingResultItem(QtWidgets.QListWidgetItem):
+    """Load a row's thumbnail on demand; keep its original icon until refreshed."""
+    def __init__(self, mainWindow, definition):
+        super().__init__(definition["name"].strip())
+        self.thumbnailCache = mainWindow.furnishingThumbnails
+        self.definition = definition
+        self.thumbnail = None
+
+    def data(self, role):
+        if role == QtCore.Qt.ItemDataRole.DecorationRole:
+            if self.thumbnail is None:
+                self.thumbnail = self.thumbnailCache.Icon(self.definition)
+            return self.thumbnail
+        return super().data(role)
+
+    def RefreshThumbnail(self, definition):
+        self.definition = definition
+        self.thumbnail = None
+
+
 class FurnishingResultDelegate(QtWidgets.QStyledItemDelegate):
     def __init__(self, parent):
         super().__init__(parent)
@@ -119,7 +139,7 @@ class FurnishingQuickSearch(QtWidgets.QFrame):
         dimensionMetrics = self.resultDelegate.dimensionStyle.fontMetrics()
         dimensionWidth = 64
         for definition in matches:
-            item = QtWidgets.QListWidgetItem(self.mainWindow.furnishingThumbnails.Icon(definition), definition["name"].strip())
+            item = FurnishingResultItem(self.mainWindow, definition)
             item.setData(QtCore.Qt.ItemDataRole.UserRole, definition["key"])
             dimensions = FurnishingDimensionText(definition, self.viewport.unitsMode)
             item.setData(QtCore.Qt.ItemDataRole.UserRole + 1, dimensions)
@@ -133,6 +153,14 @@ class FurnishingQuickSearch(QtWidgets.QFrame):
         self.results.setCurrentRow(0 if matches else -1)
         del blocker
         self.UpdatePreview()
+
+    def RefreshIcons(self):
+        for row in range(self.results.count()):
+            item = self.results.item(row)
+            definition = self.viewport.furnishingDefinitions.get(item.data(QtCore.Qt.ItemDataRole.UserRole))
+            if definition is not None:
+                item.RefreshThumbnail(definition)
+        self.results.viewport().update()
 
     def UpdatePreview(self, row = None):
         v = self.viewport

@@ -79,10 +79,10 @@ def Main():
         main.viewport.walls = [Wall(QtCore.QPointF(0, 0), QtCore.QPointF(2000, 0), 160)]
         main.projectPath = Path(directory) / "example.plan"
         panel = main.exportPanel
+        panel.SetScaleOption("scaleMode", "Digital")
         main.sidebarTabs.setCurrentWidget(panel)
         panel.scaleField.setValue(60)
-        assert panel.typeField.itemData(2) == "PNG_OPTIMIZED"
-        panel.typeField.setCurrentIndex(2)
+        panel.typeField.setCurrentIndex(panel.typeField.findData("PNG_OPTIMIZED"))
         assert panel.compositeSection.isVisible() and panel.resolutionRow.isVisible()
         assert main.viewport.exportOverlay.outputFormat == "png"
         assert panel.OutputPath().suffix == ".png"

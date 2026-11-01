@@ -14,6 +14,7 @@ from planner_app.project_codec import DecodeProject
 def Main():
     app = QtWidgets.QApplication([])
     main = MainWindow()
+    main.exportPanel.overrides["scaleMode"] = "Digital"
     main.show()
     v, panel = main.viewport, main.exportPanel
     point = QtCore.QPointF

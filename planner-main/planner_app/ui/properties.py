@@ -402,7 +402,7 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
         pivot = self.ObjectPositionPivot(objects)
         centers = ([pivot] * len(objects) if pivot is not None else
                    [obj.middleVertex if isinstance(obj, AngleGuide) else (obj.firstVertex + obj.secondVertex) / 2 for obj in objects])
-        if all(math.isclose(getattr(center, axis)(), target, abs_tol = 1e-6) for center in centers):
+        if all(math.isclose(getattr(center, axis)(), target, rel_tol = 0, abs_tol = 1e-6) for center in centers):
             return
         before = v.CaptureState()
         for obj, center in zip(objects, centers):
@@ -491,7 +491,7 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
         if sizeSelection != self.sizeLinkSelection:
             self.sizeLinkSelection = sizeSelection
             self.sizeLinkButton.setChecked(all(isinstance(obj, (Furnishing, Pillar, Fireplace)) for obj, index in entries))
-        self.viewport.EnsureObjectIds()
+        self.viewport.EnsureObjectIds(reuse = True)
         labelSelection = bool(entries) and all(isinstance(obj, Label) for obj, index in entries)
         northSelection = bool(entries) and all(isinstance(obj, NorthArrow) for obj, index in entries)
         self.northArrowOpacityRow.setVisible(northSelection)
@@ -610,7 +610,6 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
         self.wallProperties.layout().setRowVisible(self.objectPositionRow, isFurnishing or isPillar)
         if isFurnishing or isPillar:
             self.RefreshPositionFields(self.objectPositionFields, list({id(obj): obj for obj, index in entries}.values()) or [wall])
-        self.viewport.EnsureObjectIds()
         self.doorProperties.setVisible(isWindow and not isinstance(wall, OpenDoorway))
         self.doorProperties.layout().setRowVisible(self.doorFields["swing"], isDoor or isinstance(wall, DoubleDoor) or isSlidingDoor or isBarnDoor or isBifoldDoor or type(wall) in (Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, Fireplace))
         self.doorProperties.layout().setRowVisible(self.doorFields["hinge"], isDoor or isSlidingDoor or isPocketDoor or isinstance(wall, (CasementWindow, SwingingDoor)))
@@ -670,7 +669,7 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
             self.materialField.setCurrentText(wall.material)
             del blocker
         self.propertyFields["width"].setReadOnly(isWindow and not isinstance(wall, Fireplace))
-        self.propertyFields["width"].setToolTip("Width is inherited from the parent wall" if isWindow else
+        self.propertyFields["width"].setToolTip("Matches the wall thickness" if isWindow else
                                                "Width. Drag left or right to adjust. Hold Alt for finer control. Click to type a value.")
         self.propertyFields["length"].setToolTip("Length. Drag left or right to adjust. Hold Alt for finer control. Click to type a value.")
         vertices = [(obj, index) for obj, index in entries if index is not None]
@@ -686,10 +685,15 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
                 continue
             checkedJoints.add(key)
             rays = []
+            positionX, positionY = position.x(), position.y()
             for other in self.viewport.walls:
                 if type(other) is not type(obj):
                     continue
                 for endpoint, far in ((other.firstVertex, other.secondVertex), (other.secondVertex, other.firstVertex)):
+                    # Reject distant endpoints without allocating a QLineF;
+                    # retain its exact distance predicate at tolerance edges.
+                    if abs(positionX - endpoint.x()) > .01 or abs(positionY - endpoint.y()) > .01:
+                        continue
                     if QtCore.QLineF(position, endpoint).length() > .01:
                         continue
                     delta = far - endpoint
@@ -1004,13 +1008,25 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
 
     def FinishPropertyDrag(self, canceled):
         if self.propertyDragBefore is not None:
+            before = self.propertyDragBefore
+            self.propertyDragBefore = None
             if canceled:
-                self.viewport.RestoreState(self.propertyDragBefore)
+                # End capture before restoration emits selection/widget signals.
+                for field in self.findChildren(DragSpinBox):
+                    field.dragging = False
+                    field.pressPosition = None
+                    field.lineEdit().unsetCursor()
+                for slider in self.findChildren(DragSlider):
+                    if slider.isSliderDown():
+                        slider.dragOffset = slider.dragAnchor = None
+                        blocker = QtCore.QSignalBlocker(slider)
+                        slider.setSliderDown(False)
+                        del blocker
+                self.viewport.RestoreState(before)
                 self.viewport.rotationPivot = self.propertyDragPivotBefore
                 self.viewport.furnishingRotationObject = self.propertyDragRotationBefore
             else:
-                self.viewport.RecordEdit(self.propertyDragBefore)
-            self.propertyDragBefore = None
+                self.viewport.RecordEdit(before)
             self.viewport.update()
             self.RefreshProperties()
 
@@ -1179,6 +1195,10 @@ class PropertiesMixin(AnglePropertiesMixin, ArrowPropertiesMixin):
         else:
             return
         if not self.bulkPropertyEdit:
+            if fieldName == "hinge" and isinstance(door, PocketDoor) and not self.viewport.OpeningFits(door):
+                self.viewport.RestoreState(before)
+                self.RefreshProperties()
+                return False
             self.viewport.RecordEdit(before)
         self.viewport.update()
         self.RefreshProperties()

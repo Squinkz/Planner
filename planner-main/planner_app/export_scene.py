@@ -2,8 +2,10 @@
 from .models import Furnishing, Wall, Pillar, Column, Counter, Elevator, RoomLabel
 from .furnishing_assets import FurnishingAssetProblems
 from .geometry_recovery import ActiveGeometryIssues
+from .viewport.geometry import CollisionPass
 
 
+@CollisionPass
 def PrepareExportScene(viewport):
     viewport.exportRender = True
     visibleWalls = [obj for obj in viewport.walls if type(obj) in (Wall, Pillar, Column, Counter, Elevator) and viewport.IsObjectVisible(obj)]

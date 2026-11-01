@@ -423,6 +423,16 @@ Stable paints and camera changes reuse the world-space
 mask. A changed mask advances the background revision so scene, edit, reference
 focus and pan caches cannot retain the previous room shading. Coverage:
 `check_room_detection.py`, `check_live_room_tint.py` and the shared background/pan/cache checks.
+Stair footprints combine with wall boundaries through the cached numeric contour
+tracer, rather than Qt boolean union. Near-coincident wall/stair edges must not
+produce overlapping hole contours that cancel room shading or yield zero-area
+labels. This does not round model coordinates or close genuine openings.
+The traced paths preserve clockwise exterior winding in world coordinates, so
+exterior dimension offsets stay outside the building. Both exterior measurement
+modes, reference choices and PNG/SVG rendering are covered by
+`check_stair_exterior_dimensions.py`.
+`check_stair_room_boundaries.py` includes the prewar-rowhouse corridor, transformed
+and far-origin variants, live invalidation and export preparation.
 
 Wall measurement mode defaults to Exterior stacked for new projects. Older
 projects without a saved mode retain All. Exterior uses the same contour nesting
@@ -734,8 +744,8 @@ See [Activity Log](../ACTIVITY_LOG.md) and `check_activity_log.py` /
 
 ## EXPORT-01: layout and enabled states
 
-Order: Export heading; folder/browse; filename; Type; separator; Digital/Architectural tabs;
-scrolling sections Canvas, Border, Grid, Line Weight, Dimensions, Composite,
+Order: Export heading; folder/browse; filename; Type; separator; Print/Architectural/Digital tabs;
+scrolling sections Canvas, Border, Grid, Line Weight, Dimensions, Scale Bar, Title Block, Composite,
 Visibility; pinned Export action. Sections start collapsed unless restored.
 Section gap 20, heading/content gap 12, ordinary export controls 32 high,
 section buttons 40. Scroll content margins 14. Canvas labels are content-sized,
@@ -771,30 +781,135 @@ undo/redo. Coverage: `check_export_destination.py`, `check_parity_panel_layouts.
 | Optimized PNG Digital/Architectural | Same as corresponding PNG mode | Same as PNG | Visible |
 | SVG Digital | Density in units/m | Absent | Entire section absent |
 | SVG Architectural | Ratio, no PPI | Absent | Entire section absent |
+| PNG/Optimized PNG Print | Ratio, PPI, paper size, orientation and signed overlap | Page pixels and selected-page count | Visible |
+| SVG Print | Ratio, paper size, orientation and signed overlap; no PPI | Selected-page count only | Entire section absent |
 
 The current print-density label is **PPI**, with explanatory DPI wording in its
 tooltip; the serialized key remains `dpi`. Do not rename the wire key to match
 a new framework's label. Density displays two decimals; changing density units converts the value while
 preserving physical scale. PNG width/height/density are linked and include border
-extent. Defaults: density 100 per meter, ratio 1:100, PNG PPI 300. Architectural
-density is `DPI * 1000 / (25.4 * denominator)`; SVG uses 96 for its coordinate
-density and physical output dimensions. Tooltips explain density units and DPI.
+extent. Fresh Export setups start in Print; saved modes are restored. Older
+saved overrides without a scale mode keep their Digital interpretation.
+Defaults: density 100 per meter, ratio 1:100, PNG PPI 300. Architectural
+density is `DPI * 1000 / (25.4 * denominator)` for output pixels. Physical preview
+geometry uses a fixed 300-PPI baseline; PPI changes resolution without shifting
+the camera, grid, physical fonts or strokes. Tooltips explain density units and DPI.
 
-Canvas order: Theme, Background, Walls (Material/Solid/Outline), Lines, Solid
-Objects. Border style has no redundant label; Color follows it, then Border
-Size. Options: None, Plain, Frame, Corner Marks, Reference Zones, Marked, Ruler,
-Ruler + Reference Zones. Border None disables its color/size dependents; Show
-Grid off disables grid color dependents. Border minimums respect marks/text.
+Canvas order: Theme, Background, Walls (Material/Solid/Outline), Lines, Room Style,
+Solid Rooms, Solid Objects, Openings. These checkboxes remain available when
+Draw Grid is off.
+Border style has no redundant label; Color follows it, then Border
+and the conditional Text size row. Border uses project units in Print/Architectural
+and pixels in Digital, including SVG. Project lengths remain fixed when scale or
+PPI changes; the text-dependent minimum still ensures readable labels.
+Mode/scale changes synchronize the resolved border width before preview page
+layout, so returning from another mode's crop edits retains preview/export parity.
+Coverage: `check_export_crop_border_refresh.py`.
+Options: None, Plain, Frame, Corner Marks, Reference Zones, Marked, Ruler,
+Ruler + Reference Zones. Border None disables its color/size dependents; Draw
+Grid off disables grid color dependents. Text offers Small, Medium and Large
+(default Medium), independently of Dimensions Size. It appears only for Ruler,
+Reference Zones and their combination, and controls numbers, units and zone labels.
+Their minimum band widths grow to fit the font and tick clearance; combined
+borders reserve one band for each. Extra requested width extends outward while
+ruler labels stay beside their ticks. Export rulers label every second major
+tick, anchored at zero, without changing tick/grid spacing or editor rulers.
+Labels that would overlap or cross a
+corner are omitted without changing grid/tick spacing. Marked remains text-free.
+Frame and Corner Marks align their thin strokes to the export pixel grid so
+consecutive border widths retain consistent coverage. Raster previews retain
+filtering. Coverage: `check_export_border_pixel_alignment.py`.
+Coverage: `check_export_border_text_size.py`, `check_export_border.py`,
+`check_export_border_controls.py`.
 Combined border draws ruler first, darker reference-zone backgrounds and outlined
 zone corners. Solid Objects affects physical backgrounds, not annotations;
 transparent objects still occlude parts hidden beneath other physical objects.
+Openings defaults on and controls thin lines across door passages
+in exports and their previews, independently of Room Style and Solid Rooms/Objects.
+The editor always retains these lines. Jamb outlines remain visible in both cases.
+The export-only preference persists with the project and supports Export undo/redo.
+Coverage: `check_export_opening_outlines.py`, `check_tinted_passage_outlines.py`,
+`check_canvas_passage_edges.py`.
+Ruler frames draw an unfilled outline regardless of the preceding artwork's
+brush. An opening must not cause the frame to cover the drawing when a Print
+preview settles or a PNG/SVG page exports. Coverage: `check_print_ruler_brush.py`.
 
 Composite uses centered shared Vignette/Texture subheadings. Vignette off disables
 the whole strength group. Texture None disables all its control groups. Stretch
 textures disable Scale. Sliders have matching input/reset controls. Texture
 defaults can come from filename hints. Do not assume every reset means zero.
-Default vignette strength is **0.25**, texture strength **0.5**. These are the
+Default vignette strength is **0.125**, texture strength **0.5**. These are the
 intended baseline defaults; texture filename hints can supply other defaults.
+
+Scale Bar and Title Block are export-only decorations, disabled by default.
+Scale Bar defaults to Bottom left inside the drawing area with a ruler inset;
+its zero mark aligns horizontally inward to a major export gridline when the
+complete bar and labels still fit within that inset. The vertical inset stays
+fixed. Horizontal alignment follows the
+project grid origin and each page's drawing coverage, including overlap. It is
+independent of viewport zoom and raster PPI; tight crops retain the horizontal
+inset when no major gridline fits. Alignment also stays stable when the grid is hidden.
+The controls are Draw Scale Bar, Position, Divisions and Style.
+Position uses four exclusive icon buttons, with align_corner_bl rotated for
+Bottom left, Bottom right, Top left and Top right. Bottom left remains selected
+by default; the buttons use the same styling as Title Block's position controls.
+Divisions offers
+Progressive, Equal and Subdivided (the default). Style offers Alternating (a
+single row), Checker (two rows with inverse fills) and Stepped (the default, an open
+line that alternates between the bottom and top at each mark). Checker adds a
+second row of the same height; Stepped leaves the bar interior transparent.
+All styles retain the same number positions, distance total and calibrated width.
+Distance totals are chosen near
+100 mm using a 300-PPI baseline in every mode (about 1181 export pixels), using five-based steps
+at the relevant magnitude in the display units. Binary totals such as 16, 32
+and 64 are not preferred: examples become 15, 30 and 50. A shorter clean total
+is chosen if the preferred bar would not fit a page's drawing area.
+Width is calculated from that exact distance and export
+scale. In Progressive, the three interior marks are the largest clean 1/2/5 decimal values below
+the total; their positions and segment widths are proportional to their actual
+distances. A 5 m bar reads 0, 0.5, 1, 2, 5 m; 10 m reads 0, 1, 2, 5, 10 m;
+30 m reads 0, 5, 10, 20, 30 m; 50 m reads 0, 5, 10, 20, 50 m. Fixed fractional
+subdivisions must not introduce labels such as 0.625, 1.25, 3.75 or 6.25.
+Equal uses a clean increment that divides the total exactly, aiming
+for five equal sections. Subdivided splits only the first major section
+into smaller clean increments. A 10 m bar reads 0, 2, 4, 6, 8, 10 m in Equal
+and 0, 1, 2, 4, 6, 8, 10 m in Subdivided. All three division modes keep
+the same calibrated total and physical length. Both dropdowns refresh the
+preview without rebuilding the shared drawing scene and are saved with the project.
+At 1:25 the metric total is 2.5 m (100 mm printed),
+at 1:50 it is 5 m (100 mm), at 1:75 it is 5 m (66.7 mm), and at 1:100 it is
+10 m (100 mm). Physical geometry remains independent of raster PPI. Labels
+follow Dimensions' Small/Medium/Large size at the 300-PPI baseline in every mode, retaining
+collision avoidance and SVG outlines. Scale-bar labels always use D-DIN Condensed,
+matching title-block fields. Each label has a tightly padded, opaque
+canvas-color backing like measurement labels. Gaps between labels and the rest
+of the decoration remain transparent; filled segments and strokes are opaque.
+Digital assumes 300 PPI for decoration sizing, like Title Block; labels, bar
+height, line weight and inset match physical modes. Its distance total and exact
+pixel width still follow the selected pixels-per-metre scale. Physical modes
+continue to scale the complete artwork for the selected output PPI.
+
+Title Block has Right/Bottom icon buttons. Logo is None/Planner/Custom, default
+Planner; only Custom exposes its file controls. Cancelling the first custom
+image selection falls back to Planner. Blank fields retain printable writing
+space: one line for ordinary fields, three for address, four for side notes.
+Side width and bottom height are fixed for a given paper size; side notes absorb spare height and
+bottom notes absorb spare width. Revision precedes the larger, right-aligned
+sheet number; these stack in bottom mode. Headings use Noto Sans and fields
+D-DIN Condensed, with theme canvas/ink/rule colors. The wire key `drawingTitle`
+is displayed as Sheet title. See the project-format contract for stored defaults.
+In Print, the block scales uniformly with the paper's shorter edge: side width
+is 40 mm at A4, 50 mm at A3, then grows gently to a 60 mm cap at A0. Bottom
+height grows from 20.48 mm at A4 to 25.6 mm at A3 and 30.72 mm at A0. Both
+orientations, preview and PNG/SVG share the sizing. Free-crop Digital and
+Architectural retain their existing 51.2 mm side width and 20.48 mm bottom height.
+Coverage: `check_title_block_paper_scale.py`, `check_print_preview.py` and
+`check_print_vector_sharing.py`.
+
+Export sliders, spin boxes, date fields and closed dropdowns forward wheel
+input to the panel scroller instead of changing values, even when focused.
+Keyboard edits and scrolling an open dropdown still work. The scale-mode tab
+height follows its current contents; SVG's smaller controls stay at the top.
 
 ## EXPORT-02: camera, crop, grid origin and undo
 
@@ -804,6 +919,32 @@ of the viewport midpoint: right edge left of midpoint, left edge right of it,
 top edge below it or bottom edge above it. Strict comparisons; an edge exactly
 at the midpoint does not trigger recenter. Otherwise retain pan. Exit restores
 the editing camera and presentation settings.
+
+Startup, session recovery and successful project replacement activate Build.
+Open keeps the current tab through its file picker, unsaved-change prompt,
+validation and recovery/backup checks; cancellation or failure keeps Export's
+settings, preview and camera. If applying a project fails, rollback restores the
+old project and Export navigation before showing the error. New, Close and
+Revert still activate Build when invoked. Save and Save As preserve the current tab,
+including cancellation or failure, commit pending export-field text, and retain
+the active preview worker and editor camera/settings. Saved Export options
+remain available without reactivating the preview worker during a load.
+Coverage: `check_open_project_export_tab.py`, `check_project_action_tabs.py`.
+
+Print paper cells have independent theme-aware dotted boundaries. Dragging a
+page boundary moves page origin and crop together, snapping the grabbed boundary
+to the shifted grid under the same snap/Alt policy as crop handles. Alt changes
+take effect during a held drag. Crop handles retain one
+fully enclosed page and push the page when dragged against that minimum, using
+the same snapping policy. Coverage: `check_print_page_snap.py`, `check_print_crop_push.py`.
+Only fully enclosed cells export. Each selected sheet includes its own border,
+title block and scale bar. Signed overlap shifts source drawing coverage while
+paper outlines remain fixed. The Overlap label and X/Y controls are disabled
+when fewer than two complete pages are selected. Values are retained; Reset
+remains enabled for nonzero overlap, including a single selected page. The fields
+re-enable when the crop encloses multiple pages. Paper/orientation/architectural-scale changes
+preserve selected rows/columns about the selected pages' centre. See
+`PrintPageLayout` and the project-format contract for physical geometry.
 
 While Export is active, G/M and the View menu's grid and dimension toggles are
 disabled. Export grid and measurement visibility are changed explicitly through
@@ -820,7 +961,16 @@ Coverage: `check_export_shortcuts.py`. See the [shortcut audit](../EXPORT_SHORTC
 Opening Options from Export switches to Build before showing either a new or
 existing Options dialog. The editor camera/settings are restored, and export
 overrides remain saved. Options controls always edit the project.
-Export has Units and Precision rows followed by Measure and Walls sections.
+Export has Units, Precision and Size rows followed by Measure and Walls sections.
+Size offers Small (1.5 mm), Medium (2 mm, the default) and
+Large (2.5 mm), targeting visible numeral height. Export dimensions, guide labels
+and scale-bar numbers use D-DIN Condensed and share this size. Border text uses
+the separate Text size control in Border. Dimension
+backgrounds and stack spacing grow at half the font's proportional increase,
+keeping larger text compact. Editor text/rulers, room labels and title blocks
+retain their own sizes. Physical exports
+keep that height across PPI changes; Digital assumes 300 PPI. The preview and
+PNG/SVG output use the same size, saved per project with export undo/redo.
 The shared Walls controls include Mode, conditional Wall reference and the
 Doors/Windows/Stairs/Counters split tabs, with identical sizing, reset, wheel,
 drag and disabled-state rules to Options. Each control writes its own sparse
@@ -829,7 +979,23 @@ category inherit project values until overridden. Clearing an override restores
 inheritance immediately. Returning to Build restores project settings.
 Save/reopen, export undo/redo, PNG/SVG and CLI use the same resolved values.
 Coverage: `check_export_dimension_settings.py`, `check_export_dimension_overrides.py`,
-`check_export_cli_settings.py`.
+`check_export_cli_settings.py`, `check_export_dimension_size.py`.
+
+Digital, Architectural and Print remember separate crop regions. Architectural
+and Print also retain independent architectural scales and PPI values. Switching
+scale mode restores its values before constraining the restored crop, including Print's complete
+pages and partial margins. Unused Digital/Architectural modes start from automatic
+scene bounds, subject to their title-block/scale-bar minimum. Print starts with
+one complete sheet centred on the automatic model bounds at the chosen scale,
+unless a crop or page offset is already defined. This applies both on switching
+to Print and on first entering Export with Print selected. Mode switches
+are single export undo/redo steps; projects and sessions retain all three crops.
+Older projects' single crop belongs to the saved scale mode.
+Pending scale/PPI edits commit to the departing mode, and moving the shared
+controls cannot submit old values to the destination. Print overlap/offset
+settings are never adjusted by changing an inactive Print mode's scale.
+Coverage: `check_export_mode_crops.py`, `check_export_mode_scales.py`,
+`check_print_initial_selection.py`.
 
 Double-click a crop guide resets that edge to its automatic-bounds position.
 Otherwise double-click inside the drawing region returns to 1:1 output pixels
@@ -842,6 +1008,11 @@ top/bottom edges and vertical rulers use vertical-resize. Middle pan takes curso
 priority. The viewport's own ruler strips and exported Ruler/Marked/combined
 border ruler strips can move the corresponding grid-origin axis; crop-edge hits
 exclude exported-border ruler hits.
+This also applies in Print: the viewport rulers and each fully selected page's
+ruler strips offset the export grid origin. Page/crop boundary hits keep their
+own drag behavior; dragging a ruler leaves page placement and crop unchanged.
+Page ruler hit tests account for the title block and combined reference zones.
+Coverage: `check_print_grid_origin.py`, `check_export_grid_origin.py`.
 
 Crop edges snap only to the grid visible in the exported output:
 master snap enables it, Alt inverts it; individual snap target toggles are ignored.
@@ -861,7 +1032,13 @@ is active still records the editing camera/settings plus separate export overrid
 
 ## EXPORT-03: encoding and bounded previews
 
-Type offers PNG, SVG and Optimized PNG. Optimized PNG uses the PNG preview,
+Type has non-selectable, contrasting Raster/Vector headings styled like the
+paper-size popup. Raster contains PNG (raster), Optimized PNG (raster) and PDF
+(raster); Vector contains SVG (vector) and PDF (vector). Parenthesized suffixes
+remain in the closed control. Selecting either PDF switches to Print in one
+export undo step and hides Architectural/Digital; other formats expose all modes
+again. Their independent scale/crop state is retained. PDF restores as Print when
+reopening a project. Optimized PNG uses the PNG preview,
 physical scale, crop, compositing and print-density controls and writes `.png`.
 Its in-memory export-history selector value is `PNG_OPTIMIZED`, while renderer requests remain
 `png`. Encoding quantizes to at most 256 palette entries and retains alpha and
@@ -873,7 +1050,7 @@ saved per project and session in `exportSettings.fileType`, defaulting to PNG
 when absent. Changing projects restores that project's format. Coverage:
 `check_export_filetype.py`.
 
-All three saved export types open a window-modal Exporting dialog after path and
+All five saved export types open a window-modal Exporting dialog after path and
 overwrite validation. It shows the filename, an indeterminate animated progress
 bar, current stage and Cancel. The editor remains responsive but cannot be edited
 until the dialog closes. A separate process renders the unsaved scene using the
@@ -892,6 +1069,16 @@ IDAT bytes and file sizes may differ.
 Coverage: `check_export_progress.py`, `check_export_button.py`, `check_optimized_png.py`,
 `check_optimized_png_parity.py`.
 
+PDF combines the selected complete Print pages into one `.pdf`, in the same
+order as PNG/SVG page jobs. Each page has its selected physical paper size,
+orientation, border, title block and scale bar. Raster PDF embeds the complete
+PNG appearance losslessly at the selected PPI, including compositing. Vector PDF
+uses SVG preview/settings: PPI/resolution and compositing are hidden, text stays
+outlined, and material hatches become vector tiles rather than bitmap brushes.
+Embedded image assets remain images. Cancellation or any page failure preserves
+the original PDF; publication happens once after the complete document closes.
+Coverage: `check_export_pdf.py`, `check_pdf_vector_materials.py`.
+
 File output remains limited to 32,767 units per side; PNG additionally has a
 100-million-pixel allocation limit. SVG has no raster-area limit. Preview
 sampling is independent: oversized PNG previews use a bounded overview and
@@ -908,6 +1095,29 @@ seamless coverage, and sampled PNG previews retain opening cutouts across zooms.
 Original SVG numeric coordinate scale must not change normalized dash spacing
 or visible lettering size/position. These are appearance requirements, not a
 prescription that a browser duplicate Qt's cache implementation.
+
+Continuous Composite slider drags must update the visible effects before mouse
+release. Reuse plan/decorations during the gesture; restore exact full-page
+rendering after release and keep one Export undo entry. All SVG text, including
+dimensions, rulers and title blocks, is outlined; raster text uses grayscale
+coverage rather than display-specific color fringes.
+
+PNG preview decorations are rasterized at export density, including Scale Bar,
+every border style, rulers and Title Block. Pan and zoom reuse their filtered
+bitmaps; crop/settings edits refresh only the affected decorations. Raster
+borders remain raster during gestures. If border/scale-bar cache admission
+fails, or a border is too large for one strip, only visible native pixels are
+drawn in temporary tiles below 300 KiB, with one-pixel filter guards. These
+fallbacks must not paint vector commands on the viewport. SVG previews retain
+vector scale bars and borders. Coverage: `check_export_decoration_raster.py`.
+
+The desktop preview renderer is a persistent isolated worker. Its prepared
+scenes and texture lookup are bounded; stale jobs cannot replace newer state.
+The unused BLAS thread pool is limited before lazy NumPy import. A transient
+allocation failure releases prepared caches and retries once; a persistent
+failure is reported without retrying indefinitely. Leaving Export/project
+transitions stop the worker. See the linked export/editor performance audits
+for exact-pixel and cache invalidation checks.
 
 ## EXPORT-04: exclude editor warnings from artwork
 

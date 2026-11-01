@@ -125,13 +125,13 @@ def Main():
         panel.fileNameField.setText("example.png")
         for name in ("Canvas", "Border", "Grid"):
             panel.sectionButtons[name].setChecked(True)
-        for formatName, mode, name in (("PNG", 0, "export-png-digital"),
-                                       ("PNG", 1, "export-png-architectural"),
-                                       ("SVG", 0, "export-svg-digital"),
-                                       ("SVG", 1, "export-svg-architectural")):
+        for formatName, mode, name in (("PNG", "Digital", "export-png-digital"),
+                                       ("PNG", "Architectural", "export-png-architectural"),
+                                       ("SVG", "Digital", "export-svg-digital"),
+                                       ("SVG", "Architectural", "export-svg-architectural")):
             panel.typeField.setCurrentIndex(panel.typeField.findData(formatName))
-            panel.scaleModeTabs.setCurrentIndex(mode)
-            Capture(name, main, f"{formatName}, {'Architectural' if mode else 'Digital'}; Canvas/Border/Grid expanded")
+            panel.SetScaleOption("scaleMode", mode)
+            Capture(name, main, f"{formatName}, {mode}; Canvas/Border/Grid expanded")
         panel.typeField.setCurrentIndex(panel.typeField.findData("PNG"))
         for name, button in panel.sectionButtons.items():
             button.setChecked(name == "Composite")

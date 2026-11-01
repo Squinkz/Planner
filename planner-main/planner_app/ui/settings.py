@@ -1,4 +1,4 @@
-"""Modeless application preferences, styled like Stacker's slider/reset fields."""
+"""Modeless application preferences with themed slider/reset fields."""
 from PySide6 import QtCore, QtGui, QtWidgets
 from planner_app.graphics.theme import HeaderIcon, gridIntensityDefaults
 from planner_app.graphics.icons import UiIcon
@@ -181,7 +181,7 @@ class SettingsWindow(WallDimensionControlsMixin, QtWidgets.QDialog):
         scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         scroll.setWidget(page)
         self.appearanceTab = scroll
-        self.sliders["overall"].setToolTip("Multiplies the intensity of major, minor and origin gridlines")
+        self.sliders["overall"].setToolTip("Adjust the intensity of all gridlines")
         self.BuildMeasurementTab()
         self.tabs.addTab(scroll, HeaderIcon("Appearance"), "Appearance")
         for heading in self.findChildren(SectionHeading):
@@ -309,7 +309,7 @@ class SettingsWindow(WallDimensionControlsMixin, QtWidgets.QDialog):
             elif key in miscDefaultSizes:
                 field.setToolTip("Sets the diameter for new columns" if key == "Column" else "Sets both width and height for new pillars" if key == "Pillar" else
                                  "Sets both width and length for new elevators" if key == "Elevator" else
-                                 "Sets the length along the wall for new fireplaces. Width follows a 12:5 ratio, with wall thickness as the minimum." if key == "Fireplace" else
+                                 "Sets the length along the wall for new fireplaces" if key == "Fireplace" else
                                  f"Sets the width for new {text.lower()} objects")
             field.valueChanged.connect(lambda value, key = key: self.SetDefaultSize(key, value))
             default = wallPresetWidths[key] if isinstance(key, int) else (openingDefaultSizes | miscDefaultSizes)[key]

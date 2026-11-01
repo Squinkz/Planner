@@ -1,10 +1,13 @@
 """Versioned sparse history, validated against the current scene before loading."""
 import json
+import math
 from types import SimpleNamespace
-from .models import MeasurementGuide, AngleGuide, Arrow, Railing, Stair, Fireplace, NorthArrow, DashedLine
+from .models import MeasurementGuide, AngleGuide, Arrow, Railing, Stair, Fireplace, NorthArrow, DashedLine, ObjectControlPoints
 from .object_schema import openingFields, openingClasses
-from .project_codec import EncodeObjectRecord, DecodeProject
+from .object_schema import EncodeObjectRecord
+from .project_codec import DecodeProject
 from .history_edits import ReferenceImageEdit
+from .scene_snapshot import CaptureSceneSnapshot
 from .reference_image import ValidateReferenceImage
 from .history_records import ReadHistoryMembership, ReadHistoryOrders, ReadReferenceHistory, HistoryEntryFields, ValidateHistoryHeader, PlanHistoryVariants
 
@@ -65,6 +68,14 @@ def EncodeEdit(edit):
     if isinstance(edit, ReferenceImageEdit):
         result["referenceImage"] = {"changes": {name: list(pair) for name, pair in edit.referenceChanges.items()},
                                     "pivots": [list(pivot) if pivot is not None else None for pivot in edit.pivots]}
+    elif any(len(side) > 3 for side in edit.selection):
+        result["editor"] = []
+        for side in edit.selection:
+            rotationObject, pivot = side[3] if len(side) > 3 else (None, None)
+            result["editor"].append({"primary": [side[0].objectId if side[0] is not None else None, side[1]],
+                "selection": [[obj.objectId, index] for obj, index in side[2]],
+                "rotation": rotationObject.objectId if rotationObject is not None else None,
+                "pivot": list(pivot) if pivot is not None else None})
     return result
 
 
@@ -75,11 +86,11 @@ def DecodeHistory(history, settings, definitions, current):
     validate undo and redo chains using one transient state per direction.
     """
     from .history_edits import SceneEdit, historyLimit, historyByteBudget, stateCategories
-    from .viewport.scene import SceneEditingMixin
     empty = {"undo": [], "redo": []}
     if not ValidateHistoryHeader(history):
         return empty
-    currentState = SceneEditingMixin.CaptureState(current)
+    currentState = CaptureSceneSnapshot(current.walls, current.windows, current.furnishings, current.labels,
+        current.objectGroups, current.hiddenObjects, current.SelectionEntries(), current.selectedWall, current.selectedVertex)
     currentObjects = {entry[0].objectId: entry[0] for category in stateCategories for entry in currentState[category]}
     variants, records = PlanHistoryVariants(history, {objectId: type(obj).__name__ for objectId, obj in currentObjects.items()},
                                             lambda objectId: EncodeObjectRecord(currentObjects[objectId], {}))
@@ -90,10 +101,7 @@ def DecodeHistory(history, settings, definitions, current):
     batch = DecodeProject({"format": "Planner Project", "version": 1, "settings": batchSettings,
                            "scene": {"objects": records, "groups": [], "hidden": []}}, definitions, validatePlacement = False)
     walls, windows, furnishings, groups, hidden, flags, view, labels = batch
-    snapshot = SimpleNamespace(walls = walls, windows = windows, furnishings = furnishings, labels = labels,
-                               objectGroups = [], hiddenObjects = [], selectedWall = None, selectedVertex = None,
-                               SelectionEntries = lambda: [])
-    captured = SceneEditingMixin.CaptureState(snapshot)
+    captured = CaptureSceneSnapshot(walls, windows, furnishings, labels)
     states = {entry[0].objectId - 1: (category, entry) for category in stateCategories for entry in captured[category]}
     pool = dict(currentObjects)
     for index, record in enumerate(variants.values()):
@@ -109,7 +117,8 @@ def DecodeHistory(history, settings, definitions, current):
             if record["type"] == "Fireplace":
                 # Historical variants share one parent seed during batch decoding.
                 # Keep each variant's depth/offset instead of its seed's clamp.
-                entry = (*entry[:6], (record["depth"], record["depthOffset"], record.get("material", entry[6][2])), *entry[7:])
+                entry = (*entry[:6], (record["depth"], record["depthOffset"], record.get("material", entry[6][2]),
+                    record.get("manualDepth", record["depth"]), record.get("manualDepthOffset", record["depthOffset"])), *entry[7:])
         normalized[key] = (category, entry)
 
     def ReadMembership(value, groups = False):
@@ -147,8 +156,45 @@ def DecodeHistory(history, settings, definitions, current):
             orders = ReadHistoryOrders(edit["orders"], pool, stateCategories)
             decodedOrders = {category: tuple(tuple(pool[objectId] for objectId in side) for side in sides)
                              for category, sides in orders.items()}
+            selection = []
+            if "editor" in edit:
+                if not isinstance(edit["editor"], list) or len(edit["editor"]) != 2:
+                    raise ValueError("Invalid history editor states.")
+                for side in edit["editor"]:
+                    if not isinstance(side, dict) or set(side) != {"primary", "selection", "rotation", "pivot"}:
+                        raise ValueError("Invalid history editor state.")
+                    entries = side["selection"]
+                    if not isinstance(entries, list) or len(entries) > 300000:
+                        raise ValueError("Invalid history selection.")
+                    for entry in [side["primary"], *entries]:
+                        if not isinstance(entry, list) or len(entry) != 2:
+                            raise ValueError("Invalid history selection entry.")
+                        objectId, vertex = entry
+                        if objectId is None and entry is side["primary"] and vertex is None:
+                            continue
+                        if type(objectId) is not int or objectId not in pool:
+                            raise ValueError("Invalid history selected object.")
+                        if vertex is not None and (type(vertex) is not int or not (
+                                0 <= vertex < len(ObjectControlPoints(pool[objectId]))
+                                or vertex == 3 and isinstance(pool[objectId], MeasurementGuide))):
+                            raise ValueError("Invalid history selected vertex.")
+                    primary, vertex = side["primary"]
+                    rotation = side["rotation"]
+                    if (primary is not None and side["primary"] not in entries
+                            or rotation is not None and (type(rotation) is not int or rotation not in pool
+                                                        or [rotation, None] not in entries)):
+                        raise ValueError("History editor objects are not selected.")
+                    pivot = side["pivot"]
+                    if pivot is not None and (not isinstance(pivot, list) or len(pivot) != 2
+                            or any(type(value) not in (int, float) or not math.isfinite(value) or abs(value) > 1e12 for value in pivot)):
+                        raise ValueError("Invalid history rotation pivot.")
+                    context = (pool.get(primary), vertex, tuple((pool[objectId], index) for objectId, index in entries))
+                    if rotation is not None or pivot is not None:
+                        context += ((pool.get(rotation), tuple(pivot) if pivot is not None else None),)
+                    selection.append(context)
             decoded[name].append(SceneEdit(changes, ReadMembership(edit["groups"], groups = True),
-                                           ReadMembership(edit["hidden"]), decodedOrders))
+                                           ReadMembership(edit["hidden"]), decodedOrders,
+                                           tuple(selection) if selection else ((None, None, ()), (None, None, ()))))
     if sum(edit.byteSize for name in decoded for edit in decoded[name]) > historyByteBudget:
         raise ValueError("Decoded history exceeds its memory budget.")
     for name in decoded:

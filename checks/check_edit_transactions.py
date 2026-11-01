@@ -49,7 +49,7 @@ def Main():
     from PySide6 import QtCore, QtWidgets
     from planner_app.models import Wall, Door, Fireplace, Furnishing, Label
     from planner_app.viewport.widget import DrawingViewport
-    from planner_app.history_edits import SceneEdit
+    from planner_app.history_edits import SceneEdit, historyPointTolerance
     from fixtures.qt_edit_transactions_reference_20261017 import SceneEdit as FrozenEdit
     app = QtWidgets.QApplication([])
     p = QtCore.QPointF
@@ -112,8 +112,7 @@ def Main():
         try: edit.Apply(tuple(broken), True, validate = True)
         except Exception as error: errors.append((type(error), str(error)))
     assert len(errors) == 2 and errors[0] == errors[1] == (ValueError, "History opening has no parent wall.")
-    # Keep the desktop point provider's equality; numeric tuple conversion would
-    # incorrectly make this small difference into a new furnishing edit.
+    # Preserve the original Qt noise-suppression contract within the fixed cap.
     pointBefore = p(1e8, 1000)
     pointAfter = p(1e8 + 1e-7, 1000)
     assert pointBefore == pointAfter
@@ -124,8 +123,46 @@ def Main():
     changed[5] = ((entry[0], pointAfter, *entry[2:]), *before[5][1:])
     assert SceneEdit.Between(tuple(base), tuple(changed)) is None
     assert FrozenEdit.Between(tuple(base), tuple(changed)) is None
+    # Bound fuzzy equality for both endpoints and axes, both history categories
+    # and either sign of the world offset. The cap never expands Qt's tolerance.
+    assert historyPointTolerance == 1e-6
+    for category in (5, 8):
+        for endpoint in (1, 2):
+            for axis in (0, 1):
+                for sign in (-1, 1):
+                    base = list(before)
+                    entry = list(before[category][0])
+                    pointBefore = p(sign * 1e8, sign * 1e8)
+                    entry[endpoint] = pointBefore
+                    base[category] = (tuple(entry), *before[category][1:])
+                    for delta, ignored in ((historyPointTolerance / 2, True), (historyPointTolerance * 2, False)):
+                        pointAfter = p(pointBefore)
+                        if axis == 0:
+                            pointAfter.setX(pointAfter.x() + sign * delta)
+                        else:
+                            pointAfter.setY(pointAfter.y() + sign * delta)
+                        assert pointBefore == pointAfter
+                        changed = list(base)
+                        target = list(entry)
+                        target[endpoint] = pointAfter
+                        changed[category] = (tuple(target), *base[category][1:])
+                        boundedEdit = SceneEdit.Between(tuple(base), tuple(changed))
+                        if ignored:
+                            assert boundedEdit is None
+                        else:
+                            assert boundedEdit is not None
+                            replayed = boundedEdit.Apply(tuple(base), True, validate = True)[category][0][endpoint]
+                            restored = boundedEdit.Apply(tuple(changed), False, validate = True)[category][0][endpoint]
+                            assert (replayed.x(), replayed.y()) == (pointAfter.x(), pointAfter.y())
+                            assert (restored.x(), restored.y()) == (pointBefore.x(), pointBefore.y())
+    originEntry = list(before[5][0])
+    originEntry[1] = p()
+    changedEntry = list(originEntry)
+    changedEntry[1] = p(historyPointTolerance / 2, 0)
+    assert originEntry[1] != changedEntry[1]
+    assert not SceneEdit.EntriesMatch(5, originEntry, changedEntry)
     view.close()
-    print(f"PASS: {comparisons} frozen Qt-valued edit pairs, equal-valued parent identity, fuzzy-point comparisons, replay errors and exact byte sizes")
+    print(f"PASS: {comparisons} frozen Qt-valued edit pairs, bounded fuzzy-point history, both axes/endpoints/categories, replay errors and exact byte sizes")
 
 
 if __name__ == "__main__":

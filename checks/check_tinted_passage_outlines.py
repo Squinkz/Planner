@@ -1,4 +1,4 @@
-"""Room tint alone controls passage outlines in complete editor/export paints."""
+"""Export passage outlines can be hidden; the editor always retains them."""
 import os
 from pathlib import Path
 import subprocess
@@ -18,6 +18,12 @@ def AssertNoOutline(image, x, y, radius, fill, canvas, context):
                    for a, b, value in zip(fill.getRgb(), canvas.getRgb(), color.getRgb())), (context, offset, color.name())
 
 
+def AssertOutline(image, x, y, radius, fill, canvas, context):
+    assert any(any(value < min(a, b) or value > max(a, b)
+                   for a, b, value in zip(fill.getRgb(), canvas.getRgb(), image.pixelColor(x, y + offset).getRgb()))
+               for offset in range(-radius, radius + 1)), context
+
+
 def Child():
     from PySide6 import QtCore, QtGui, QtWidgets
     from planner_app.models import Wall, Door, OpenDoorway
@@ -31,6 +37,7 @@ def Child():
     view.performanceTimer.stop()
     view.showGrid = view.showMeasurements = view.showTips = False
     view.floors = view.solidRooms = True
+    view.drawOpeningOutlines = False
     point = QtCore.QPointF
     divider = Wall(point(-2000, 0), point(2000, 0), 200)
     view.walls = Rectangle(-2000, -2000, 4000, 4000) + [divider]
@@ -49,18 +56,22 @@ def Child():
                 view.zoom = zoom
                 for phase in (0, .31, .77):
                     view.panOffset = point(phase, .43)
-                    image = view.grab().toImage()
-                    for side in (-1, 1):
-                        sample = (view.WorldToViewport(point(0, side * 100)) * ratio).toPoint()
-                        AssertNoOutline(image, sample.x(), sample.y(), 3, fill, canvas,
-                                        (ratio, kind.__name__, zoom, phase, side, solidRooms))
-                    count += 1
+                    for exportRender in (False, True):
+                        view.exportRender = exportRender
+                        image = view.grab().toImage()
+                        for side in (-1, 1):
+                            sample = (view.WorldToViewport(point(0, side * 100)) * ratio).toPoint()
+                            check = AssertNoOutline if exportRender else AssertOutline
+                            check(image, sample.x(), sample.y(), 3, fill, canvas,
+                                  (ratio, kind.__name__, zoom, phase, side, solidRooms, exportRender))
+                        count += 1
+                    view.exportRender = False
             view.isPanning = True
             for delta in (point(3, 1) / ratio, point(.31, .43) / ratio):
                 view.panOffset += delta
                 CompareDirect(view)
             view.isPanning = False
-    # Untinted rooms retain the existing threshold lines, with either grid policy.
+    # Untinted editor rooms retain the same lines, with either grid policy.
     view.floors = False
     view.windows = [OpenDoorway(divider, .35, .65)]
     view.zoom = 1
@@ -71,7 +82,7 @@ def Child():
         sample = (view.WorldToViewport(point(0, 100)) * ratio).toPoint()
         assert any(image.pixelColor(sample.x(), sample.y() + offset) != canvas for offset in range(-3, 4)), (ratio, solidRooms)
     view.close()
-    print("PASS: DPR", ratio, count, "complete editor images across zoom/phase, native and cached pan parity")
+    print("PASS: DPR", ratio, count, "editor/export images across zoom/phase, native and cached pan parity")
 
 
 def Exports():
@@ -88,6 +99,8 @@ def Exports():
         view.showGrid = view.showMeasurements = view.showTips = False
         view.floors = view.solidRooms = True
         main.sidebarTabs.setCurrentWidget(panel)
+        panel.SetScaleOption("scaleMode", "Digital")
+        panel.drawOpeningOutlinesField.setChecked(False)
         panel.borderField.setCurrentText("None")
         panel.scaleField.setValue(200)
         view.exportOverlay.bounds = (-2500, -2500, 5000, 5000)
@@ -130,6 +143,28 @@ def Exports():
                         y = round((2500 - side * 100) * .2 * sampling)
                         x = image.width() // 2
                         AssertNoOutline(image, x, y, 2, fill, canvas, ("sampling", sampling, side, solidRooms, solidObjects))
+        panel.roomStyleField.setCurrentText("Canvas")
+        panel.drawOpeningOutlinesField.setChecked(True)
+        for kind in ("png", "svg"):
+            result = panel.Render(kind)
+            if kind == "svg":
+                image = QtGui.QImage(1000, 1000, QtGui.QImage.Format.Format_ARGB32)
+                image.fill(0)
+                with QtGui.QPainter(image) as painter:
+                    QtSvg.QSvgRenderer(result).render(painter)
+            else:
+                image = result
+            for y in (480, 520):
+                AssertOutline(image, 500, y, 3, canvas, canvas, (kind, "Canvas", y))
+        # Returning to the editor restores its passage lines even with tint on.
+        panel.drawOpeningOutlinesField.setChecked(False)
+        main.sidebarTabs.setCurrentWidget(main.buildScrollArea)
+        assert view.floors
+        view.zoom = 1
+        image = view.grab().toImage()
+        for side in (-1, 1):
+            sample = (view.WorldToViewport(point(0, side * 100)) * view.devicePixelRatioF()).toPoint()
+            AssertOutline(image, sample.x(), sample.y(), 3, fill, canvas, ("return to editor", side))
     print("PASS: full PNG/SVG, live Export preview zooms and reduced overview sampling")
 
 

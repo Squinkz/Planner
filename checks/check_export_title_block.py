@@ -2,6 +2,7 @@
 import base64
 import copy
 import json
+import math
 import os
 from pathlib import Path
 import sys
@@ -31,6 +32,7 @@ def Main():
         app = QtWidgets.QApplication([])
         ApplyApplicationTheme(app)
         main = MainWindow()
+        main.exportPanel.overrides["scaleMode"] = "Digital"
         main.projectPath = folder / "Smith Residence.plan"
         main.viewport.walls = [Wall(QtCore.QPointF(1000, 1000), QtCore.QPointF(6000, 1000), 240),
                                Wall(QtCore.QPointF(6000, 1000), QtCore.QPointF(6000, 8000), 240)]
@@ -43,7 +45,9 @@ def Main():
         sections = list(panel.sectionButtons)
         assert sections.index("Title Block") + 1 == sections.index("Composite")
         assert not panel.titleBlockEnabled.isChecked() and not panel.titleBlockOptions.isEnabled()
-        assert panel.titleBlockFields["sheetNumber"].text() == "0001"
+        assert panel.titleBlockFields["sheetNumber"].text() == "A-101"
+        assert panel.titleBlockFields["drawingTitle"].text() == "Ground Floor Plan"
+        assert panel.titleBlockFields["comments"].accessibleName() == "Title block notes"
         assert "scale" not in panel.titleBlockFields
         assert panel.titleBlockEnabled.text() == ""
         assert panel.titleBlockEnabled.accessibleName() == "Draw Title Block"
@@ -145,6 +149,8 @@ def Main():
         for position in ("Right", "Bottom"):
             wrapOptions = dict(enabled = True, position = position, logoEnabled = False,
                                revision = "A", address = "jhlkajshdflkjahslkdjfhlkjahsdlkjfl" * 3 + "\nasdfjlaskjdlfkj\n\n\nasdf\nLAST ADDRESS LINE")
+            if position == "Bottom":
+                wrapOptions["address"] += "\nEXTRA ADDRESS LINE" * 20
             width, height, block = TitleBlockLayout(1, 1, wrapOptions)
             addressCell = next(cell for name, label, value, cell in TitleBlockCells(block, wrapOptions, 100) if name == "address")
             image = QtGui.QImage(width, height, QtGui.QImage.Format.Format_RGB32)
@@ -156,12 +162,20 @@ def Main():
             painter.end()
             factor = TitleBlockUnitScale(100)
             pairedCells = {name: cell for name, label, value, cell in TitleBlockCells(block, wrapOptions, 100)}
+            revisionCell, sheetCell = pairedCells["revision"], pairedCells["sheetNumber"]
+            assert abs(revisionCell.bottom() - sheetCell.top()) < .001, "Revision must be directly above the sheet number"
+            assert revisionCell.left() == sheetCell.left() and revisionCell.right() == sheetCell.right()
+            assert abs(sheetCell.bottom() - (block[1] + block[3])) < .001
+            if position == "Bottom":
+                assert abs(sheetCell.right() - (block[0] + block[2])) < .001
+            assert TitleBlockFont("sheetNumber").pixelSize() == 2 * TitleBlockFont("projectName").pixelSize()
             dateCell, scaleCell = pairedCells["date"], pairedCells["scale"]
             assert TitleBlockFont("date").pixelSize() == TitleBlockFont("scale").pixelSize() == TitleBlockFont("comments").pixelSize()
             for field in ("date", "scale", "revision"):
                 cell = pairedCells[field]
+                bodyTop = 14 if position == "Bottom" and field == "revision" else 18
                 entries = [(text, point, metrics, fontScale) for text, point, metrics, fontScale in painter.paintedText
-                           if cell.top() + 18 * factor <= point.y() < cell.bottom()
+                           if cell.top() + bodyTop * factor <= point.y() < cell.bottom()
                            and cell.left() <= point.x() < cell.right()]
                 assert entries
                 for text, point, metrics, fontScale in entries:
@@ -172,18 +186,26 @@ def Main():
             else:
                 assert dateCell.left() == scaleCell.left() and dateCell.right() == scaleCell.right()
                 assert abs(dateCell.bottom() - scaleCell.top()) < .001
+                assert abs(dateCell.height() - scaleCell.height()) < .001
+                assert block[3] == math.ceil(64 * factor)
+                headingPositions = {text: point.y() for text, point, metrics, fontScale in painter.paintedText
+                                    if text in ("REVISION", "NOTES")}
+                assert abs(headingPositions["REVISION"] - headingPositions["NOTES"]) < .001
             addressText = [(text, point, metrics, fontScale) for text, point, metrics, fontScale in painter.paintedText
                            if addressCell.top() + 18 * factor <= point.y() < addressCell.bottom()
                            and addressCell.left() + 5 * factor < point.x() < addressCell.right()]
-            assert any(text == "LAST ADDRESS LINE" for text, point, metrics, fontScale in addressText)
+            if position == "Right":
+                assert any(text == "LAST ADDRESS LINE" for text, point, metrics, fontScale in addressText)
+            else:
+                assert any(text.endswith("…") for text, point, metrics, fontScale in addressText)
             for text, point, metrics, fontScale in addressText:
                 assert point.y() + metrics.descent() * fontScale < addressCell.bottom() - 5 * factor, "Address clipped at the bottom"
                 assert point.x() + metrics.horizontalAdvance(text.rstrip()) * fontScale <= addressCell.right() - 5 * factor, "Long address word clipped at the right"
             sheetCell = next(cell for name, label, value, cell in TitleBlockCells(block, wrapOptions, 100) if name == "sheetNumber")
-            text, point, metrics, fontScale = next(item for item in painter.paintedText if item[0] == "0001")
+            text, point, metrics, fontScale = next(item for item in painter.paintedText if item[0] == "A-101")
             assert abs(point.x() + metrics.horizontalAdvance(text) * fontScale - (sheetCell.right() - 6 * factor)) < .01
             if position == "Bottom":
-                assert abs(point.y() + metrics.descent() * fontScale - (sheetCell.bottom() - 6 * factor)) < factor
+                assert abs(point.y() + metrics.descent() * fontScale - (sheetCell.bottom() - 4 * factor)) < factor
             image.save(str(diagnostics / f"address-wrap-{position.lower()}.png"))
             # Outer corners must be solid square joins, not white bevel wedges.
             for point in (QtCore.QPointF(block[0] + .5, block[1] + .5),
@@ -254,7 +276,7 @@ def Main():
                 # Changing layout/format can expand the crop to the title block's minimum.
                 args = panel.RenderArguments("png")
                 result = RenderPlan(**args)
-                factor = .45
+                factor = min(.45, (v.DrawingRect().width() - 40) / result.width(), (v.DrawingRect().height() - 40) / result.height())
                 v.zoom = factor * panel.ScalePerMeter() / (1000 * v.basePixelsPerMillimeter)
                 x, y, cropWidth, cropHeight = args["bounds"]
                 cropTop = v.WorldToViewport(QtCore.QPointF(x, y + cropHeight))
@@ -265,7 +287,7 @@ def Main():
                 outputWidth, outputHeight, block = TitleBlockLayout(width, height, args["titleBlock"])
                 logoCenter = TitleBlockCells(block, args["titleBlock"], panel.ScalePerMeter())[0][3].center()
                 sample = v.DrawingRect().topLeft() + QtCore.QPointF(20, 20) + logoCenter * factor
-                assert preview.pixelColor(sample.toPoint()) == QtGui.QColor("#d92332"), f"Logo missing from {position} {fileType} preview"
+                assert preview.pixelColor(sample.toPoint()) == QtGui.QColor("#d92332"), (position, fileType, sample, preview.size(), preview.pixelColor(sample.toPoint()).name())
                 picture = overlay.titleBlockPicture
                 bitmap = overlay.titleBlockImage
                 if fileType == "PNG":
@@ -320,13 +342,40 @@ def Main():
         commentCell = next(cell for name, label, value, cell in TitleBlockCells(block, options, 100) if name == "comments")
         minimumHeight = 24 + 4 * QtGui.QFontMetricsF(TitleBlockFont("comments")).height()
         assert commentCell.height() >= minimumHeight * TitleBlockUnitScale(100)
+        tallerBlock = (block[0], block[1], block[2], block[3] + 400)
+        tallerCells = {name: cell for name, label, value, cell in TitleBlockCells(tallerBlock, options, 100)}
+        assert "spacer" not in tallerCells
+        assert abs(tallerCells["comments"].height() - commentCell.height() - 400) < .001
+        assert abs(tallerCells["comments"].bottom() - tallerCells["revision"].top()) < .001
+        assert abs(tallerCells["sheetNumber"].bottom() - (tallerBlock[1] + tallerBlock[3])) < .001
         options["position"] = "Bottom"
         width, height, block = TitleBlockLayout(1000, 1000, options)
-        assert not any(name == "comments" for name, label, value, cell in TitleBlockCells(block, options, 100))
+        commentCell = next(cell for name, label, value, cell in TitleBlockCells(block, options, 100) if name == "comments")
         widerBlock = (block[0], block[1], block[2] + 400, block[3])
         cells = {name: cell for name, label, value, cell in TitleBlockCells(widerBlock, options, 100)}
-        assert cells["spacer"].width() >= 400
+        assert abs(cells["comments"].width() - commentCell.width() - 400) < .001
         assert abs(cells["sheetNumber"].right() - (widerBlock[0] + widerBlock[2])) < .001
+        blankFields = ("projectName", "drawingTitle", "address", "preparedBy", "revision", "sheetNumber", "comments")
+        blank = dict(enabled = True, logoMode = "None", **dict.fromkeys(blankFields, ""))
+        for position in ("Right", "Bottom"):
+            blank["position"] = position
+            for fitWidth in ((False, True) if position == "Bottom" else (False,)):
+                width, height, block = TitleBlockLayout(1000, 1000, blank, fitWidth = fitWidth)
+                cells = {name: cell for name, label, value, cell in TitleBlockCells(block, blank, 100, fitWidth = fitWidth)}
+                for name in blankFields:
+                    count = {"address": 3, "comments": 4}.get(name, 1)
+                    padding = {"revision": 18, "sheetNumber": 13}.get(name, 24) if position == "Bottom" else 24
+                    minimumHeight = padding + count * QtGui.QFontMetricsF(TitleBlockFont(name)).height()
+                    assert cells[name].height() >= minimumHeight * TitleBlockUnitScale(100), (position, fitWidth, name)
+        for kind in ("png", "svg"):
+            for dpi in (150, 300, 600):
+                for width in (1200, 3508):
+                    pixelWidth = round(width * dpi / 300)
+                    baseline = dict(blank, position = "Bottom")
+                    baselineHeight = TitleBlockLayout(pixelWidth, 1000, baseline, outputFormat = kind, dpi = dpi, fitWidth = True)[2][3]
+                    for logoMode in ("None", "Planner"):
+                        longText = dict(baseline, **dict.fromkeys(blankFields, "Long field content\n" * 20), logoMode = logoMode)
+                        assert TitleBlockLayout(pixelWidth, 1000, longText, outputFormat = kind, dpi = dpi, fitWidth = True)[2][3] == baselineHeight
         previousFont = palette.labelFont
         originalText = panel.Render("png")
         main.viewport.grab()

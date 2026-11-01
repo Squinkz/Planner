@@ -72,12 +72,16 @@ def Main():
         if role is not None:
             colors[role] = color
             with ExitStack() as stack:
+                renderers = [actual.sharedRenderer] if actual.sharedRenderer is not None else [renderer for paths, renderer in actual.layers]
                 loads = [stack.enter_context(patch.object(renderer, "load", wraps = renderer.load))
-                         for clipPaths, renderer in actual.layers]
+                         for renderer in renderers]
                 previous = dict(actual.paintValues)
                 assert actual.Recolor(colors) == reference.Recolor(colors)
                 expected = actual.paintLayers.get(role, ()) if previous[role] != color else ()
-                assert {index for index, load in enumerate(loads) if load.call_count} == set(expected)
+                if actual.sharedRenderer is not None:
+                    assert loads[0].call_count == bool(expected), "Recolor reloaded the shared SVG more than once"
+                else:
+                    assert {index for index, load in enumerate(loads) if load.call_count} == set(expected)
                 assert all(load.call_count <= 1 for load in loads)
             if role == "grid":
                 assert len(actual.paintLayers[role]) == 1, "Unreferenced gradient definitions triggered unrelated layer loads"

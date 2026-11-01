@@ -5,9 +5,9 @@ import re
 from PySide6 import QtCore
 from .furnishing_assets import FurnishingAssetProblems
 from .coincident_records import PlanCoincidentRemoval
-from .geometry_recovery import FindGeometryIssue, GeometryRepairText
+from .geometry_recovery import FindGeometryIssue, GeometryRepairText, PrepareGeometryValidation
 from .models import Furnishing, Window, Wall, Pillar, Column, Counter, Stair, Railing, Elevator
-from .project_codec import EncodeObjectRecord
+from .object_schema import EncodeObjectRecord
 from .viewport.geometry import CollisionPass
 from .geometry.wall_diagnostics import WallDiagnosticRecord, PlanPotentialWallRepairs
 
@@ -38,6 +38,7 @@ def FindSceneProblems(viewport, includePotential = True, gridStep = None, includ
         record.pop("geometryIssues", None)
     data = {"scene": {"objects": records}, "settings": {
         "wallWidth": viewport.newWallWidth, "collisionSettings": viewport.collisionSettings}}
+    prepared = PrepareGeometryValidation(data)
     problems = []
     for index, obj in enumerate(objects):
         if type(obj) is Furnishing:
@@ -48,7 +49,7 @@ def FindSceneProblems(viewport, includePotential = True, gridStep = None, includ
                 problems.append(dict(object = obj, code = "asset:" + key, label = label,
                     description = label + ". Restore the asset or delete the affected object. No automatic repair is available.",
                     repair = None))
-        issue = FindGeometryIssue(index, data, viewport.furnishingDefinitions)
+        issue = FindGeometryIssue(index, data, viewport.furnishingDefinitions, prepared)
         if issue is not None:
             problems.append(dict(object = obj, code = issue["code"], label = "Invalid geometry",
                                  description = issue["description"], repair = issue["repair"],

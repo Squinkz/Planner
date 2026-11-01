@@ -211,18 +211,6 @@
      d="M -1.0145223e-6,2.7881973e-7 -8.3272336e-7,39.687499 A 39.687499,39.687499 0 0 0 39.687498,5.2032097e-8 Z"
      inkscape:transform-center-y="19.843749"
      inkscape:transform-center-x="-19.843749" />
-  <path
-     vector-effect="non-scaling-stroke"
-     stroke-width="1"
-     style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
-     d="m -78.120969,-5.9972897 2.645832,1.3229165"
-     id="path2" />
-  <path
-     vector-effect="non-scaling-stroke"
-     stroke-width="1"
-     style="fill:#ffffff;stroke:#000000;stroke-width:1;stroke-miterlimit:7.7;stroke-opacity:1;vector-effect:non-scaling-stroke"
-     d="m -78.120969,9.8777108 2.645832,-1.322917"
-     id="path3" />
   <g
      id="planner-fixed"
      transform="matrix(1.2500004,0,0,1.2499998,-28.193697,8.2682303)"

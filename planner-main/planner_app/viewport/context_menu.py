@@ -151,7 +151,7 @@ class ContextMenuMixin:
         button.clicked.connect(self.CopySelection)
         menu.addSeparator()
         button = AddMenuButton(menu, "Delete", "Del", iconName = "Close Project")
-        button.clicked.connect(self.DeleteSelected)
+        button.clicked.connect(lambda: self.DeleteSelected())
         menu.popup(globalPosition)
 
     def ApplyObjectContextAction(self, objects, command, value = None):
@@ -172,6 +172,10 @@ class ContextMenuMixin:
                 obj.directionReversed = not obj.directionReversed
                 continue
             setattr(obj, command, value if value is not None else not getattr(obj, command))
+        if command == "hingeAtSecond" and any(isinstance(obj, PocketDoor) and not self.OpeningFits(obj) for obj in objects):
+            self.RestoreState(before)
+            self.clipboardMessage.emit("Cannot change pocket side: the opening would no longer fit its supporting walls.")
+            return False
         if command == "reverseDirection":
             reversedIds = {id(obj) for obj in objects if isinstance(obj, Arrow)}
             self.SetSelection([(obj, 1 - index if id(obj) in reversedIds and index in (0, 1) else index)

@@ -25,18 +25,24 @@ def CheckWithoutQt():
     options = dict(bounds = [-1000, -1000, 2000, 1000], viewportSettings = dict(overall = 1.5),
                    lineworkSettings = dict(baseWidth = 3), measurementVisibility = dict(doors = True),
                    measurementSettings = dict(stairs = 2), fileType = "SVG", scaleMode = "Architectural",
-                   architecturalScale = 100, dpi = 300, solidRooms = True)
+                   architecturalScale = 100, dpi = 300, solidRooms = True, drawOpeningOutlines = False, borderTextSize = 2.5, borderWidth = 745.125,
+                   cropRegions = dict(Digital = [100, -200, 5000, 4000], Print = [-300, 400, 29700, 21000]))
     original = copy.deepcopy(options)
     normalized = NormalizeExportSettings(options, *context)
     assert normalized == options and options == original
     normalized["bounds"][0] = 99
+    normalized["cropRegions"]["Digital"][0] = 99
     normalized["lineworkSettings"]["baseWidth"] = 4
     assert options == original
     for invalid in (None, [], {"unknown": True}, {"floors": 1}, {"dpi": True}, {"dpi": 0},
                     {"scale": float("nan")}, {"scale": 0}, {"bounds": [0, 0, -1, 10]},
-                    {"unitsMode": "Unknown"}, {"solidRooms": 1}, {"roomStyle": "Unknown"},
+                    {"unitsMode": "Unknown"}, {"solidRooms": 1}, {"drawOpeningOutlines": 1}, {"borderTextSize": True}, {"borderWidth": 0}, {"borderWidth": True}, {"roomStyle": "Unknown"},
                     {"measurementSettings": {"stairs": 1}}, {"lineworkSettings": {"baseWidth": .5}},
-                    {"viewportSettings": {"unknown": 1}}, {"texture": "../texture.png"}, {"canvasColor": 5}):
+                    {"viewportSettings": {"unknown": 1}}, {"texture": "../texture.png"}, {"canvasColor": 5},
+                    {"cropRegions": []}, {"cropRegions": {"Unknown": [0, 0, 10, 10]}},
+                    {"cropRegions": {"Print": [0, 0, 0, 10]}}, {"cropRegions": {"Digital": [0, 0, 10]}},
+                    {"cropRegions": {"Architectural": [0, float("inf"), 10, 10]}},
+                    {"cropRegions": {"Digital": [0, 0, True, 10]}}, {"cropRegions": {"Print": None}}):
         try:
             NormalizeExportSettings(invalid, *context)
         except ValueError:
@@ -47,9 +53,11 @@ def CheckWithoutQt():
     assert NormalizeExportSettings(dict(canvasColor = "red"), *context) == dict(canvasColor = "red")
 
     overrides = dict(unitsMode = "Feet and Inches", measurementVisibility = dict(doors = True),
-                     visibility = dict(Doors = True), lineworkSettings = dict(walls = .5))
+                     visibility = dict(Doors = True), lineworkSettings = dict(walls = .5),
+                     cropRegions = dict(Print = [100, -200, 29700, 21000]))
     before = copy.deepcopy((base, overrides))
     view = ResolveExportView(base, overrides)
+    assert "cropRegions" not in view, "Inactive crops must not affect the rendered view"
     assert view["autoSizingUnitsMode"] == "Millimeters" and view["unitsMode"] == "Feet and Inches"
     assert view["showMeasurements"] and view["measurementVisibility"] == dict(walls = False, doors = True, railings = False)
     assert view["visibility"] == {"World": True, "Walls": True, "Doors": True}
@@ -67,7 +75,9 @@ def CheckWithoutQt():
     assert ExportScalePerMeter(arch, "PNG_OPTIMIZED") == ExportScalePerMeter(arch, "PNG")
     assert math.isclose(ExportScalePerMeter(arch, "SVG"), 96 * 1000 / (25.4 * 100))
     assert BorderSize("None", 100) == 0 and BorderSize("Frame", 1) == 4
-    assert BorderSize("Ruler + Reference Zones", 28) == 56
+    assert BorderSize("Ruler + Reference Zones", 28) == 2 * BorderSize("Ruler", 1)
+    for textSize in (1.5, 2.0, 2.5):
+        assert BorderSize("Ruler", 1, textSize) >= math.ceil(textSize * 300 / 25.4 * 1.6) + 12
     assert ExportPixelSize((0, 0, 10000, 5000), 100) == (1000, 500)
     assert ExportPixelSize((0, 0, 10000, 5000), 100, BorderSize("Plain")) == (1056, 556)
     assert ExportPixelSize((0, 0, 10000.00000001, 5000), 100) == (1000, 500)

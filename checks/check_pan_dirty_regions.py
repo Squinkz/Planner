@@ -1,4 +1,5 @@
 """Exposed-strip culling preserves pixels and cached furnishing validation."""
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -34,15 +35,18 @@ def Main():
     viewport.show()
     app.processEvents()
     viewport.performanceLabel.hide()
+    ratio = viewport.devicePixelRatioF()
     viewport.isPanning = True
     drawScene = viewport.DrawScene
     results = {}
+    referenceFrames = []
     for cull in (False, True):
         viewport.panOffset = point()
         viewport.viewportPanRaster = None
         viewport.grab()
         validationKeys = set(viewport.furnishingValidationCache)
         durations = []
+        frames = []
 
         def DrawScene(*args, **kwargs):
             if not cull:
@@ -53,10 +57,13 @@ def Main():
              patch.object(rendering, "DrawFurnishing", wraps = rendering.DrawFurnishing) as furnishings, \
              patch.object(rendering, "DrawOpeningSymbol", wraps = rendering.DrawOpeningSymbol) as openings:
             for frame in range(20):
-                viewport.panOffset += point(3, 1)
+                # Reuse requires integral physical movement, including when
+                # this check runs at a fractional display scale on CI.
+                viewport.panOffset += point(3 / ratio, 1 / ratio)
                 started = perf_counter()
-                viewport.grab()
+                image = viewport.grab().toImage()
                 durations.append((perf_counter() - started) * 1000)
+                frames.append(hashlib.sha256(image.constBits()).hexdigest())
             results["culled" if cull else "unculled"] = {
                 "medianMs": round(median(durations), 3),
                 "furnishingCalls": furnishings.call_count,
@@ -65,25 +72,39 @@ def Main():
             }
         if cull:
             assert validationKeys <= set(viewport.furnishingValidationCache)
-        CompareDirect(viewport)
+        if ratio == 1:
+            CompareDirect(viewport)
+
+        # Compare every exposed-strip/re-entry frame against the same cached
+        # painter with object culling disabled. Exact pixels isolate culling
+        # from clip-rounding differences shared by both paths at high DPI.
+        # check_pan_dpi separately compares fresh painting at five scales;
+        # retain this fixture's original direct comparisons at DPR 1 as well.
+        with patch.object(viewport, "DrawScene", side_effect = DrawScene):
+            for start in (point(400, 0), point(-400, 0), point(0, 250), point(0, -250)):
+                viewport.panOffset = start
+                viewport.viewportPanRaster = None
+                viewport.grab()
+                for delta in (point(9, 3), point(-17, -5), point(8, 2)):
+                    viewport.panOffset += delta / ratio
+                    image = viewport.grab().toImage()
+                    frames.append(hashlib.sha256(image.constBits()).hexdigest())
+                    if ratio == 1:
+                        CompareDirect(viewport)
+        if cull:
+            assert frames == referenceFrames, ("Culling changed pixels", ratio,
+                [index for index, (actual, expected) in enumerate(zip(frames, referenceFrames)) if actual != expected])
+        else:
+            referenceFrames = frames
 
     assert results["unculled"]["furnishingCalls"] >= 2000
     assert results["culled"]["furnishingCalls"] < results["unculled"]["furnishingCalls"] / 4
     assert results["culled"]["openingCalls"] < results["unculled"]["openingCalls"] / 4
 
-    # Bring the objects across the viewport edge and back in narrow strips.
-    # These comparisons exercise the bound padding, including door swings.
-    for start in (point(400, 0), point(-400, 0), point(0, 250), point(0, -250)):
-        viewport.panOffset = start
-        viewport.viewportPanRaster = None
-        viewport.grab()
-        for delta in (point(9, 3), point(-17, -5), point(8, 2)):
-            viewport.panOffset += delta
-            CompareDirect(viewport)
     viewport.close()
     report = Path(__file__).resolve().parent.parent / "diagnostics" / "pan-performance-20261008.json"
     report.write_text(json.dumps(results, indent = 2) + "\n", encoding = "utf-8")
-    print("PASS: strip culling reduces draw calls, retains validation and matches direct pixels.")
+    print(f"PASS: DPR {ratio}, {len(referenceFrames)} exact culled/unculled frames, reduced draw calls and retained validation.")
     print(json.dumps(results))
 
 

@@ -25,6 +25,7 @@ def Main():
     app = QtWidgets.QApplication([])
     ApplyApplicationTheme(app)
     main = MainWindow()
+    main.exportPanel.overrides["scaleMode"] = "Digital"
     v, panel = main.viewport, main.exportPanel
     v.walls = []
     v.furnishings = [Furnishing(v.furnishingDefinitions["desk"]),

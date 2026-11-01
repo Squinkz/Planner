@@ -9,6 +9,7 @@ belong there. These pages also appear in the application's Help window.
 ## Development and implementation
 
 - [Development setup, command-line export and checks](DEVELOPMENT.md)
+- [Full-suite audit, coverage and CI verification](TEST_SUITE_AUDIT.md)
 - [Windows executable build](WINDOWS_BUILD.md)
 - [Licensing and redistribution](LICENSING.md)
 - [Releases and version numbers](RELEASING.md)
@@ -18,6 +19,8 @@ belong there. These pages also appear in the application's Help window.
 - [Editing transactions and desktop adapter boundaries](EDITING_PORTS.md)
 - [Help authoring and viewer contract](HELP_AUTHORING.md)
 - [Rendering diagnostics and performance probes](RENDER_DIAGNOSTICS.md)
+- [Export rendering performance and validation](EXPORT_PERFORMANCE_AUDIT.md)
+- [Editor rendering performance and validation](EDITOR_PERFORMANCE_AUDIT.md)
 - [Export shortcut scope and audit](EXPORT_SHORTCUT_AUDIT.md)
 
 ## Resource authoring
@@ -40,7 +43,8 @@ user manual.
 
 ## Documentation maintenance
 
-Technical contracts were reviewed against Alpha 0.1.1 on 26 October 2026.
+Technical contracts include the Alpha 0.1.4 export/editor changes reviewed on
+30 October 2026.
 Current prose and executable checks take precedence over dated screenshot and
 source-review observations. The [scenario index](parity/cases.json) maps the
 current behavior to checks without replacing historical capture manifests.

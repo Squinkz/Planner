@@ -13,6 +13,7 @@ from planner_app.models import Furnishing
 from planner_app.graphics.palette import themeColors
 from planner_app.graphics.furnishings import CompoundFurnishingSvg, FurnishingRenderer
 from planner_app.export_plan import RenderPlan
+from planner_app.viewport.widget import DrawingViewport
 from check_pan_dpi import CompareDirect
 
 
@@ -100,25 +101,37 @@ def Main():
     outer = Wall(point(-1500, -2000), point(1500, -2000), 600)
     inner = Wall(point(-500, -2000), point(500, -2000), 120)
     null = Furnishing(v.furnishingDefinitions["null"], point(2500, 0))
+    colliding = Furnishing(first.definition, point(0, -2000))
     v.walls = [outer, inner]
-    v.furnishings = [first, second, null]
+    v.furnishings = [first, second, null, colliding]
     v.EnsureObjectIds()
     v.sceneChanged.emit()
     data = main.BuildProjectData(includeHistory = False)
     # Compare against an explicitly clean scene, using the same crop, scale and
     # settings. Both formats must produce the same artwork as removing warnings.
     baseline = copy.deepcopy(data)
-    excluded = {inner.objectId, second.objectId, null.objectId}
+    excluded = {inner.objectId, second.objectId, null.objectId, colliding.objectId}
     baseline["scene"]["objects"] = [record for record in baseline["scene"]["objects"] if record["id"] not in excluded]
     baseline["scene"]["groups"], baseline["scene"]["hidden"] = [], []
     bounds = (-2500, -3000, 6500, 4500)
     original = v.CaptureState()
+    originalFits = DrawingViewport.FurnishingFits
+    validationCalls = []
+    def ValidateExportFurnishing(source, obj):
+        assert source is not v, "Export validated or changed the live canvas"
+        assert source.collisionPassCache is not None, "Export filtering repeated unbatched collision work"
+        validationCalls.append(obj.objectId)
+        return originalFits(source, obj)
+
     for solid in (True, False):
         for outputFormat in ("png", "svg"):
             options = dict(bounds = bounds, outputFormat = outputFormat, applyTheme = False, solidObjects = solid,
                            furnishingDefinitions = v.furnishingDefinitions)
-            actual = RenderPlan("Warnings.plan", 80, projectData = data, **options)
-            expected = RenderPlan("Warnings.plan", 80, projectData = baseline, **options)
+            validationCalls.clear()
+            with patch.object(DrawingViewport, "FurnishingFits", ValidateExportFurnishing):
+                actual = RenderPlan("Warnings.plan", 80, projectData = data, **options)
+                expected = RenderPlan("Warnings.plan", 80, projectData = baseline, **options)
+            assert validationCalls == [first.objectId, second.objectId, colliding.objectId, first.objectId], "Drawing repeated export validation"
             if outputFormat == "png":
                 assert ImageBytes(actual) == ImageBytes(expected)
             else:
@@ -136,11 +149,10 @@ def Main():
     # Bounded PNG overview/detail rendering uses a separate snapshot viewport.
     main.exportPanel.SetActive(True)
     overlay = v.exportOverlay
-    from planner_app.viewport.widget import DrawingViewport
     snapshot = DrawingViewport()
     overlay.ConfigureSnapshotViewport(snapshot)
     assert snapshot.walls == [outer] and snapshot.furnishings == [first]
-    assert v.walls == [outer, inner] and v.furnishings == [first, second, null]
+    assert v.walls == [outer, inner] and v.furnishings == [first, second, null, colliding]
     snapshot.close()
     main.exportPanel.SetActive(False)
 

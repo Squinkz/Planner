@@ -116,7 +116,11 @@ def Main():
     v.grab().save(str(Path(__file__).resolve().parent.parent / "screenshots/compound-dining-set.png"))
     # A compound stays one selected entity, with separate child collision footprints.
     assert len(v.SelectionEntries()) == 1
-    v.walls = [Wall(QtCore.QPointF(-500, 650), QtCore.QPointF(500, 650), 80)]
+    # Shipped chairs now sit at +/-350 mm, extending to +/-600 mm. Cross their
+    # actual footprint, and separately check the open gap between the chairs.
+    v.walls = [Wall(QtCore.QPointF(-10, 550), QtCore.QPointF(10, 550), 10)]
+    assert v.FurnishingFits(furnishing)
+    v.walls = [Wall(QtCore.QPointF(-500, 500), QtCore.QPointF(500, 500), 80)]
     assert not v.FurnishingFits(furnishing)
     v.walls = []
     furnishing.angle = 37

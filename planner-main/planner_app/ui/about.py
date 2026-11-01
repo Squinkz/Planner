@@ -1,5 +1,6 @@
-"""Stacker-style About presentation with Planner resources."""
+"""About presentation with Planner resources."""
 import html
+from importlib.metadata import distribution
 from PySide6 import QtCore, QtGui, QtWidgets
 from planner_app.paths import appDirectory, assetsDirectory, fontsDirectory
 from planner_app.version import displayVersion
@@ -220,6 +221,9 @@ class LicensesDialog(QtWidgets.QDialog):
                    appDirectory / "ASSET_LICENSE.txt", appDirectory / "BRANDING_LICENSE.txt", fontsDirectory / "OFL.txt",
                    fontsDirectory / "OFL-D-DIN.txt", fontsDirectory / "OFL-DraftingSmallCaps.txt", fontsDirectory / "FONTLOG.txt",
                    appDirectory / "vendor" / "upng" / "UPNG-LICENSE", appDirectory / "vendor" / "upng" / "PAKO-LICENSE")
+        numpyDistribution = distribution("numpy")
+        notices += tuple(numpyDistribution.locate_file(path) for path in numpyDistribution.files or ()
+                         if ".dist-info/licenses/" in path.as_posix())
         sections = []
         for path in notices:
             try:

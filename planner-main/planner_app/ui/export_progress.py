@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import sys
 import tempfile
+import shutil
 
 from PySide6 import QtCore, QtWidgets
 from planner_app.graphics.theme import HeaderIcon
@@ -13,17 +14,21 @@ from planner_app.export_worker import ExportJobEncoder
 
 
 class ExportProgressDialog(QtWidgets.QDialog):
-    def __init__(self, panel, path, outputFormat, optimized):
+    def __init__(self, panel, path, outputFormat, optimized, jobs = None):
         super().__init__(panel.mainWindow)
         self.panel, self.path = panel, path
+        self.jobs = jobs
         self.outputFormat, self.optimized = outputFormat, optimized
+        self.pdf = outputFormat in ("pdf_raster", "pdf_vector")
         self.cancelled = False
         self.error = None
         self.completed = False
         self.temporary = None
         self.stagingPath = None
+        self.outputFiles = []
         self.pendingOutput = b""
         self.diagnostics = ""
+        self.workerFailure = None
         self.setWindowTitle("Exporting")
         self.setWindowIcon(HeaderIcon("Export"))
         self.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
@@ -59,15 +64,31 @@ class ExportProgressDialog(QtWidgets.QDialog):
         try:
             self.temporary = tempfile.TemporaryDirectory(prefix = "planner-export-")
             self.path.parent.mkdir(parents = True, exist_ok = True)
-            descriptor, staging = tempfile.mkstemp(prefix = ".planner-export-", suffix = ".tmp", dir = self.path.parent)
-            os.close(descriptor)
-            self.stagingPath = Path(staging)
-            render = self.panel.RenderArguments(self.outputFormat)
-            render["planPath"] = str(render["planPath"])
-            # Reference images are never exported; do not duplicate their embedded
-            # raster data or decode it again in the export process.
-            render["projectData"]["settings"].pop("referenceImage", None)
-            job = {"render": render, "optimized": self.optimized, "stagingPath": staging,
+            pages = []
+            baseRender = None
+            jobs, self.jobs = self.jobs, None
+            if jobs is None:
+                jobs = self.panel.ExportJobs(self.path, self.outputFormat)
+            for target, render in jobs:
+                if self.pdf and self.outputFiles:
+                    if target != self.outputFiles[0][1]:
+                        raise ValueError("PDF pages must share one output file.")
+                    staging = str(self.outputFiles[0][0])
+                else:
+                    descriptor, staging = tempfile.mkstemp(prefix = ".planner-export-", suffix = ".tmp", dir = target.parent)
+                    os.close(descriptor)
+                    self.outputFiles.append((Path(staging), target))
+                render["planPath"] = str(render["planPath"])
+                render["projectData"]["settings"].pop("referenceImage", None)
+                if baseRender is None:
+                    baseRender = render
+                # A batch shares its scene/catalog; serialize only page-specific
+                # differences rather than duplicating the whole project per page.
+                overrides = {key: value for key, value in render.items() if key not in baseRender or
+                             (value is not baseRender[key] and value != baseRender[key])}
+                pages.append(dict(render = overrides, stagingPath = staging))
+            self.stagingPath = self.outputFiles[0][0]
+            job = {"render": baseRender, "optimized": self.optimized, "pdf": self.pdf, "stagingPath": str(self.stagingPath), "pages": pages,
                    "style": QtWidgets.QApplication.style().objectName(), "uiTheme": palette.activeUITheme,
                    "canvasTheme": palette.activeCanvasTheme, "colors": dict(palette.themeColors), "labelFont": palette.labelFont}
             font = QtWidgets.QApplication.font()
@@ -85,7 +106,10 @@ class ExportProgressDialog(QtWidgets.QDialog):
                 arguments = [str(appDirectory / "main.py"), "--export-worker", str(jobPath)]
             self.process.start(sys.executable, arguments)
         except Exception as error:
-            self.error = str(error)
+            from planner_app.crash_reporting import ExceptionDetails
+            self.workerFailure = ExceptionDetails(error)
+            self.error = self.workerFailure["error"]
+            self.diagnostics = self.workerFailure["traceback"]
             self.Finished(1, QtCore.QProcess.ExitStatus.NormalExit)
 
     def ReadOutput(self):
@@ -100,6 +124,8 @@ class ExportProgressDialog(QtWidgets.QDialog):
                 continue
             if "error" in message:
                 self.error = message["error"]
+                self.diagnostics = (self.diagnostics + "\n" + message.get("traceback", ""))[-16384:]
+                self.workerFailure = {name: message[name] for name in ("exceptionType", "traceback") if name in message}
             if "stage" in message and not self.cancelled:
                 self.statusLabel.setText(message["stage"])
 
@@ -117,9 +143,23 @@ class ExportProgressDialog(QtWidgets.QDialog):
         self.ReadOutput()
         self.ReadDiagnostics()
         succeeded = not self.cancelled and not self.error and exitCode == 0 and exitStatus == QtCore.QProcess.ExitStatus.NormalExit
+        backups, published, preserved = [], [], set()
         try:
             if succeeded:
-                os.replace(self.stagingPath, self.path)
+                for staging, target in self.outputFiles:
+                    if target.exists():
+                        descriptor, backup = tempfile.mkstemp(prefix = ".planner-export-", suffix = ".bak", dir = target.parent)
+                        os.close(descriptor)
+                        backup = Path(backup)
+                        # Copy first: a failed replacement must leave the original intact.
+                        try:
+                            shutil.copy2(target, backup)
+                        except OSError:
+                            backup.unlink(missing_ok = True)
+                            raise
+                        backups.append((backup, target))
+                    os.replace(staging, target)
+                    published.append(target)
             elif not self.cancelled and not self.error:
                 self.error = "The export process stopped unexpectedly."
                 if self.diagnostics.strip():
@@ -127,16 +167,36 @@ class ExportProgressDialog(QtWidgets.QDialog):
         except OSError as error:
             succeeded = False
             self.error = str(error)
+            originals = {target for backup, target in backups}
+            for target in published:
+                if target not in originals:
+                    try:
+                        target.unlink(missing_ok = True)
+                    except OSError as cleanupError:
+                        self.error += "\n" + str(cleanupError)
+            for backup, target in backups:
+                try:
+                    os.replace(backup, target)
+                except OSError as restoreError:
+                    preserved.add(backup)
+                    self.error += f"\nCould not restore {target}: {restoreError}. Original preserved at {backup}"
         finally:
             try:
-                if self.stagingPath is not None:
-                    self.stagingPath.unlink(missing_ok = True)
+                for staging, target in self.outputFiles:
+                    staging.unlink(missing_ok = True)
+                for backup, target in backups:
+                    if backup not in preserved:
+                        backup.unlink(missing_ok = True)
                 if self.temporary is not None:
                     self.temporary.cleanup()
             except OSError as error:
                 if not succeeded and not self.cancelled and not self.error:
                     self.error = str(error)
         self.completed = True
+        if self.error:
+            from planner_app.crash_reporting import ReportWorkerFailure
+            ReportWorkerFailure("Export", self.error, self.diagnostics)
+        self.jobs = None
         self.done(QtWidgets.QDialog.DialogCode.Accepted if succeeded else QtWidgets.QDialog.DialogCode.Rejected)
 
     def reject(self):

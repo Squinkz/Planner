@@ -1,7 +1,7 @@
 """Visible world-space export bounds, shared by the CLI and viewport preview."""
 import math
 from PySide6 import QtCore, QtGui
-from .models import MeasurementGuide, Furnishing, NorthArrow, Label, Arrow, Fireplace
+from .models import MeasurementGuide, Furnishing, NorthArrow, Label, Arrow, Fireplace, Wall, Pillar, Column, Stair, Counter, Railing
 from .graphics.furnishings import FurnishingArtworkBounds
 from .graphics.symbols import DrawOpeningSymbol
 from .graphics.arrows import ArrowPaths, ConnectedArrowDirections, ConnectedArrowCorners
@@ -13,6 +13,23 @@ from .export_settings import BorderSize
 def AutomaticBounds(viewport):
     minX = minY = math.inf
     maxX = maxY = -math.inf
+    # Use an independent workspace: preparing export bounds must not replace
+    # the viewport's retained wall geometry or measurement components.
+    joinedGroups = {}
+    for obj in viewport.walls:
+        if type(obj) in (Wall, Pillar, Column, Stair, Counter, Railing) and viewport.IsObjectVisible(obj):
+            category = Wall if type(obj) in (Wall, Pillar, Column) else type(obj)
+            joinedGroups.setdefault(category, []).append(obj)
+    if joinedGroups:
+        from .viewport.geometry import FootprintGeometry
+        geometry = FootprintGeometry(viewport.basePixelsPerMillimeter)
+        toWorld = QtGui.QTransform().scale(1 / geometry.basePixelsPerMillimeter, -1 / geometry.basePixelsPerMillimeter)
+        for members in joinedGroups.values():
+            geometry.ConnectedWallPath(members, traceContours = False)
+            if not geometry.wallGeometryPath.isEmpty():
+                bounds = toWorld.mapRect(geometry.wallGeometryPath.boundingRect())
+                minX, minY = min(minX, bounds.left()), min(minY, bounds.top())
+                maxX, maxY = max(maxX, bounds.right()), max(maxY, bounds.bottom())
     arrows = [obj for obj in viewport.walls if isinstance(obj, Arrow) and viewport.IsObjectVisible(obj)]
     directions = ConnectedArrowDirections(arrows)
     corners = ConnectedArrowCorners(arrows, directions)
@@ -49,7 +66,12 @@ def AutomaticBounds(viewport):
             bounds = viewport.ObjectFootprint(obj)[0]
             points = list(points) + [bounds.topLeft(), bounds.bottomRight()]
         if isinstance(obj, Furnishing) and not isinstance(obj, (NorthArrow, Label)):
-            renderer = viewport.furnishingRenderers.get(obj.definition["key"])
+            renderers = viewport.furnishingRenderers
+            try:
+                renderer = (renderers.ArtworkGeometry(obj.definition["key"]) if hasattr(renderers, "ArtworkGeometry")
+                            else renderers.get(obj.definition["key"]))
+            except KeyError:
+                renderer = None
             if renderer is not None:
                 artwork = FurnishingArtworkBounds(obj, renderer)
                 points = list(points) + [artwork.topLeft(), artwork.bottomRight()]

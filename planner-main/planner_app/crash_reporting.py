@@ -9,6 +9,23 @@ from PySide6 import QtCore
 crashLog = None
 
 
+def ExceptionDetails(error):
+    """Use a nonempty message and bounded traceback for every process boundary."""
+    return {"error": str(error) or type(error).__name__, "exceptionType": type(error).__name__,
+            "traceback": "".join(traceback.format_exception(type(error), error, error.__traceback__))[-16384:]}
+
+
+def ReportWorkerFailure(worker, message, diagnostics = ""):
+    """Keep bounded worker context in the editor's existing diagnostic log."""
+    stream = crashLog if crashLog is not None else sys.stderr
+    if stream is not None:
+        try:
+            stream.write(f"\n{worker}: {message}\n{diagnostics[-16384:]}\n")
+            stream.flush()
+        except (OSError, ValueError):
+            pass
+
+
 def ConfigureCrashReporting(directory = None):
     global crashLog
     try:

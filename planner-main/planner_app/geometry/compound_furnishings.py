@@ -1,6 +1,7 @@
 """Affine compound expansion, fixed-size policy and numeric child footprints."""
 import math
 from .footprints import PolygonAxes
+from .polygons import PolygonTwiceArea
 from .affine import RotationComponents, NeedsNativeAffine
 from planner_app.furnishing_limits import FurnishingExpansionSizes
 
@@ -116,8 +117,12 @@ def PlanCompoundFootprints(definition, frame, validated = False, backend = None)
             bounds = left, top, max(point[0] for point in corners) - left, max(point[1] for point in corners) - top
             if backend is not None and NeedsNativeAffine(local):
                 bounds, corners = backend("rectangle", local, width, length)
-            if sum(corners[index][0] * corners[(index + 1) % 4][1] - corners[(index + 1) % 4][0] * corners[index][1]
-                   for index in range(4)) < 0:
+            area = PolygonTwiceArea(corners)
+            if area == 0:
+                # Tiny children can collapse after translation to world coordinates.
+                # They have no representable filled footprint or usable SAT axes.
+                continue
+            if area < 0:
                 corners = tuple(reversed(corners))
             yield bounds, corners, tuple(PolygonAxes(corners))
 

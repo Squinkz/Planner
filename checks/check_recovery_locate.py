@@ -60,7 +60,9 @@ def Main():
                 QtTest.QTest.mouseClick(tree.viewport(), QtCore.Qt.MouseButton.LeftButton,
                                        pos = tree.visualItemRect(item).center())
                 app.processEvents()
-                assert message.isVisible() and app.activeModalWidget() is None
+                assert message.isVisible() and app.activeModalWidget() is message
+                assert message.windowModality() == QtCore.Qt.WindowModality.ApplicationModal
+                assert message.isAncestorOf(app.focusWidget()), "Locating an object moved focus behind the warning"
                 assert {id(obj) for obj, index in v.SelectionEntries()} == expected
         except Exception as error:
             errors.append(error)
@@ -89,13 +91,18 @@ def Main():
                 assert screenBounds.width() < v.DrawingRect().width() * .4
                 assert screenBounds.height() < v.DrawingRect().height() * .4
     assert [(obj.firstVertex, obj.secondVertex, obj.width) for obj in v.furnishings] == original
-    # Canvas deletion and undo update the same non-modal report, including zero remaining.
+    # Modal reports block editor input. Programmatic scene updates still keep
+    # the same report current, including zero remaining, without nesting exec().
     main.ReportRecoveredProject(Path("Missing.plan"), Path("Backup.plan"), repairs)
     message = main.recoveryWindow
     app.processEvents()
     tree = message.recoveryTree
     v.SetSelection([(second, None)])
-    QtTest.QTest.keyClick(v, QtCore.Qt.Key.Key_Delete)
+    assert message.isModal() and app.activeModalWidget() is message
+    QtTest.QTest.keyClick(main.windowHandle(), QtCore.Qt.Key.Key_Delete)
+    app.processEvents()
+    assert second in v.furnishings, "Editor input bypassed the modal load warning"
+    v.DeleteSelected()
     app.processEvents()
     assert message.isVisible() and tree.topLevelItem(0).childCount() == 1
     assert tree.topLevelItem(0).text(0) == "Missing Stove — 1 object"
@@ -103,7 +110,7 @@ def Main():
     app.processEvents()
     assert tree.topLevelItem(0).childCount() == 2
     v.SetSelection([(first, None), (second, None)])
-    QtTest.QTest.keyClick(v, QtCore.Qt.Key.Key_Delete)
+    v.DeleteSelected()
     app.processEvents()
     assert message.isVisible() and tree.topLevelItemCount() == 0
     assert tree.headerItem().text(0) == "No missing objects remain"
@@ -111,7 +118,29 @@ def Main():
     app.processEvents()
     assert tree.topLevelItem(0).childCount() == 2
     message.close()
-    assert main.recoveryWindow is None
+    assert main.recoveryWindow is None and app.activeModalWidget() is None
+    v.SetSelection([(second, None)])
+    v.setFocus()
+    QtTest.QTest.keyClick(v, QtCore.Qt.Key.Key_Delete)
+    assert second not in v.furnishings, "Closing the warning did not restore editor input"
+    v.Undo()
+    # Recovery notices without missing-object entries must also block editing.
+    with patch.object(main, "RecoveryObjectEntries", return_value = {}):
+        main.ReportRecoveredProject(Path("Repaired.plan"), Path("Backup.plan"), ["Repaired project settings."])
+    message = main.recoveryWindow
+    app.processEvents()
+    assert message.isModal() and app.activeModalWidget() is message
+    assert message.recoveryTree.topLevelItemCount() == 0
+    message.close()
+    # Session restoration can create a warning before its main window is shown.
+    main.hide()
+    message = main.ShowAppMessage("Missing Assets", "The restored session contains unavailable furnishing assets.", "warning",
+                                 locateEntries = main.RecoveryObjectEntries())
+    main.show()
+    app.processEvents()
+    assert main.isVisible() and message.isVisible() and app.activeModalWidget() is message
+    message.close()
+    assert app.activeModalWidget() is None
     second.definitionKey = "Missing Fridge"
     v.SetSelection([(first, None), (second, None)])
     assert main.selectionLabel.text() == "2 Furnishings selected"

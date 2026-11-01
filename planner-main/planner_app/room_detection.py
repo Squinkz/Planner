@@ -53,7 +53,16 @@ def AddStairBoundaries(occupied, stairs, geometry):
     if stairs:
         geometry.ConnectedStairPath(stairs)
         toWorld = QtGui.QTransform().scale(1 / geometry.basePixelsPerMillimeter, -1 / geometry.basePixelsPerMillimeter)
-        occupied = occupied.united(toWorld.map(geometry.stairGeometryPath))
+        combined = QtGui.QPainterPath(occupied)
+        combined.setFillRule(QtCore.Qt.FillRule.WindingFill)
+        combined.addPath(toWorld.map(geometry.stairGeometryPath))
+        # Qt's boolean union can create overlapping hole contours where stair
+        # and wall faces meet a few floating-point steps apart. Trace the same
+        # filled geometry without moving vertices or rounding project values.
+        # The tracer puts filled space to the left in world coordinates. The
+        # existing wall/dimension contract uses clockwise exterior contours,
+        # with empty space to the left, so preserve that directed boundary.
+        occupied = geometry.TraceWallBoundary(combined, traceKey = "room-stairs").toReversed()
     return occupied
 
 

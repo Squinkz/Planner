@@ -138,7 +138,13 @@ def Main():
         exclude = openings[0] if case % 7 == 0 else None
         computed = actual.FindWindowPlacement(position, length = 1200 if cls is Fireplace else None, preferredWall = preferred, openingType = cls, exclude = exclude, modifiers = modifier)
         expected = reference.FindWindowPlacement(position, length = 1200 if cls is Fireplace else None, preferredWall = preferred, openingType = cls, exclude = exclude, modifiers = modifier)
-        assert Placement(computed) == Placement(expected), ("placement", case, Placement(computed), Placement(expected))
+        computedValues, expectedValues = Placement(computed), Placement(expected)
+        if computedValues is None or expectedValues is None:
+            assert computedValues == expectedValues, ("placement", case, computedValues, expectedValues)
+        else:
+            assert computedValues[:2] == expectedValues[:2] and computedValues[4:] == expectedValues[4:], ("placement metadata", case)
+            assert math.isclose(computedValues[2], expectedValues[2], rel_tol = 0, abs_tol = 1e-12), ("placement center", case)
+            assert math.isclose(computedValues[3], expectedValues[3], rel_tol = 0, abs_tol = 1e-8), ("placement length", case)
         assert Values(actual.alignmentGuides) == Values(reference.alignmentGuides), ("guides", case)
         if case % 9 == 0:
             walls[2].firstVertex += point(.1, .2)

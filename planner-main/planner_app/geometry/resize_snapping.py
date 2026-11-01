@@ -5,12 +5,13 @@ from .snapping import SnapPoint
 
 def SnapResize(north, center, originalWidth, originalLength, width, length, field, sign,
                centered, minimumSize, targets, scale, vertexRange, alignmentEnabled, gridStep,
-               distance = math.hypot):
+               distance = math.hypot, rayTargets = None):
     """Return width, length, applied, priority and guides without changing inputs.
 
     Targets are the already filtered direct/alignment points, including enabled
     midpoints. A desktop backend may supply its distance primitive for exact
     anchor ties. Corner resizing retains the original aspect ratio.
+    Optional ray lookup data must match the supplied ordered targets.
     """
     northX, northY = north
     eastX, eastY = northY, -northX
@@ -25,7 +26,8 @@ def SnapResize(north, center, originalWidth, originalLength, width, length, fiel
                   anchorY + (eastY * (eastSign * width) + northY * (northSign * length)) / factor)
         diagonalLength = math.hypot(diagonalX, diagonalY)
         snapped, applied, priority, guides = SnapPoint(corner, targets, scale, vertexRange,
-            alignmentEnabled, gridStep, (anchorX, anchorY), (diagonalX / diagonalLength, diagonalY / diagonalLength))
+            alignmentEnabled, gridStep, (anchorX, anchorY), (diagonalX / diagonalLength, diagonalY / diagonalLength),
+            rayTargets = rayTargets)
         resizeScale = factor * ((snapped[0] - anchorX) * diagonalX + (snapped[1] - anchorY) * diagonalY) / (diagonalX * diagonalX + diagonalY * diagonalY)
         resizeScale = max(minimumSize / min(originalWidth, originalLength), resizeScale)
         return originalWidth * resizeScale, originalLength * resizeScale, applied, priority, guides
@@ -44,7 +46,8 @@ def SnapResize(north, center, originalWidth, originalLength, width, length, fiel
                              (-tangentX * halfSpan, -tangentY * halfSpan)):
         point = edgeX + offsetX, edgeY + offsetY
         snapped, applied, priority, guides = SnapPoint(point, targets, scale, vertexRange,
-            alignmentEnabled, gridStep, (anchorX + offsetX, anchorY + offsetY), (axisX * sign, axisY * sign))
+            alignmentEnabled, gridStep, (anchorX + offsetX, anchorY + offsetY), (axisX * sign, axisY * sign),
+            rayTargets = rayTargets)
         if applied:
             snappedSize = factor * sign * (((snapped[0] - anchorX) - offsetX) * axisX + ((snapped[1] - anchorY) - offsetY) * axisY)
             if snappedSize >= 1:

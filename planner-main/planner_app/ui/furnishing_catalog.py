@@ -106,7 +106,11 @@ class FurnishingCatalogMixin:
         buttons.accepted.connect(Save)
         layout.addWidget(buttons)
         nameField.setFocus()
-        dialog.exec()
+        try:
+            dialog.exec()
+        finally:
+            buttons.accepted.disconnect(Save)
+            dialog.deleteLater()
 
     def SaveUserFurnishing(self, name, category, children):
         name = unicodedata.normalize("NFKC", name).strip()

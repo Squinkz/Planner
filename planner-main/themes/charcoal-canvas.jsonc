@@ -1,4 +1,4 @@
-// Neutral editor-inspired charcoal with silver linework and muted sand selections.
+// Neutral editor-inspired charcoal with silver linework and vivid gold selections.
 {
     "name": "Charcoal Canvas",
     "type": "canvas",
@@ -11,13 +11,13 @@
         "wallOutline": "#c2c2c5",
         "wallFill": "#38383a",
         "materialPattern": "#7c7c80",
-        "selectionOutline": "#c6bba6",
-        "selectionFill": "#4c4942",
-        "groupSelectionOutline": "#e2d8c5",
-        "groupSelectionFill": "#605b50",
-        "stairSelectionFill": "#3f3d38",
-        "stairGroupSelectionFill": "#4f4b43",
-        "selectionBoxFill": "#23c6bba6",
+        "selectionOutline": "#ffbf47",
+        "selectionFill": "#62502d",
+        "groupSelectionOutline": "#f28f43",
+        "groupSelectionFill": "#73432b",
+        "stairSelectionFill": "#4d4028",
+        "stairGroupSelectionFill": "#593724",
+        "selectionBoxFill": "#33ffbf47",
         "measurementLine": "#a2a2a6",
         "rulerBackground": "#202021",
         "rulerMajorTick": "#a0a0a4",

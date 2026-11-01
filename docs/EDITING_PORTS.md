@@ -14,20 +14,29 @@ in the desktop rather than imposing a generic transaction manager.
 snapshot contract has categories 0 (walls), 3 (openings), 5 (furnishings), 8 (labels),
 selection slots 1/2/4, groups 6 and hidden objects 7. Records start with a live
 object reference; remaining fields are opaque values supplied by an adapter.
+An optional slot 9 carries the desktop rotation owner and pivot. Sparse replay
+retains this extra selection context with each geometry edit, including clearing
+it when the target snapshot has no custom transform context.
 
 Preserve these rules in a port:
 
 - Object identity is distinct from value equality and serialized project IDs.
   Opening parent changes must be detected even for equal-valued wall objects.
 - Values use the adapter's equality semantics. Desktop records still contain
-  QPointF, including Qt's fuzzy point equality. Converting all points to plain
-  tuples here would change what counts as an edit; that conversion is not made.
+  QPointF and retain Qt's fuzzy point equality for numerical noise, capped at
+  `1e-6` millimeters per coordinate in furnishing and label history. Both Qt's
+  comparison and the absolute cap must match. This prevents the relative
+  tolerance from swallowing real moves far from the origin without broadening
+  which nearby coordinates count as equal. The same policy validates history
+  replay. Snapping, joins and other geometry retain their own tolerances.
 - Insertions/deletions retain unaffected relative order. Store full category
   order vectors only when surviving objects are actually reordered.
 - Group membership uses unordered member identity; hidden membership uses object
   identity. Replay still preserves the stored list/position semantics.
 - A selection-only change creates no edit. An edit that changes scene records
   stores both selections so undo/redo restores the relevant context.
+  Desktop transform context travels with these selections; ordinary records
+  without a rotation owner or custom pivot retain their original representation.
 - Validation rejects mismatched source records, invalid ordering and invalid
   membership at the same replay stages. Model-specific final validation is an
   explicit required adapter method; do not silently skip it when validation is
@@ -50,14 +59,23 @@ engine calls the adapter after generic replay checks; the adapter is read-only.
 
 ## Keep: transaction and UI coordinator
 
+`scene_snapshot.py` owns Qt point capture and model-setter replay without widget,
+viewport or project-codec imports. `history_records.py` supplies named wall,
+opening and scene tuple layouts; existing category positions and disk records
+remain compatible. Opening orientation fields share `record_schema.py` with
+project and clipboard transport. `object_schema.py` owns shared model-record
+encoding, so geometry comparisons do not import the project codec.
+
 `viewport/scene.py` remains responsible for:
 
-- `CaptureState` / `RestoreState`: Qt point snapshots, model setter order,
-  attachment restoration, stair layout links, visibility and selection.
+- `CaptureState` / `RestoreState`: delegate model capture/replay to the snapshot
+  adapter, and coordinate attachment membership, stair links, visibility,
+  selection and notifications.
 - `RecordEdit`: object IDs, pruning groups/hidden entries, stair bookkeeping,
   monotonic coalescing/revision guards, memory limits, redo invalidation and
-  scene-change notification. A coalesced no-op still follows the existing
-  revision/notification policy; no notification order was changed.
+  scene-change notification. Scene changes are notified before activity storage,
+  so an archive failure cannot conceal an applied edit. A coalesced no-op keeps
+  the existing revision policy.
 - `Undo` / `Redo`: cancel an active gesture before scene replay; dispatch to the
   separate export-options history when the export tab is active.
 

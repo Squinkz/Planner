@@ -7,13 +7,34 @@ import math
 import re
 import time
 import zlib
+import sqlite3
+import warnings
+from functools import wraps
 from datetime import datetime, timezone
 from PySide6 import QtCore
+from .activity_storage import ActivityEntries
 
 
 from .activity_records import (activityByteLimit, DecodeActivityLog, ActivityRecordFingerprint,
-                               DescribeReferenceChange, DescribeRecordChanges, EncodeActivityLog,
+                               DescribeReferenceChange, DescribeRecordChanges, EncodeActivityLog, ActivityEncoding,
                                EncodeActivityStacks, RestoreActivityStacks)
+
+
+def ActivityStorageOperation(function):
+    """Ancillary archive I/O must not abort committed editor operations."""
+    @wraps(function)
+    def Guarded(self, *arguments, **options):
+        try:
+            return function(self, *arguments, **options)
+        except (OSError, sqlite3.Error) as error:
+            message = f"Activity history could not be stored: {error}"
+            if message != getattr(self, "storageError", None):
+                self.storageError = message
+                # Canvas error messages themselves enter this log. Use the
+                # independent diagnostic channel to avoid recursive failures.
+                warnings.warn(message, RuntimeWarning)
+            return None
+    return Guarded
 
 
 def EditFingerprint(edit):
@@ -44,7 +65,9 @@ class ActivityLog(QtCore.QObject):
     def __init__(self, main):
         super().__init__(main)
         self.main = main
-        self.entries, self.sceneLinks, self.exportLinks, self.issues = [], {}, {}, {}
+        self.entries = ActivityEntries()
+        self.destroyed.connect(self.entries.Close)
+        self.sceneLinks, self.exportLinks, self.issues = {}, {}, {}
         self.nextId, self.revision, self.generation = 1, 0, 0
         self.restoring = False
         self.persisted = False
@@ -65,6 +88,7 @@ class ActivityLog(QtCore.QObject):
         main.viewport.sceneChanged.connect(self.QueueIssues)
         main.viewport.settingsChanged.connect(self.QueueIssues)
 
+    @ActivityStorageOperation
     def Add(self, kind, summary, details = "", objects = (), anchor = None, timestamp = True, linkScene = False):
         if self.main.projectLoading or self.restoring:
             return None
@@ -137,13 +161,14 @@ class ActivityLog(QtCore.QObject):
                 self.Add("Settings", "Changed " + ", ".join(labels.get(key, re.sub(r"(?<=[a-z])(?=[A-Z])", " ", key).lower()) for key in changed))
         self.settingsBaseline = current
 
+    @ActivityStorageOperation
     def SceneEdited(self, edit, replaced = None):
         if edit is None or self.main.projectLoading:
             self.changed.emit()
             return
         summary, details, objects = DescribeEdit(edit)
         existing = self.sceneLinks.pop(replaced.token, None) if replaced is not None else None
-        entry = next((entry for entry in reversed(self.entries) if entry["id"] == existing), None) if existing else None
+        entry = self.entries.Find(existing)
         if entry is None:
             entry = self.Add("Edit", summary, details, objects)
         else:
@@ -152,6 +177,7 @@ class ActivityLog(QtCore.QObject):
             self.Touch()
         if entry is not None:
             entry["anchor"] = dict(scope = "Scene", edit = entry["id"], side = "after")
+            self.entries.Update(entry)
             self.sceneLinks[edit.token] = entry["id"]
             self.PruneLinks()
             self.cache = None
@@ -165,14 +191,15 @@ class ActivityLog(QtCore.QObject):
         pairs = {id(pair) for pair in panel.exportUndoHistory + panel.exportRedoHistory}
         self.exportLinks = {token: value for token, value in self.exportLinks.items() if token in pairs}
 
+    @ActivityStorageOperation
     def ExportEdited(self, pair):
         if self.main.projectLoading or self.restoring:
             return
         before, after = pair
         keys = sorted(key for key in set(before["overrides"]) | set(after["overrides"])
-                      if before["overrides"].get(key) != after["overrides"].get(key))
+                      if key not in ("cropRegions", "modeScales") and before["overrides"].get(key) != after["overrides"].get(key))
         labels = {"fileType": "file type", "unitsMode": "units", "bounds": "crop", "scale": "scale",
-                  "solidObjects": "solid objects", "floors": "room style", "roomStyle": "room style", "solidRooms": "solid rooms", "wallStyle": "wall style",
+                  "solidObjects": "solid objects", "floors": "room style", "roomStyle": "room style", "solidRooms": "solid rooms", "drawOpeningOutlines": "opening outlines", "borderTextSize": "border text size", "borderWidth": "border width", "wallStyle": "wall style",
                   "canvasTheme": "theme", "showGrid": "grid visibility", "gridOrigin": "grid origin",
                   "measurementVisibility": "dimensions", "wallMeasurementMode": "wall dimension mode",
                   "wallMeasurementReference": "wall reference", "visibility": "object visibility",
@@ -185,19 +212,22 @@ class ActivityLog(QtCore.QObject):
         entry = self.Add("Export", "Changed export " + (", ".join(fields) or "settings"))
         if entry is not None:
             entry["anchor"] = dict(scope = "Export", edit = entry["id"], side = "after")
+            self.entries.Update(entry)
             self.exportLinks[id(pair)] = entry["id"]
             self.PruneLinks()
             self.changed.emit()
 
+    @ActivityStorageOperation
     def Travel(self, edit, forward, scope = "Scene"):
         link = (self.sceneLinks.get(edit.token) if scope == "Scene" else self.exportLinks.get(id(edit)))
-        original = next((entry for entry in reversed(self.entries) if entry["id"] == link), None)
+        original = self.entries.Find(link)
         summary = DescribeEdit(edit)[0] if scope == "Scene" else (
             original["summary"].removeprefix("Undid: ").removeprefix("Redid: ") if original else "Changed export settings")
         entry = self.Add("History", ("Redid: " if forward else "Undid: ") + summary,
                          anchor = dict(scope = scope, edit = link, side = "after" if forward else "before") if link else None)
         if entry is not None and link is None:
             entry["anchor"] = dict(scope = scope, edit = entry["id"], side = "after" if forward else "before")
+            self.entries.Update(entry)
             if scope == "Scene":
                 self.sceneLinks[edit.token] = entry["id"]
             else:
@@ -294,31 +324,32 @@ class ActivityLog(QtCore.QObject):
             self.cache = None
             self.Touch()
 
-    def Encode(self):
+    def Encode(self, deferred = False):
         v = self.main.viewport
         key = (self.revision, tuple(edit.token for edit in v.undoHistory), tuple(edit.token for edit in v.redoHistory))
         if self.cache is not None and self.cache[0] == key:
-            return self.cache[1]
+            return self.cache[1] if deferred else self.cache[1].Encode()
         if not self.entries and not self.persisted:
             return None
         stacks = {name: [(edit.token, edit) for edit in stack] for name, stack in (("undo", v.undoHistory), ("redo", v.redoHistory))}
         links = EncodeActivityStacks(stacks, self.sceneLinks, self.digests, EditFingerprint)
         data = dict(entries = self.entries, issues = self.issues, gridStep = self.gridStep, **links)
-        record = EncodeActivityLog(data)
-        self.cache = key, record
-        return record
+        encoding = ActivityEncoding(data)
+        self.cache = key, encoding
+        return encoding if deferred else encoding.Encode()
 
     def Load(self, data):
         self.issueTimer.stop()
         self.settingsTimer.stop()
-        self.entries, self.sceneLinks, self.exportLinks, self.issues = [], {}, {}, {}
+        self.entries.Reset()
+        self.sceneLinks, self.exportLinks, self.issues = {}, {}, {}
         self.digests, self.lastMessages = {}, {}
         self.cache = None
         self.generation += 1
         self.nextId = 1
         self.persisted = data is not None
         if data is not None:
-            self.entries = data["entries"]
+            self.entries.Reset(data["entries"])
             self.nextId = max((entry["id"] for entry in self.entries), default = 0) + 1
             self.issues, self.gridStep = data["issues"], data["gridStep"]
             stacks = {name: [(edit.token, edit) for edit in stack] for name, stack in (
@@ -342,7 +373,8 @@ class ActivityLog(QtCore.QObject):
     def Clear(self):
         self.FlushSettings()
         self.persisted = True
-        self.entries, self.sceneLinks, self.exportLinks, self.issues = [], {}, {}, {}
+        self.entries.Reset()
+        self.sceneLinks, self.exportLinks, self.issues = {}, {}, {}
         self.lastMessages, self.digests = {}, {}
         self.issueTimer.stop()
         self.generation += 1

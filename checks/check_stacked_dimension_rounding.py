@@ -1,4 +1,4 @@
-"""Stacked labels add up from the inner row in every display unit and precision."""
+"""Balanced stacks add up to their measured overall in every unit and precision."""
 import math
 import os
 from fractions import Fraction
@@ -14,6 +14,7 @@ from check_room_detection import Rectangle
 from planner_app.geometry.measurement_stacks import StackedDimensionLengths
 from planner_app.models import Wall, Window
 from planner_app.units import FormatLength, unitModes, imperialModes
+from planner_app.measurement_units import measurementPrecisions
 from planner_app.viewport.rendering import RenderingMixin
 from planner_app.export_plan import RenderPlan
 
@@ -44,14 +45,21 @@ def Main():
         geometry = [(p(first), p(second)) for first, second, owners in inner]
         for mode in unitModes:
             for precision in ("High", "Medium", "Low"):
-                base = [DisplayedValue(QtCore.QLineF(first, second).length(), mode, precision) for first, second, owners in inner]
-                rounded = StackedDimensionLengths(inner, rows, mode, precision)
+                balanced, rounded = StackedDimensionLengths(inner, rows, mode, precision, includeInner = True)
+                base = [DisplayedValue(length, mode, precision) for length in balanced]
                 displayed = [DisplayedValue(length, mode, precision) for length in rounded]
                 assert displayed == [sum(base[:6]), sum(base[6:]), sum(base)], (angle, mode, precision, displayed)
                 assert displayed[0] + displayed[1] == displayed[2]
+                assert displayed[2] == DisplayedValue(QtCore.QLineF(points[0], points[-1]).length(), mode, precision)
+                step = 25.4 / {"High": 16, "Medium": 4, "Low": 1}[precision] if mode in imperialModes else measurementPrecisions[precision]
+                assert all(abs(shown - actual) < step + 1e-7 for shown, actual in zip(balanced, lengths))
                 # Reversed input order/direction cannot alter the labels.
                 reversedInner = [(second, first, owners) for first, second, owners in reversed(inner)]
                 assert StackedDimensionLengths(reversedInner, rows, mode, precision) == rounded
+                reversedBalanced, reversedRows = StackedDimensionLengths(reversedInner, rows, mode, precision, includeInner = True)
+                assert reversedBalanced == list(reversed(balanced)) and reversedRows == rounded
+                reversedRows = [(second, first, owners, tier) for first, second, owners, tier in reversed(rows)]
+                assert StackedDimensionLengths(inner, reversedRows, mode, precision) == list(reversed(rounded))
         assert [(first, second) for first, second, owners in inner] == geometry
         # Missing spans are not replaced by a misleading partial sum.
         assert StackedDimensionLengths(inner[1:], rows[-1:], "Millimeters", "High") == [QtCore.QLineF(points[0], points[-1]).length()]
@@ -79,12 +87,16 @@ def Main():
                 for precision in ("High", "Medium", "Low"):
                     v.measurementPrecision = precision
                     observed.clear()
-                    with patch("planner_app.viewport.rendering.FormatLength", CaptureLength):
+                    with patch("planner_app.viewport.rendering.FormatLength", CaptureLength), \
+                            patch("planner_app.graphics.retained_dimensions.FormatLength", CaptureLength):
                         v.grab()
                     inner, rows = v.sceneMeasurements[1:]
                     assert any(tier == 2 for first, second, owners, tier in rows)
-                    rounded = StackedDimensionLengths(inner, rows, mode, precision)
-                    assert all(any(abs(length - value) < 1e-7 for value, text in observed) for length in rounded)
+                    balanced, rounded = StackedDimensionLengths(inner, rows, mode, precision, includeInner = True)
+                    assert all(any(abs(length - value) < 1e-7 for value, text in observed)
+                               for length in rounded + [value for value in balanced if value is not None])
+                    records = v.measurementLabelRecords[4]
+                    assert [record[-1] for record in records if not record[4]] == balanced + rounded
         # PNG and SVG use the same corrected labels, with export's active units.
         data = main.BuildProjectData()
         draw = RenderingMixin.DrawSceneMeasurements
@@ -95,8 +107,9 @@ def Main():
             with patch("planner_app.viewport.rendering.FormatLength", CaptureLength):
                 result = draw(viewport, *args, **kwargs)
             inner, rows = viewport.sceneMeasurements[1:]
-            rounded = StackedDimensionLengths(inner, rows, viewport.unitsMode, viewport.measurementPrecision)
-            assert rows and all(any(abs(length - value) < 1e-7 for value, text in observed) for length in rounded)
+            balanced, rounded = StackedDimensionLengths(inner, rows, viewport.unitsMode, viewport.measurementPrecision, includeInner = True)
+            assert rows and all(any(abs(length - value) < 1e-7 for value, text in observed)
+                                for length in rounded + [value for value in balanced if value is not None])
             exported.append(viewport.unitsMode)
             return result
 
@@ -106,7 +119,24 @@ def Main():
                                     projectData = data, outputFormat = outputFormat, applyTheme = False)
                 assert output if outputFormat == "png" else QtSvg.QSvgRenderer(output).isValid()
         assert exported == [v.unitsMode, v.unitsMode]
-    print("PASS: stacked sums, all units/precisions, rotated chains, wall references, unchanged geometry and PNG/SVG labels")
+        # Reproduce opposite overalls disagreeing solely because one side has
+        # openings and the other is divided into three fractional room spans.
+        walls = Rectangle(-8350, -4550, 16700, 9100)
+        walls.extend([Wall(p(-8350, 0), p(8350, 0), 200),
+                      Wall(p(-3743.4, -4550), p(-3743.4, 0), 200),
+                      Wall(p(3743.4, -4550), p(3743.4, 0), 200)])
+        windows = [Window(walls[2], first / 16700, second / 16700)
+                   for first, second in ((3690, 4400), (6930, 7830), (8870, 9770), (12300, 13010))]
+        InstallScene(main, walls + windows)
+        v.wallMeasurementReference = "Centerline"
+        v.unitsMode, v.measurementPrecision = "Millimeters", "Medium"
+        geometry = main.BuildProjectData(includeHistory = False)["scene"]
+        v.grab()
+        horizontal = [record for record in v.measurementLabelRecords[4] if abs(record[0].y() - record[1].y()) < .01]
+        assert [record[-1] for record in horizontal if record[3] > 0] == [16700, 16700]
+        assert [record[-1] for record in horizontal if record[3] == 0 and record[0].y() < 0] == [4605, 7490, 4605]
+        assert main.BuildProjectData(includeHistory = False)["scene"] == geometry
+    print("PASS: measured overalls, balanced stacks, units/precisions, reversed/rotated chains, unchanged geometry and PNG/SVG labels")
 
 
 if __name__ == "__main__":

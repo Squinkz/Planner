@@ -4,6 +4,7 @@ from collections import deque
 import os
 from time import perf_counter
 from planner_app.preferences import lineworkDefaults, measurementVisibilityDefaults, collisionDefaults
+from planner_app.export_settings import measurementDefaultTextSize
 from planner_app.graphics.linework import defaultLineWidths
 from PySide6 import QtCore, QtGui, QtWidgets
 from .geometry import GeometryMixin
@@ -23,12 +24,13 @@ from .clipboard import ClipboardMixin
 from .furnishing_handles import FurnishingHandlesMixin
 from .export_bounds import ExportBoundsOverlay
 from .raster_cache import RasterCacheBudget
+from .geometry_cache import NativeGeometryBudget, NativeGeometryCache
 from planner_app.scene_changes import SceneChanges, SceneList, SceneDict, SceneSet
 from planner_app.room_detection import RoomDetection
 from planner_app.models import OpenDoorway, Door, SwingingDoor, DoubleDoor, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, Window, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, Label
 from planner_app.catalog import LoadFurnishings, furnishingsFolder
 from planner_app.preferences import wallPresetWidths, openingDefaultSizes, miscDefaultSizes, measurementDefaults, stairStepSizeDefaults, railingSpacingDefaults
-from planner_app.graphics.furnishings import FurnishingRendererMap
+from planner_app.graphics.furnishings import FurnishingRendererMap, FurnishingRendererCache
 from planner_app.graphics.theme import BuildWallBrush, gridIntensityDefaults, wallMaterials
 from planner_app.graphics.palette import themeColors
 
@@ -63,6 +65,13 @@ class DrawingViewport(GuideLabelsMixin, AngleGuidesMixin, VisibilityMixin, Group
         changes = self.__dict__.get("renderChanges")
         if changes is not None:
             if name in ("walls", "windows", "furnishings", "labels", "objectGroups"):
+                if name == "walls":
+                    self.__dict__.pop("columnGeometryPreparation", None)
+                    self.__dict__.pop("columnExteriorPrefix", None)
+                self.__dict__.pop("numericSnapPreparation", None)
+                self.__dict__.pop("visibleSnapObjects", None)
+                for cacheName in ("openingFitGroups", "openingFitBeforeWalls", "openingFitBeforeCenters"):
+                    self.__dict__.pop(cacheName, None)
                 if not isinstance(value, SceneList) or value.changes is not changes:
                     value = SceneList(value, changes, nested = name == "objectGroups")
                     changes.Bump("topology")
@@ -76,9 +85,10 @@ class DrawingViewport(GuideLabelsMixin, AngleGuidesMixin, VisibilityMixin, Group
                     changes.Bump("visibility")
         super().__setattr__(name, value)
 
-    def __init__(self, parent = None):
+    def __init__(self, parent = None, furnishingDefinitions = None):
         super().__init__(parent)
         self.renderChanges = SceneChanges()
+        self.geometryCacheBudget = (parent.geometryCacheBudget if isinstance(parent, DrawingViewport) else NativeGeometryBudget())
         self.verifyRenderRevisions = os.environ.get("PLANNER_VERIFY_RENDER_REVISIONS") == "1"
         self.renderRevisionReference = None
         self.renderSamples = deque(maxlen = 512)
@@ -106,6 +116,7 @@ class DrawingViewport(GuideLabelsMixin, AngleGuidesMixin, VisibilityMixin, Group
         self.viewportSceneKey = None
         self.viewportScene = None
         self.viewportSceneState = None
+        self.retainedMeasurements = None
         self.viewportSceneByteLimit = 128 * 1024 * 1024
         self.viewportRasterByteLimit = 128 * 1024 * 1024
         self.rasterCacheBudget = RasterCacheBudget(self)
@@ -162,6 +173,8 @@ class DrawingViewport(GuideLabelsMixin, AngleGuidesMixin, VisibilityMixin, Group
         self.autoSizingUnitsMode = None
         self.unitsMode = "Millimeters"
         self.measurementPrecision = "Medium"
+        self.measurementTextSize = 0
+        self.measurementPixelsPerMillimeter = 300 / 25.4
         self.vertexSnapRange = 10.0
         self.vertexHoverRange = 50.0
         self.hoverPosition = None
@@ -208,12 +221,13 @@ class DrawingViewport(GuideLabelsMixin, AngleGuidesMixin, VisibilityMixin, Group
         self.furnishingContextMenu = self.objectContextMenu
         self.rightClickStart = None
         self.furnishingsFolder = furnishingsFolder
-        self.furnishingDefinitions = {item["key"]: item for item in LoadFurnishings(self.furnishingsFolder)}
+        self.furnishingDefinitions = (dict(furnishingDefinitions) if furnishingDefinitions is not None else
+                                      {item["key"]: item for item in LoadFurnishings(self.furnishingsFolder)})
         self.localFurnishingDefinitions = dict(self.furnishingDefinitions)
         self.projectFurnishingDefinitions = {}
         self.furnishingRenderers = FurnishingRendererMap(self.furnishingDefinitions)
         self.selectedFurnishingRenderers = FurnishingRendererMap(self.furnishingDefinitions, selected = True)
-        self.groupedFurnishingRenderers = {}
+        self.groupedFurnishingRenderers = FurnishingRendererCache()
         self.objectClipCache = {}
         self.furnishingPreview = None
         self.furnishingHandleDrag = None
@@ -281,18 +295,18 @@ class DrawingViewport(GuideLabelsMixin, AngleGuidesMixin, VisibilityMixin, Group
         self.viewportEditRaster = self.viewportEditKey = self.viewportEditState = self.viewportEditSnapshot = None
         self.viewportEditFrameKey = self.viewportEditBackgroundKey = self.viewportEditSuppressedGesture = None
         self.viewportEditDirtyRects = []
-        self.wallBoundaryCache = {}
+        self.wallBoundaryCache = NativeGeometryCache(self.geometryCacheBudget)
         self.wallBoundaryEdgeCache = {}
         self.wallTraceState = None
         self.wallTraceContexts = {}
         self.wallTraceContextPoints = 0
         self.wallContourCache = {}
         self.wallContourCachePoints = 0
-        self.wallComponentCache = {}
+        self.wallComponentCache = NativeGeometryCache(self.geometryCacheBudget)
         self.wallBodyCache = {}
         self.wallJunctionCache = {}
         self.wallSectorCache = {}
-        self.wallOwnershipCache = {}
+        self.wallOwnershipCache = NativeGeometryCache(self.geometryCacheBudget)
         self.wallPolygonCache = {}
         self.wallPolygonPointCount = 0
         self.dimensionOwnerCache = {}
@@ -301,12 +315,14 @@ class DrawingViewport(GuideLabelsMixin, AngleGuidesMixin, VisibilityMixin, Group
         self.dimensionOwnerState = None
         self.wallMaterialPathCache = {}
         self.wallGeometryComponents = []
-        self.wallDimensionComponentCache = {}
+        self.wallDimensionComponentCache = NativeGeometryCache(self.geometryCacheBudget)
         self.dimensionCacheKey = None
         self.dimensionCache = []
         self.dimensionBoundaryKey = None
         self.dimensionBoundaryValues = ()
         self.solidObjects = True
+        self.drawOpeningOutlines = True
+        self.borderTextSize = measurementDefaultTextSize
         self.floors = True
         self.solidRooms = False
         self.wallStyle = "Material"
@@ -319,6 +335,7 @@ class DrawingViewport(GuideLabelsMixin, AngleGuidesMixin, VisibilityMixin, Group
         self.materialPaths = {}
         self.wallMaterialPaths = {}
         self.wallFillPolygons = []
+        self.wallFootprintCuts = {}
         self.stairGeometryKey = None
         self.stairGeometryComponents = []
         self.stairGeometryPath = QtGui.QPainterPath()

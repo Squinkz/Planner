@@ -31,7 +31,7 @@ class TitleBlockControlsMixin:
         positionLayout.setSpacing(8)
         self.titleBlockPositionGroup = QtWidgets.QButtonGroup(self)
         self.titleBlockPositionButtons = {}
-        for position, icon in (("Right", "flip_v"), ("Bottom", "flip_h")):
+        for position, icon in (("Right", "right"), ("Bottom", "bottom")):
             button = QtWidgets.QPushButton()
             button.setObjectName("propertyIconButton")
             button.setIcon(UiIcon(icon))
@@ -83,13 +83,13 @@ class TitleBlockControlsMixin:
         self.titleBlockFields = {}
         for name, text, multiline in (
                 ("projectName", "Project name", False),
-                ("drawingTitle", "Drawing title", False),
+                ("drawingTitle", "Sheet title", False),
                 ("address", "Project address", True),
                 ("date", "Date", False),
                 ("preparedBy", "Prepared by", False),
-                ("comments", "Comments", True),
-                ("sheetNumber", "Sheet number", False),
-                ("revision", "Revision", False)):
+                ("comments", "Notes", True),
+                ("revision", "Revision", False),
+                ("sheetNumber", "Sheet number", False)):
             label = QtWidgets.QLabel(text)
             label.setObjectName("exportControlLabel")
             field = (QtWidgets.QDateEdit() if name == "date" else
@@ -153,14 +153,14 @@ class TitleBlockControlsMixin:
         options = dict(self.overrides.get("titleBlock", {}))
         path = self.mainWindow.projectPath
         options.setdefault("projectName", Path(path).stem if path else "New Project")
+        options.setdefault("drawingTitle", "Ground Floor Plan")
+        options.setdefault("sheetNumber", "A-101")
         options["logoMode"] = TitleBlockLogoMode(options)
         if options["logoMode"] == "Custom" and not options.get("logo"):
             options["logoMode"] = "Planner"
         return options
 
     def TitleBlockDpi(self):
-        if self.overrides.get("scaleMode") == "Architectural":
-            return self.overrides.get("dpi", 300)
         return 300
 
     def SetTitleBlockOption(self, name, value):
@@ -173,11 +173,12 @@ class TitleBlockControlsMixin:
     def RefreshTitleBlockControls(self):
         options = self.TitleBlockOptions()
         overlay = self.mainWindow.viewport.exportOverlay
+        overlay.printMode = self.overrides.get("scaleMode") == "Print"
         overlay.titleBlockDpi = self.TitleBlockDpi()
         if overlay.titleBlock != options:
             overlay.titleBlock = dict(options)
             self.mainWindow.viewport.update()
-        if overlay.active:
+        if overlay.active and not overlay.printMode and not self.exportHistoryRestoring:
             bounds = overlay.ConstrainTitleBlockBounds(overlay.bounds)
             if bounds != overlay.bounds:
                 overlay.bounds = bounds
@@ -192,7 +193,7 @@ class TitleBlockControlsMixin:
         self.titleBlockLogoMode.setCurrentText(options["logoMode"])
         self.titleBlockLogoOptions.setVisible(options["logoMode"] == "Custom")
         for name, field in self.titleBlockFields.items():
-            value = options.get(name, "0001" if name == "sheetNumber" else "")
+            value = options.get(name, "")
             if isinstance(field, QtWidgets.QDateEdit):
                 date = QtCore.QDate.fromString(value, QtCore.Qt.DateFormat.ISODate)
                 field.setDate(date if date.isValid() else QtCore.QDate.currentDate())

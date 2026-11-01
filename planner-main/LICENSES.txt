@@ -34,13 +34,18 @@ PySide6 and shiboken6 provide Qt bindings. Their distributed license choices
 include LGPL-3.0-only, GPL-2.0-only and GPL-3.0-only. Refer to the license files
 provided with the Qt/PySide distribution for complete terms and notices.
 
+NumPy provides CPU array operations for texture lighting and geometry filtering, under
+BSD-3-Clause. Its complete notices, including bundled-library notices, are
+provided in numpy-*.dist-info/licenses within the Python installation or the
+packaged application's _internal directory.
+
 Material Symbols / Material Icons artwork is from Google, under Apache-2.0.
 The GitHub logo is a trademark of GitHub, Inc., used to link to the author's profile.
 
 All bundled font software is under SIL Open Font License 1.1 (OFL-1.1):
 - Noto Sans Regular, SemiBold and Bold: copyright 2022 The Noto Project Authors.
   Complete notice: assets/fonts/OFL.txt.
-- D-DIN Condensed: copyright (c) 2017, Datto Inc. (fonts@datto.com),
+- D-DIN Condensed Regular and Bold: copyright (c) 2017, Datto Inc. (fonts@datto.com),
   with Reserved Font Name D-DIN Condensed. Designer: Charles Nix.
   Complete notice: assets/fonts/OFL-D-DIN.txt.
 - Drafting Small Caps: a modified small-caps version of Architects Daughter,

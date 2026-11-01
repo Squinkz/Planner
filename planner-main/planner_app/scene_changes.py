@@ -1,5 +1,6 @@
 """Owned scene values report edits, including mutable Qt coordinates/containers."""
 import weakref
+import math
 from PySide6 import QtCore
 
 
@@ -9,11 +10,18 @@ class SceneChanges:
         self.wallGeometry = 0
         self.stairGeometry = 0
         self.roomLabelGeometry = 0
+        self.metadata = 0
         self.definitions = {}
         self.definitionOwners = {}
+        self.dirtyObjects = None  # IDs only, enabled during group preview restoration.
+        self.placementChanges = None  # Geometry notifications since the last paint validation.
+        self.paintChanges = self.snapChanges = None
 
     def Bump(self, kind):
         setattr(self, kind, getattr(self, kind) + 1)
+        if kind == "topology":
+            self.placementChanges = None
+            self.paintChanges = self.snapChanges = None
 
     def Watch(self, obj):
         if isinstance(obj, SceneObject):
@@ -113,15 +121,32 @@ class SceneObject:
 
     def __setattr__(self, name, value):
         old = self.__dict__.get(name)
-        if name in ("firstVertex", "secondVertex", "middleVertex", "textOffset"):
+        pointField = name in ("firstVertex", "secondVertex", "middleVertex", "textOffset")
+        if pointField:
             value = ScenePoint(value, self)
         elif name in ("stepSizeBounds", "spacingBounds"):
             value = tuple(value)
         object.__setattr__(self, name, value)
+        if name == "sceneStairs":
+            if old is not value:
+                self.NotifyRender("metadata")
+            return
         guideDepth = name == "depth" and type(self).__name__ == "MeasurementGuide"
         if name not in geometryFields and name not in appearanceFields and not guideDepth:
             return
-        changed = old is not value if name in ("parentWall", "definition") else old != value
+        # Equal Python numbers can have different persisted comparison keys
+        # (1 versus 1.0, for example). Observe assignments as well as revisions.
+        self.__dict__.pop("_coincidentRecordCache", None)
+        if pointField:
+            # QPointF equality is fuzzy at large coordinates. Revision-keyed
+            # geometry must observe every representable coordinate change.
+            changed = (old is None or old.x() != value.x() or old.y() != value.y()
+                       or old.x() == 0 and math.copysign(1, old.x()) != math.copysign(1, value.x())
+                       or old.y() == 0 and math.copysign(1, old.y()) != math.copysign(1, value.y()))
+        else:
+            changed = old is not value if name in ("parentWall", "definition") else old != value
+        if changed and name in ("objectId", "stepSizeBounds", "spacingBounds"):
+            self.NotifyRender("metadata")
         if name == "definition" and changed:
             for observer in self.__dict__.get("_renderObservers", ()):
                 observer.Watch(self)
@@ -134,7 +159,18 @@ class SceneObject:
             self.NotifyRender("appearance")
 
     def NotifyRender(self, kind):
+        self.__dict__.pop("_coincidentRecordCache", None)
         for observer in self.__dict__.get("_renderObservers", ()):
+            if observer.dirtyObjects is not None:
+                observer.dirtyObjects.add(id(self))
+            if kind == "geometry" and observer.placementChanges is not None:
+                observer.placementChanges["objects"][id(self)] = self
+                observer.placementChanges["events"] += 1
+            if kind in ("geometry", "appearance"):
+                for journal in (observer.paintChanges, observer.snapChanges):
+                    if journal is not None:
+                        journal["objects"][id(self)] = self
+                        journal["events"] += 1
             observer.Bump(kind)
             if kind == "geometry" and type(self).__name__ in ("Wall", "Pillar", "Column"):
                 observer.Bump("wallGeometry")
@@ -144,7 +180,8 @@ class SceneObject:
                 observer.Bump("roomLabelGeometry")
 
     def __getstate__(self):
-        return {name: value for name, value in self.__dict__.items() if name != "_renderObservers"}
+        return {name: value for name, value in self.__dict__.items()
+                if name not in ("_renderObservers", "_coincidentRecordCache")}
 
     def __setstate__(self, state):
         for name, value in state.items():

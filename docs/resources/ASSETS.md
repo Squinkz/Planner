@@ -3,8 +3,7 @@
 UI SVGs live in `assets/icons_ui/`; Build symbols live in `assets/icons_ui/objects/`. Cursor bitmaps live in `assets/cursors/`, and fonts live in `assets/fonts/`.
 
 `assets/planner.svg` is the Planner About logo. The About window loads it at
-300 by 300 logical pixels. The `about_*` footer
-icons also come from Stacker and use Planner's usual theme tinting.
+300 by 300 logical pixels. The `about_*` footer icons use Planner's usual theme tinting.
 
 ## UI SVGs
 

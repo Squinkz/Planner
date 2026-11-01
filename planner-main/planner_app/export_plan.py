@@ -15,20 +15,37 @@ from pathlib import Path
 import sys
 from functools import wraps
 from copy import deepcopy
+from planner_app.view_settings import ApplyViewportView, viewSettingNames
 from xml.etree import ElementTree
+
+
+class ExportSceneCache:
+    """Own one independent, prepared scene across page renders."""
+    def __init__(self):
+        self.key = self.decoded = self.definitions = self.viewport = None
+        self.furnishingWidth = None
+
+    def Clear(self):
+        from shiboken6 import isValid
+        viewport = self.viewport
+        self.key = self.decoded = self.definitions = self.viewport = None
+        self.furnishingWidth = None
+        if viewport is not None and isValid(viewport):
+            viewport.deleteLater()
 
 
 def RecolorSvgPreview(data, colors, markers = None):
     """Update named scene paints without rebuilding exported vector geometry."""
     from PySide6 import QtGui
-    root = ElementTree.fromstring(data)
+    document = isinstance(data, ElementTree.Element)
+    root = data if document else ElementTree.fromstring(data)
     for element in root.iter():
         for attribute in ("fill", "stroke", "stop-color"):
             role = markers.get(element.get(attribute)) if markers is not None else element.get("data-planner-" + attribute)
             if role is not None:
                 element.set("data-planner-" + attribute, role)
                 element.set(attribute, QtGui.QColor(colors[role]).name())
-    return ElementTree.tostring(root, encoding = "utf-8", xml_declaration = True)
+    return root if document else ElementTree.tostring(root, encoding = "unicode", xml_declaration = True).encode("utf-8")
 
 
 def PreviewPaintRoles(render):
@@ -62,7 +79,7 @@ def PreviewPaintRoles(render):
 
 @PreviewPaintRoles
 def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "png", projectData = None, applyTheme = True, border = None,
-               dpi = None, architecturalScale = None, borderSize = 28, vignetteStrength = 0, texture = None, textureAngle = 0, textureSettings = None, wallStyle = "Material", solidObjects = True, gridOrigin = (0.0, 0.0), preview = False, previewScene = False, clipCache = None, furnishingDefinitions = None, useExportSettings = False, floors = None, roomStyle = None, solidRooms = None, titleBlock = None):
+               dpi = None, architecturalScale = None, borderSize = 28, vignetteStrength = 0, texture = None, textureAngle = 0, textureSettings = None, wallStyle = "Material", solidObjects = True, gridOrigin = (0.0, 0.0), preview = False, previewScene = False, clipCache = None, furnishingDefinitions = None, useExportSettings = False, floors = None, roomStyle = None, solidRooms = None, titleBlock = None, pageSize = None, rasterSampling = 1, transparentScene = False, sceneCache = None, scaleBar = None, previewDocument = False, measurementTextSize = None, drawOpeningOutlines = True, borderTextSize = None, borderWidth = None):
     """Return a QImage or SVG bytes, using identical layout and scene drawing.
 
     projectData accepts an unsaved scene instead of reading planPath. GUI callers
@@ -71,12 +88,25 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
     instead of reloading disk definitions on every preview.
     useExportSettings resolves saved Export-tab overrides for the CLI. The scale
     argument remains a digital density and explicit bounds override the saved crop.
+    Physical exports use a 300-PPI design space; dpi changes raster density only.
+    transparentScene omits the canvas fill for layered previews. Combined with
+    previewScene it also omits the grid/room background, which pages draw locally.
+    sceneCache can retain a prepared PNG/SVG scene for explicit projectData renders
+    with applyTheme = False and useExportSettings = False. Page layout, density
+    and effects are still resolved independently on every call. Explicit wall
+    and room styles reuse geometry while refreshing their paint state.
+    previewDocument returns an owned ElementTree for an internal SVG preview,
+    avoiding redundant serialization/parsing. File exports always return bytes.
     """
     border = border if border is not None else "Ruler" if ruler else "None"
     if border not in ("None", "Plain", "Frame", "Corner Marks", "Reference Zones", "Marked", "Ruler", "Ruler + Reference Zones"):
         raise ValueError("Invalid export border.")
     if type(solidObjects) is not bool:
         raise ValueError("Solid objects must be a boolean.")
+    if type(drawOpeningOutlines) is not bool:
+        raise ValueError("Opening outlines must be a boolean.")
+    if borderWidth is not None and (type(borderWidth) not in (int, float) or not math.isfinite(borderWidth) or not 0 < borderWidth <= 1e12):
+        raise ValueError("Border width must be a positive project length.")
     if floors is not None and type(floors) is not bool:
         raise ValueError("Floors must be a boolean.")
     if roomStyle is not None and roomStyle not in ("Canvas", "Tinted"):
@@ -87,6 +117,8 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
         raise ValueError("Invalid export wall style.")
     ruler = border in ("Marked", "Ruler")
     previewScene = preview and previewScene and outputFormat == "svg"
+    if previewDocument and not (preview and outputFormat == "svg"):
+        raise ValueError("Parsed SVG documents are only available for previews.")
     from PySide6 import QtCore, QtGui, QtWidgets, QtSvg
     from planner_app.catalog import LoadFurnishings
     from planner_app.graphics import palette
@@ -97,7 +129,8 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
     from planner_app.graphics.theme import ApplyApplicationTheme
     from planner_app.paths import fontsDirectory
     from planner_app.project_codec import DecodeProject, ReadProjectBytes
-    from planner_app.export_settings import ResolveExportView, ExportPixelSize, NormalizeTitleBlock
+    from planner_app.export_settings import ResolveExportView, ExportPixelSize, NormalizeTitleBlock, NormalizeScaleBar, measurementTextSizes, measurementDefaultTextSize
+    from planner_app.graphics.scale_bar import DrawScaleBar
     from planner_app.graphics.title_block import TitleBlockLayout
     from planner_app.graphics.text import PathTextPainter
     from planner_app.viewport.widget import DrawingViewport
@@ -119,6 +152,10 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
         raise ValueError("Scale must be a finite number.")
     if scale <= 0:
         raise ValueError("Scale, width and length must be greater than zero.")
+    if not math.isfinite(rasterSampling) or not 0 < rasterSampling <= 1 or rasterSampling != 1 and not preview:
+        raise ValueError("Raster sampling is only available for bounded previews.")
+    if type(transparentScene) is not bool or transparentScene and not preview:
+        raise ValueError("Transparent scene layers are only available for previews.")
     if bounds is not None:
         if len(bounds) != 4 or not all(math.isfinite(value) for value in bounds):
             raise ValueError("Bounds must contain four finite numbers.")
@@ -134,9 +171,40 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
     # History and activity are irrelevant to rendering and may contain many previous edits.
     if isinstance(data, dict):
         data = {key: value for key, value in data.items() if key not in ("history", "activityLog")}
-    definitions = (dict(furnishingDefinitions) if furnishingDefinitions is not None else
-                   {item["key"]: item for item in LoadFurnishings()})
-    walls, windows, furnishings, groups, hidden, settings, savedView, labels = DecodeProject(data, definitions)
+    if (applyTheme or useExportSettings or projectData is None or furnishingDefinitions is None
+            or not isinstance(data, dict) or not isinstance(data.get("settings"), dict)):
+        sceneCache = None
+    cachedScene = False
+    if sceneCache is not None:
+        from shiboken6 import isValid
+        # Camera/UI state and saved export options are not used to prepare this
+        # explicitly styled scene. Compare values, not identities: preview
+        # snapshots are recreated for frame edits, and callers can edit in place.
+        sceneData = {name: data.get(name) for name in ("format", "version", "scene", "furnishingDefinitions")}
+        ignoredSettings = {"exportSettings"}
+        if roomStyle is not None:
+            if "roomStyle" in data["settings"] and data["settings"]["roomStyle"] not in ("Canvas", "Tinted"):
+                raise ValueError("Invalid room style.")
+            ignoredSettings.add("roomStyle")
+        if solidRooms is not None:
+            from planner_app.record_validation import ValidateFlags
+            ValidateFlags({"solidRooms": False, **data["settings"]}, ("solidRooms",))
+            ignoredSettings.add("solidRooms")
+        sceneData["settings"] = {name: value for name, value in data["settings"].items() if name not in ignoredSettings}
+        font = app.font()
+        sceneKey = (sceneData, furnishingDefinitions, dict(palette.themeColors), palette.labelFont,
+                    font.toString(), font.hintingPreference().value, font.styleStrategy().value,
+                    app.styleSheet(), app.style().objectName(), outputFormat)
+        cachedScene = sceneCache.viewport is not None and isValid(sceneCache.viewport) and sceneKey == sceneCache.key
+        if not cachedScene:
+            sceneCache.Clear()
+    if cachedScene:
+        definitions, decoded = sceneCache.definitions, sceneCache.decoded
+    else:
+        definitions = (dict(furnishingDefinitions) if furnishingDefinitions is not None else
+                       {item["key"]: item for item in LoadFurnishings()})
+        decoded = DecodeProject(data, definitions)
+    walls, windows, furnishings, groups, hidden, settings, savedView, labels = decoded
     if roomStyle is None:
         roomStyle = settings["roomStyle"]
         if floors is not None:
@@ -144,27 +212,40 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
     solidRooms = settings["solidRooms"] if solidRooms is None else solidRooms
     definitions.update(settings["embeddedFurnishings"])
     export = settings["exportSettings"]
+    if measurementTextSize is None:
+        measurementTextSize = export.get("measurementTextSize", measurementDefaultTextSize) if useExportSettings else measurementDefaultTextSize
+    if type(measurementTextSize) in (int, float) and measurementTextSize == 0:
+        measurementTextSize = measurementTextSizes["Small"]
+    if type(measurementTextSize) not in (int, float) or measurementTextSize not in measurementTextSizes.values():
+        raise ValueError("Invalid export dimension text size.")
+    if borderTextSize is None:
+        borderTextSize = export.get("borderTextSize", measurementDefaultTextSize) if useExportSettings else measurementDefaultTextSize
+    if type(borderTextSize) not in (int, float) or borderTextSize not in measurementTextSizes.values():
+        raise ValueError("Invalid export border text size.")
     if useExportSettings:
         titleBlock = export.get("titleBlock")
+        scaleBar = export.get("scaleBar")
     titleBlock = NormalizeTitleBlock(titleBlock) if titleBlock is not None else {}
+    scaleBar = NormalizeScaleBar(scaleBar) if scaleBar is not None else {}
     titleBlock.setdefault("projectName", Path(planPath).stem)
     if previewScene:
         titleBlock = {}  # The editor preview contains only the drawing.
+        scaleBar = {}
     if useExportSettings:
         # Match the Export tab's inherited view and partial option groups. Keep
         # sizing units tied to the editor even when export labels use other units.
-        viewKeys = ("unitsMode", "showMeasurements", "showGrid", "viewportSettings", "lineworkSettings",
-                    "measurementVisibility", "visibility", "wallMeasurementMode", "wallMeasurementReference",
-                    "measurementPrecision", "measurementSettings")
+        viewKeys = tuple(name for name in viewSettingNames if name not in ("roomStyle", "solidRooms"))
         baseView = {name: settings[name] for name in viewKeys}
         viewOverrides = {name: export[name] for name in viewKeys if name in export}
         settings.update(ResolveExportView(baseView, viewOverrides))
         bounds = bounds if bounds is not None else export.get("bounds")
         border = export.get("border", "Ruler + Reference Zones" if "ruler" not in export else "Ruler" if export["ruler"] else "None")
         borderSize = export.get("borderSize", 28)
+        borderWidth = export.get("borderWidth", 200) if export.get("scaleMode") in ("Architectural", "Print") else None
         ruler = border in ("Marked", "Ruler")
         wallStyle = export.get("wallStyle", "Material")
         solidObjects = export.get("solidObjects", True)
+        drawOpeningOutlines = export.get("drawOpeningOutlines", True)
         roomStyle = export.get("roomStyle", settings["roomStyle"])
         solidRooms = export.get("solidRooms", settings["solidRooms"])
         gridOrigin = export.get("gridOrigin", (0.0, 0.0))
@@ -182,6 +263,18 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
         textureSettings["scaleOverride"] = export.get("textureScale")
         vignetteStrength = export.get("vignetteStrength", .125) if export.get("vignetteEnabled", False) else 0
         dpi = architecturalScale = None
+    pagePixels = None
+    outputDpi = None
+    if pageSize is not None:
+        if len(pageSize) != 2 or not all(isinstance(value, (int, float)) and math.isfinite(value) and value > 0 for value in pageSize):
+            raise ValueError("Invalid physical page size.")
+        pagePixels = tuple(round(value * (dpi or 300) / 25.4) for value in pageSize)
+    if pageSize is not None or architecturalScale is not None:
+        outputDpi = dpi or 300
+        # Physical geometry uses the 300-PPI design space. Scale the painter,
+        # not layout algorithms, so grids/fonts/strokes keep their physical size.
+        scale = 300 * 1000 / (25.4 * architecturalScale) if architecturalScale is not None else scale * 300 / outputDpi
+        dpi = 300
     if applyTheme:
         from planner_app.ui.app_preferences import LoadAppPreferences
         preferencesPath, preferences = LoadAppPreferences()
@@ -199,22 +292,29 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
                                ("linesColor", "wallOutline"), ("borderColor", "rulerBackground"), ("gridColor", "grid")):
                 if export.get(name) is not None:
                     palette.themeColors[role] = export[name]
-    viewport = DrawingViewport()
+    viewport = sceneCache.viewport if cachedScene else DrawingViewport(furnishingDefinitions = definitions)
     if clipCache is not None:
         viewport.objectClipCache = clipCache
     try:
         # Hidden widgets need polishing explicitly to receive the GUI's stylesheet font.
-        viewport.ensurePolished()
-        viewport.setMinimumSize(0, 0)
-        viewport.walls, viewport.windows, viewport.furnishings = walls, windows, furnishings
+        if not cachedScene:
+            viewport.ensurePolished()
+            viewport.setMinimumSize(0, 0)
+            viewport.walls, viewport.windows, viewport.furnishings = walls, windows, furnishings
+            viewport.labels = labels
+            viewport.objectGroups, viewport.hiddenObjects = groups, hidden
+            viewport.hiddenObjectIds = {id(obj) for obj in hidden}
+            ApplyViewportView(viewport, dict(settings, roomStyle = roomStyle, solidRooms = solidRooms))
         viewport.solidObjects = solidObjects
+        viewport.drawOpeningOutlines = drawOpeningOutlines
+        # Cached scenes also need appearance-only export changes applied.
+        viewport.measurementTextSize = measurementTextSize
+        viewport.borderTextSize = borderTextSize
+        viewport.measurementPixelsPerMillimeter = 300 / 25.4
         viewport.floors = roomStyle == "Tinted"
         viewport.solidRooms = solidRooms
         viewport.wallStyle = wallStyle
-        viewport.labels = labels
-        viewport.objectGroups, viewport.hiddenObjects = groups, hidden
-        viewport.hiddenObjectIds = {id(obj) for obj in hidden}
-        viewport.visibility = dict(settings["visibility"])
+        viewport.retainExportCapture = preview and outputFormat == "png" and sceneCache is not None
         if bounds is None:
             bounds = AutomaticBounds(viewport)
             print("Automatic bounds (mm): " + " ".join(format(value, ".10g") for value in bounds))
@@ -228,15 +328,26 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
             raise ValueError("Scale and bounds exceed the supported numeric range.")
         if pixelWidth <= 0 or pixelHeight <= 0:
             raise ValueError("Scale is too small to represent the bounds.")
-        rulerSize = BorderSize(border, borderSize)
+        if borderWidth is None and architecturalScale is not None:
+            borderWidth = 200
+        requestedBorder = max(1, round(borderWidth * scale / 1000)) if borderWidth is not None else borderSize
+        rulerSize = BorderSize(border, requestedBorder, borderTextSize)
         # Linked resolution inputs may land a few floating-point bits above an
         # integer. Stabilize the ceiling without rounding away fractional pixels.
         imageWidth, imageHeight = ExportPixelSize(bounds, scale, rulerSize)
         drawingWidth, drawingHeight = imageWidth, imageHeight
-        imageWidth, imageHeight, titleBlockRect = TitleBlockLayout(imageWidth, imageHeight, titleBlock, scale, architecturalScale, outputFormat, dpi)
+        imageWidth, imageHeight, titleBlockRect = TitleBlockLayout(imageWidth, imageHeight, titleBlock, scale, architecturalScale, outputFormat, dpi,
+                                                                  fitWidth = pageSize is not None and titleBlock.get("position", "Right") == "Bottom",
+                                                                  pageSize = pageSize)
+        if pageSize is not None:
+            if (len(pageSize) != 2 or not all(isinstance(value, (int, float)) and math.isfinite(value) and value > 0 for value in pageSize)
+                    or (imageWidth, imageHeight) != tuple(round(value * (dpi or 300) / 25.4) for value in pageSize)):
+                raise ValueError("The drawing, border and title block do not fit the requested page.")
         # Reject excessive allocations explicitly; never silently reduce scale.
-        if ((imageWidth > 32767 or imageHeight > 32767) and not (preview and outputFormat == "svg")
-                or outputFormat == "png" and imageWidth * imageHeight > 100_000_000):
+        rasterWidth, rasterHeight = pagePixels or tuple(max(1, round(value * (outputDpi or 300) / 300)) for value in (imageWidth, imageHeight))
+        allocationScale = rasterSampling if outputFormat == "png" else 1
+        if ((rasterWidth * allocationScale > 32767 or rasterHeight * allocationScale > 32767) and not (preview and outputFormat == "svg")
+                or outputFormat == "png" and rasterWidth * rasterHeight * allocationScale ** 2 > 100_000_000):
             raise ValueError("Render exceeds 32,767 pixels per side or 100 million pixels. Choose smaller bounds or scale.")
         if preview and outputFormat == "svg" and max(imageWidth, imageHeight) > 16_777_215:
             raise ValueError("SVG preview exceeds the supported numeric range.")
@@ -247,19 +358,34 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
                                rulerSize + (y + length) * pixelsPerMillimeter)
         viewport.panOffset = origin - QtCore.QPointF((drawingWidth + rulerSize) / 2,
                                                     (drawingHeight + rulerSize) / 2)
-        for name in ("showGrid", "showMeasurements", "measurementPrecision", "measurementVisibility", "measurementSettings", "wallMeasurementMode", "wallMeasurementReference",
-                     "collisionSettings", "stairStepSizes", "railingSpacings", "imperialAutoSizes", "autoSizingUnitsMode", "unitsMode", "lineworkSettings"):
-            setattr(viewport, name, settings[name])
-        viewport.EnsureObjectIds()
-        viewport.gridIntensities = dict(settings["viewportSettings"])
+        if not cachedScene:
+            for name in ("collisionSettings", "stairStepSizes", "railingSpacings", "imperialAutoSizes", "autoSizingUnitsMode"):
+                setattr(viewport, name, settings[name])
+            viewport.EnsureObjectIds()
+            viewport.lineWidths = {key: settings["lineworkSettings"]["baseWidth"] * value
+                                   for key, value in settings["lineworkSettings"].items() if key != "baseWidth"}
         viewport.gridOrigin = tuple(gridOrigin)
-        viewport.lineWidths = {key: settings["lineworkSettings"]["baseWidth"] * value
-                               for key, value in settings["lineworkSettings"].items() if key != "baseWidth"}
         viewport.furnishingDefinitions = definitions
-        viewport.furnishingRenderers = FurnishingRendererMap(definitions,
-            lineWidth = viewport.lineWidths["furnishings"], solidBackground = solidObjects)
-        from planner_app.export_scene import PrepareExportScene
-        PrepareExportScene(viewport)
+        furnishingWidth = viewport.lineWidths["furnishings"]
+        if outputDpi is not None and outputFormat == "png":
+            # Furnishing SVGs deliberately use non-scaling strokes. Compensate
+            # their device-pixel width for the final density/preview sample.
+            furnishingWidth *= math.sqrt(max(1, math.floor(rasterWidth * rasterSampling)) / imageWidth *
+                                         max(1, math.floor(rasterHeight * rasterSampling)) / imageHeight)
+        furnishingKey = (furnishingWidth, solidObjects)
+        if not cachedScene or furnishingKey != sceneCache.furnishingWidth:
+            viewport.furnishingRenderers = FurnishingRendererMap(definitions,
+                lineWidth = furnishingWidth, solidBackground = solidObjects, excludeErrors = cachedScene)
+        if not cachedScene:
+            from planner_app.export_scene import PrepareExportScene
+            PrepareExportScene(viewport)
+            if sceneCache is not None:
+                sceneCache.key = deepcopy(sceneKey)
+                sceneCache.decoded, sceneCache.definitions, sceneCache.viewport = decoded, definitions, viewport
+        elif viewport.floors or viewport.solidRooms:
+            viewport.roomDetection.Refresh(force = True)
+        if sceneCache is not None:
+            sceneCache.furnishingWidth = furnishingKey
         if outputFormat == "svg":
             svgBuffer = QtCore.QBuffer()
             svgBuffer.open(QtCore.QIODevice.OpenModeFlag.ReadWrite)
@@ -281,7 +407,7 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
                 viewport.materialBrushes[(material, False)] = QtGui.QBrush(QtGui.QColor(marker))
         else:
             imageFormat = QtGui.QImage.Format.Format_RGB32 if QtGui.QColor(palette.themeColors["canvas"]).alpha() == 255 else QtGui.QImage.Format.Format_ARGB32
-            image = QtGui.QImage(imageWidth, imageHeight, imageFormat)
+            image = QtGui.QImage(max(1, math.floor(rasterWidth * rasterSampling)), max(1, math.floor(rasterHeight * rasterSampling)), imageFormat)
             if image.isNull():
                 raise ValueError("Could not allocate the render image.")
             image.fill(QtCore.Qt.GlobalColor.transparent)
@@ -302,10 +428,11 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
             painter = SvgPainter(image)
         else:
             painter = PathTextPainter(image)
+            painter.scale(image.width() / imageWidth, image.height() / imageHeight)
         try:
-            if titleBlockRect is None:
+            if not transparentScene and titleBlockRect is None:
                 painter.fillRect(QtCore.QRectF(0, 0, imageWidth, imageHeight), QtGui.QColor(palette.themeColors["canvas"]))
-            else:
+            elif not transparentScene:
                 # The title block paints its own canvas fill. Leave that area
                 # clear so translucent backgrounds are applied only once.
                 background = QtGui.QPainterPath()
@@ -314,12 +441,21 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
                 background.addRect(QtCore.QRectF(*titleBlockRect))
                 painter.fillPath(background, QtGui.QColor(palette.themeColors["canvas"]))
             painter.setFont(viewport.font())
-            rulerUnit = viewport.DrawGridBackground(painter, drawingRect, origin, pixelsPerMillimeter,
-                                                    gridOnly = previewScene or not ruler, allEdges = ruler, markingsOnly = border == "Marked")
+            if not (transparentScene and previewScene):
+                rulerUnit = viewport.DrawGridBackground(painter, drawingRect, origin, pixelsPerMillimeter,
+                                                        gridOnly = previewScene or not ruler, allEdges = ruler, markingsOnly = border == "Marked")
             painter.setClipRect(drawingRect)
             painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+            if outputFormat == "png":
+                # Material brushes contain small raster tiles. Nearest-neighbor
+                # sampling turns diagonal hatches into dashes at fractional PPI
+                # or preview sampling, even though the wall path is antialiased.
+                painter.setRenderHint(QtGui.QPainter.RenderHint.SmoothPixmapTransform, True)
+            painter.setFont(viewport.font())
             viewport.DrawScene(painter, drawingRect, origin, pixelsPerMillimeter)
             viewport.DrawLabels(painter, pixelsPerMillimeter, drawingRect = drawingRect)
+            DrawScaleBar(painter, drawingRect, scaleBar, scale, viewport.unitsMode, bounds = bounds, gridOrigin = viewport.gridOrigin,
+                         measurementTextSize = measurementTextSize)
             if ruler and not previewScene:
                 painter.setClipping(False)
                 painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing, False)
@@ -329,15 +465,21 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
                 DrawRulerZones(painter, drawingRect, rulerSize, viewport, origin, pixelsPerMillimeter)
             elif border != "None" and not previewScene:
                 painter.setClipping(False)
-                DrawExportBorder(painter, drawingRect, rulerSize, border)
+                DrawExportBorder(painter, drawingRect, rulerSize, border, borderTextSize = borderTextSize)
             if titleBlockRect is not None:
                 from planner_app.graphics.title_block import DrawTitleBlock, RenderTitleBlockBitmap
                 painter.setClipping(False)
                 if outputFormat == "png":
-                    titleBlockImage = RenderTitleBlockBitmap(titleBlockRect, titleBlock, scale, architecturalScale, dpi = dpi)
-                    painter.drawImage(QtCore.QPointF(titleBlockRect[0], titleBlockRect[1]), titleBlockImage)
+                    titleBlockImage = RenderTitleBlockBitmap(titleBlockRect, titleBlock, scale, architecturalScale, dpi = dpi,
+                                                            fitWidth = pageSize is not None and titleBlock.get("position", "Right") == "Bottom",
+                                                            pageSize = pageSize,
+                                                            pixelSize = (max(1, math.floor(titleBlockRect[2] * image.width() / imageWidth)),
+                                                                         max(1, math.floor(titleBlockRect[3] * image.height() / imageHeight))))
+                    painter.setRenderHint(QtGui.QPainter.RenderHint.SmoothPixmapTransform, True)
+                    painter.drawImage(QtCore.QRectF(*titleBlockRect), titleBlockImage)
                 else:
-                    DrawTitleBlock(painter, titleBlockRect, titleBlock, scale, architecturalScale, outputFormat, dpi)
+                    DrawTitleBlock(painter, titleBlockRect, titleBlock, scale, architecturalScale, outputFormat, dpi,
+                                   fitWidth = pageSize is not None and titleBlock.get("position", "Right") == "Bottom", pageSize = pageSize)
             if outputFormat == "png":
                 painter.setClipping(False)
                 DrawNormalTexture(painter, QtCore.QRectF(0, 0, imageWidth, imageHeight), texture, textureAngle,
@@ -347,18 +489,17 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
         finally:
             painter.end()
         if outputFormat == "svg":
-            result = VectorizeMaterials(bytes(svgBuffer.data()), materialMarkers)
-            if architecturalScale is not None or titleBlockRect is not None:
-                root = ElementTree.fromstring(result)
+            physicalSize = None
+            if architecturalScale is not None or titleBlockRect is not None or pageSize is not None:
                 # Preserve the renderer's coordinate system while making its world
                 # millimeters occupy the requested physical millimeters on paper.
                 unitsPerMillimeter = (scale * architecturalScale / 1000 if architecturalScale is not None else
                                       (300 if dpi is None else dpi) / 25.4)
-                root.set("width", f"{imageWidth / unitsPerMillimeter:.10g}mm")
-                root.set("height", f"{imageHeight / unitsPerMillimeter:.10g}mm")
-                result = ElementTree.tostring(root, encoding = "utf-8", xml_declaration = True)
-            return result
-        if dpi is None and titleBlockRect is not None:
+                physicalSize = pageSize if pageSize is not None else (imageWidth / unitsPerMillimeter, imageHeight / unitsPerMillimeter)
+            return VectorizeMaterials(bytes(svgBuffer.data()), materialMarkers, physicalSize, document = previewDocument)
+        if outputDpi is not None:
+            dpi = outputDpi
+        if dpi is None and (titleBlockRect is not None or pageSize is not None):
             dpi = 300
         if dpi is not None:
             dotsPerMeter = round(dpi * 1000 / 25.4)
@@ -366,10 +507,13 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
             image.setDotsPerMeterY(dotsPerMeter)
         return image
     finally:
-        viewport.deleteLater()
+        if sceneCache is None or sceneCache.viewport is not viewport:
+            viewport.deleteLater()
+        elif sys.exc_info()[0] is not None:
+            sceneCache.Clear()
 
 
-def VectorizeMaterials(svgData, materialMarkers):
+def VectorizeMaterials(svgData, materialMarkers, physicalSize = None, document = False):
     """Replace marked wall fills with fixed-size vector tiles, sharing GUI commands."""
     from PySide6 import QtCore, QtGui, QtSvg
     from planner_app.graphics.palette import themeColors
@@ -423,10 +567,11 @@ def VectorizeMaterials(svgData, materialMarkers):
                 hatch.set("stroke", "none")
                 parent = parents[element]
                 parent.insert(list(parent).index(element) + 1, hatch)
-    # Use CSS pixels for the nominal digital size, rather than Qt's mm dimensions.
-    root.set("width", root.get("viewBox").split()[2])
-    root.set("height", root.get("viewBox").split()[3])
-    return ElementTree.tostring(root, encoding = "utf-8", xml_declaration = True)
+    # Set the final dimensions while this document is already parsed. Physical
+    # exports retain millimeters; digital exports use CSS pixels.
+    for axis, name in enumerate(("width", "height")):
+        root.set(name, f"{physicalSize[axis]:.10g}mm" if physicalSize is not None else root.get("viewBox").split()[axis + 2])
+    return root if document else ElementTree.tostring(root, encoding = "unicode", xml_declaration = True).encode("utf-8")
 
 
 def WriteExportFile(path, result, outputFormat):

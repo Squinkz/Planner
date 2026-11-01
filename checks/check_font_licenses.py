@@ -26,6 +26,7 @@ def Main():
                "NotoSans-SemiBold.ttf": ("OFL.txt", "The Noto Project Authors"),
                "NotoSans-Bold.ttf": ("OFL.txt", "The Noto Project Authors"),
                "D-DINCondensed.ttf": ("OFL-D-DIN.txt", "Datto Inc."),
+               "D-DINCondensed-Bold.ttf": ("OFL-D-DIN.txt", "Datto Inc."),
                "DraftingSmallCaps-Regular.ttf": ("OFL-DraftingSmallCaps.txt", "Kimberly Geswein")}
     actual = {path.name for path in folder.iterdir() if path.suffix.lower() in (".ttf", ".otf", ".ttc", ".otc")}
     assert actual == set(notices), "A bundled font is missing license coverage"
@@ -33,7 +34,7 @@ def Main():
         text = (folder / notice).read_text(encoding = "utf-8")
         assert author in text and "SIL OPEN FONT LICENSE Version 1.1" in text and "DISCLAIMER" in text
         names = FontNames(folder / filename)
-        if filename in ("D-DINCondensed.ttf", "DraftingSmallCaps-Regular.ttf"):
+        if filename in ("D-DINCondensed.ttf", "D-DINCondensed-Bold.ttf", "DraftingSmallCaps-Regular.ttf"):
             assert names[13] in text, filename + " lost its embedded license or copyright notice"
     names = FontNames(folder / "DraftingSmallCaps-Regular.ttf")
     assert names[1] == "Drafting Small Caps" and names[6] == "DraftingSmallCaps-Regular"

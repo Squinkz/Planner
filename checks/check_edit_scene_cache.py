@@ -10,6 +10,7 @@ from PySide6 import QtCore, QtGui, QtTest, QtWidgets
 from planner_app.models import Wall, Door, SilledWindow, Fireplace, Counter, Stair, Railing, Furnishing, Label, NorthArrow, Column
 from planner_app.ui.main_window import MainWindow
 from planner_app.graphics.fonts import LoadApplicationFonts
+from image_comparison import ChangedPixels
 
 
 def Compare(viewport):
@@ -28,15 +29,10 @@ def Compare(viewport):
         # Qt's intersected clip masks can round an antialiased stroke slightly
         # differently in a partial repaint (one stair-tip pixel differs by
         # 4/255 at 150% scaling). Limit both the channel error and pixel count.
-        first = memoryview(cached.constBits()).cast("I")
-        second = memoryview(direct.constBits()).cast("I")
-        differences = []
-        minorCount = 0
-        for index, (left, right) in enumerate(zip(first, second)):
-            if left != right:
-                minorCount += 1
-                if any(abs((left >> shift & 255) - (right >> shift & 255)) > 4 for shift in (0, 8, 16, 24)):
-                    differences.append((index % cached.width(), index // cached.width()))
+        changed, channelErrors = ChangedPixels(cached, direct)
+        minorCount = len(changed)
+        differences = [(int(index % cached.width()), int(index // cached.width()))
+                       for index in changed[channelErrors > 4]]
         assert minorCount <= max(128, cached.width() * cached.height() // 5000), minorCount
         if not differences:
             return

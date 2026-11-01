@@ -6,6 +6,24 @@ from planner_app.graphics.fonts import fontFamily
 from planner_app.graphics.text import OutlineFont
 
 
+@lru_cache(maxsize = 64)
+def MeasurementFontStyle(fontKey, dpi, textHeight, family = fontFamily):
+    font = QtGui.QFont()
+    font.fromString(fontKey)
+    font.setFamily(family)
+    if textHeight <= 0:
+        return font.toString(), 1.0
+    originalPixels = font.pixelSize() if font.pixelSize() > 0 else round(font.pointSizeF() * dpi / 72)
+    reference = QtGui.QFont(font)
+    reference.setPixelSize(1000)
+    reference.setHintingPreference(QtGui.QFont.HintingPreference.PreferNoHinting)
+    # Size the visible numerals, rather than treating a font's em as its ink.
+    digits = MeasurementTextPath("0123456789", reference.toString(), dpi)
+    font.setPixelSize(max(1, round(textHeight * 1000 / digits.boundingRect().height())))
+    font.setHintingPreference(QtGui.QFont.HintingPreference.PreferNoHinting)
+    return font.toString(), font.pixelSize() / max(1, originalPixels)
+
+
 def ShapedTextPath(text, font):
     layout = QtGui.QTextLayout(text, font)
     layout.beginLayout()

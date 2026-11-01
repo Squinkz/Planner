@@ -17,7 +17,9 @@ class RasterCacheBudget:
         if overlay is not None:
             entries.update(snapshot = overlay.snapshot, navigation = overlay.svgNavigationImage,
                            vectorView = overlay.svgViewImage, detail = overlay.detailImage,
-                           titleBlock = overlay.titleBlockImage,
+                           titleBlock = overlay.titleBlockImage, scaleBar = overlay.scaleBarImage,
+                           printPages = [page for page in overlay.printPageCache.values() if isinstance(page, QtGui.QImage)] +
+                                        list(overlay.printPageImages.values()) + list(overlay.printDragImages.values()),
                            rulers = [strip[2] for strip in overlay.rulerStrips])
         return entries
 
@@ -38,7 +40,7 @@ class RasterCacheBudget:
     def Clear(self, name, reason = "budget"):
         v = self.viewport
         entry = self.Entries()[name]
-        if entry is None or isinstance(entry, list) and not entry:
+        if (entry is None or isinstance(entry, list) and not entry) and not (name == "printPages" and v.exportOverlay.printPageCache):
             return
         if name == "background":
             v.viewportBackground = v.viewportBackgroundKey = None
@@ -67,12 +69,17 @@ class RasterCacheBudget:
                 overlay.rulerKey = None
             elif name == "titleBlock":
                 overlay.titleBlockImage = overlay.titleBlockImageKey = None
+            elif name == "scaleBar":
+                overlay.scaleBarImage = overlay.scaleBarImageKey = overlay.scaleBarImageRect = None
+            elif name == "printPages":
+                overlay.ClearPrintPreview()
         self.evictions += 1
         self.Record("evicted", name, reason)
 
-    def Prepare(self, name, requestedBytes, preserve = ()):
-        """Release replacements before allocation; never evict a caller's live source."""
-        self.Clear(name, "replacement")
+    def Prepare(self, name, requestedBytes, preserve = (), replace = True):
+        """Reserve an allocation; collections can retain their existing entries."""
+        if replace:
+            self.Clear(name, "replacement")
         limit = self.viewport.viewportRasterByteLimit
         for candidate in self.Entries():
             if self.RetainedBytes() + requestedBytes <= limit:

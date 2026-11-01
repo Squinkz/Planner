@@ -73,7 +73,8 @@ def PolygonAxes(corners):
         following = corners[(index + 1) % len(corners)]
         deltaX, deltaY = following[0] - point[0], following[1] - point[1]
         length = math.hypot(deltaX, deltaY)
-        axes.append((-deltaY / length, deltaX / length))
+        if length > 0:
+            axes.append((-deltaY / length, deltaX / length))
     return axes
 
 

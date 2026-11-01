@@ -14,12 +14,14 @@ from planner_app.graphics.theme import ApplyApplicationTheme
 from planner_app.project_codec import DecodeProject
 from planner_app.viewport.widget import DrawingViewport
 from planner_app.graphics.export_border import DrawExportBorder
+from planner_app.export_settings import BorderSize
 
 
 def Main():
     app = QtWidgets.QApplication([])
     ApplyApplicationTheme(app)
     main = MainWindow()
+    main.exportPanel.overrides["scaleMode"] = "Digital"
     main.show()
     v = main.viewport
     v.walls = [Wall(QtCore.QPointF(-1000, 0), QtCore.QPointF(1000, 0), 240)]
@@ -40,7 +42,8 @@ def Main():
     assert panel.borderSizeField.value() == 5 and v.exportOverlay.borderSize == 5
     assert panel.Render("png").size() == canvasSize + QtCore.QSize(10, 10)
     panel.borderField.setCurrentText("Ruler")
-    assert panel.borderSizeSlider.minimum() == 28 and panel.borderSizeField.value() == 28
+    rulerMinimum = BorderSize("Ruler", 1)
+    assert panel.borderSizeSlider.minimum() == rulerMinimum and panel.borderSizeField.value() == rulerMinimum
     assert panel.overrides["borderSize"] == 5, "Changing styles erased the requested width"
     panel.borderField.setCurrentText("Marked")
     assert panel.borderSizeSlider.minimum() == 12 and panel.borderSizeField.value() == 12
@@ -136,13 +139,13 @@ def Main():
     panel.borderSizeField.setValue(28)
     ruler = panel.Render("png")
     panel.borderField.setCurrentText("Ruler + Reference Zones")
-    assert panel.borderSizeSlider.minimum() == panel.borderSizeField.value() == 56
+    assert panel.borderSizeSlider.minimum() == panel.borderSizeField.value() == 2 * rulerMinimum
     combined = panel.Render("png")
-    assert combined.size() == ruler.size() + QtCore.QSize(56, 56)
-    assert combined.copy(29, 29, ruler.width() - 2, ruler.height() - 2) == ruler.copy(1, 1, ruler.width() - 2, ruler.height() - 2), "Reference zones changed the inner ruler or scene"
+    assert combined.size() == ruler.size() + QtCore.QSize(2 * rulerMinimum, 2 * rulerMinimum)
+    assert combined.copy(rulerMinimum + 1, rulerMinimum + 1, ruler.width() - 2, ruler.height() - 2) == ruler.copy(1, 1, ruler.width() - 2, ruler.height() - 2), "Reference zones changed the inner ruler or scene"
     zonesColor = QtGui.QColor(palette.themeColors["rulerBackground"]).darker(110)
     assert combined.pixelColor(14, 14).name() == zonesColor.name()
-    for x in (28, combined.width() - 28):
+    for x in (rulerMinimum, combined.width() - rulerMinimum):
         for y in (14, combined.height() - 14):
             assert combined.pixelColor(x, y).name() != zonesColor.name(), "Missing reference-zone corner divider"
     svg = panel.Render("svg")
@@ -178,8 +181,8 @@ def Main():
     x, y, width, height = v.exportOverlay.bounds
     topCenter = v.WorldToViewport(QtCore.QPointF(x + width / 2, y + height))
     factor = v.basePixelsPerMillimeter * v.zoom / (v.exportOverlay.scale / 1000)
-    assert v.exportOverlay.HitRuler(topCenter - QtCore.QPointF(0, 14 * factor)) == 0
-    assert v.exportOverlay.HitRuler(topCenter - QtCore.QPointF(0, 42 * factor)) is None, "Reference zones act as ruler drag handles"
+    assert v.exportOverlay.HitRuler(topCenter - QtCore.QPointF(0, rulerMinimum / 2 * factor)) == 0
+    assert v.exportOverlay.HitRuler(topCenter - QtCore.QPointF(0, rulerMinimum * 1.5 * factor)) is None, "Reference zones act as ruler drag handles"
     v.exportOverlay.rulerKey = None
     prepare = v.rasterCacheBudget.Prepare
     with patch.object(v.rasterCacheBudget, "Prepare", side_effect = lambda name, *args, **kwargs: False if name == "rulers" else prepare(name, *args, **kwargs)):

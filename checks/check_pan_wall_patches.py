@@ -10,6 +10,7 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from planner_app.models import Wall, Door, Window, PocketDoor, Railing
 from planner_app.viewport import rendering
 from planner_app.viewport.widget import DrawingViewport
+from image_comparison import ChangedPixels
 
 
 def CompareNativePatch(v, delta):
@@ -21,10 +22,9 @@ def CompareNativePatch(v, delta):
     with patch.object(v, "DrawPanWallStroke", side_effect = lambda painter, path, brush, *unused: painter.fillPath(path, brush)):
         expected = v.grab().toImage()
     v.viewportPanRaster, v.viewportPanKey, v.viewportPanOrigin, v.viewportPanState = after
-    first, second = memoryview(actual.constBits()), memoryview(expected.constBits())
-    changed = [index for index, (a, b) in enumerate(zip(first.cast("I"), second.cast("I"))) if a != b]
-    if changed:
-        maximum = max(abs(first[index * 4 + channel] - second[index * 4 + channel]) for index in changed for channel in range(4))
+    changed, differences = ChangedPixels(actual, expected)
+    if len(changed):
+        maximum = int(differences.max(initial = 0))
         assert maximum <= 3 and len(changed) <= max(64, actual.width() * actual.height() // 1000), (v.devicePixelRatioF(), delta, maximum, len(changed))
 
 

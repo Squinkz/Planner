@@ -11,6 +11,7 @@ from PySide6 import QtCore, QtWidgets
 from planner_app.models import Wall, Door, BifoldDoor, Stair, Furnishing, Label
 from planner_app.graphics.theme import ApplyApplicationTheme
 from planner_app.viewport.widget import DrawingViewport
+from image_comparison import ChangedPixels
 
 
 def CompareDirect(v):
@@ -22,16 +23,16 @@ def CompareDirect(v):
     v.viewportSceneByteLimit = limit
     v.viewportPanRaster, v.viewportPanKey, v.viewportPanOrigin, v.viewportPanState = pan
     if cached != direct:
-        first, second = memoryview(cached.constBits()), memoryview(direct.constBits())
-        changed = [index for index, (a, b) in enumerate(zip(first.cast("I"), second.cast("I"))) if a != b]
-        maximumDifference = max(abs(first[index * 4 + channel] - second[index * 4 + channel]) for index in changed for channel in range(4))
+        changed, differences = ChangedPixels(cached, direct)
+        maximumDifference = int(differences.max(initial = 0))
         # Qt can round antialiasing differently when a diagonal crosses a new
         # viewport/strip clip. Keep a small color tolerance, never geometric drift.
         if maximumDifference <= 3 and len(changed) <= max(64, cached.width() * cached.height() // 1000):
             return
-        samples = [(index % cached.width(), index // cached.width(),
+        samples = [(int(index % cached.width()), int(index // cached.width()),
                     cached.pixelColor(index % cached.width(), index // cached.width()).getRgb(),
-                    direct.pixelColor(index % cached.width(), index // cached.width()).getRgb()) for index in changed[:12]]
+                    direct.pixelColor(index % cached.width(), index // cached.width()).getRgb())
+                   for index in (int(value) for value in changed[:12])]
         cached.save(str(Path(__file__).resolve().parent.parent / "diagnostics/pan-dpi-cached.png"))
         direct.save(str(Path(__file__).resolve().parent.parent / "diagnostics/pan-dpi-direct.png"))
         raise AssertionError((v.devicePixelRatioF(), v.size(), v.zoom, v.panOffset, maximumDifference, len(changed), samples))

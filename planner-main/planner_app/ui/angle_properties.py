@@ -23,7 +23,6 @@ class AnglePropertiesMixin:
         control.setKeyboardTracking(False)
         control.setMinimumHeight(32)
         control.angleEdited = False
-        control.setToolTip("Equalize both arms to the shorter length, then rotate the arm farther from north (+Y). Ties rotate the last arm.")
         control.dragStarted.connect(self.BeginPropertyDrag)
         control.dragFinished.connect(self.FinishPropertyDrag)
         control.valueChanged.connect(self.EditAngleGuideAngle)

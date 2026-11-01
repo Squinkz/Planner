@@ -58,6 +58,7 @@ def Main():
         sys.excepthook = lambda kind, error, traceback: errors.append(error)
         try:
             with patch.object(QtGui, "QPainter", TrackedPainter), \
+                    patch.object(v, "DrawRetainedMeasurements", return_value = False), \
                     patch("planner_app.viewport.rendering.PathTextPainter", TrackedPainter), \
                     patch("planner_app.viewport.export_bounds.PathTextPainter", TrackedPainter), \
                     patch("planner_app.viewport.edit_cache.PathTextPainter", TrackedPainter), \
@@ -108,6 +109,22 @@ def Main():
                 failTarget = None
                 plane.close()
                 v.grab()
+            # The retained dimension layer bypasses QPicture recording. Its
+            # failure must still release the enclosing viewport/cache painters.
+            main.sidebarTabs.setCurrentWidget(main.buildScrollArea)
+            for name in ("background", "scene", "pan"):
+                v.rasterCacheBudget.Clear(name)
+            v.retainedMeasurements = None
+            with patch.object(QtGui, "QPainter", TrackedPainter), \
+                    patch("planner_app.viewport.rendering.PathTextPainter", TrackedPainter), \
+                    patch("planner_app.graphics.retained_dimensions.RetainedDimensions.Paint",
+                          side_effect = RuntimeError("Injected retained dimension paint failure")) as native:
+                try:
+                    v.grab()
+                except RuntimeError as error:
+                    errors.append(error)
+                assert native.called, "Retained painter failure path was not exercised"
+                assert all(not painter.isActive() for painter in painters)
             assert errors, "Injected drawing failures were not observed"
             assert not any("active painter" in message or "being painted" in message for message in messages), messages
             assert not any("Painter not active" in message or "Unbalanced save/restore" in message for message in messages), messages

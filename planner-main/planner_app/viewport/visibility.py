@@ -6,6 +6,20 @@ from planner_app.models import Door, SwingingDoor, DoubleDoor, Furnishing, OpenD
 
 
 class VisibilityMixin:
+    def VisibleSceneObjects(self):
+        """Retain ordered scene membership independently of moving geometry."""
+        changes = self.renderChanges
+        key = (changes.topology, changes.visibility, tuple(self.visibility.items()),
+               frozenset(self.hiddenObjectIds))
+        prepared = getattr(self, "visiblePaintObjects", None)
+        if prepared is None or prepared[0] != key:
+            members = {name: [obj for obj in getattr(self, name) if self.IsObjectVisible(obj)]
+                       for name in ("walls", "windows", "furnishings", "labels")}
+            self.visiblePaintObjects = key, members
+        else:
+            members = prepared[1]
+        return members
+
     def IsObjectVisible(self, obj):
         if not self.visibility["World"] or id(obj) in self.hiddenObjectIds:
             return False

@@ -51,6 +51,7 @@ def Main():
     diagnostics.mkdir(parents = True, exist_ok = True)
     gallery.save(str(diagnostics / "themes.png"))
     with ExampleWindow() as (main, folder):
+        main.exportPanel.overrides["scaleMode"] = "Digital"
         panel, v = main.exportPanel, main.viewport
         main.sidebarTabs.setCurrentWidget(panel)
         panel.titleBlockEnabled.setChecked(True)

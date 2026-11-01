@@ -141,7 +141,7 @@ def Main():
         QtTest.QTest.keyClick(field, QtCore.Qt.Key.Key_Return)
         assert v.CaptureState() == before, "Invalid mixed-field arithmetic must not flatten selected dimensions"
     assert isinstance(main.exportPanel.scaleField, UnitSpinBox)
-    assert isinstance(main.exportPanel.borderSizeField, ExpressionSpinBox)
+    assert isinstance(main.exportPanel.borderSizeField, UnitSpinBox)
     main.MarkProjectClean()
     main.close()
     print("PASS: safe bounded arithmetic, relative inputs, commit/focus, integer/decimal/imperial fields, linked properties and undo.")

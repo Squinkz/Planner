@@ -8,9 +8,9 @@ py -3.14 -m venv build/windows-venv
 .\build\windows-venv\Scripts\python.exe tools/build_windows.py
 ```
 
-The build uses pinned PyInstaller/PySide6 versions. It creates the executable,
+The build uses pinned PyInstaller/PySide6/NumPy versions. It creates the executable,
 copies external resources, runs an isolated packaged smoke test, then writes
-`dist/Planner-0.1.1-alpha-Windows.zip` for the current version. The filename uses the shared version in
+`dist/Planner-0.1.4-alpha-Windows.zip` for the current version. The filename uses the shared version in
 `planner-main/planner_app/version.py`, which also supplies the About dialog.
 The extracted directory is:
 
@@ -43,6 +43,9 @@ Application preferences and recovery files still use the normal user-data paths.
 The QtQml hook includes QJSEngine and its library dependencies for optimized PNG,
 without collecting unused QML UI plugins. Dependency discovery uses a restricted
 PATH so DLLs from unrelated installed tools do not enter the bundle.
+The standard NumPy hook collects its numerical runtime; NumPy distribution
+metadata and complete bundled-library licenses are also included. The packaged
+smoke test renders a textured PNG to exercise this dependency.
 
 The build replaces generated `dist/Planner/`. Maintain resources in the source
 directories under `planner-main/`; edits to a previous build are not build inputs.

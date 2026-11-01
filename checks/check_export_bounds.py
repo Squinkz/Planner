@@ -33,6 +33,7 @@ def Main():
         app = QtWidgets.QApplication([])
         ApplyApplicationTheme(app)
         main = MainWindow()
+        main.exportPanel.overrides["scaleMode"] = "Digital"
         main.show()
         v = main.viewport
         wall = Wall(QtCore.QPointF(-1000, 0), QtCore.QPointF(1000, 0), 240)
@@ -173,23 +174,29 @@ def Main():
         expected = RenderPlan(planPath, overlay.scale, overlay.snapshotBounds)
         assert snapshot == expected, "The source preview differs from the PNG renderer"
         main.exportPanel.borderField.setCurrentText("Ruler")
+        main.exportPanel.EndExportGesture()
         v.zoom = .7
         framedPreview = v.grab().toImage()
-        outside = v.WorldToViewport(QtCore.QPointF(x - 300, 300)).toPoint()
+        borderPixels = overlay.borderSize * v.basePixelsPerMillimeter * v.zoom / (overlay.scale / 1000)
+        outside = (v.WorldToViewport(QtCore.QPointF(x, 300)) - QtCore.QPointF(borderPixels + 20, 0)).toPoint()
+        assert v.DrawingRect().contains(QtCore.QRectF(outside.x() - 10, outside.y() - 10, 20, 20))
         outsidePatch = framedPreview.copy(outside.x() - 10, outside.y() - 10, 20, 20)
         assert len({outsidePatch.pixelColor(column, row).rgba() for column in range(20) for row in range(20)}) == 1, "Grid extends beyond the crop ruler"
         v.zoom = 1.0
         assert overlay.drawRuler and len(overlay.rulerStrips) == 4
         assert overlay.snapshot is snapshot, "Toggling the ruler regenerated the scene bitmap"
         expectedFrame = RenderPlan(planPath, overlay.scale, overlay.bounds, ruler = True)
-        for offsetX, offsetY, strip in overlay.rulerStrips:
-            expectedStrip = expectedFrame.copy(offsetX, offsetY, strip.width(), strip.height())
-            if strip != expectedStrip:
+        for offsetX, offsetY, strip, clip in overlay.rulerStrips:
+            # Cached strips include a one-pixel filter guard. Compare only
+            # their owned border pixels, excluding neighbouring scene pixels.
+            actualStrip = strip.copy(round(clip.left() - offsetX), round(clip.top() - offsetY), round(clip.width()), round(clip.height()))
+            expectedStrip = expectedFrame.copy(round(clip.left()), round(clip.top()), round(clip.width()), round(clip.height()))
+            if actualStrip != expectedStrip:
                 # Text clipped at a strip edge can differ by one channel level
                 # from the full opaque surface because of Qt alpha rounding.
                 assert all(max(abs(first - second) for first, second in
-                               zip(strip.pixelColor(column, row).getRgb(), expectedStrip.pixelColor(column, row).getRgb())) <= 1
-                           for row in range(strip.height()) for column in range(strip.width())), "Ruler differs from exported frame"
+                               zip(actualStrip.pixelColor(column, row).getRgb(), expectedStrip.pixelColor(column, row).getRgb())) <= 1
+                           for row in range(actualStrip.height()) for column in range(actualStrip.width())), "Ruler differs from exported frame"
         rulerStrips = overlay.rulerStrips
         v.ZoomBy(1.1, QtCore.QPointF(center))
         v.grab()
@@ -260,6 +267,10 @@ def Main():
         recovered = MainWindow()
         recovered.show()
         app.processEvents()
+        assert recovered.sidebarTabs.currentWidget() is recovered.buildScrollArea
+        assert not recovered.viewport.exportOverlay.active and recovered.viewport.zoom == 1.7
+        assert recovered.exportPanel.overrides["bounds"] == saved["settings"]["exportSettings"]["bounds"]
+        recovered.sidebarTabs.setCurrentWidget(recovered.exportPanel)
         assert recovered.viewport.exportOverlay.active
         assert recovered.viewport.exportOverlay.bounds == tuple(saved["settings"]["exportSettings"]["bounds"])
         assert not recovered.viewport.SelectionEntries()

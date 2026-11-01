@@ -1,5 +1,6 @@
 """Portable history record validation and reference deltas; no models or Qt."""
 import math
+from typing import NamedTuple
 import json
 from .record_schema import openingFieldsByType
 
@@ -7,6 +8,45 @@ from .record_schema import openingFieldsByType
 historyLimit = 200
 historyByteBudget = 16 * 1024 * 1024
 
+
+class WallSnapshot(NamedTuple):
+    obj: object
+    firstX: float
+    firstY: float
+    secondX: float
+    secondY: float
+    width: float
+    firstMiter: float
+    secondMiter: float
+    material: str
+    sizing: object
+    details: object
+    measurementHidden: bool
+
+
+class OpeningSnapshot(NamedTuple):
+    obj: object
+    parent: object
+    center: float
+    length: float
+    hingeAtSecond: object
+    facing: object
+    depth: object
+    measurementFlipped: bool = False
+    measurementHidden: bool = False
+    well: tuple = (False, 600.0, False)
+
+
+class SceneSnapshot(NamedTuple):
+    walls: tuple
+    selectedObject: object
+    selectedVertex: object
+    windows: tuple
+    selection: tuple
+    furnishings: tuple
+    groups: tuple
+    hidden: tuple
+    labels: tuple
 
 def ReadHistoryMembership(value, knownIds, groups = False):
     knownIds = frozenset(knownIds)
@@ -80,32 +120,36 @@ def ApplyReferenceChanges(record, changes, forward, validate = False):
 
 def HistoryEntryFields(category, entry, kind, parentReference = None):
     if category == 0:
-        values = {"first": [entry[1], entry[2]], "second": [entry[3], entry[4]], "width": entry[5],
-                  "firstMiter": entry[6], "secondMiter": entry[7], "material": entry[8]}
+        entry = WallSnapshot(*entry)
+        values = {"first": [entry.firstX, entry.firstY], "second": [entry.secondX, entry.secondY], "width": entry.width,
+                  "firstMiter": entry.firstMiter, "secondMiter": entry.secondMiter, "material": entry.material}
         if kind == "AngleGuide":
-            values["middle"] = list(entry[10][:2])
+            values["middle"] = list(entry.details[:2])
         if kind in ("MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide"):
-            values["textOffset"] = list(entry[10][-2:])
-        if kind == "MeasurementGuide" and len(entry[10]) > 2 and entry[10][0] != 0:
-            values["depth"] = entry[10][0]
+            values["textOffset"] = list(entry.details[-2:])
+        if kind == "MeasurementGuide" and len(entry.details) > 2 and entry.details[0] != 0:
+            values["depth"] = entry.details[0]
         if kind in ("DashedLine", "SolidLine"):
-            values["weightClass"] = entry[10][0]
+            values["weightClass"] = entry.details[0]
         if kind == "Arrow":
-            values.update(solidTip = entry[10][0], tipSize = entry[10][1], intensity = entry[10][2])
-            if len(entry[10]) > 3 and entry[10][3]:
+            values.update(solidTip = entry.details[0], tipSize = entry.details[1], intensity = entry.details[2])
+            if len(entry.details) > 3 and entry.details[3]:
                 values["directionReversed"] = True
         if kind == "Railing":
-            values.update(autosize = entry[9][0], manualPostCount = entry[9][1])
+            values.update(autosize = entry.sizing[0], manualPostCount = entry.sizing[1])
         if kind == "Stair":
-            values.update(autosize = entry[9][0], manualStepCount = entry[9][1], directionReversed = entry[10])
+            values.update(autosize = entry.sizing[0], manualStepCount = entry.sizing[1], directionReversed = entry.details)
     elif category == 3:
-        fields = {"hingeAtSecond": entry[4], "swingsOutwards": entry[5], "panelsFlipped": entry[5],
-                  "sillDepth": entry[6], "measurementFlipped": entry[7]}
-        fields.update(zip(("windowWell", "wellDepth", "wellDashed"), entry[9] if len(entry) > 9 else (False, 600.0, False)))
+        entry = OpeningSnapshot(*entry)
+        fields = {"hingeAtSecond": entry.hingeAtSecond, "swingsOutwards": entry.facing, "panelsFlipped": entry.facing,
+                  "sillDepth": entry.depth, "measurementFlipped": entry.measurementFlipped}
+        fields.update(zip(("windowWell", "wellDepth", "wellDashed"), entry.well if len(entry) > 9 else (False, 600.0, False)))
         if kind == "Fireplace":
-            fields.update(depth = entry[6][0], depthOffset = entry[6][1], material = entry[6][2])
+            fields.update(depth = entry.depth[0], depthOffset = entry.depth[1], material = entry.depth[2])
         values = {name: fields[name] for name in openingFieldsByType[kind]}
-        values.update(parent = parentReference, center = entry[2], length = entry[3])
+        values.update(parent = parentReference, center = entry.center, length = entry.length)
+        if kind == "Fireplace" and len(entry.depth) > 3 and entry.depth[3:] != entry.depth[:2]:
+            values.update(manualDepth = entry.depth[3], manualDepthOffset = entry.depth[4])
     else:
         values = {"first": list(entry[1]), "second": list(entry[2]), "width": entry[3]}
         if category == 8:
@@ -141,6 +185,7 @@ def PlanHistoryVariants(history, currentTypes, readParent):
     seeds, variants = {}, {}
     for edit in history["undo"] + history["redo"]:
         if not isinstance(edit, dict) or set(edit) not in ({"changes", "groups", "hidden", "orders"},
+                                                       {"changes", "groups", "hidden", "orders", "editor"},
                                                        {"changes", "groups", "hidden", "orders", "referenceImage"}):
             raise ValueError("Invalid history edit.")
         if not isinstance(edit["changes"], list) or len(edit["changes"]) > 100000:

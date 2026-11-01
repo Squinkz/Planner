@@ -68,8 +68,8 @@ def Main():
         assert Rect(main.exportButton, main.sidebarContentPanel) == actionBefore
         for output in ("PNG", "SVG", "PNG_OPTIMIZED"):
             export.typeField.setCurrentIndex(export.typeField.findData(output))
-            for mode in (0, 1):
-                export.scaleModeTabs.setCurrentIndex(mode)
+            for mode in ("Print", "Architectural", "Digital"):
+                export.SetScaleOption("scaleMode", mode)
                 app.processEvents()
                 raster = output != "SVG"
                 assert export.optimizedPngNote.isVisible() == (output == "PNG_OPTIMIZED")
@@ -78,12 +78,12 @@ def Main():
                     assert note.height() >= note.heightForWidth(note.width())
                     assert Rect(note, export).bottom() < Rect(export.scaleModeTabs, export).top()
                 assert export.compositeSection.isVisible() == raster
-                assert export.resolutionRow.isVisible() == (raster and mode == 0)
-                assert export.architecturalResolutionRow.isVisible() == (raster and mode == 1)
-                assert export.dpiRow.isVisible() == (raster and mode == 1)
-                assert export.digitalScaleRow.isVisible() == (mode == 0)
+                assert export.resolutionRow.isVisible() == (raster and mode == "Digital")
+                assert export.architecturalResolutionRow.isVisible() == (raster and mode == "Architectural")
+                assert export.dpiRow.isVisible() == (raster and mode != "Digital")
+                assert export.digitalScaleRow.isVisible() == (mode == "Digital")
         export.typeField.setCurrentIndex(export.typeField.findData("PNG"))
-        export.scaleModeTabs.setCurrentIndex(0)
+        export.SetScaleOption("scaleMode", "Digital")
         app.processEvents()
         for key, slider in export.gridSliders.items():
             field, reset = export.gridValueFields[key], export.gridResetButtons[key]

@@ -11,6 +11,7 @@ from .edit_transactions import SparseSceneEdit, stateCategories, ValidateSceneMe
 from .history_records import ApplyReferenceChanges, historyLimit, historyByteBudget
 
 editTokens = count(1)
+historyPointTolerance = 1e-6  # Millimeters per coordinate; cap Qt's relative tolerance.
 
 
 def RetainedBytes(value, seen = None):
@@ -48,6 +49,24 @@ class SceneEdit(SparseSceneEdit):
         openingParents = (id(entry[1]) for entry in result[3])
         groups = (tuple(id(obj) for obj in group) for group in result[6])
         ValidateSceneMemberships(members, walls, openingParents, groups, (id(obj) for obj in result[7]))
+        if len(result) > 9:
+            members = {id(entry[0]) for category in stateCategories for entry in result[category]}
+            selected = {id(obj) for obj, index in result[4]}
+            rotationObject, pivot = result[9]
+            if selected - members or rotationObject is not None and id(rotationObject) not in selected:
+                raise ValueError("Invalid history editor selection.")
+
+    @staticmethod
+    def EntriesMatch(category, first, second):
+        if category in (5, 8):
+            # Preserve Qt's existing noise suppression, but prevent its relative
+            # tolerance from swallowing real moves far from the world origin.
+            for oldPoint, newPoint in zip(first[1:3], second[1:3]):
+                if (oldPoint != newPoint or abs(oldPoint.x() - newPoint.x()) > historyPointTolerance
+                        or abs(oldPoint.y() - newPoint.y()) > historyPointTolerance):
+                    return False
+            return first[3:] == second[3:]
+        return SparseSceneEdit.EntriesMatch(category, first, second)
 
 
 class ReferenceImageEdit(SceneEdit):

@@ -24,7 +24,7 @@ from .model_construction import PlanObjectConstruction, PlanProjectMemberships, 
 from .model_factory import ConstructDetachedObject, ConstructProjectOpening
 
 
-from .object_schema import openingClasses, openingFields, ReadArrowTipSize
+from .object_schema import openingClasses, openingFields, ReadArrowTipSize, EncodeObjectRecord
 
 
 
@@ -36,60 +36,6 @@ def ReadProjectBytes(path):
     return payload
 
 
-def EncodeObjectRecord(obj, indices, values = None):
-    """Shared project/history record schema; snapshots supply saved field values."""
-    record = {"type": type(obj).__name__, "id": obj.objectId, "measurementHidden": obj.measurementHidden}
-    if hasattr(obj, "originalMaterial"):
-        record["originalMaterial"] = obj.originalMaterial
-    if getattr(obj, "geometryIssues", ()):
-        record["geometryIssues"] = list(obj.geometryIssues)
-    if values is not None:
-        record.update(values)
-        if isinstance(obj, Furnishing) and not isinstance(obj, (Label, NorthArrow)):
-            record["definition"] = getattr(obj, "definitionKey", obj.definition["key"])
-        if isinstance(obj, Arrow):
-            record["tipSizeMode"] = "millimeters"
-        return record
-    if isinstance(obj, Window):
-        record.update(parent = indices[id(obj.parentWall)], center = obj.centerFraction, length = obj.length)
-        for name in openingFields[type(obj)]:
-            if hasattr(obj, name):
-                record[name] = getattr(obj, name)
-    else:
-        record.update(first = [obj.firstVertex.x(), obj.firstVertex.y()],
-                      second = [obj.secondVertex.x(), obj.secondVertex.y()], width = obj.width)
-        if isinstance(obj, Label):
-            record["text"] = obj.text
-            record["intensity"] = obj.intensity
-            if isinstance(obj, RoomLabel) and obj.unitsOverride is not None:
-                record["unitsOverride"] = obj.unitsOverride
-        elif isinstance(obj, NorthArrow):
-            record["intensity"] = obj.intensity
-        elif isinstance(obj, Furnishing):
-            record["definition"] = getattr(obj, "definitionKey", obj.definition["key"])
-            record["behindCounters"] = obj.behindCounters
-            record["flipHorizontal"] = obj.flipHorizontal
-            record["flipVertical"] = obj.flipVertical
-        else:
-            record.update(material = obj.material, firstMiter = obj.firstMiter, secondMiter = obj.secondMiter)
-            if isinstance(obj, AngleGuide):
-                record.update(middle = [obj.middleVertex.x(), obj.middleVertex.y()])
-            if isinstance(obj, MeasurementGuide):
-                record["textOffset"] = [obj.textOffset.x(), obj.textOffset.y()]
-            if type(obj) is MeasurementGuide and obj.depth != 0:
-                record["depth"] = obj.depth
-            if isinstance(obj, DashedLine):
-                record["weightClass"] = obj.weightClass
-            if isinstance(obj, Arrow):
-                record.update(solidTip = obj.solidTip, tipSize = obj.tipSize, intensity = obj.intensity, tipSizeMode = "millimeters")
-                if obj.directionReversed:
-                    record["directionReversed"] = True
-            if isinstance(obj, Railing):
-                record.update(autosize = obj.autosize, manualPostCount = obj.manualPostCount)
-            if isinstance(obj, Stair):
-                record["directionReversed"] = obj.directionReversed
-                record.update(autosize = obj.autosize, manualStepCount = obj.manualStepCount)
-    return record
 
 
 def EncodeScene(viewport):
@@ -228,14 +174,16 @@ def DecodeProject(data, definitions, validatePlacement = True, validatedImages =
         windows.append(obj)
         created[index] = obj
     if validatePlacement:
-        parentIntervals = {}
+        parentIntervals, parentLengths = {}, {}
         for opening in windows:
             if "opening_overlap" not in opening.geometryIssues:
                 parentIntervals.setdefault(id(opening.parentWall), []).append((opening.firstFraction, opening.secondFraction))
-        for intervals in parentIntervals.values():
+                parentLengths[id(opening.parentWall)] = QtCore.QLineF(opening.parentWall.firstVertex, opening.parentWall.secondVertex).length()
+        from .geometry.attachments import openingTolerance
+        for parentKey, intervals in parentIntervals.items():
             previousEnd = -math.inf
             for low, high in sorted(intervals):
-                if min(high, previousEnd) - low > 1e-8:
+                if (min(high, previousEnd) - low) * parentLengths[parentKey] > openingTolerance:
                     raise ValueError("Doors or windows overlap on their parent wall.")
                 previousEnd = max(previousEnd, high)
     from .viewport.geometry import FootprintGeometry

@@ -13,6 +13,7 @@ appDirectory = Path(__file__).resolve().parent.parent / "planner-main"
 sys.path.insert(0, str(appDirectory))
 from PySide6 import QtCore, QtGui, QtWidgets, QtSvg
 from planner_app.export_plan import RenderPlan
+from planner_app.export_settings import BorderSize
 
 
 def Main():
@@ -34,20 +35,22 @@ def Main():
         fullImage = RenderPlan(planPath, 100, (0, 0, 4000, 4000))
         assert (fullImage.width(), fullImage.height()) == (400, 400)
         rulerImage = RenderPlan(planPath, 100, (0, 0, 4000, 4000), ruler = True)
-        assert (rulerImage.width(), rulerImage.height()) == (456, 456)
+        border = BorderSize("Ruler")
+        assert border == 50, "Default 2 mm border text needs a 50-pixel band at 300 PPI"
+        assert (rulerImage.width(), rulerImage.height()) == (400 + 2 * border, 400 + 2 * border)
         # The shared frame covers the crop's boundary pixels, not its interior.
-        assert rulerImage.copy(29, 29, 398, 398) == fullImage.copy(1, 1, 398, 398), "Rulers change scale or crop placement"
+        assert rulerImage.copy(border + 1, border + 1, 398, 398) == fullImage.copy(1, 1, 398, 398), "Rulers change scale or crop placement"
         from planner_app.graphics.palette import themeColors
-        assert rulerImage.pixelColor(50, 28) == QtGui.QColor(themeColors["rulerMinorTick"]), "Top separator missing"
-        assert rulerImage.pixelColor(28, 50) == QtGui.QColor(themeColors["rulerMinorTick"]), "Left separator missing"
-        assert rulerImage.pixelColor(50, 428) == QtGui.QColor(themeColors["rulerMinorTick"]), "Bottom separator missing"
-        assert rulerImage.pixelColor(428, 50) == QtGui.QColor(themeColors["rulerMinorTick"]), "Right separator missing"
+        assert rulerImage.pixelColor(border + 22, border) == QtGui.QColor(themeColors["rulerMinorTick"]), "Top separator missing"
+        assert rulerImage.pixelColor(border, border + 22) == QtGui.QColor(themeColors["rulerMinorTick"]), "Left separator missing"
+        assert rulerImage.pixelColor(border + 22, border + 400) == QtGui.QColor(themeColors["rulerMinorTick"]), "Bottom separator missing"
+        assert rulerImage.pixelColor(border + 400, border + 22) == QtGui.QColor(themeColors["rulerMinorTick"]), "Right separator missing"
         assert rulerImage.pixelColor(0, 0) == QtGui.QColor(themeColors["border"]), "Outer frame missing"
         assert rulerImage.pixelColor(0, 0) != fullImage.pixelColor(0, 0), "Ruler background is missing"
-        assert len({rulerImage.pixel(px, py) for px in range(28, 428) for py in range(28)}) > 1, "Top ruler ticks are missing"
-        assert len({rulerImage.pixel(px, py) for px in range(28) for py in range(28, 428)}) > 1, "Left ruler ticks are missing"
-        assert len({rulerImage.pixel(px, py) for px in range(28, 428) for py in range(429, 455)}) > 1, "Bottom ruler ticks are missing"
-        assert len({rulerImage.pixel(px, py) for px in range(429, 455) for py in range(28, 428)}) > 1, "Right ruler ticks are missing"
+        assert len({rulerImage.pixel(px, py) for px in range(border, border + 400) for py in range(border)}) > 1, "Top ruler ticks are missing"
+        assert len({rulerImage.pixel(px, py) for px in range(border) for py in range(border, border + 400)}) > 1, "Left ruler ticks are missing"
+        assert len({rulerImage.pixel(px, py) for px in range(border, border + 400) for py in range(border + 401, 2 * border + 399)}) > 1, "Bottom ruler ticks are missing"
+        assert len({rulerImage.pixel(px, py) for px in range(border + 401, 2 * border + 399) for py in range(border, border + 400)}) > 1, "Right ruler ticks are missing"
         cropImage = RenderPlan(planPath, 100, (1000, 1000, 2000, 2000))
         assert cropImage == fullImage.copy(100, 100, 200, 200), "World crop is misplaced"
         assert fullImage.pixelColor(200, 200) != fullImage.pixelColor(200, 250), "Wall is missing"
@@ -83,7 +86,7 @@ def Main():
         result = subprocess.run(autoCommand, cwd = appDirectory, capture_output = True, text = True)
         assert result.returncode == 0, result.stderr
         autoRulerImage = QtGui.QImage(str(outputPath))
-        assert autoRulerImage.copy(29, 29, autoImage.width() - 2, autoImage.height() - 2) == autoImage.copy(1, 1, autoImage.width() - 2, autoImage.height() - 2)
+        assert autoRulerImage.copy(border + 1, border + 1, autoImage.width() - 2, autoImage.height() - 2) == autoImage.copy(1, 1, autoImage.width() - 2, autoImage.height() - 2)
         result = subprocess.run(command, cwd = appDirectory, capture_output = True, text = True)
         assert result.returncode == 0, result.stderr
         assert QtGui.QImage(str(outputPath)) == rulerImage
@@ -93,8 +96,8 @@ def Main():
         svgPath = outputPath.with_suffix(".svg")
         svgRoot = ElementTree.parse(svgPath).getroot()
         svgNamespace = "{http://www.w3.org/2000/svg}"
-        assert svgRoot.get("viewBox") == "0 0 456 456"
-        assert svgRoot.get("width") == "456" and svgRoot.get("height") == "456"
+        assert svgRoot.get("viewBox") == f"0 0 {rulerImage.width()} {rulerImage.height()}"
+        assert svgRoot.get("width") == str(rulerImage.width()) and svgRoot.get("height") == str(rulerImage.height())
         assert svgRoot.findall(f".//{svgNamespace}clipPath"), "SVG lost crop masks"
         for clipPath in svgRoot.findall(f".//{svgNamespace}clipPath"):
             assert clipPath.get("clipPathUnits") == "userSpaceOnUse"
@@ -112,8 +115,9 @@ def Main():
         svgPainter.end()
         # Compare broad areas while allowing rasterizer differences at glyph edges.
         mismatches = sum(svgImage.pixelColor(px, py) != rulerImage.pixelColor(px, py)
-                         for px in range(0, 456, 4) for py in range(0, 456, 4))
-        assert mismatches / (114 * 114) < .08, "SVG layout differs substantially from PNG"
+                         for px in range(0, rulerImage.width(), 4) for py in range(0, rulerImage.height(), 4))
+        samples = len(range(0, rulerImage.width(), 4)) * len(range(0, rulerImage.height(), 4))
+        assert mismatches / samples < .08, "SVG layout differs substantially from PNG"
         result = subprocess.run(command + ["-svg", "-png"], cwd = appDirectory, capture_output = True, text = True)
         assert result.returncode != 0, "Conflicting output formats accepted"
         data["settings"]["exportSettings"]["border"] = "None"

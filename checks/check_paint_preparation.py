@@ -1,170 +1,246 @@
-"""Paint-prepared owner fills match independent collision geometry and safe fallbacks."""
+"""Local paint validation and exact cached coincident-record behavior."""
+import copy
+import gc
+import json
 import os
 from pathlib import Path
 import random
 import sys
 from unittest.mock import patch
+import weakref
 
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "planner-main"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "planner-main"))
 from PySide6 import QtCore, QtGui, QtWidgets
-from planner_app.models import Wall, Pillar, Column, Furnishing
+from planner_app.models import (Wall, Pillar, Column, Counter, Stair, Railing, Elevator,
+    Window, Door, PocketDoor, Fireplace, Furnishing, Label, NorthArrow)
+from planner_app.graphics.fonts import LoadApplicationFonts
 from planner_app.viewport.widget import DrawingViewport
-from planner_app.viewport.geometry import FootprintGeometry, CollisionPass
+from planner_app.project_codec import EncodeObjectRecord
+from fixtures.paint_preparation_reference_20261031 import ReferenceViewport
+from fixtures.parity_examples import CreateObject, objectTypes
 
 
-@CollisionPass
-def Query(viewport, first, second, excluded):
-    return viewport.JoinedObjectsOverlap(first, second, excludedWalls = excluded)
-
-
-def Probe(viewport, source, furnishing, excluded = (), reuse = True):
-    # Force the exact joined-footprint branch, independently of whether a
-    # particular test placement overlaps the simpler endpoint rectangles.
-    viewport.collisionEpoch = 0
-    viewport.collisionFootprintCache = {}
-    viewport.collisionResults = {}
-    viewport.collisionPairKeys = {}
-    viewport.collisionPairEpochs = {}
-    original = FootprintGeometry.ConnectedWallPath
-    calls = []
-    def Count(workspace, *args, **kwargs):
-        calls.append(workspace)
-        return original(workspace, *args, **kwargs)
-    with patch.object(viewport, "ObjectsOverlap", return_value = False), patch.object(
-            viewport, "JoinedObjectBounds", return_value = QtCore.QRectF(-1e6, -1e6, 2e6, 2e6)), patch.object(
-            FootprintGeometry, "ConnectedWallPath", Count):
-        result = Query(viewport, source, furnishing, excluded)
-    assert bool(calls) != reuse, (reuse, len(calls))
-    return result, viewport.collisionFootprintCache[Wall][1]
-
-
-def ReferenceOutline(painter, path, dirtyRects):
-    """Frozen pre-optimization outline culling, using Qt rectangle predicates."""
-    if (not dirtyRects or painter.pen().style() != QtCore.Qt.PenStyle.SolidLine
-            or any(path.elementAt(index).isCurveTo() for index in range(path.elementCount()))):
-        painter.drawPath(path)
-        return
-    margin = max(1, painter.pen().widthF()) * max(4, painter.pen().miterLimit() * 2) + 3
-    regions = [rect.adjusted(-margin, -margin, margin, margin) for rect in dirtyRects]
-    fragments = QtGui.QPainterPath()
-    for polygon in path.toSubpathPolygons():
-        count = len(polygon) - 1
-        if count <= 0:
-            continue
-        visible = []
-        for index in range(count):
-            bounds = QtCore.QRectF(polygon[index], polygon[index + 1]).normalized().adjusted(-margin, -margin, margin, margin)
-            visible.append(any(bounds.intersects(rect) for rect in regions))
-        if all(visible):
-            fragments.addPolygon(polygon)
-            fragments.closeSubpath()
-            continue
-        start = visible.index(False)
-        drawing = False
-        for offset in range(1, count + 1):
-            index = (start + offset) % count
-            if visible[index]:
-                if not drawing:
-                    fragments.moveTo(polygon[index])
-                fragments.lineTo(polygon[index + 1])
-            drawing = visible[index]
-    painter.drawPath(fragments)
+def Compare(view, reference, paint = False):
+    for name in ("walls", "windows", "furnishings", "labels", "hiddenObjectIds", "visibility", "collisionSettings"):
+        setattr(reference, name, getattr(view, name))
+    assert view.InvalidArchitecturalObjects() == reference.InvalidArchitecturalObjects()
+    for includeHidden in (False, True):
+        actual = view.CoincidentObjectGroups(includeHidden)
+        expected = reference.CoincidentObjectGroups(includeHidden)
+        assert [[id(obj) for obj in group] for group in actual] == [[id(obj) for obj in group] for group in expected]
+    assert view.collisionPassCache is None
+    if paint:
+        images = []
+        for viewport in (view, reference):
+            image = QtGui.QImage(viewport.size(), QtGui.QImage.Format.Format_ARGB32_Premultiplied)
+            image.fill(QtCore.Qt.GlobalColor.transparent)
+            viewport.render(image)
+            images.append(image)
+        assert images[0] == images[1], "Paint preparation changed exact editor pixels"
 
 
 def Main():
-    app = QtWidgets.QApplication([])
-    viewport = DrawingViewport()
+    app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
+    app.setStyle("Fusion")
+    LoadApplicationFonts(app)
+    view, reference = DrawingViewport(), ReferenceViewport()
     point = QtCore.QPointF
-    randomizer = random.Random(418)
-    definition = {"key": "test", "width": 200, "length": 200}
-    for frame in range(25):
-        vertices = [point(0, 0), point(1500, 0), point(1800, 1200), point(-500, 1500)]
-        walls = [Wall(vertices[index], vertices[(index + 1) % 4], 120 + 30 * (index % 3)) for index in range(4)]
-        walls[1].firstMiter = frame % 3 * .4
-        if frame % 2:
-            walls.append(Pillar(point(1300, -100), point(1300, 200), 400))
-        viewport.walls = walls
-        viewport.zoom = .5 + frame * .03
-        viewport.panOffset = point(frame * .37, frame * .71)
-        viewport.ConnectedWallPath(walls)
-        furnishing = Furnishing(definition, point(randomizer.uniform(-300, 1800), randomizer.uniform(-200, 1500)))
-        viewport.furnishings = [furnishing]
-        actual, actualPaths = Probe(viewport, walls[0], furnishing)
-        geometryKey = viewport.wallGeometryKey
-        viewport.wallGeometryKey = None
-        expected, expectedPaths = Probe(viewport, walls[0], furnishing, reuse = False)
-        viewport.wallGeometryKey = geometryKey
-        assert actual == expected
-        assert actualPaths.keys() == expectedPaths.keys()
-        for identity in actualPaths:
-            assert actualPaths[identity] == expectedPaths[identity], (frame, identity)
-        # Old screen geometry must not validate changed, reordered, excluded,
-        # or hidden construction. Those use independent full collision fills.
-        walls[0].width += 5
-        Probe(viewport, walls[0], furnishing, reuse = False)
-        viewport.ConnectedWallPath(walls)
-        Probe(viewport, walls[0], furnishing, excluded = (id(walls[-1]),), reuse = False)
-        viewport.ConnectedWallPath(list(reversed(walls)))
-        Probe(viewport, walls[0], furnishing, reuse = False)
-        viewport.ConnectedWallPath(walls[:-1])
-        Probe(viewport, walls[0], furnishing, reuse = False)
-    viewport.walls = [Wall(point(), point(1500, 0), 240), Column(point(500, -200), point(500, 200), 400)]
-    viewport.ConnectedWallPath(viewport.walls)
-    Probe(viewport, viewport.walls[0], furnishing, reuse = False)
-    # Dirty outline fragments must preserve complete joins at the clip edge.
-    # Compare exact raster pixels with the original Qt rectangle culling,
-    # including fractional coordinates, offscreen contours and fallback pens.
-    for frame in range(40):
-        path = QtGui.QPainterPath()
-        for offset in (-900, 0, 900):
-            polygon = QtGui.QPolygonF([point(offset + randomizer.uniform(-80, 380), randomizer.uniform(-80, 320))
-                                      for index in range(12)])
-            path.addPolygon(polygon)
-            path.closeSubpath()
+    for viewport in (view, reference):
+        viewport.resize(1000, 800)
+        viewport.showMeasurements = viewport.showTips = False
+        viewport.performanceTimer.stop()
+    view.walls = [Wall(point(index * 6000, 0), point(index * 6000 + 4000, 0), 200) for index in range(128)]
+    desk = Furnishing(view.furnishingDefinitions["desk"], point(0, 6000))
+    label = Label(point(0, 8000), "Label")
+    view.furnishings, view.labels = [desk], [label]
+    Compare(view, reference)
+    with patch.object(view, "ArchitecturalPlacementFits", wraps = view.ArchitecturalPlacementFits) as fits, \
+         patch.object(view, "JoinedObjectBounds", wraps = view.JoinedObjectBounds) as bounds:
+        for frame in range(8):
+            desk.firstVertex += point(3, 0)
+            desk.secondVertex += point(3, 0)
+            view.InvalidArchitecturalObjects()
+        assert fits.call_count == 0 and bounds.call_count == 8
+        bounds.reset_mock()
+        label.firstVertex += point(4, 2)
+        label.secondVertex += point(4, 2)
+        view.InvalidArchitecturalObjects()
+        assert bounds.call_count == 0 and fits.call_count == 0
+    for x, y in ((1000, 0), (7000, 0), (13000, 0), (13000, 6000), (1000, 0)):
+        center = (desk.firstVertex + desk.secondVertex) / 2
+        delta = point(x, y) - center
+        desk.firstVertex += delta
+        desk.secondVertex += delta
+        with patch.object(view, "ArchitecturalPlacementFits", wraps = view.ArchitecturalPlacementFits) as fits:
+            Compare(view, reference)
+            assert fits.call_count <= 2, fits.call_count
+    # Failure must not advance old bounds or discard the dirty notifications.
+    center = (desk.firstVertex + desk.secondVertex) / 2
+    desk.firstVertex += point(7000, 0) - center
+    desk.secondVertex += point(7000, 0) - center
+    previous = view.architecturalValidation
+    with patch.object(view, "ArchitecturalPlacementFits", side_effect = RuntimeError("probe")):
+        try:
+            view.InvalidArchitecturalObjects()
+        except RuntimeError:
+            pass
+        else:
+            raise AssertionError("Expected validation failure")
+    assert view.architecturalValidation is previous and view.collisionPassCache is None
+    Compare(view, reference)
+    view.renderChanges.Bump("geometry")
+    with patch.object(view, "PlacementBlockers", wraps = view.PlacementBlockers) as blockers:
+        Compare(view, reference)
+        assert blockers.call_count >= len(view.walls), "Unknown geometry edits must retain full validation"
+
+    host = Wall(point(-2500, 0), point(2500, 0), 240)
+    view.walls = [host, Wall(point(2500, 0), point(2500, 2200), 600, firstMiter = 2),
+                  Pillar(point(-1700, 1300), point(-1700, 2000), 500),
+                  Column(point(800, 1000), point(800, 1600), 600),
+                  Counter(point(-1800, -1000), point(1800, -1000), 500),
+                  Stair(point(-1700, 1700), point(1200, 1700), 600),
+                  Railing(point(-1500, -1800), point(1600, -1800), 120),
+                  Elevator(point(1900, 1000), point(1900, 2000), 700)]
+    view.windows = [Door(host, .1, .25), Window(host, .35, .5), PocketDoor(host, .55, .9), Fireplace(host, .92, .97)]
+    other = Furnishing(next(definition for definition in view.furnishingDefinitions.values() if definition.get("components")))
+    # Ordinary and compound furnishing geometry use the same collision predicates.
+    view.furnishings = [desk, other, NorthArrow(point(3000, 4000))]
+    view.labels = [label]
+    Compare(view, reference)
+    randomizer = random.Random(20261031)
+    for frame in range(100):
+        moving = desk if frame % 2 else other
+        center = (moving.firstVertex + moving.secondVertex) / 2
+        delta = point(randomizer.uniform(-3000, 3000), randomizer.uniform(-2200, 2200)) - center
+        moving.firstVertex += delta
+        moving.secondVertex += delta
         if frame % 7 == 0:
-            path.moveTo(10, 10)
-            path.cubicTo(50, 250, 250, -50, 290, 230)
-        clip = QtCore.QRectF(35.3, 40.7, 185.4, 140.2)
-        pen = QtGui.QPen(QtGui.QColor("white"), .5 + frame % 6)
-        pen.setJoinStyle((QtCore.Qt.PenJoinStyle.MiterJoin, QtCore.Qt.PenJoinStyle.BevelJoin,
-                          QtCore.Qt.PenJoinStyle.RoundJoin)[frame % 3])
-        if frame % 5 == 0:
-            pen.setStyle(QtCore.Qt.PenStyle.DashLine)
-        images = []
-        for partial in (False, True):
-            image = QtGui.QImage(300, 240, QtGui.QImage.Format.Format_ARGB32_Premultiplied)
-            image.fill(QtCore.Qt.GlobalColor.transparent)
-            with QtGui.QPainter(image) as painter:
-                painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
-                painter.setClipRect(clip)
-                painter.setPen(pen)
-                if partial:
-                    viewport.DrawDirtyWallOutline(painter, path, [clip])
-                else:
-                    ReferenceOutline(painter, path, [clip])
-            images.append(image)
-        assert images[0] == images[1], ("Outline clipping", frame)
-    # A grid stroke centered just outside any edge still has visible pixels.
-    # Compare with drawing an oversized grid under the same viewport clip.
-    viewport.resize(300, 240)
-    viewport.zoom = .862
-    viewport.showGrid = True
-    rect = viewport.DrawingRect()
-    for x in (rect.left() - .1, rect.right() + .1):
-        for y in (rect.top() - .1, rect.bottom() + .1):
-            images = []
-            for expanded in (False, True):
-                image = QtGui.QImage(300, 240, QtGui.QImage.Format.Format_ARGB32_Premultiplied)
-                image.fill(QtCore.Qt.GlobalColor.black)
-                with QtGui.QPainter(image) as painter:
-                    painter.setClipRect(rect)
-                    viewport.DrawGridBackground(painter, rect.adjusted(-10, -10, 10, 10) if expanded else rect,
-                                                point(x, y), viewport.basePixelsPerMillimeter * viewport.zoom, gridOnly = True)
-                images.append(image)
-            assert images[0] == images[1], ("Grid stroke fringe", x, y)
-    viewport.close()
-    print("Paint owner reuse and collision fallbacks passed")
+            moving.width = randomizer.uniform(200, 2200)
+        if frame % 11 == 0:
+            moving.angle += 21
+        Compare(view, reference, paint = frame % 10 == 0)
+    for category in view.collisionSettings:
+        view.collisionSettings[category] = False
+        Compare(view, reference)
+        view.collisionSettings[category] = True
+    view.hiddenObjectIds = {id(view.walls[2]), id(desk)}
+    Compare(view, reference)
+    view.visibility["Walls"] = False
+    Compare(view, reference)
+    view.visibility["Walls"] = True
+    for obj, name, value in ((host, "width", 400), (view.windows[0], "length", 6000),
+                             (view.walls[1], "firstMiter", .4)):
+        setattr(obj, name, value)
+        Compare(view, reference)
+
+    view.walls = [Wall(point(), point(3000, 0))]
+    view.windows, view.labels = [], []
+    view.hiddenObjectIds = set()
+    view.furnishings = [Furnishing(view.furnishingDefinitions["desk"], point(index * 4000, 6000)) for index in range(258)]
+    view.InvalidArchitecturalObjects()
+    for index, obj in enumerate(view.furnishings):
+        obj.firstVertex += point(1, 0)
+        obj.secondVertex += point(1, 0)
+        view.InvalidArchitecturalObjects()
+        if index in (0, 127, 255, 256, 257):
+            Compare(view, reference)
+    assert len(view.architecturalValidation[3]["scope"]["movingBounds"]) <= 256
+
+    # Every supported object type retains the exact persistence-derived key.
+    objects = [CreateObject(view, name) for name in objectTypes]
+    duplicates = []
+    for obj in objects:
+        duplicate = CreateObject(view, type(obj).__name__)
+        if isinstance(obj, Window):
+            duplicate.parentWall = obj.parentWall
+        duplicates.append(duplicate)
+    view.walls = [obj for obj in objects + duplicates if isinstance(obj, Wall)]
+    view.walls.extend(obj.parentWall for obj in objects if isinstance(obj, Window))
+    view.windows = [obj for obj in objects + duplicates if isinstance(obj, Window)]
+    view.furnishings = [obj for obj in objects + duplicates if isinstance(obj, Furnishing) and not isinstance(obj, Label)]
+    view.labels = [obj for obj in objects + duplicates if isinstance(obj, Label)]
+    reference.walls, reference.windows, reference.furnishings, reference.labels = view.walls, view.windows, view.furnishings, view.labels
+    def CompareGroups():
+        for hidden in (False, True):
+            assert [[id(obj) for obj in group] for group in view.CoincidentObjectGroups(hidden)] == [
+                [id(obj) for obj in group] for group in reference.CoincidentObjectGroups(hidden)]
+        ordered = view.walls + view.windows + sorted(view.furnishings, key = lambda obj: not obj.behindCounters) + view.labels
+        indices = {id(obj): index for index, obj in enumerate(ordered)}
+        for obj in ordered:
+            cached = obj.__dict__.get("_coincidentRecordCache")
+            if cached is not None:
+                record = EncodeObjectRecord(obj, indices)
+                for name in ("id", "measurementHidden", "measurementFlipped", "geometryIssues"):
+                    record.pop(name, None)
+                assert cached[1] == json.dumps(record, sort_keys = True, separators = (",", ":")), type(obj).__name__
+    CompareGroups()
+    with patch("planner_app.object_schema.EncodeObjectRecord", wraps = EncodeObjectRecord) as encode:
+        view.CoincidentObjectGroups()
+        assert encode.call_count == 0, "Unchanged objects were serialized again"
+        objects[0].firstVertex.setX(objects[0].firstVertex.x() + .125)
+        view.CoincidentObjectGroups()
+        assert encode.call_count == 1
+    fields = ("width", "material", "firstMiter", "secondMiter", "centerFraction", "length", "text", "intensity",
+              "hingeAtSecond", "swingsOutwards", "panelsFlipped", "sillDepth", "windowWell", "wellDepth", "wellDashed",
+              "solidTip", "tipSize", "directionReversed", "autosize", "manualStepCount", "manualPostCount", "unitsOverride")
+    mutations = 0
+    for obj in objects:
+        for name in fields:
+            if name not in obj.__dict__:
+                continue
+            old = getattr(obj, name)
+            if type(old) is bool:
+                value = not old
+            elif type(old) in (int, float):
+                value = old + 1
+            elif type(old) is str:
+                value = old + " changed"
+            else:
+                continue
+            setattr(obj, name, value)
+            CompareGroups()
+            mutations += 1
+    wall = objects[0]
+    for value in (100, 100.0, 0.0, -0.0):
+        wall.width = value
+        CompareGroups()
+    for value in (None, "Brick", 1, 1.0, 0.0, -0.0, {"nested": [1]}):
+        wall.originalMaterial = value
+        CompareGroups()
+    wall.originalMaterial["nested"].append(2)
+    CompareGroups()
+    fireplace = next(obj for obj in objects if type(obj) is Fireplace)
+    fireplace.parentWall.width += 1000
+    CompareGroups()
+    fireplace.manualDepth = 100
+    fireplace.geometryIssues = ["fireplace_bounds"]
+    CompareGroups()
+    fireplace.geometryIssues.clear()
+    CompareGroups()
+    view.walls.reverse()
+    reference.walls = view.walls
+    CompareGroups()
+    label = next(obj for obj in objects if type(obj) is Label)
+    label.text = "x" * 10000
+    CompareGroups()
+    assert "_coincidentRecordCache" not in label.__dict__
+    assert "_coincidentRecordCache" not in copy.deepcopy(wall).__dict__
+    assert "_coincidentRecordCache" not in wall.__getstate__()
+
+    # Clear project-owned references, including the stationary broad phase.
+    view.walls = [Wall(point(), point(2000, 0))]
+    view.windows, view.labels, view.furnishings = [], [], []
+    view.InvalidArchitecturalObjects()
+    oldWall = weakref.ref(view.walls[0])
+    view.walls = []
+    view.ClearGeometryCaches()
+    gc.collect()
+    assert oldWall() is None and view.renderChanges.placementChanges is None
+    assert not hasattr(view, "architecturalValidation")
+    for viewport in (view, reference):
+        viewport.close()
+    print(f"PASS: local validation, failure recovery, bounded overlay, exact pixels, all object types and {mutations} comparison mutations.")
 
 
 if __name__ == "__main__":

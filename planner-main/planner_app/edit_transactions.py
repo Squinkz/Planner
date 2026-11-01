@@ -1,8 +1,8 @@
 """Sparse reversible record edits; opaque values and explicit model validation.
 
 No GUI/model imports. Identity is live object identity, not structural equality or
-serialized project IDs. Value comparison belongs to supplied record values (e.g.
-the desktop adapter retains QPointF equality). This engine never mutates models.
+serialized project IDs. Value comparison uses the adapter's EntriesMatch policy;
+the desktop adapter bounds Qt's fuzzy point comparison. This engine never mutates models.
 """
 from abc import ABC, abstractmethod
 
@@ -47,9 +47,7 @@ class SparseSceneEdit(ABC):
             for key in dict.fromkeys((*old, *new)):
                 oldIndex, oldEntry = old.get(key, (None, None))
                 newIndex, newEntry = new.get(key, (None, None))
-                different = oldEntry is None or newEntry is None or oldEntry[1:] != newEntry[1:]
-                if category == 3 and oldEntry is not None and newEntry is not None:
-                    different = different or oldEntry[1] is not newEntry[1]
+                different = oldEntry is None or newEntry is None or not cls.EntriesMatch(category, oldEntry, newEntry)
                 if different:
                     changes.append((category, oldIndex, newIndex, oldEntry, newEntry))
             # Insertions/deletions shift indices without changing relative order.
@@ -68,7 +66,11 @@ class SparseSceneEdit(ABC):
         if not changes and not orders and not any(any(side) for side in memberships):
             return None
         return cls(changes, *memberships, orders,
-                   ((before[1], before[2], before[4]), (after[1], after[2], after[4])))
+                   ((before[1], before[2], before[4], *before[9:]), (after[1], after[2], after[4], *after[9:])))
+
+    @staticmethod
+    def EntriesMatch(category, first, second):
+        return first[1:] == second[1:] and (category != 3 or first[1] is second[1])
 
     def Apply(self, state, forward, validate = False):
         """Build one transient state, preserving unchanged objects and list order."""
@@ -89,8 +91,7 @@ class SparseSceneEdit(ABC):
                         if any(entry[0] is obj for entry in entries):
                             raise ValueError("History adds an existing object.")
                     elif (sourceIndex >= len(entries) or entries[sourceIndex][0] is not obj
-                          or entries[sourceIndex][1:] != source[1:]
-                          or (category == 3 and entries[sourceIndex][1] is not source[1])):
+                          or not self.EntriesMatch(category, entries[sourceIndex], source)):
                         raise ValueError("History does not match the current scene.")
                 if target is not None:
                     insertions.append((targetIndex, target))
@@ -123,7 +124,8 @@ class SparseSceneEdit(ABC):
                     raise ValueError("Invalid history membership position.")
                 entries.insert(position, value)
             result[index] = tuple(entries)
-        result[1], result[2], result[4] = self.selection[targetSide]
+        result[1], result[2], result[4] = self.selection[targetSide][:3]
+        result[9:] = self.selection[targetSide][3:]
         if validate:
             self.ValidateState(result)
         return tuple(result)

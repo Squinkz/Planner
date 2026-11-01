@@ -122,15 +122,18 @@ def Main():
                 with SymbolPainter(image) as painter:
                     DrawOpeningSymbol(painter, first, second, 40, DoubleDoor, swingsOutwards = facing, color = "white")
                 assert len(arcs) == 2 and len(lines) == 4
+                # Swing ink is submitted before jambs so the wall junction
+                # paints on top. Preserve the geometry and this draw order.
+                leaves, jambs = lines[:2], lines[2:]
                 # Each swing is a standard half-span leaf, with the same facing.
-                assert all(abs(line.length() - 100) < 1e-6 for line in lines[2:])
-                assert lines[2].p2() - lines[2].p1() == lines[3].p2() - lines[3].p1()
+                assert all(abs(line.length() - 100) < 1e-6 for line in leaves)
+                assert leaves[0].p2() - leaves[0].p1() == leaves[1].p2() - leaves[1].p1()
                 assert arcs[0].pointAtPercent(0) == arcs[1].pointAtPercent(0)
-                for endpoint, jamb in zip((first, second), lines[:2]):
+                for endpoint, jamb in zip((first, second), jambs):
                     assert (jamb.p1() + jamb.p2()) / 2 == endpoint
-                assert abs(QtCore.QPointF.dotProduct(lines[2].p1() - first, tangent)) < 1e-6
-                assert abs(QtCore.QPointF.dotProduct(lines[3].p1() - second, tangent)) < 1e-6
-                assert all(QtCore.QLineF(arc.currentPosition(), line.p2()).length() < .001 for arc, line in zip(arcs, lines[2:]))
+                assert abs(QtCore.QPointF.dotProduct(leaves[0].p1() - first, tangent)) < 1e-6
+                assert abs(QtCore.QPointF.dotProduct(leaves[1].p1() - second, tangent)) < 1e-6
+                assert all(QtCore.QLineF(arc.currentPosition(), line.p2()).length() < .001 for arc, line in zip(arcs, leaves))
     print("Double doors: opposing half-span leaves, outer jambs only, shared facing, measurement cuts, history, clipboard and exports passed")
 
 

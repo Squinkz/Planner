@@ -61,7 +61,7 @@ def Main():
                     assert field == "scene" and isinstance(value, dict)
                 else:
                     assert any(call.args[0] == "Cannot Open Project" for call in message.call_args_list)
-                assert apply.call_count == 2  # Empty canvas, followed by actual rollback.
+                apply.assert_not_called()  # Invalid staged records never replace the live canvas.
             assert main.BuildProjectData() == project
 
         malformed = {**project, "history": {"undo": [[[], {}]], "redo": []}}

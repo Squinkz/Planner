@@ -20,25 +20,30 @@ from planner_app.graphics.theme import gridIntensityDefaults
 from planner_app.preferences import lineworkDefaults
 
 from planner_app.export_bounds import AutomaticBounds, BorderSize
-from planner_app.export_settings import ResolveExportView, ExportScalePerMeter, ExportPixelSize
+from planner_app.export_settings import ResolveExportView, ExportScalePerMeter, ExportPixelSize, ExportBorderSize, measurementTextSizes, measurementDefaultTextSize, exportRenderFormats, exportFileExtensions, pdfFileTypes
+from planner_app.view_settings import CaptureViewportView, ApplyViewportView
+from planner_app.print_layout import ResizePrintSelection, PrintPageLayout, PrintPaperGeometry, PrintOverlapOffset
 from planner_app.graphics.title_block import TitleBlockLayout
 
 from planner_app.units import unitModes, measurementPrecisions, FormatLength, imperialModes
+from planner_app.measurement_units import MetricUnit
 
 from planner_app.paths import appDirectory, texturesDirectory
 
-from .widgets import DownwardComboBox, DragSlider, VisibilityItemDelegate, SectionHeading, UnitSpinBox, ExpressionSpinBox
+from .widgets import DownwardComboBox, DragSlider, VisibilityItemDelegate, SectionHeading, UnitSpinBox, ExpressionSpinBox, SectionComboDelegate
 
 from .color_picker import ColorPickerDialog
 from .export_history import ExportHistoryMixin
 from .wall_dimensions import WallDimensionControlsMixin
 from .title_block import TitleBlockControlsMixin
+from .scale_bar import ScaleBarControlsMixin
+from .print_export import PrintExportMixin
 
 
 
 
 
-class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockControlsMixin, QtWidgets.QWidget):
+class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockControlsMixin, ScaleBarControlsMixin, PrintExportMixin, QtWidgets.QWidget):
 
     def __init__(self, mainWindow):
 
@@ -134,9 +139,20 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
         self.typeField = DownwardComboBox()
 
-        self.typeField.addItem("PNG (raster)", "PNG")
-        self.typeField.addItem("SVG (vector)", "SVG")
-        self.typeField.addItem("Optimized PNG (raster)", "PNG_OPTIMIZED")
+        self.typeField.setItemDelegate(SectionComboDelegate(self.typeField))
+        self.typeHeadings = []
+        for heading, formats in (("Raster", (("PNG (raster)", "PNG"), ("Optimized PNG (raster)", "PNG_OPTIMIZED"), ("PDF (raster)", "PDF_RASTER"))),
+                                 ("Vector", (("SVG (vector)", "SVG"), ("PDF (vector)", "PDF_VECTOR")))):
+            self.typeField.addItem(heading)
+            item = self.typeField.model().item(self.typeField.count() - 1)
+            item.setFlags(QtCore.Qt.ItemFlag.NoItemFlags)
+            font = self.typeField.font()
+            font.setBold(True)
+            item.setFont(font)
+            self.typeHeadings.append(item)
+            for label, value in formats:
+                self.typeField.addItem(label, value)
+        self.typeField.setCurrentIndex(self.typeField.findData("PNG"))
 
         self.typeField.setAccessibleName("Export type")
 
@@ -184,10 +200,16 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
             pageLayout.setContentsMargins(0, 0, 0, 0)
 
             pageLayout.setSpacing(0)
+            pageLayout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
 
-        self.scaleModeTabs.addTab(digitalPage, "Digital")
-
+        printPage = QtWidgets.QWidget()
+        printLayout = QtWidgets.QVBoxLayout(printPage)
+        printLayout.setContentsMargins(0, 0, 0, 0)
+        printLayout.setSpacing(0)
+        printLayout.setAlignment(QtCore.Qt.AlignmentFlag.AlignTop)
+        self.scaleModeTabs.addTab(printPage, "Print")
         self.scaleModeTabs.addTab(architecturalPage, "Architectural")
+        self.scaleModeTabs.addTab(digitalPage, "Digital")
 
         modeLayout.addWidget(self.scaleModeTabs)
 
@@ -344,6 +366,7 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
         architecturalResolutionLayout.addWidget(self.resolutionLabel)
 
         architecturalPageLayout.addWidget(self.architecturalResolutionRow)
+        self.CreatePrintControls(printLayout, architecturalPageLayout)
 
         self.scrollArea = QtWidgets.QScrollArea()
 
@@ -369,7 +392,7 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
         self.sectionButtons, self.sectionContents = {}, {}
 
-        for name in ("Canvas", "Border", "Grid", "Line Weight", "Measurements", "Title Block", "Composite", "Visibility"):
+        for name in ("Canvas", "Border", "Grid", "Line Weight", "Measurements", "Scale Bar", "Title Block", "Composite", "Visibility"):
 
             section = QtWidgets.QWidget()
 
@@ -422,6 +445,7 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
         layout.addStretch(1)
 
+        self.CreateScaleBarControls(sections["Scale Bar"])
         self.CreateTitleBlockControls(sections["Title Block"])
 
 
@@ -486,7 +510,8 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
         borderSizeLayout.setSpacing(4)
 
-        borderSizeLayout.addWidget(QtWidgets.QLabel("Border Size"))
+        self.borderSizeLabel = QtWidgets.QLabel("Border")
+        borderSizeLayout.addWidget(self.borderSizeLabel)
 
         borderSizeRow = QtWidgets.QHBoxLayout()
 
@@ -498,7 +523,9 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
         self.borderSizeSlider.setAccessibleName("Export border size")
 
-        self.borderSizeField = ExpressionSpinBox()
+        self.borderSizeField = UnitSpinBox()
+        self.borderSizeField.displayDecimals = 0
+        self.borderSizeUnitFactor = 1.0
 
         self.borderSizeField.setObjectName("settingsValue")
 
@@ -508,9 +535,9 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
         self.borderSizeField.setSuffix(" px")
 
-        self.borderSizeField.setFixedWidth(72)
+        self.borderSizeField.setFixedWidth(120)
 
-        self.borderSizeField.setAccessibleName("Export border size in pixels or SVG units")
+        self.borderSizeField.setAccessibleName("Export border in pixels")
 
         borderSizeRow.addWidget(self.borderSizeSlider, 1)
 
@@ -519,6 +546,15 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
         borderSizeLayout.addLayout(borderSizeRow)
 
         borderForm.addWidget(self.borderSizeOptions, 2, 0, 1, 2)
+        self.borderTextLabel = QtWidgets.QLabel("Text")
+        self.borderTextSizeField = DownwardComboBox()
+        self.borderTextSizeField.setAccessibleName("Export border text size")
+        for label, size in measurementTextSizes.items():
+            self.borderTextSizeField.addItem(label, size)
+        self.borderTextSizeField.setCurrentText("Medium")
+        self.borderTextLabel.setBuddy(self.borderTextSizeField)
+        borderForm.addWidget(self.borderTextLabel, 3, 0)
+        borderForm.addWidget(self.borderTextSizeField, 3, 1)
 
 
 
@@ -586,15 +622,9 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
         wallsLabel.setBuddy(self.wallStyleField)
         canvasForm.addWidget(wallsLabel, 2, 0)
         canvasForm.addWidget(self.wallStyleField, 2, 1)
-        self.solidObjectsField = QtWidgets.QCheckBox()
-        self.solidObjectsField.setAccessibleName("Solid Objects")
-        self.solidObjectsField.setChecked(True)
-        self.solidObjectsField.setToolTip("Fill objects to hide the canvas and grid behind them")
         canvasChecks = QtWidgets.QGridLayout()
         canvasChecks.setVerticalSpacing(12)
         canvasForm.addLayout(canvasChecks, 5, 0, 1, 2)
-        canvasChecks.addWidget(QtWidgets.QLabel("Solid Objects"), 1, 0)
-        canvasChecks.addWidget(self.solidObjectsField, 1, 1, QtCore.Qt.AlignmentFlag.AlignLeft)
         self.roomStyleField = DownwardComboBox()
         self.roomStyleField.setAccessibleName("Room Style")
         self.roomStyleField.addItems(("Canvas", "Tinted"))
@@ -610,16 +640,28 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
         self.solidRoomsField.setToolTip("Hide the grid inside detected rooms")
         canvasChecks.addWidget(QtWidgets.QLabel("Solid Rooms"), 0, 0)
         canvasChecks.addWidget(self.solidRoomsField, 0, 1, QtCore.Qt.AlignmentFlag.AlignLeft)
+        self.solidObjectsField = QtWidgets.QCheckBox()
+        self.solidObjectsField.setAccessibleName("Solid Objects")
+        self.solidObjectsField.setChecked(True)
+        self.solidObjectsField.setToolTip("Fill objects to hide the canvas and grid behind them")
+        canvasChecks.addWidget(QtWidgets.QLabel("Solid Objects"), 1, 0)
+        canvasChecks.addWidget(self.solidObjectsField, 1, 1, QtCore.Qt.AlignmentFlag.AlignLeft)
+        self.drawOpeningOutlinesField = QtWidgets.QCheckBox()
+        self.drawOpeningOutlinesField.setAccessibleName("Openings")
+        self.drawOpeningOutlinesField.setChecked(True)
+        self.drawOpeningOutlinesField.setToolTip("Draw thin lines across door openings")
+        canvasChecks.addWidget(QtWidgets.QLabel("Openings"), 2, 0)
+        canvasChecks.addWidget(self.drawOpeningOutlinesField, 2, 1, QtCore.Qt.AlignmentFlag.AlignLeft)
 
         viewport = mainWindow.viewport
 
         self.showGridField = QtWidgets.QCheckBox()
-        self.showGridField.setAccessibleName("Show Grid")
+        self.showGridField.setAccessibleName("Draw Grid")
 
         self.showGridField.setChecked(viewport.showGrid)
 
         gridVisibilityForm = QtWidgets.QGridLayout()
-        gridVisibilityForm.addWidget(QtWidgets.QLabel("Show Grid"), 0, 0)
+        gridVisibilityForm.addWidget(QtWidgets.QLabel("Draw Grid"), 0, 0)
         gridVisibilityForm.addWidget(self.showGridField, 0, 1, QtCore.Qt.AlignmentFlag.AlignLeft)
         sections["Grid"].addLayout(gridVisibilityForm)
 
@@ -718,9 +760,6 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
         self.gridOptions.setEnabled(viewport.showGrid)
 
         sections["Grid"].addWidget(self.gridOptions)
-
-
-
         weightForm = QtWidgets.QFormLayout()
 
         weightForm.setRowWrapPolicy(QtWidgets.QFormLayout.RowWrapPolicy.WrapAllRows)
@@ -818,8 +857,15 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
         self.precisionField.setAccessibleName("Export dimension precision")
         self.precisionField.currentTextChanged.connect(lambda precision: self.SetOverride("measurementPrecision", precision))
         unitsForm.addRow("Precision", self.precisionField)
+        self.measurementSizeField = DownwardComboBox()
+        for label, size in measurementTextSizes.items():
+            self.measurementSizeField.addItem(label, size)
+        self.measurementSizeField.setAccessibleName("Export dimension text size")
+        self.measurementSizeField.currentIndexChanged.connect(
+            lambda index: self.SetOverride("measurementTextSize", self.measurementSizeField.itemData(index)))
+        unitsForm.addRow("Size", self.measurementSizeField)
         sections["Measurements"].addLayout(unitsForm)
-        sections["Measurements"].addWidget(SectionHeading("Measure"))
+        sections["Measurements"].addWidget(SectionHeading("Measure", "Measurements"))
 
         self.measurementVisibilityTree = QtWidgets.QTreeWidget()
         self.measurementVisibilityItems = {}
@@ -851,7 +897,7 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
         vignetteForm = QtWidgets.QGridLayout()
         vignetteForm.addWidget(QtWidgets.QLabel("Enable Vignette"), 0, 0)
         vignetteForm.addWidget(self.enableVignetteField, 0, 1, QtCore.Qt.AlignmentFlag.AlignLeft)
-        checkboxForms = (canvasChecks, gridVisibilityForm, self.titleBlockEnableForm, vignetteForm)
+        checkboxForms = (canvasChecks, gridVisibilityForm, self.scaleBarEnableForm, self.titleBlockEnableForm, vignetteForm)
         checkboxLabelWidth = max(form.itemAtPosition(0, 0).widget().sizeHint().width() for form in checkboxForms)
         for form in checkboxForms:
             form.setContentsMargins(0, 0, 0, 0)
@@ -999,7 +1045,7 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
         for widget in self.findChildren(QtWidgets.QWidget):
 
-            if widget is self.optimizedPngNote:
+            if widget in (self.optimizedPngNote, self.printNote):
                 continue  # Wrapped notes need their natural height, rather than a single control row.
 
             if any(heading is widget or heading.isAncestorOf(widget) for heading in (exportHeading, vignetteHeading, textureHeading, self.wallDimensionWidget)):
@@ -1056,6 +1102,7 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
         self.solidObjectsField.toggled.connect(lambda checked: self.SetOverride("solidObjects", checked))
         self.roomStyleField.currentTextChanged.connect(lambda style: self.SetOverride("roomStyle", style))
         self.solidRoomsField.toggled.connect(lambda checked: self.SetOverride("solidRooms", checked))
+        self.drawOpeningOutlinesField.toggled.connect(lambda checked: self.SetOverride("drawOpeningOutlines", checked))
 
         self.wallStyleField.currentTextChanged.connect(lambda style: self.SetOverride("wallStyle", style))
 
@@ -1078,9 +1125,11 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
         self.borderField.currentTextChanged.connect(self.SetBorder)
 
-        self.borderSizeSlider.valueChanged.connect(lambda size: self.SetOverride("borderSize", size))
+        self.borderSizeSlider.valueChanged.connect(lambda size: self.SetBorderWidth(size, fromSlider = True))
 
-        self.borderSizeField.valueChanged.connect(lambda size: self.SetOverride("borderSize", size))
+        self.borderSizeField.valueChanged.connect(self.SetBorderWidth)
+        self.borderTextSizeField.currentIndexChanged.connect(
+            lambda index: self.SetOverride("borderTextSize", self.borderTextSizeField.itemData(index)))
 
         for name in ("canvas", "lines", "border", "grid"):
 
@@ -1133,25 +1182,31 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
         mainWindow.viewport.exportOverlay.boundsChanged.connect(self.SetBounds)
         mainWindow.viewport.exportOverlay.originChanged.connect(lambda origin: self.SetOverride("gridOrigin", list(origin)))
         self.InitializeExportHistory()
+        # Keep wheel scrolling for the panel, including while an input has focus.
+        # Popup lists/calendars retain their own scrolling when opened explicitly.
+        for controlType in (QtWidgets.QSlider, QtWidgets.QComboBox, QtWidgets.QAbstractSpinBox):
+            for control in self.findChildren(controlType):
+                if control.window() is not self.window():
+                    continue
+                control.installEventFilter(self)
+                if isinstance(control, QtWidgets.QAbstractSpinBox) or isinstance(control, QtWidgets.QComboBox) and control.isEditable():
+                    control.lineEdit().installEventFilter(self)
+
+    def eventFilter(self, watched, event):
+        if event.type() == QtCore.QEvent.Type.Wheel:
+            viewport = self.scrollArea.viewport()
+            position = viewport.mapFromGlobal(event.globalPosition().toPoint())
+            forwarded = QtGui.QWheelEvent(QtCore.QPointF(position), event.globalPosition(), event.pixelDelta(), event.angleDelta(),
+                                         event.buttons(), event.modifiers(), event.phase(), event.inverted(), event.source(), event.pointingDevice())
+            QtWidgets.QApplication.sendEvent(viewport, forwarded)
+            event.accept()
+            return True
+        return super().eventFilter(watched, event)
 
 
 
     def CaptureView(self):
-
-        v = self.mainWindow.viewport
-
-        return {"canvasTheme": palette.activeCanvasTheme, "showGrid": v.showGrid, "roomStyle": "Tinted" if v.floors else "Canvas", "solidRooms": v.solidRooms,
-
-                "viewportSettings": dict(v.gridIntensities), "lineworkSettings": dict(v.lineworkSettings),
-
-                "showMeasurements": v.showMeasurements, "measurementVisibility": dict(v.measurementVisibility),
-                "measurementSettings": dict(v.measurementSettings),
-                "wallMeasurementMode": v.wallMeasurementMode,
-                "wallMeasurementReference": v.wallMeasurementReference,
-
-                "visibility": dict(v.visibility), "unitsMode": v.unitsMode, "measurementPrecision": v.measurementPrecision}
-
-
+        return CaptureViewportView(self.mainWindow.viewport, palette.activeCanvasTheme)
 
     def ResolvedView(self):
         baseView = self.projectView if self.projectView is not None else self.CaptureView()
@@ -1195,11 +1250,10 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
                 palette.themeColors["objectOutline"] = view["linesColor"]
                 palette.themeColors["wallOutline"] = view["linesColor"]
 
+            ApplyViewportView(v, view)
             main.SetLinework(view["lineworkSettings"], notify = False)
 
             v.solidObjects = view.get("solidObjects", True)
-            v.floors = view.get("roomStyle", "Tinted") == "Tinted"
-            v.solidRooms = view.get("solidRooms", False)
 
             if (previousCanvasColor != palette.themeColors["canvas"] or previousSolidObjects != v.solidObjects
                     or previousOutlineColor != palette.themeColors["objectOutline"]):
@@ -1211,19 +1265,11 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
             v.wallStyle = view.get("wallStyle", "Material")
 
-            v.gridIntensities = dict(view["viewportSettings"])
 
-            v.showGrid, v.showMeasurements = view["showGrid"], view["showMeasurements"]
-            v.wallMeasurementMode = view["wallMeasurementMode"]
-            v.measurementSettings = dict(view["measurementSettings"])
-            v.wallMeasurementReference = view["wallMeasurementReference"]
 
-            v.unitsMode = view["unitsMode"]
             main.UpdateFurnishingSearch()
-            v.measurementPrecision = view["measurementPrecision"]
             v.gridOrigin = tuple(view.get("gridOrigin", (0.0, 0.0)))
 
-            v.measurementVisibility, v.visibility = dict(view["measurementVisibility"]), dict(view["visibility"])
 
             v.exportOverlay.borderStyle = self.overrides.get("border", "Ruler + Reference Zones" if "ruler" not in self.overrides else "Ruler" if self.overrides["ruler"] else "None")
 
@@ -1236,11 +1282,12 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
             v.exportOverlay.vignetteStrength = self.overrides.get("vignetteStrength", .125) if self.overrides.get("vignetteEnabled", False) else 0
 
-            v.exportOverlay.borderSize = BorderSize(v.exportOverlay.borderStyle, self.overrides.get("borderSize", 28))
+            v.exportOverlay.borderSize = ExportBorderSize(self.overrides, v.exportOverlay.borderStyle)
 
             v.exportOverlay.titleBlock = self.TitleBlockOptions()
+            v.exportOverlay.scaleBar = dict(self.overrides.get("scaleBar", {}))
             v.exportOverlay.architecturalScale = (self.overrides.get("architecturalScale", 100)
-                                                  if self.overrides.get("scaleMode") == "Architectural" else None)
+                                                  if self.overrides.get("scaleMode") in ("Architectural", "Print") else None)
 
             v.viewportSceneKey = None
 
@@ -1279,6 +1326,9 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
         if active and self.projectView is None:
 
+            if not self.overrides:
+                self.overrides["scaleMode"] = "Print"
+
             self.RefreshControls()
 
             self.PopulatePath()
@@ -1292,17 +1342,20 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
             self.ApplyView(self.ResolvedView())
 
-            self.mainWindow.viewport.exportOverlay.scale = self.ScalePerMeter()
+            self.mainWindow.viewport.exportOverlay.scale = self.PreviewScalePerMeter()
 
-            self.mainWindow.viewport.exportOverlay.outputFormat = "svg" if self.typeField.currentData() == "SVG" else "png"
+            self.mainWindow.viewport.exportOverlay.outputFormat = exportRenderFormats[self.typeField.currentData()]
 
             self.mainWindow.viewport.exportOverlay.SetActive(True, self.overrides.get("bounds"))
+
+            if self.InitializePrintSelection():
+                self.exportHistoryState = self.ExportHistoryState()
 
             v = self.mainWindow.viewport
 
             v.zoom = (self.exportZoom if self.exportZoom is not None else
 
-                      self.ScalePerMeter() / (1000 * v.basePixelsPerMillimeter))
+                      self.PreviewScalePerMeter() / (1000 * v.basePixelsPerMillimeter))
 
             x, y, width, height = v.exportOverlay.bounds
 
@@ -1370,7 +1423,7 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
             v = self.mainWindow.viewport
 
-            v.exportOverlay.scale = value
+            v.exportOverlay.scale = self.PreviewScalePerMeter()
 
             v.update()
 
@@ -1396,6 +1449,9 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
 
     def SetScaleOption(self, name, value):
+        if name == "scaleMode" and value != "Print" and self.typeField.currentData() in pdfFileTypes:
+            self.RefreshControls()
+            return
 
         if self.overrides.get(name) == value:
 
@@ -1403,17 +1459,105 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
             return
 
+        previousMode = self.overrides.get("scaleMode", "Digital")
+        if name == "scaleMode" and previousMode in ("Architectural", "Print"):
+            # Commit edits to the mode that owns the field before moving its
+            # shared controls into the destination tab.
+            scaleText, dpiText = self.architecturalScaleField.currentText(), self.dpiField.currentText()
+            if scaleText != f'1:{self.overrides.get("architecturalScale", 100):g}':
+                self.SetArchitecturalScale(scaleText)
+            if dpiText != str(self.overrides.get("dpi", 300)):
+                self.SetDpi(dpiText)
+        overlay = self.mainWindow.viewport.exportOverlay
+        previousScale = self.overrides.get("architecturalScale", 100)
+        printing = self.overrides.get("scaleMode") == "Print"
+        if name == "scaleMode":
+            # Active bounds stay in the existing field for renderers and legacy
+            # projects. Park only inactive modes in the per-mode crop archive.
+            scales = copy.deepcopy(self.overrides.get("modeScales", {}))
+            defaults = {"architecturalScale": 100, "dpi": 300}
+            legacy = not scales and previousMode == "Digital"
+            if previousMode in ("Architectural", "Print"):
+                scales[previousMode] = {key: self.overrides.get(key, default) for key, default in defaults.items()}
+            if value in ("Architectural", "Print"):
+                settings = scales.pop(value, None)
+                for key, default in defaults.items():
+                    self.overrides[key] = (settings.get(key, default) if settings is not None else
+                                           self.overrides.get(key, default) if legacy else default)
+            if scales:
+                self.overrides["modeScales"] = scales
+            else:
+                self.overrides.pop("modeScales", None)
+            regions = dict(self.overrides.get("cropRegions", {}))
+            bounds = overlay.bounds if overlay.active else self.overrides.get("bounds")
+            if bounds is not None:
+                regions[previousMode] = list(bounds)
+            bounds = regions.pop(value, None)
+            if regions:
+                self.overrides["cropRegions"] = regions
+            else:
+                self.overrides.pop("cropRegions", None)
+            if bounds is None:
+                self.overrides.pop("bounds", None)
+            else:
+                self.overrides["bounds"] = list(bounds)
+            if overlay.active:
+                overlay.bounds = tuple(bounds) if bounds is not None else overlay.autoBounds
+        elif printing and overlay.active and name == "pageOverlap":
+            overlay.printPreviewTimer.start()
+            if overlay.bounds is not None:
+                self.overrides["pageOverlapOffset"] = PrintOverlapOffset(self.overrides, value, overlay.bounds)
+        if printing and overlay.active and overlay.bounds is not None and name in ("pageSize", "pageOrientation", "architecturalScale"):
+            updated = dict(self.overrides)
+            updated[name] = value
+            overlap = list(updated.get("pageOverlap", (0, 0)))
+            updated["pageOverlap"] = [0, 0]
+            try:
+                kind = exportRenderFormats[self.typeField.currentData()]
+                border = ExportBorderSize(updated, self.borderField.currentText())
+                maximum = PrintPageLayout(updated, border, self.TitleBlockOptions(), kind)["tile"]
+            except ValueError:
+                maximum = PrintPaperGeometry(updated)[0]
+            overlap = [min(amount, max(0, size - 1)) for amount, size in zip(overlap, maximum)]
+            updates = {"pageOverlap": overlap} if "pageOverlap" in self.overrides or name == "pageOverlap" else {}
+            if overlap != self.overrides.get("pageOverlap", [0, 0]):
+                updates["pageOverlapOffset"] = PrintOverlapOffset(self.overrides, overlap, overlay.bounds)
+            value = updates.get(name, value)
+            bounds, origin = ResizePrintSelection(overlay.bounds, self.overrides, name, value, updates)
+            overlay.bounds = bounds
+            self.overrides["bounds"] = list(bounds)
+            self.overrides["pageOrigin"] = list(origin)
+            self.overrides.update(updates)
+        elif self.overrides.get("scaleMode") == "Architectural" and overlay.active and overlay.bounds is not None and name == "architecturalScale":
+            x, y, width, height = overlay.bounds
+            ratio = value / previousScale
+            bounds = (x + width * (1 - ratio) / 2, y + height * (1 - ratio) / 2, width * ratio, height * ratio)
+            overlay.bounds = bounds
+            self.overrides["bounds"] = list(bounds)
         self.overrides[name] = value
+        if self.overrides.get("scaleMode") in ("Architectural", "Print") and overlay.active and name == "architecturalScale":
+            self.UpdatePhysicalScaleView(previousScale)
 
         if self.projectView is not None:
 
-            self.mainWindow.viewport.exportOverlay.scale = self.ScalePerMeter()
+            self.mainWindow.viewport.exportOverlay.scale = self.PreviewScalePerMeter()
 
             if name in ("scaleMode", "architecturalScale"):
 
                 self.mainWindow.viewport.exportOverlay.svgKey = None
                 self.mainWindow.viewport.exportOverlay.architecturalScale = (
-                    self.overrides.get("architecturalScale", 100) if self.overrides.get("scaleMode") == "Architectural" else None)
+                    self.overrides.get("architecturalScale", 100) if self.overrides.get("scaleMode") in ("Architectural", "Print") else None)
+
+            if name == "scaleMode" and overlay.active:
+                # Apply the destination's minimum before notifying history, so
+                # switching modes remains one complete, reversible change.
+                self.InitializePrintSelection()
+                overlay.printMode = value == "Print"
+                overlay.printSettings = dict(self.overrides)
+                overlay.pageOrigin = tuple(self.overrides.get("pageOrigin", (0, 0)))
+                overlay.bounds = overlay.ConstrainTitleBlockBounds(overlay.bounds)
+                if "bounds" in self.overrides or overlay.bounds != overlay.autoBounds:
+                    self.overrides["bounds"] = list(overlay.bounds)
 
             self.mainWindow.viewport.update()
 
@@ -1423,9 +1567,9 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
 
 
-    def SetArchitecturalScale(self):
+    def SetArchitecturalScale(self, text = None):
 
-        text = self.architecturalScaleField.currentText().replace(" ", "")
+        text = (self.architecturalScaleField.currentText() if text is None else text).replace(" ", "")
 
         try:
 
@@ -1445,11 +1589,11 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
 
 
-    def SetDpi(self):
+    def SetDpi(self, text = None):
 
         try:
 
-            value = int(self.dpiField.currentText())
+            value = int(self.dpiField.currentText() if text is None else text)
 
             if not 1 <= value <= 2400:
 
@@ -1473,7 +1617,7 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
             return
 
-        border = 2 * BorderSize(self.borderField.currentText(), self.overrides.get("borderSize", 28))
+        border = 2 * ExportBorderSize(self.overrides, self.borderField.currentText())
 
         titleBlock = self.TitleBlockOptions()
         if titleBlock.get("enabled", False):
@@ -1562,11 +1706,24 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
 
 
+    def SetBorderWidth(self, value, fromSlider = False):
+        if self.applying:
+            return
+        if self.overrides.get("scaleMode") in ("Architectural", "Print"):
+            mode = (self.projectView if self.projectView is not None else self.CaptureView())["unitsMode"]
+            divisor, unit = MetricUnit(mode)
+            width = value * 1000 / self.PreviewScalePerMeter() if fromSlider else value * divisor
+            self.SetOverride("borderWidth", width)
+        else:
+            self.SetOverride("borderSize", max(1, min(128, round(value))))
+
     def SetOverride(self, name, value, key = None):
 
         if self.applying:
 
             return
+        if self.overrides.get("scaleMode") == "Print" and self.mainWindow.viewport.exportOverlay.active and name in ("borderSize", "borderWidth", "borderTextSize", "border", "titleBlock", "scaleBar"):
+            self.mainWindow.viewport.exportOverlay.printPreviewTimer.start()
 
         if name == "texture" and value != self.overrides.get("texture"):
             # A newly selected map starts with its own filename defaults.
@@ -1762,29 +1919,38 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
             return
 
         self.RefreshTitleBlockControls()
+        self.RefreshScaleBarControls()
 
         view = self.ResolvedView()
 
-        widgets = [self.typeField, self.solidObjectsField, self.roomStyleField, self.solidRoomsField, self.wallStyleField, self.textureField, *self.textureSliders.values(), *self.textureFields.values(), self.vignetteStrengthField, self.enableVignetteField, self.vignetteStrengthSlider, self.canvasThemeField, self.showGridField, self.borderField, self.borderSizeSlider, self.borderSizeField,
+        widgets = [self.typeField, self.solidObjectsField, self.roomStyleField, self.solidRoomsField, self.drawOpeningOutlinesField, self.wallStyleField, self.textureField, *self.textureSliders.values(), *self.textureFields.values(), self.vignetteStrengthField, self.enableVignetteField, self.vignetteStrengthSlider, self.canvasThemeField, self.showGridField, self.borderField, self.borderSizeSlider, self.borderSizeField, self.borderTextSizeField,
 
                    self.scaleField, self.scaleUnitsField,
 
                    self.scaleModeTabs, self.architecturalScaleField, self.dpiField, *self.resolutionFields,
 
-                   self.unitsField, self.precisionField, self.measurementVisibilityTree, self.visibilityTree,
+                   self.unitsField, self.precisionField, self.measurementSizeField, self.measurementVisibilityTree, self.visibilityTree,
                    self.wallMeasurementModeField, self.wallReferenceField]
 
         widgets += list(self.gridSliders.values()) + list(self.gridValueFields.values())
 
         widgets += list(self.lineworkSliders.values()) + list(self.lineworkFields.values())
+        # Blocking a combo does not block its editor's editingFinished signal.
+        # Reparenting the shared physical controls must not commit to a new mode.
+        widgets += [self.architecturalScaleField.lineEdit(), self.dpiField.lineEdit()]
 
         blockers = [QtCore.QSignalBlocker(widget) for widget in widgets]
 
         self.typeField.setCurrentIndex(self.typeField.findData(self.overrides.get("fileType", "PNG")))
+        backgroundRole = "windowBackground" if QtGui.QColor(palette.themeColors["controlBackground"]).lightnessF() < .5 else "pressedBackground"
+        for heading in self.typeHeadings:
+            heading.setForeground(QtGui.QColor(palette.themeColors["mutedText"]))
+            heading.setBackground(QtGui.QColor(palette.themeColors[backgroundRole]))
 
         self.solidObjectsField.setChecked(view.get("solidObjects", True))
         self.roomStyleField.setCurrentText(view.get("roomStyle", "Tinted"))
         self.solidRoomsField.setChecked(view.get("solidRooms", False))
+        self.drawOpeningOutlinesField.setChecked(view["drawOpeningOutlines"])
 
         self.wallStyleField.setCurrentText(view.get("wallStyle", "Material"))
 
@@ -1808,11 +1974,12 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
         self.unitsField.setCurrentText(view["unitsMode"])
         self.precisionField.setCurrentText(view["measurementPrecision"])
+        self.measurementSizeField.setCurrentIndex(self.measurementSizeField.findData(view["measurementTextSize"]))
         for index, step in enumerate(measurementPrecisions.values()):
             label = ("1/16 inch", "1/4 inch", "1 inch")[index] if view["unitsMode"] in imperialModes else FormatLength(step, view["unitsMode"], "mm")
             self.precisionField.setItemData(index, f"Round export dimensions to the nearest {label}", QtCore.Qt.ItemDataRole.ToolTipRole)
 
-        png = self.typeField.currentData() != "SVG"
+        png = exportRenderFormats[self.typeField.currentData()] == "png"
         self.optimizedPngNote.setVisible(self.typeField.currentData() == "PNG_OPTIMIZED")
         self.compositeSection.setVisible(png)
 
@@ -1848,7 +2015,6 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
             index = self.textureField.count() - 1
 
         self.textureField.setCurrentIndex(index)
-        self.textureField.setToolTip(texture or "No texture")
 
         mode, filenameScale = "tile", 1
         defaults = {"strength": .5, "highlights": 1, "midtones": 1, "shadows": 1}
@@ -1868,13 +2034,20 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
             self.textureResetButtons[name].setEnabled("texture" + name in self.overrides)
             self.textureResetButtons[name].setToolTip(f"Reset {name.lower()} to {default:g}" + (" (texture default)" if name != "Angle" else ""))
             self.textureControls[name].setEnabled(texture is not None and (name != "Scale" or mode == "tile"))
-            slider.setToolTip(f"{name}: {value:g}" + (" normal-map pixels per canvas pixel" if name == "Scale" else " degrees" if name == "Angle" else ""))
+            slider.setToolTip(f"{name}: {value:g}" + (" degrees" if name == "Angle" else ""))
         self.textureScaleReset.setEnabled("textureScale" in self.overrides)
-        self.textureScaleReset.setToolTip(f"Use filename scale ({filenameScale:g} normal-map pixels per canvas pixel)")
+        self.textureScaleReset.setToolTip(f"Reset texture scale to {filenameScale:g}")
 
-        architectural = self.overrides.get("scaleMode", "Digital") == "Architectural"
+        printing = self.overrides.get("scaleMode") == "Print"
+        architectural = self.overrides.get("scaleMode", "Digital") in ("Architectural", "Print")
 
-        self.scaleModeTabs.setCurrentIndex(1 if architectural else 0)
+        self.scaleModeTabs.setCurrentIndex(0 if printing else 1 if architectural else 2)
+        for index in (1, 2):
+            self.scaleModeTabs.setTabVisible(index, self.typeField.currentData() not in pdfFileTypes)
+        # Mode/scale changes can update controls without applying the view.
+        # Resolve the border's project length before any preview page layout.
+        self.mainWindow.viewport.exportOverlay.borderSize = ExportBorderSize(self.overrides)
+        self.RefreshPrintControls()
 
         self.digitalScaleRow.setVisible(not architectural)
 
@@ -1882,9 +2055,9 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
         self.architecturalRow.setVisible(architectural)
 
-        self.dpiRow.setVisible(png and architectural)
+        self.dpiRow.setVisible(architectural and png)
 
-        self.architecturalResolutionRow.setVisible(png and architectural)
+        self.architecturalResolutionRow.setVisible(png and architectural and not printing)
 
         self.architecturalScaleField.setCurrentText(f'1:{self.overrides.get("architecturalScale", 100):g}')
 
@@ -1938,9 +2111,9 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
         style = self.borderField.currentText()
 
-        size = BorderSize(style, self.overrides.get("borderSize", 28))
+        size = ExportBorderSize(self.overrides, style)
 
-        minimum = BorderSize(style, 1)
+        minimum = BorderSize(style, 1, view["borderTextSize"])
 
         self.borderSizeOptions.setEnabled(style != "None")
 
@@ -1950,20 +2123,38 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
         self.borderColorReset.setEnabled(style != "None" and "borderColor" in self.overrides)
 
-        for control in (self.borderSizeSlider, self.borderSizeField):
+        requestedSize = self.overrides.get("borderSize", 28)
+        if architectural:
+            requestedSize = self.overrides.get("borderWidth", 200) * self.PreviewScalePerMeter() / 1000
+        effectiveSize = max(1, minimum, requestedSize)
+        maximum = min(2_147_483_647, max(128, math.ceil(effectiveSize))) if architectural else 128
+        self.borderSizeSlider.setRange(max(1, minimum), maximum)
+        self.borderSizeSlider.setValue(min(maximum, round(effectiveSize)))
+        factor, unit = 1.0, "px"
+        if architectural:
+            mode = (self.projectView if self.projectView is not None else self.CaptureView())["unitsMode"]
+            divisor, unit = MetricUnit(mode)
+            factor = 1000 / (self.PreviewScalePerMeter() * divisor)
+        self.borderSizeUnitFactor = factor
+        self.borderSizeField.setDecimals(0 if not architectural else max(3, math.ceil(-math.log10(factor)) + 2))
+        self.borderSizeField.setRange(max(1, minimum) * factor, maximum * factor)
+        self.borderSizeField.setSingleStep(factor)
+        self.borderSizeField.setSuffix(" " + unit)
+        self.borderSizeField.setValue(effectiveSize * factor)
+        self.borderSizeField.setFixedWidth(120)
+        self.borderSizeField.setAccessibleName("Export border in project units" if architectural else "Export border in pixels")
+        hasText = style in ("Ruler", "Reference Zones", "Ruler + Reference Zones")
+        self.borderTextLabel.setVisible(hasText)
+        self.borderTextSizeField.setVisible(hasText)
+        self.borderTextSizeField.setCurrentIndex(self.borderTextSizeField.findData(view["borderTextSize"]))
 
-            control.setMinimum(max(1, minimum))
-
-            control.setValue(size if size else self.overrides.get("borderSize", 28))
-
-            control.setToolTip(f"Border width at export scale; minimum {minimum} {'pixels' if png else 'SVG units'}")
-
-        self.borderSizeField.setSuffix(" px" if png else " u")
-
-        width, height = ExportPixelSize(bounds, self.ScalePerMeter(), size)
-        width, height, titleBlockRect = TitleBlockLayout(width, height, self.TitleBlockOptions(), self.ScalePerMeter(),
-                                                        self.overrides.get("architecturalScale", 100) if self.overrides.get("scaleMode") == "Architectural" else None,
+        width, height = ExportPixelSize(bounds, self.PreviewScalePerMeter(), size)
+        width, height, titleBlockRect = TitleBlockLayout(width, height, self.TitleBlockOptions(), self.PreviewScalePerMeter(),
+                                                        self.overrides.get("architecturalScale", 100) if self.overrides.get("scaleMode") in ("Architectural", "Print") else None,
                                                         "png" if png else "svg", self.TitleBlockDpi())
+        if png and architectural:
+            density = self.overrides.get("dpi", 300) / 300
+            width, height = max(1, round(width * density)), max(1, round(height * density))
 
         for field, value in zip(self.resolutionFields, (width, height)):
 
@@ -2055,8 +2246,18 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
                 item.setForeground(0, QtGui.QBrush(QtGui.QColor(palette.themeColors[role])))
 
         del blockers
+        self.FitScaleModeTabs()
 
-
+    def FitScaleModeTabs(self):
+        tabs = self.scaleModeTabs
+        page = tabs.currentWidget()
+        if page is None:
+            return
+        tabs.ensurePolished()
+        page.layout().invalidate()
+        page.layout().activate()
+        frameHeight = tabs.tabBar().sizeHint().height() + 2 * tabs.style().pixelMetric(QtWidgets.QStyle.PixelMetric.PM_DefaultFrameWidth)
+        tabs.setFixedHeight(page.layout().sizeHint().height() + frameHeight)
 
     def SetSectionExpanded(self, name, expanded):
 
@@ -2097,8 +2298,8 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
         folder = self.folderField.text().strip()
         if not folder:
             raise ValueError("Choose an output folder.")
-        extension = ".svg" if self.typeField.currentData() == "SVG" else ".png"
-        if Path(name).suffix.lower() in (".png", ".svg"):
+        extension = exportFileExtensions[self.typeField.currentData()]
+        if Path(name).suffix.lower() in (".png", ".svg", ".pdf"):
             name = Path(name).stem
         return Path(folder) / (name + extension)
 
@@ -2118,7 +2319,7 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
             self.folderField.setText(folder)
         if self.exportFileName and (force or project != self.pathProject or not self.fileNameField.text().strip()):
             name = self.exportFileName
-            if Path(name).suffix.lower() in (".png", ".svg"):
+            if Path(name).suffix.lower() in (".png", ".svg", ".pdf"):
                 name = Path(name).stem
             self.fileNameField.setText(name)
             self.pathProject = project
@@ -2129,11 +2330,11 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
             return
         folder = Path(folder)
         name = project.stem if project is not None else "plan"
-        extension = "svg" if self.typeField.currentData() == "SVG" else "png"
-        path = folder / f"{name}.{extension}"
+        extension = exportFileExtensions[self.typeField.currentData()]
+        path = folder / f"{name}{extension}"
         number = 1
         while path.exists():
-            path = folder / f"{name}_{number}.{extension}"
+            path = folder / f"{name}_{number}{extension}"
             number += 1
         self.pathProject = project
         self.automaticPath = str(path)
@@ -2146,13 +2347,15 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
         if ownGesture:
             self.exportGestureBefore = self.exportHistoryState
 
+        if kind in pdfFileTypes and self.overrides.get("scaleMode") != "Print":
+            self.SetScaleOption("scaleMode", "Print")
         self.RefreshControls()
 
         if self.projectView is not None:
 
-            self.mainWindow.viewport.exportOverlay.scale = self.ScalePerMeter()
+            self.mainWindow.viewport.exportOverlay.scale = self.PreviewScalePerMeter()
 
-        self.mainWindow.viewport.exportOverlay.outputFormat = "svg" if kind == "SVG" else "png"
+        self.mainWindow.viewport.exportOverlay.outputFormat = exportRenderFormats[kind]
 
         self.mainWindow.viewport.exportOverlay.previewError = ""
 
@@ -2194,44 +2397,55 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
     def Render(self, outputFormat, preview = False, previewScene = False):
         from planner_app.export_plan import RenderPlan
+        if self.overrides.get("scaleMode") == "Print" and not preview:
+            jobs = self.ExportJobs(Path("preview." + outputFormat), outputFormat)
+            return RenderPlan(**jobs[0][1])
         return RenderPlan(**self.RenderArguments(outputFormat, preview, previewScene))
 
     def RenderArguments(self, outputFormat, preview = False, previewScene = False):
         main = self.mainWindow
+        cachedVector = previewScene and outputFormat == "svg" and self.overrides.get("scaleMode") != "Print"
 
         # Use the unsaved scene and the effective export view, without changing
 
         # the application's theme. Preview and file output share this path.
 
-        data = main.BuildProjectData(includeHistory = False, includeActivity = False)
+        data = main.BuildProjectData(includeHistory = False, includeActivity = False, reuseScene = preview)
 
         data["settings"].update(self.CaptureView())
         data["settings"]["autoSizingUnitsMode"] = main.viewport.autoSizingUnitsMode or main.viewport.unitsMode
 
         return dict(planPath = main.projectPath or Path("plan.plan"), scale = self.ScalePerMeter(),
 
-                          bounds = main.viewport.exportOverlay.bounds, ruler = self.borderField.currentText() == "Ruler",
+                          bounds = (main.viewport.exportOverlay.vectorBounds or main.viewport.exportOverlay.bounds) if cachedVector else
+                                   main.viewport.exportOverlay.PreviewBounds() if previewScene and self.overrides.get("scaleMode") == "Print" else main.viewport.exportOverlay.bounds,
+                          ruler = not cachedVector and self.borderField.currentText() == "Ruler",
 
                           outputFormat = outputFormat, projectData = data, applyTheme = False, preview = preview, previewScene = previewScene,
                           furnishingDefinitions = main.viewport.furnishingDefinitions,
                           clipCache = main.viewport.exportOverlay.svgClipCache if previewScene else None,
 
-                          border = self.borderField.currentText(), wallStyle = self.wallStyleField.currentText(),
+                          border = "None" if cachedVector else self.borderField.currentText(), wallStyle = self.wallStyleField.currentText(),
                           solidObjects = self.solidObjectsField.isChecked(),
                           roomStyle = self.roomStyleField.currentText(), solidRooms = self.solidRoomsField.isChecked(),
+                          drawOpeningOutlines = self.drawOpeningOutlinesField.isChecked(),
                           gridOrigin = main.viewport.gridOrigin,
+                          measurementTextSize = self.overrides.get("measurementTextSize", measurementDefaultTextSize),
+                          borderTextSize = self.overrides.get("borderTextSize", measurementDefaultTextSize),
 
                           borderSize = self.overrides.get("borderSize", 28),
+                          borderWidth = self.overrides.get("borderWidth", 200) if self.overrides.get("scaleMode") in ("Architectural", "Print") else None,
 
                           titleBlock = self.TitleBlockOptions(),
+                          scaleBar = dict(self.overrides.get("scaleBar", {})),
 
                           texture = self.overrides.get("texture"), textureAngle = self.overrides.get("textureAngle", 0), textureSettings = self.TextureSettings(),
 
                           vignetteStrength = self.overrides.get("vignetteStrength", .125) if self.overrides.get("vignetteEnabled", False) else 0,
 
-                          dpi = self.overrides.get("dpi", 300) if self.overrides.get("scaleMode") == "Architectural" and outputFormat == "png" else None,
+                          dpi = self.overrides.get("dpi", 300) if self.overrides.get("scaleMode") == "Print" or self.overrides.get("scaleMode") == "Architectural" and outputFormat == "png" else None,
 
-                          architecturalScale = self.overrides.get("architecturalScale", 100) if self.overrides.get("scaleMode") == "Architectural" else None)
+                          architecturalScale = self.overrides.get("architecturalScale", 100) if self.overrides.get("scaleMode") in ("Architectural", "Print") else None)
 
 
 
@@ -2249,14 +2463,21 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
                         bounds = list(self.mainWindow.viewport.exportOverlay.bounds),
                         gridOrigin = list(self.mainWindow.viewport.gridOrigin),
                         solidObjects = self.solidObjectsField.isChecked(),
+                        drawOpeningOutlines = self.drawOpeningOutlinesField.isChecked(),
                         wallStyle = self.wallStyleField.currentText(),
                         border = self.borderField.currentText(),
-                        borderSize = int(self.borderSizeField.value()))
-        defaults = {"scale": 100, "scaleUnits": "px/m", "scaleMode": "Digital",
+                        borderSize = self.overrides.get("borderSize", 28),
+                        borderTextSize = self.borderTextSizeField.currentData())
+        if self.overrides.get("scaleMode") in ("Architectural", "Print"):
+            settings["borderWidth"] = self.overrides.get("borderWidth", 200)
+        defaults = {"scale": 100, "scaleUnits": "px/m", "scaleMode": "Digital", "measurementTextSize": measurementDefaultTextSize,
                     "architecturalScale": 100, "dpi": 300,
                     "texture": None, "textureAngle": 0, "vignetteEnabled": False, "vignetteStrength": .125}
         for name, default in defaults.items():
             settings.setdefault(name, default)
+        if settings["scaleMode"] == "Print":
+            for name, default in (("pageSize", "A4"), ("pageOrientation", "Landscape"), ("pageOrigin", [0, 0]), ("pageOverlap", [0, 0]), ("pageOverlapOffset", [0, 0])):
+                settings.setdefault(name, default)
         # Null represents the Theme choice, not a color sampled from the editor.
         # In particular, themes may use different wall and object outline colors.
         for name in ("canvasColor", "linesColor", "borderColor", "gridColor"):
@@ -2290,19 +2511,22 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
         self.PopulatePath()
 
         optimized = self.typeField.currentData() == "PNG_OPTIMIZED"
-        outputFormat = "svg" if self.typeField.currentData() == "SVG" else "png"
+        kind = self.typeField.currentData()
+        outputFormat = kind.lower() if kind in pdfFileTypes else exportRenderFormats[kind]
 
         try:
             path = self.OutputPath()
+            jobs = self.ExportJobs(path, outputFormat)
         except ValueError as error:
             main.ShowAppMessage("Export Failed", str(error), "error")
             return
         self.fileNameField.setText(path.stem)
 
-        if path.exists():
+        existing = list(dict.fromkeys(target for target, render in jobs if target.exists()))
+        if existing:
 
             answer = main.ShowAppMessage(
-                "Replace Export", "Replace the existing file?", "warning", informativeText = str(path),
+                "Replace Export", "Replace the existing file(s)?", "warning", informativeText = "\n".join(str(target) for target in existing),
                 standardButtons = QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No,
                 defaultButton = QtWidgets.QMessageBox.StandardButton.No, wrapInformativeText = False)
 
@@ -2317,7 +2541,9 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
 
         try:
             from .export_progress import ExportProgressDialog
-            dialog = ExportProgressDialog(self, path, outputFormat, optimized)
+            pageCount = len(jobs)
+            dialog = ExportProgressDialog(self, path, outputFormat, optimized, jobs = jobs)
+            jobs = None
             accepted = dialog.exec() == QtWidgets.QDialog.DialogCode.Accepted
             error = dialog.error
             dialog.deleteLater()
@@ -2332,7 +2558,7 @@ class ExportPanel(ExportHistoryMixin, WallDimensionControlsMixin, TitleBlockCont
             self.RecordExportHistory()
             main.exportButton.setText("Exported")
 
-            main.exportButton.setToolTip(f"Saved {path}")
+            main.exportButton.setToolTip(f"Saved {pageCount} page(s) in {path.parent}" if self.overrides.get("scaleMode") == "Print" else f"Saved {path}")
 
             QtCore.QTimer.singleShot(2000, lambda: main.exportButton.setText("Export"))
 

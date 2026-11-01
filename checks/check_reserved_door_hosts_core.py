@@ -1,5 +1,6 @@
 """Reserved pocket/barn-door support without Qt, windows or rendering."""
 import math
+import subprocess
 from pathlib import Path
 import sys
 
@@ -58,4 +59,12 @@ def Main():
 
 
 if __name__ == "__main__":
-    Main()
+    if "--without-qt" in sys.argv:
+        Main()
+    else:
+        # The desktop suite bootstrap already imports Qt to guard callbacks.
+        # Verify this kernel in an independent interpreter without site packages.
+        result = subprocess.run([sys.executable, "-S", str(Path(__file__).resolve()), "--without-qt"],
+                                capture_output = True, text = True, timeout = 10)
+        assert result.returncode == 0, result.stdout + result.stderr
+        print(result.stdout)

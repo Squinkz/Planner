@@ -78,10 +78,21 @@ def Main():
         expected = OriginalSubtract(points, clip)
         actual = SubtractConvexPolygon(points, clip)
         numeric = SubtractCoordinates(subject, cutter)
-        assert actual == expected, (subject, cutter)
-        assert numeric == [[(point.x(), point.y()) for point in polygon] for polygon in expected]
-        if len(expected) == 1 and expected[0] is points:
-            assert actual[0] is points
+        if actual != expected:
+            # The frozen absolute-coordinate area sum misclassifies small cutters
+            # at distant origins. Run its independent clipping algorithm locally.
+            origin = clip[0] if clip else QtCore.QPointF()
+            expected = OriginalSubtract([point - origin for point in points], [point - origin for point in clip])
+            expected = [[point + origin for point in polygon] for polygon in expected]
+        tolerance = max(1e-14, 32 * max((math.ulp(value) for polygon in (subject, cutter) for point in polygon for value in point), default = 0))
+        assert len(actual) == len(numeric) == len(expected), (subject, cutter)
+        for actualPolygon, numericPolygon, expectedPolygon in zip(actual, numeric, expected):
+            assert [(point.x(), point.y()) for point in actualPolygon] == numericPolygon
+            assert len(numericPolygon) == len(expectedPolygon), (subject, cutter)
+            for actualPoint, expectedPoint in zip(numericPolygon, expectedPolygon):
+                for value, target in zip(actualPoint, (expectedPoint.x(), expectedPoint.y())):
+                    assert abs(value - target) <= tolerance, (subject, cutter)
+        if len(actual) == 1 and actual[0] is points:
             assert numeric[0] is subject
         if cutter:
             for orientation in (-1, 0, 1):

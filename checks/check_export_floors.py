@@ -17,6 +17,7 @@ from planner_app.export_plan import RenderPlan
 
 def Main():
     with ExampleWindow() as (main, folder):
+        main.exportPanel.overrides["scaleMode"] = "Digital"
         v, panel = main.viewport, main.exportPanel
         InstallScene(main, Rectangle(-1000, -1000, 2000, 2000))
         v.showGrid = v.showMeasurements = v.showTips = False

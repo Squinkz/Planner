@@ -157,6 +157,21 @@ and CLI use the project values. `exportSettings.measurementPrecision` is High,
 Medium or Low. `exportSettings.measurementSettings` is a sparse object containing
 doors/windows (0, 1 or 2) and stairs/counters (0 or 2); absent keys inherit project
 values. These overrides apply to preview, saved file output and CLI rendering.
+`exportSettings.measurementTextSize` is 1.5 (Small), 2 (Medium, the default) or 2.5 (Large),
+expressed in printed millimetres of visible numeral height. Font pixels round
+to the nearest design pixel. Physical output uses a 300-PPI design space and
+Digital assumes 300 PPI. Dimensions, guide labels and scale-bar numbers use
+D-DIN Condensed and share this size; the editor's text remains unchanged.
+`exportSettings.borderTextSize` independently selects ruler, unit and reference-zone
+text height: 1.5 (Small), 2 (Medium, default) or 2.5 (Large) mm. Text-bearing border
+minimums grow with this value, independently of dimensions.
+Digital uses `exportSettings.borderSize` (integer pixels, 1–128, default 28).
+Print/Architectural use `exportSettings.borderWidth`, a positive project length
+in millimetres (default 200), displayed in project units. PPI and scale changes
+preserve the requested project length. Layout rounds to the nearest design pixel
+and applies the text-dependent minimum. Neither preference is an editor setting.
+The earlier 3.5 mm value loads as Large (2.5 mm).
+The earlier 0 value loads as Small (1.5 mm).
 Options always edits project settings. Opening it while Export is active first
 switches to Build and restores the editor view. Export
 controls and active-export canvas shortcuts edit export overrides, never the
@@ -176,6 +191,12 @@ strokes are clipped out of detected room interiors independently of room style.
 independent optional overrides. Without an override, Export inherits the editor's
 corresponding value; overrides affect previews, saved files and the CLI's
 saved-settings path. No room geometry is serialized.
+
+`settings.exportSettings.drawOpeningOutlines` is an optional boolean, default true.
+It independently controls the thin outlines across door passages in exports and
+previews. It does not hide jambs or affect the editor. The value is captured in
+export bundles and honored by the CLI's saved-settings path. Coverage:
+`check_export_opening_outlines.py`, `check_export_settings_core.py`.
 
 Legacy `settings.floors` and `settings.exportSettings.floors` booleans remain
 accepted when loading and recovering projects: true maps to `"Tinted"`, false to
@@ -254,6 +275,15 @@ scene records, history references parents/members by **object ID**. Serialized
 orders use stringified category keys. Selection is not serialized as a scene
 edit's geometry change. Do not serialize runtime identity addresses or tokens.
 
+Scene edits with rotation context may additionally contain `editor`, a pair of
+before/after dictionaries. Each dictionary contains `primary: [objectId, vertex]`,
+`selection: [[objectId, vertex], ...]`, `rotation: objectId | null`, and
+`pivot: [x, y] | null`. Primary object and vertex may both be null for an empty
+selection. Validate object IDs, handle indices, selected rotation ownership and
+finite pivot coordinates. This optional context preserves custom pivots and
+their selections through geometry undo/redo and project/session round trips.
+Older journals without `editor` retain their existing behavior.
+
 Reference-image edits use the same journal. These edits have empty scene changes,
 memberships and orders, plus `referenceImage: {changes, pivots}`. Its `changes`
 maps each changed property to `[before, after]`; supported properties are center,
@@ -329,8 +359,11 @@ The recovery report includes a scrollable tree of missing asset names and
 affected scene objects. Clicking an asset frames/selects all its affected
 objects; clicking an object frames/selects that instance. The report stays open
 so users can inspect further entries, and closes with OK or the window controls.
-The report is non-modal: canvas editing remains available and its missing-object
-list refreshes after scene edits, including deletion and undo. An empty list
+The report is application-modal: users must dismiss it before interacting with
+the editor or other Planner windows. Its entries still locate objects, keeping
+keyboard focus inside the report. The report opens asynchronously so startup
+restoration can finish without a nested dialog loop. Its missing-object list
+refreshes after programmatic scene updates, including deletion and undo. An empty list
 reports that no missing objects remain. Switching projects closes the report.
 Location framing shows three times the selection bounds with a minimum 6000 mm
 span in each axis, retaining surrounding context for small objects.
@@ -374,7 +407,7 @@ internal definition, not a missing catalog entry.
 Export omits Null artwork and editor-warning objects rather than painting their
 error colors into the output; see EXPORT-04 in INTERACTIONS.md.
 
-Session restoration shows one non-modal, locatable asset report if problems
+Session restoration shows one application-modal, locatable asset report if problems
 remain. Applying a project does not also create a transient clipboard warning;
 project opening uses its recovery report. Preview and export remain quiet.
 
@@ -382,10 +415,149 @@ Optimized PNG uses `type: "PNG_OPTIMIZED"` in the in-memory export history
 snapshot; it shares PNG controls and rendering but uses a separate encoding step.
 Switching to SVG and undoing restores that selector. The project and session
 persist the selection as `settings.exportSettings.fileType`, with values `PNG`,
-`SVG` or `PNG_OPTIMIZED`. Omission defaults to PNG. Output destinations remain
+`SVG`, `PNG_OPTIMIZED`, `PDF_RASTER` or `PDF_VECTOR`. PDF values require Print;
+omitted `scaleMode` is normalized to Print for PDF, while explicit non-Print PDF
+settings are rejected. Both PDFs write one multipage document. Raster uses PNG
+page rendering and selected PPI, while vector uses SVG page rendering and
+outlined text. PDF assembly belongs to the export worker, so preview render
+arguments still use `png`/`svg`. Omission defaults to PNG. Output destinations remain
 separate `exportFolder`/`exportFileName` values. The CLI's explicit file-type
 argument takes precedence over the saved UI selection.
 
+`settings.exportSettings.scaleBar` is an optional object with `enabled` (boolean,
+default false), `position` (`Bottom left`, `Bottom right`, `Top left`, `Top right`;
+default `Bottom left`), `divisionMode` (`Progressive`, `Equal`, `Subdivided`;
+default `Subdivided`), and `style` (`Alternating`, `Checker`, `Stepped`; default
+`Stepped`). Earlier `style` values `Progressive`, `Equal divisions` and
+`Subdivided end` migrate to the corresponding `divisionMode` and retain the
+`Alternating` appearance; an explicit
+`divisionMode` takes precedence. Legacy `widthMM` (5–100), `widthPixels` (10–1000) and
+`divisions` (integer 1–10) are validated on load, then discarded. They no longer
+control rendering or appear in the UI. The bar chooses a clean distance in
+five-based steps near 100 mm at the 300-PPI baseline (about 1181 export pixels)
+in every mode, then derives its calibrated width from
+the export scale. In Progressive, the three interior marks use clean 1/2/5 decimal distances
+below the total, with proportional spacing and four segments. For example,
+a 10 m bar uses 0, 1, 2, 5, 10 m. Equal chooses a clean major increment
+that divides the total exactly, aiming for five equal sections. Subdivided
+adds clean smaller divisions inside the first major section. The same 10 m bar
+reads 0, 2, 4, 6, 8, 10 m or 0, 1, 2, 4, 6, 8, 10 m respectively; neither
+dropdown changes the total distance or calibrated width. Alternating draws one
+filled row; Checker adds an inverse second row of the same height; Stepped draws
+a continuous open path down, across and up at alternating marks, with no fill.
+Labels use the display units, choosing clean
+feet/inch totals for imperial projects and inch increments for short imperial bars.
+Each label has its own tightly padded, opaque canvas-color backing; the gaps and
+surrounding area stay transparent. Filled segments and strokes are opaque, and labels use a 1.4 mm
+font size at that baseline in every mode. Digital uses the same baseline
+decoration sizing as Title Block; physical exports scale with output PPI.
+Labels always use D-DIN Condensed, like title-block fields. Narrow pages select a shorter clean total
+when needed to fit the drawing area.
+The zero mark automatically aligns horizontally inward to a major export
+gridline where it fits with the labels and ruler inset. The vertical inset
+remains fixed. This uses the export
+scale, project grid origin and page-specific drawing bounds, without adding
+another saved setting or depending on viewport zoom or raster PPI.
+The bar is an export decoration, absent
+from scene-only caches and the Build canvas. Print repeats it per selected page.
+Its section expansion state uses `ui.exportSections["Scale Bar"]`.
+
+`settings.exportSettings.titleBlock` is an optional object. `enabled` defaults
+false; `position` is `Right` (default) or `Bottom`. `logoMode` is `None`,
+`Planner` (default) or `Custom`; legacy `logoEnabled` is still accepted. Custom
+`logo` is base64 image data and `logoName` retains its source filename. Text
+fields are `projectName`, `drawingTitle` (displayed as Sheet title), `address`,
+`date`, `preparedBy`, `comments` (displayed as Notes), `sheetNumber` and `revision`. Text values are
+limited to 10,000 characters; encoded logo data to 8,000,000 characters.
+The GUI defaults project name to the current project stem or `New Project`,
+sheet title to `Ground Floor Plan` and sheet number to `A-101`. Explicit empty
+text is preserved. Scale is derived from export settings rather than a saved
+text field. A blank date uses today; the picker and Today reset write the date.
+The title block is absent from editor/scene-only artwork, appended after the
+border in free-crop modes, and repeated inside each Print page. Its section
+expansion state uses `ui.exportSections["Title Block"]`.
+Print derives its uniform block scale from the shorter paper edge, independent
+of orientation and PPI. Side width interpolates 40 mm at 210 mm (A4) to 50 mm
+at 297 mm (A3), then to 60 mm at 841 mm (A0), clamped to 40–60 mm. Bottom
+height uses the same relative growth from its existing 20.48 mm A4 height.
+This is derived layout, not another saved preference; Digital/Architectural
+retain their existing physical title-block dimensions.
+
+Print mode uses `settings.exportSettings.scaleMode: "Print"` and is
+the GUI's initial choice for a fresh export setup. Saved explicit modes are
+restored; older nonempty overrides without a mode retain Digital semantics.
+Architectural and Print retain independent `architecturalScale` (default 100)
+and `dpi` (default 300) values. The active values remain in those top-level
+export keys. Optional `modeScales` parks inactive physical modes' values as
+`{"Architectural": {"architecturalScale": 50, "dpi": 300}}`, keyed only by
+`Architectural` or `Print`; entries accept those two validated settings only.
+Switching restores scale/PPI before restoring and constraining the destination
+crop. New physical modes use defaults; old shared values belong to their saved
+physical mode. A legacy Digital setup can seed the first physical mode from its
+previous scale/PPI. Inactive scale records never enter the resolved render view.
+`pageSize` currently
+accepts `A0` through `A4`, `ARCH A` through `ARCH E`, `Letter`, `Legal` and
+`Tabloid`, defaulting to `A4`;
+`pageOrientation` accepts `Landscape` (default) or `Portrait`.
+The active mode's crop remains in `bounds: [x, y, width, height]` in world
+millimetres. Optional `cropRegions` parks the inactive modes' crops, keyed by
+`Digital`, `Architectural` or `Print`, with the same four-number shape and
+positive width/height. Switching modes archives the departing crop and removes
+the restored mode's entry from this map. Unused Digital/Architectural modes start
+with automatic scene bounds. When Print has neither `bounds` nor `pageOrigin`,
+the GUI initializes both to select one complete sheet centred on the automatic
+model bounds, using the selected paper, orientation and scale. An explicit crop
+or page offset, including `[0, 0]`, prevents this initialization. Existing projects
+without the map retain `bounds` for their saved mode.
+Both active and inactive crops participate in export undo/redo and
+project/session persistence. Inactive crops do not enter the resolved render view.
+Architectural and Print geometry and pixel-based style values use a fixed 300 PPI design space.
+`dpi` controls raster output density and metadata; it does not change page offsets,
+drawing coverage, grid spacing, text size or physical stroke widths. SVG retains
+the same geometry and physical page dimensions across PPI changes.
+In Architectural mode, changing `architecturalScale` scales the crop dimensions
+by the scale ratio around its centre and compensates the preview camera, keeping
+the export footprint and printed dimensions fixed. Crop and scale share an undo
+entry; undo/redo also applies the matching camera adjustment.
+`pageOrigin` is a two-number world-millimetre offset, default `[0, 0]`, independent
+of `gridOrigin`. `bounds` is the page-selection crop in the complete-paper preview,
+not a single page's drawing bounds. Only fully enclosed paper cells are selected.
+`pageOverlap` is a pair of signed world-millimetre lengths, default `[0, 0]`,
+displayed in project units. Source-page strides are the available drawing width
+and height minus these values. Positive values duplicate a strip between pages;
+negative values leave a source-coverage gap. Paper dimensions and paper-cell
+strides remain fixed, so sheets, borders and crop never bunch up or resize.
+`pageOverlapOffset` stores the source offset in world millimetres, default `[0, 0]`.
+An overlap edit adjusts this offset by the overlap delta times the crop-centre
+page index, preserving the drawing at that anchor. Later crop movement only
+changes selection; it does not move the already positioned drawing. These source
+offsets are saved and restored with overlap in the same Export undo entry.
+Overlap is independent of raster PPI and
+is not rescaled when the architectural scale changes. Positive values must stay
+below the available drawing extent; UI limits follow paper, scale and decorations.
+Overlap controls are disabled when at most one complete page is selected;
+their saved values are preserved and become editable again with multiple pages.
+Interactive crop edges retain at least one fully enclosed paper cell; changing
+paper size or orientation preserves the selected rows and columns. Paper and
+architectural-scale edits resize the crop around the complete selected pages'
+centre, discard partial margins, and update `pageOrigin` to retain cell indices.
+Architectural-scale edits also adjust the preview camera to keep the selected
+paper footprint fixed on screen. The setting, crop and origin change together
+in Export undo/redo.
+Border/title-block space is deducted before tiling source drawing areas. Page
+indices map paper cells to drawing tiles with the selected overlap or gap,
+retaining continuous source coverage at zero overlap while every preview/output
+page includes its own decorations.
+Files are ordered left to right then top to bottom; sheet-number text is unchanged.
+Print fields participate in project/session serialization and Export undo/redo.
+
+
+Application startup, project loading and session recovery activate Build.
+Save and Save As preserve the current tab, including Export, and commit pending
+export-field text without replacing the editor camera/settings or stopping the
+preview worker. Cancellation and save failure also preserve the current tab.
+Legacy session `ui.tab` values remain accepted for compatibility but are not
+restored. Saved export options remain available when Export is opened explicitly.
 
 Session UI selections use persistent object IDs with an optional handle index:
 `null` for the whole object, 0/1 for endpoints, 2 for AngleGuide middle, and 3 for

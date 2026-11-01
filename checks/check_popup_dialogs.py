@@ -1,4 +1,4 @@
-"""Stacker status icons, message styling and prompt defaults."""
+"""Themed status icons, message styling and prompt defaults."""
 import os
 import sys
 from pathlib import Path
@@ -24,6 +24,8 @@ def Main():
     def InspectDialog(message):
         message.show()
         app.processEvents()
+        assert message.windowModality() == QtCore.Qt.WindowModality.ApplicationModal
+        assert app.activeModalWidget() is message
         assert not message.windowIcon().isNull()
         assert message.iconPixmap().size() == QtCore.QSize(48, 48)
         colors = {message.iconPixmap().toImage().pixelColor(x, y).name()
@@ -59,7 +61,7 @@ def Main():
                             defaultButton = QtWidgets.QMessageBox.StandardButton.No, wrapInformativeText = False)
     assert observed == ["Unsaved Project", "Cannot Save Project", "Replace Export"]
     main.close()
-    print("PASS: Stacker warning/error icons, status colors, prompt text, buttons and save default.")
+    print("PASS: warning/error icons, status colors, prompt text, buttons and save default.")
 
 
 if __name__ == "__main__":

@@ -86,7 +86,8 @@ def Main():
         assert any(entry["summary"] == "Restored previous session" for entry in restored.activityLog.entries)
         assert restored.viewport.vertexSnapEnabled and not restored.viewport.cornerSnapEnabled
         assert restored.windowTitle() == "Saved* - Planner" and restored.viewport.undoHistory
-        assert restored.sidebarTabs.currentIndex() == 1
+        assert restored.sidebarTabs.currentWidget() is restored.buildScrollArea
+        assert not restored.viewport.exportOverlay.active and restored.exportPanel.projectView is None
         assert restored.SessionUiState()["selection"] == ui["selection"]
         assert restored.SessionUiState()["rotationObject"] == ui["rotationObject"]
         assert not restored.visibilityItems["Walls"].isExpanded()

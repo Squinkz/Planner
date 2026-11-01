@@ -16,6 +16,7 @@ from check_history import Drag
 def Main():
     app = QtWidgets.QApplication([])
     main = MainWindow()
+    main.exportPanel.overrides["scaleMode"] = "Digital"
     main.resize(1300, 900)
     main.show()
     app.processEvents()
@@ -60,6 +61,10 @@ def Main():
     main.sidebarTabs.setCurrentWidget(panel)
     assert v.gridOrigin == origin
     main.ApplyProject(decoded, None)
+    assert main.sidebarTabs.currentWidget() is main.buildScrollArea
+    assert v.gridOrigin == (0, 0) and not overlay.active
+    assert panel.overrides["gridOrigin"] == list(origin)
+    main.sidebarTabs.setCurrentWidget(panel)
     assert v.gridOrigin == origin
     # Reset each ruler independently, without snapping the other axis or
     # starting a new drag from the double-click's trailing release.

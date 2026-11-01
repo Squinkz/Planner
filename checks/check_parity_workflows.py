@@ -86,6 +86,7 @@ def RunWorkflow(name):
             v.SetSelection([(wall, None)])
             main.EditProperty("width", 800)
             assert wall.width == 800 and fireplace.depth == 800
+            assert abs(fireplace.manualDepth - 500) < 1e-8
             states.append(("thicker-parent-fits-fireplace", WorkflowState(main)))
             v.Undo()
             assert wall.width == 240 and abs(fireplace.depth - 500) < 1e-8
@@ -129,6 +130,9 @@ def RunWorkflow(name):
 
 
 def Main():
+    # Keep one application alive across both windows. Recreating QApplication
+    # between workflows can leave stale Qt binding/model state behind.
+    app = QtWidgets.QApplication.instance() or QtWidgets.QApplication([])
     target = referenceDirectory / "workflows"
     record = "--record" in sys.argv
     if record:
@@ -136,6 +140,7 @@ def Main():
     count = 0
     for name in ("room-to-export", "attachment-lifecycle"):
         actual, project = RunWorkflow(name)
+        assert QtWidgets.QApplication.instance() is app
         path = target / (name + ".json")
         if record:
             path.write_text(json.dumps(actual, indent = 2, ensure_ascii = False), encoding = "utf-8", newline = "\n")

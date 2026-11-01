@@ -21,6 +21,7 @@ def Main():
         app = QtWidgets.QApplication([])
         ApplyApplicationTheme(app)
         main = MainWindow()
+        main.exportPanel.overrides["scaleMode"] = "Digital"
         main.show()
         v = main.viewport
         v.walls = [Wall(QtCore.QPointF(-1000, 0), QtCore.QPointF(1000, 0), 240)]
@@ -42,21 +43,25 @@ def Main():
         renderer = overlay.svgRenderer
         assert renderer is not None and renderer.isValid() and not overlay.previewError
         assert overlay.svgData == panel.Render("svg", preview = True, previewScene = True)
-        expected = QtGui.QImage(renderer.defaultSize(), QtGui.QImage.Format.Format_ARGB32)
-        expected.fill(QtCore.Qt.GlobalColor.transparent)
+        expected = QtGui.QImage(preview.size(), QtGui.QImage.Format.Format_ARGB32)
+        expected.fill(QtGui.QColor(themeColors["canvas"]))
         painter = QtGui.QPainter(expected)
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
-        renderer.render(painter)
+        sx, sy, sw, sh = overlay.vectorBounds
+        sourceOrigin = v.WorldToViewport(QtCore.QPointF(sx, sy + sh))
+        ratio = v.basePixelsPerMillimeter * v.zoom / (overlay.scale / 1000)
+        size = renderer.defaultSize()
+        renderer.render(painter, QtCore.QRectF(sourceOrigin, QtCore.QSizeF(size.width() * ratio, size.height() * ratio)))
         painter.end()
         x, y, width, height = overlay.bounds
         first = v.WorldToViewport(QtCore.QPointF(x, y + height))
         frame = first - QtCore.QPointF(v.rulerSize, v.rulerSize)
         # Compare the plan interior, excluding independently drawn crop guides.
-        offset = v.rulerSize + 5
-        sampleWidth = expected.width() - 2 * offset
-        sampleHeight = expected.height() - 2 * offset
-        assert preview.copy(round(frame.x()) + offset, round(frame.y()) + offset, sampleWidth, sampleHeight) == expected.copy(offset, offset, sampleWidth, sampleHeight)
-        rulerRect = QtCore.QRect(round(frame.x()), round(frame.y()), expected.width(), v.rulerSize - 2)
+        last = v.WorldToViewport(QtCore.QPointF(x + width, y))
+        interior = QtCore.QRectF(first, last).adjusted(5, 5, -5, -5).toRect().intersected(v.DrawingRect().toRect())
+        assert not interior.isEmpty()
+        assert preview.copy(interior) == expected.copy(interior)
+        rulerRect = QtCore.QRect(round(frame.x()), round(frame.y()), round(last.x() - first.x()), v.rulerSize - 2)
         for button in (QtCore.Qt.MouseButton.LeftButton, QtCore.Qt.MouseButton.MiddleButton):
             QtTest.QTest.mousePress(v, button, pos = v.DrawingRect().center().toPoint())
             held = v.grab().toImage().convertToFormat(QtGui.QImage.Format.Format_ARGB32)
@@ -99,16 +104,17 @@ def Main():
         outputPath = panel.OutputPath()
         main.exportButton.click()
         assert outputPath.read_bytes() == panel.Render("svg")
-        for change in (lambda: panel.scaleField.setValue(75),
-                       lambda: overlay.MoveEdge(0, overlay.bounds[0] + 1000),
-                       lambda: panel.unitsField.setCurrentText("Centimeters"),
-                       lambda: panel.borderField.setCurrentText("None"),
-                       lambda: panel.lineworkFields["walls"].setValue(.75),
-                       lambda: panel.showGridField.setChecked(False)):
+        for change, rebuild in ((lambda: panel.scaleField.setValue(75), True),
+                                (lambda: overlay.MoveEdge(0, overlay.bounds[0] + 1000), False),
+                                (lambda: panel.unitsField.setCurrentText("Centimeters"), True),
+                                (lambda: panel.borderField.setCurrentText("None"), False),
+                                (lambda: panel.lineworkFields["walls"].setValue(.75), True),
+                                (lambda: panel.showGridField.setChecked(False), True)):
             previous = overlay.svgRenderer
             change()
             v.grab()
-            assert overlay.svgRenderer is not previous and overlay.svgData == panel.Render("svg", preview = True, previewScene = True)
+            assert (overlay.svgRenderer is not previous) == rebuild
+            assert overlay.svgData == panel.Render("svg", preview = True, previewScene = True)
         panel.typeField.setCurrentIndex(panel.typeField.findData("PNG"))
         v.grab()
         assert overlay.snapshot is not None and not overlay.previewError

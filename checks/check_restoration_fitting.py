@@ -26,7 +26,10 @@ def Main():
 
     app = QtWidgets.QApplication([])
     p = QtCore.QPointF
-    classes = (Window, Door, SlidingDoor, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, OpenDoorway, Fireplace)
+    # Reserved Pocket/Barn support and last-valid restoration changed after
+    # this frozen reference. Dedicated reserved-door checks cover that policy;
+    # retain this historical matrix for ordinary openings and shared geometry.
+    classes = (Window, Door, SlidingDoor, Window, Door, BifoldDoor, SilledWindow, CasementWindow, OpenDoorway, Fireplace)
     def Setup(view, case):
         view.CancelInteraction()
         offset = p(1e8, -1e8) if case % 7 == 0 else p()

@@ -66,6 +66,20 @@ def SearchWords(text):
     return tuple(words)
 
 
+@lru_cache(maxsize = 4096)
+def FurnishingSearchFields(name, keywords, categories):
+    """Cache immutable field values without retaining mutable catalog records."""
+    nameWords = SearchWords(name)
+    keywordWords = SearchWords(" ".join(keywords))
+    categoryWords = SearchWords(" ".join(categories))
+    fields = tuple(" " + " ".join(words) + " " for words in (nameWords, keywordWords, categoryWords))
+    words = frozenset(nameWords + keywordWords + categoryWords)
+    # Partial aliases stay out of the whole-word/fuzzy vocabulary.
+    partialWords = words | {alias for alias, canonical in searchAliases.items()
+                            if canonical in words and canonical.isalpha()}
+    return fields, words, partialWords
+
+
 def FindFurnishings(definitions, query, unitsMode):
     query = unicodedata.normalize("NFKC", query.translate(searchPunctuation)).strip().casefold()
     query = re.sub(r"([wl]):\s+", r"\1:", query)
@@ -118,16 +132,14 @@ def FindFurnishings(definitions, query, unitsMode):
         categories = definition.get("categories")
         if categories is None:
             categories = FurnishingCategories(definition.get("category"))
-        nameWords = SearchWords(definition["name"])
-        keywordWords = SearchWords(" ".join(keywords))
-        categoryWords = SearchWords(" ".join(categories))
-        fields = tuple(" " + " ".join(words) + " " for words in (nameWords, keywordWords, categoryWords))
-        words = frozenset(nameWords + keywordWords + categoryWords)
-        # Retain alternate spellings for partial matching without promoting them
-        # to whole-word matches or adding them to the fuzzy-search vocabulary.
-        partialWords = words | {alias for alias, canonical in searchAliases.items()
-                                if canonical in words and canonical.isalpha()}
+        fields, words, partialWords = FurnishingSearchFields(definition["name"], tuple(keywords), tuple(categories))
         indexed.append((definition, fields, words, partialWords))
+    preparedTerms = []
+    for token, axis, number, unit in terms:
+        tokenWords = SearchWords(token)
+        phrase = " " + " ".join(tokenWords) + " "
+        namePhrase = " " + " ".join(nameSynonyms.get(word, word) for word in tokenWords) + " "
+        preparedTerms.append((axis, number, unit, tokenWords, phrase, namePhrase))
     variants = {}
     for fuzzy in (False, True):
         if fuzzy:
@@ -160,13 +172,10 @@ def FindFurnishings(definitions, query, unitsMode):
             # Each candidate records occupied axes, worst text tier, total text
             # tier, rounded matches, and unit preference. Text never consumes an axis.
             candidates = {(frozenset(), 0, 0, 0, 0)}
-            for token, axis, number, specifiedUnit in terms:
+            for axis, number, specifiedUnit, tokenWords, phrase, namePhrase in preparedTerms:
                 choices = []
-                tokenWords = SearchWords(token)
-                phrase = " " + " ".join(tokenWords) + " "
                 if axis is None and not dimensionPair and tokenWords:
                     textRank = next((rank for rank, field in enumerate(fields) if phrase in field), None)
-                    namePhrase = " " + " ".join(nameSynonyms.get(word, word) for word in tokenWords) + " "
                     if namePhrase in fields[0]:
                         textRank = 0
                     if textRank is None and number is None:

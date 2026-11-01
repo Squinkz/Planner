@@ -3,6 +3,17 @@
 Coordinates keep the caller's coordinate system. Polygon order, winding,
 fragment order and the existing clipping tolerances are preserved.
 """
+import math
+
+
+def PolygonTwiceArea(points):
+    """Signed area in a local frame, preserving small features at distant origins."""
+    if not points:
+        return 0.0
+    originX, originY = points[0]
+    local = [(x - originX, y - originY) for x, y in points]
+    return math.fsum(x * local[(index + 1) % len(local)][1] - local[(index + 1) % len(local)][0] * y
+                     for index, (x, y) in enumerate(local))
 
 
 def ClipHalfPlane(points, origin, normal):
@@ -39,6 +50,24 @@ def SplitPolygon(points, first, second, orientation):
     return inside, outside
 
 
+def PolygonBounds(points):
+    """Preserve subtraction's origin/extent rounding, including distant origins."""
+    if not points:
+        return (0, 0, 0, 0)
+    left, top = points[0]
+    right, bottom = left, top
+    for x, y in points[1:]:
+        if x < left:
+            left = x
+        elif x > right:
+            right = x
+        if y < top:
+            top = y
+        elif y > bottom:
+            bottom = y
+    return (left, top, left + (right - left), top + (bottom - top))
+
+
 def SubtractConvexPolygon(points, cutter):
     """Return outside fragments in the same order as sequential edge clipping.
 
@@ -46,32 +75,12 @@ def SubtractConvexPolygon(points, cutter):
     discard thresholds are in the caller's squared coordinate units, as before.
     Neither input is mutated. An unchanged subject is returned by reference.
     """
-    bounds = []
-    for polygon in (points, cutter):
-        if not polygon:
-            bounds.append((0, 0, 0, 0))
-            continue
-        left, top = polygon[0]
-        right, bottom = left, top
-        for x, y in polygon[1:]:
-            if x < left:
-                left = x
-            elif x > right:
-                right = x
-            if y < top:
-                top = y
-            elif y > bottom:
-                bottom = y
-        # Preserve the prior origin/extent arithmetic at extreme offsets,
-        # including its floating-point rounding at the far rectangle edges.
-        bounds.append((left, top, left + (right - left), top + (bottom - top)))
-    left, top, right, bottom = bounds[0]
-    cutterLeft, cutterTop, cutterRight, cutterBottom = bounds[1]
+    left, top, right, bottom = PolygonBounds(points)
+    cutterLeft, cutterTop, cutterRight, cutterBottom = PolygonBounds(cutter)
     if (left >= right or top >= bottom or cutterLeft >= cutterRight or cutterTop >= cutterBottom
             or left >= cutterRight or right <= cutterLeft or top >= cutterBottom or bottom <= cutterTop):
         return [points]
-    area = sum(x * cutter[(index + 1) % len(cutter)][1] - cutter[(index + 1) % len(cutter)][0] * y
-               for index, (x, y) in enumerate(cutter))
+    area = PolygonTwiceArea(cutter)
     if abs(area) < 1e-9:
         return [points]
     orientation = 1 if area > 0 else -1
@@ -82,8 +91,30 @@ def SubtractConvexPolygon(points, cutter):
             break
         remaining, outside = SplitPolygon(remaining, first, cutter[(index + 1) % len(cutter)], orientation)
         if len(outside) >= 3:
-            area = abs(sum(x * outside[(index + 1) % len(outside)][1] - outside[(index + 1) % len(outside)][0] * y
-                           for index, (x, y) in enumerate(outside)))
+            area = abs(PolygonTwiceArea(outside))
             if area > 1e-7:
                 fragments.append(outside)
     return fragments
+
+
+def SubtractConvexPolygons(points, cutters):
+    """Apply ordered cutters, retaining bounds for unaffected numeric fragments."""
+    fragments = [(points, PolygonBounds(points))]
+    for cutter in cutters:
+        cutterLeft, cutterTop, cutterRight, cutterBottom = PolygonBounds(cutter)
+        remaining = []
+        for fragment, bounds in fragments:
+            left, top, right, bottom = bounds
+            # This is exactly the single-cutter rejection, including zero-area
+            # bounds and touching edges. NaN/uncertain comparisons fall through
+            # to the original clipping calculation; no tolerance is introduced.
+            if (left >= right or top >= bottom or cutterLeft >= cutterRight or cutterTop >= cutterBottom
+                    or left >= cutterRight or right <= cutterLeft or top >= cutterBottom or bottom <= cutterTop):
+                remaining.append((fragment, bounds))
+                continue
+            for piece in SubtractConvexPolygon(fragment, cutter):
+                remaining.append((piece, bounds if piece is fragment else PolygonBounds(piece)))
+        fragments = remaining
+        if not fragments:
+            break
+    return [fragment for fragment, bounds in fragments]

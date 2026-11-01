@@ -17,6 +17,7 @@ def Main():
     app = QtWidgets.QApplication([])
     ApplyApplicationTheme(app)
     main = MainWindow()
+    main.exportPanel.overrides["scaleMode"] = "Digital"
     main.show()
     v, panel = main.viewport, main.exportPanel
     v.walls = [Wall(QtCore.QPointF(-1000, 0), QtCore.QPointF(1000, 0), 240)]
@@ -97,11 +98,19 @@ def Main():
     exported = SvgPreviewRenderer(panel.Render("svg"))
     images = []
     for renderer in (overlay.svgRenderer, exported):
-        image = QtGui.QImage(renderer.defaultSize(), QtGui.QImage.Format.Format_ARGB32)
+        image = QtGui.QImage(exported.defaultSize(), QtGui.QImage.Format.Format_ARGB32)
         image.fill(QtCore.Qt.GlobalColor.transparent)
         with QtGui.QPainter(image) as painter:
             painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
-            renderer.render(painter)
+            if renderer is overlay.svgRenderer:
+                x, y, width, height = overlay.bounds
+                sx, sy, sw, sh = overlay.vectorBounds
+                scale = overlay.scale / 1000
+                renderer.render(painter, QtCore.QRectF(overlay.borderSize + (sx - x) * scale,
+                    overlay.borderSize + (y + height - sy - sh) * scale,
+                    renderer.defaultSize().width(), renderer.defaultSize().height()))
+            else:
+                renderer.render(painter)
         size = overlay.borderSize
         # The border separator is painted independently in the preview and can
         # cover the canvas's outermost pixel in the complete exported SVG.

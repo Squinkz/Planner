@@ -1,0 +1,377 @@
+[
+  {
+    "type": "Wall",
+    "id": 1,
+    "first": [
+      13610.0,
+      11380.0
+    ],
+    "second": [
+      22250.0,
+      11380.0
+    ],
+    "width": 300.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  },
+  {
+    "type": "Wall",
+    "id": 3,
+    "first": [
+      22250.0,
+      11380.0
+    ],
+    "second": [
+      22250.0,
+      10490.0
+    ],
+    "width": 300.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  },
+  {
+    "type": "Wall",
+    "id": 4,
+    "first": [
+      22250.0,
+      10490.0
+    ],
+    "second": [
+      22930.0,
+      10490.0
+    ],
+    "width": 300.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  },
+  {
+    "type": "Wall",
+    "id": 6,
+    "first": [
+      22930.0,
+      8240.0
+    ],
+    "second": [
+      22250.0,
+      8240.0
+    ],
+    "width": 300.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  },
+  {
+    "type": "Wall",
+    "id": 7,
+    "first": [
+      22250.0,
+      8240.0
+    ],
+    "second": [
+      22250.0,
+      6690.000000000002
+    ],
+    "width": 300.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  },
+  {
+    "type": "Wall",
+    "id": 8,
+    "first": [
+      22250.0,
+      6690.000000000002
+    ],
+    "second": [
+      7990.0,
+      6690.0
+    ],
+    "width": 300.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  },
+  {
+    "type": "Wall",
+    "id": 9,
+    "first": [
+      7990.0,
+      6690.0
+    ],
+    "second": [
+      7990.0,
+      10160.0
+    ],
+    "width": 300.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  },
+  {
+    "type": "Wall",
+    "id": 10,
+    "first": [
+      7990.0,
+      10160.0
+    ],
+    "second": [
+      13610.0,
+      10160.0
+    ],
+    "width": 300.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  },
+  {
+    "type": "Wall",
+    "id": 13,
+    "first": [
+      17840.0,
+      7760.0
+    ],
+    "second": [
+      17840.0,
+      6840.000000000002
+    ],
+    "width": 120.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  },
+  {
+    "type": "Wall",
+    "id": 14,
+    "first": [
+      17840.0,
+      7620.0
+    ],
+    "second": [
+      17130.0,
+      7620.0
+    ],
+    "width": 100.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  },
+  {
+    "type": "Wall",
+    "id": 16,
+    "first": [
+      17840.0,
+      7760.0
+    ],
+    "second": [
+      18090.0,
+      7760.0
+    ],
+    "width": 100.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  },
+  {
+    "type": "Wall",
+    "id": 18,
+    "first": [
+      18090.0,
+      7760.0
+    ],
+    "second": [
+      18090.0,
+      9600.0
+    ],
+    "width": 100.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  },
+  {
+    "type": "Wall",
+    "id": 19,
+    "first": [
+      18090.0,
+      9600.0
+    ],
+    "second": [
+      17050.0,
+      9600.0
+    ],
+    "width": 100.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  },
+  {
+    "type": "Wall",
+    "id": 20,
+    "first": [
+      17050.0,
+      8810.0
+    ],
+    "second": [
+      17050.0,
+      11240.0
+    ],
+    "width": 100.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  },
+  {
+    "type": "Wall",
+    "id": 21,
+    "first": [
+      15980.0,
+      8760.0
+    ],
+    "second": [
+      18090.0,
+      8760.0
+    ],
+    "width": 100.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  },
+  {
+    "type": "Wall",
+    "id": 22,
+    "first": [
+      11560.0,
+      8375.0
+    ],
+    "second": [
+      15980.0,
+      8375.0
+    ],
+    "width": 100.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  },
+  {
+    "type": "Wall",
+    "id": 23,
+    "first": [
+      15980.0,
+      8375.0
+    ],
+    "second": [
+      15980.0,
+      8760.0
+    ],
+    "width": 100.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  },
+  {
+    "type": "Wall",
+    "id": 24,
+    "first": [
+      11560.0,
+      6840.000000000002
+    ],
+    "second": [
+      11560.0,
+      10009.999999999998
+    ],
+    "width": 100.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  },
+  {
+    "type": "Wall",
+    "id": 25,
+    "first": [
+      13709.999999999998,
+      8375.0
+    ],
+    "second": [
+      13709.999999999998,
+      10009.999999999998
+    ],
+    "width": 100.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  },
+  {
+    "type": "Stair",
+    "id": 29,
+    "first": [
+      16765.0,
+      7205.000000000001
+    ],
+    "second": [
+      17780.0,
+      7205.000000000001
+    ],
+    "width": 730.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  },
+  {
+    "type": "Wall",
+    "id": 222,
+    "first": [
+      22930.0,
+      10490.0
+    ],
+    "second": [
+      22930.0,
+      8240.0
+    ],
+    "width": 300.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  },
+  {
+    "type": "Wall",
+    "id": 290,
+    "first": [
+      13610.0,
+      10160.0
+    ],
+    "second": [
+      13610.0,
+      11380.0
+    ],
+    "width": 300.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  },
+  {
+    "type": "Stair",
+    "id": 96,
+    "first": [
+      13800.0,
+      7205.000000000001
+    ],
+    "second": [
+      16280.0,
+      7205.000000000001
+    ],
+    "width": 730.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  },
+  {
+    "type": "Wall",
+    "id": 97,
+    "first": [
+      16340.0,
+      7760.0
+    ],
+    "second": [
+      16340.0,
+      6840.000000000002
+    ],
+    "width": 120.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  },
+  {
+    "type": "Stair",
+    "id": 99,
+    "first": [
+      16765.0,
+      7205.000000000001
+    ],
+    "second": [
+      16765.0,
+      7759.999999999999
+    ],
+    "width": 730.0,
+    "firstMiter": 0.0,
+    "secondMiter": 0.0
+  }
+]

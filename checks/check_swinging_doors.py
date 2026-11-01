@@ -121,9 +121,11 @@ def Main():
                 assert len(arcs) == 2 and len(lines) == 4
                 center = second if hinge else first
                 tips = [arc.currentPosition() for arc in arcs]
-                assert all(abs(line.length() - 200) < 1e-6 for line in (lines[2], lines[3]))
+                leaves, jambs = lines[:2], lines[2:]
+                assert all(abs(line.length() - 200) < 1e-6 for line in leaves)
+                assert all(abs(line.length() - 40) < 1e-6 for line in jambs)
                 assert (tips[0] - center) == -(tips[1] - center)
-                assert all(QtCore.QLineF(tip, line.p2()).length() < .001 for tip, line in zip(tips, lines[2:]))
+                assert all(QtCore.QLineF(tip, line.p2()).length() < .001 for tip, line in zip(tips, leaves))
     print("Swinging doors: two opposed swings, hinge-only controls, measurements, placement, history, clipboard and exports passed")
 
 

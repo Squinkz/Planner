@@ -21,7 +21,8 @@ Export background and line-colour overrides also apply to its background and tex
 
 `roomFill` supplies the editor background inside detected rooms, underneath the
 reference image and grid. It is an independent canvas role, not a brightness
-adjustment to `canvas`. White palettes use a subtle darker fill; dark and colored
+adjustment to `canvas`. Most white palettes use a subtle darker fill; Printer-Friendly
+Canvas intentionally keeps both canvas and room white. Dark and colored
 palettes use a fill chosen for their own background and ink. It remains visible with the grid hidden and
 does not affect exports. Selectable canvas themes must define or inherit this
 role; there is no automatically generated fallback.
@@ -36,15 +37,18 @@ Planner registers `.ttf`, `.otf`, `.ttc` and `.otc` resources in `assets/fonts/`
 
 Canvas labels and north-marker lettering use `labelFont`; the default is Noto Sans. UI text, rulers and measurements use Noto Sans. Imperial measurements use native fraction shaping where supported, or assembled fractions from the font's digits and slash. SVG exports outline text.
 
-Title-block body text uses a 3.2 mm nominal font size (about 9.1 pt), including
-project names and sheet numbers. Headings always use Noto Sans and fields use
+Title-block body text uses a 3.2 mm nominal font size (about 9.1 pt); sheet numbers
+use twice that size. Headings always use Noto Sans and fields use
 D-DIN Condensed, independently of the canvas font. Comments, date and scale
 values are 30% smaller. Date, scale and revision values align right in both layouts.
 Date and scale share a row in the right-hand layout and a column in the bottom layout.
 Headings are 20% smaller and their colour blends
 the theme's text colour 20% toward its canvas colour. The nominal size is the font's em height;
 the visible capital-letter height depends on the typeface. The right-hand strip
-is approximately 51 mm wide, and empty fields use compact label-only cells.
+is approximately 51 mm wide. Empty ordinary fields retain one writing line,
+address retains three and side comments retain at least four. Side comments
+fill unused height; bottom comments absorb unused width without increasing the
+fixed block height. Revision is directly above the prominent sheet number.
 Title-block geometry follows the output resolution, using 300 PPI when none is
 specified. PNG exports with a title block record that resolution; SVG exports
 record physical dimensions, respecting architectural scale when selected.

@@ -56,13 +56,16 @@ def Main():
                 for y in range(30, 230, 40):
                     painter.drawEllipse(QtCore.QRectF(x, y, 30, 25))
         images = []
+        previousInk = cache.get("inkGeometry")
         for storage in (cache, None):
             image = QtGui.QImage(300, 250, QtGui.QImage.Format.Format_ARGB32)
             image.fill(QtGui.QColor("white"))
             with patch.object(object_composite, "ClipPathCoverage", wraps = object_composite.ClipPathCoverage) as coverage:
                 with QtGui.QPainter(image) as painter:
                     device.engine.Replay(painter, QtCore.QRectF(0, 0, 300, 250), clipCache = storage)
-                assert coverage.call_count > 0, "Same-bounds reshape reused old ink coverage"
+                # A stroke with no relevant occluders now needs no boolean
+                # at all. Its changed ink must still invalidate cached masks.
+                assert cache.get("inkGeometry") != previousInk, "Same-bounds reshape reused old ink coverage"
             images.append(image)
         assert images[0] == images[1], "Ink-envelope cache changed pixels after a reshape"
 

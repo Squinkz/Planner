@@ -9,10 +9,15 @@ from planner_app.geometry.editing import TransformPoint, OpeningTransformTarget,
 from planner_app.selection_copy import OpeningCopyTargets, RemapCopiedGroups
 from planner_app.geometry.selection_edits import MoveObjectRecord, ReflectionObjectRecord, PlanMoveSelection, PlanSelectionReflection
 from planner_app.geometry.linear_edits import PlanSubdivision, PlanDissolution
+from planner_app.geometry.reserved_doors import ReservedDoorWithinHost
 from planner_app.geometry.group_movement import (OpeningTransferLength, PlanOpeningTransfer, ProjectGroupTravel, GroupOpeningLimits,
     BoundGroupTravel, TranslatedOpeningFraction, AttachedConstraintPoint)
 from .geometry import CollisionPass
+from .spatial_index import BoundsIndex
+from planner_app.scene_changes import SceneObject
 from planner_app.history_edits import SceneEdit, ReferenceImageEdit
+from planner_app.scene_snapshot import (CaptureSceneSnapshot, CaptureOpeningSnapshots, SnapshotPointMatches,
+    RestoreWallSnapshots, RestoreOpeningSnapshots, RestoreLabelSnapshots, RestoreFurnishingSnapshots)
 from planner_app.furnishing_parts import FurnishingParts, FurnishingCollisionFootprints
 from planner_app.furnishing_imports import ResolveFurnishingImports
 from planner_app.project_codec import EncodeFurnishingDefinitions
@@ -23,13 +28,14 @@ from planner_app.models import (
 )
 
 
-def SnapshotPointMatches(point, x, y):
-    pointX, pointY = point.x(), point.y()
-    if pointX != x or pointY != y:
-        return False
-    # Signed zero can affect angle calculations; retain snapshot signs as well.
-    return ((x != 0 or math.copysign(1, pointX) == math.copysign(1, x))
-            and (y != 0 or math.copysign(1, pointY) == math.copysign(1, y)))
+
+
+def SnapshotPointData(points):
+    """Compare mutable baseline coordinates exactly using native serialization."""
+    data = QtCore.QByteArray()
+    stream = QtCore.QDataStream(data, QtCore.QIODevice.OpenModeFlag.WriteOnly)
+    stream << QtGui.QPolygonF(points)
+    return data
 
 
 def NativeEditAffine(operation, *values):
@@ -336,8 +342,9 @@ class SceneEditingMixin:
                            else type(obj) is type(selectedWall))]
         # Work in world coordinates so exact contact is independent of zoom.
         paths = {}
-        stroker = Paths.PrepareStroke(width = .02)
-        for obj in candidates if wholeObjects else ():
+        shapeContacts = type(selectedWall) in (Wall, Pillar, Column, Furnishing, Stair, Counter, Railing)
+        stroker = Paths.PrepareStroke(width = .02) if wholeObjects and shapeContacts else None
+        for obj in candidates if wholeObjects and shapeContacts else ():
             path = QtGui.QPainterPath()
             if type(obj) is Furnishing and obj.definition.get("components"):
                 path.setFillRule(QtCore.Qt.FillRule.WindingFill)
@@ -366,11 +373,42 @@ class SceneEditingMixin:
         if not wholeObjects:
             return attachments
         directAttachments = attachments
-        contacts = (lambda first, second: Paths.Intersects(paths[first], paths[second])) if type(selectedWall) in (Wall, Pillar, Column, Furnishing, Stair, Counter, Railing) else None
+        contacts = (lambda first, second: Paths.Intersects(paths[first], paths[second])) if shapeContacts else None
         candidateData = [(id(obj), (obj.firstVertex.x(), obj.firstVertex.y()),
                           (obj.secondVertex.x(), obj.secondVertex.y())) for obj in candidates]
+        nearby = None
+        if contacts is not None and len(candidates) >= 32:
+            pathBounds = {key: path.boundingRect() for key, path in paths.items()}
+            sizes = sorted(max(bounds.width(), bounds.height()) for bounds in pathBounds.values()
+                           if all(math.isfinite(value) for value in bounds.getCoords()))
+            index = BoundsIndex(sizes[len(sizes) // 2] if sizes else 1)
+            fallback = []
+            for position, obj in enumerate(candidates):
+                bounds = pathBounds[id(obj)]
+                if all(math.isfinite(value) for value in bounds.getCoords()):
+                    # Native path contact includes shared edges. Widen the broad
+                    # phase for those edges and far-origin subtraction roundoff.
+                    padding = max(.0001, *(16 * math.ulp(value) for value in bounds.getCoords()))
+                    expanded = bounds.adjusted(-padding, -padding, padding, padding)
+                    if all(math.isfinite(value) for value in expanded.getCoords()):
+                        index.Insert(expanded, position)
+                        continue
+                fallback.append(position)
+
+            def Nearby(key):
+                bounds = pathBounds.get(key)
+                if bounds is None or not all(math.isfinite(value) for value in bounds.getCoords()):
+                    return [entry[0] for entry in candidateData]
+                padding = max(.0001, *(16 * math.ulp(value) for value in bounds.getCoords()))
+                expanded = bounds.adjusted(-padding, -padding, padding, padding)
+                if not all(math.isfinite(value) for value in expanded.getCoords()):
+                    return [entry[0] for entry in candidateData]
+                positions = sorted(set(index.Query(expanded)).union(fallback))
+                return [candidateData[position][0] for position in positions]
+
+            nearby = Nearby
         connected = ConnectedAttachments((id(selectedWall), (first.x(), first.y()), (second.x(), second.y())),
-                                         candidateData, contacts)
+                                         candidateData, contacts, nearby)
         objectsById = {id(obj): obj for obj in candidates}
         attachments = [(objectsById[key], index, QtCore.QPointF(vertex)) for key in connected
                        for index, vertex in enumerate((objectsById[key].firstVertex, objectsById[key].secondVertex))]
@@ -402,7 +440,16 @@ class SceneEditingMixin:
             (anchor.x(), anchor.y()) if anchor is not None else None)
         return [entries[index] for index in indices]
 
-    def EnsureObjectIds(self, capturedState = None):
+    def EnsureObjectIds(self, capturedState = None, reuse = False):
+        # Properties refresh on every geometry update. Membership, assigned
+        # IDs and sizing policy change independently; explicit callers still
+        # perform a full repair, including captured/deleted objects.
+        changes = self.renderChanges
+        stepLimits, railingLimits = self.AutoSizingLimits("stairs"), self.AutoSizingLimits("railings")
+        policyKey = tuple(stepLimits.items()), tuple(railingLimits.items())
+        metadataKey = changes.topology, changes.metadata, policyKey
+        if reuse and capturedState is None and getattr(self, "sceneMetadataKey", None) == metadataKey:
+            return
         # Committed objects, including deletions, need IDs. Placement previews do not.
         objects = self.walls + self.windows + self.furnishings + self.labels
         if capturedState is not None:
@@ -421,13 +468,13 @@ class SceneEditingMixin:
                 drawingObject.objectId = objectId
                 usedIds.add(objectId)
         stairs = [wall for wall in self.walls if isinstance(wall, Stair)]
-        stepLimits, railingLimits = self.AutoSizingLimits("stairs"), self.AutoSizingLimits("railings")
         for drawingObject in self.walls + self.windows + self.furnishings + self.labels:
             if isinstance(drawingObject, Stair):
                 drawingObject.sceneStairs = stairs
                 drawingObject.stepSizeBounds = (stepLimits["minimum"], stepLimits["maximum"])
             if isinstance(drawingObject, Railing):
                 drawingObject.spacingBounds = tuple(railingLimits[key] for key in ("minimum", "maximum", "target"))
+        self.sceneMetadataKey = changes.topology, changes.metadata, policyKey
 
     def SelectionEntries(self):
         if self.selectedWall is None:
@@ -472,6 +519,10 @@ class SceneEditingMixin:
         self.SetSelection([])
 
     def StartGroupDrag(self):
+        self.__dict__.pop("groupSnapPreparation", None)
+        self.renderChanges.snapChanges = None
+        self.renderChanges.dirtyObjects = None
+        self.__dict__.pop("groupRestoreCache", None)
         self.groupConnectionKey = (self.connectedEnabled, self.connectedVerticesEnabled, self.connectedObjectsEnabled)
         if not self.groupDrag:
             self.groupSourceEntries = list(self.SelectionEntries())
@@ -514,7 +565,7 @@ class SceneEditingMixin:
         self.groupMovedOpenings = list(openings.values())
         self.dragConstraints = constraints
         self.dragAttachments = list(self.groupMovedVertices)
-        self.groupOpeningStates = self.CaptureState()[3]
+        self.groupOpeningStates = self.CaptureOpeningStates()
 
     def ReattachOpeningGroup(self, delta, modifiers):
         # Body selections on one stationary parent can transfer as a rigid set.
@@ -570,6 +621,132 @@ class SceneEditingMixin:
         self.snapApplied = False
         return True
 
+    def RestoreGroupBaseline(self, before):
+        """Restore dirty model rows, retaining full restores for mutable adapters."""
+        changes = self.renderChanges
+        parts = (before[0], before[3], before[5], before[8])
+        prepared = self.__dict__.get("groupRestoreCache")
+        if prepared is None or any(old is not new for old, new in zip(prepared[0], parts)):
+            changes.dirtyObjects = None
+            tracked = (all(isinstance(part, tuple) and all(isinstance(row, tuple)
+                       and isinstance(row[0], SceneObject) and type(row[0]).__module__ == "planner_app.models" for row in part)
+                       for part in parts)
+                       and all(getattr(getattr(self, name), "changes", None) is changes
+                               for name in ("walls", "windows", "furnishings", "labels")))
+            # If most rows move, the original linear restoration is cheaper
+            # than maintaining an affected-row set and sorting its records.
+            tracked = tracked and len(self.groupMovedVertices) < max(32, sum(map(len, parts)) // 2)
+            pending = [value for state in before[0] for value in state[9:11]] if tracked else []
+            while pending:
+                value = pending.pop()
+                if isinstance(value, tuple):
+                    pending.extend(value)
+                elif isinstance(value, (list, dict, set, QtCore.QPointF)):
+                    tracked = False
+                    break
+            rows, points = {}, []
+            if tracked:
+                for kind, states in enumerate(parts):
+                    for order, state in enumerate(states):
+                        rows.setdefault(id(state[0]), []).append((kind, order, state))
+                        if changes not in state[0].__dict__.get("_renderObservers", ()):
+                            changes.Watch(state[0])
+                        if kind >= 2:
+                            points.extend((state[1], state[2]))
+                changes.dirtyObjects = set(rows)
+            prepared = [parts, rows, points, tracked, SnapshotPointData(points) if tracked else None]
+            self.groupRestoreCache = prepared
+        if prepared[3]:
+            dirty = changes.dirtyObjects
+            # Captured QPointFs remain mutable API values. Detect edits to the
+            # baseline itself as well as revision-observed model edits.
+            pointData = SnapshotPointData(prepared[2])
+            if pointData != prepared[4]:
+                dirty.update(prepared[1])
+                prepared[4] = pointData
+            relevant = dirty.intersection(prepared[1])
+            if len(relevant) * 4 >= len(prepared[1]):
+                walls, furnishings, labels = before[0], before[5], before[8]
+            else:
+                selected = sorted((row for identity in relevant for row in prepared[1][identity]), key = lambda row: row[:2])
+                walls = [state for kind, order, state in selected if kind == 0]
+                furnishings = [state for kind, order, state in selected if kind == 2]
+                labels = [state for kind, order, state in selected if kind == 3]
+        else:
+            walls, furnishings, labels = before[0], before[5], before[8]
+        for state in walls:
+            obj = state[0]
+            if isinstance(obj, MeasurementGuide):
+                obj.textOffset = QtCore.QPointF(*state[10][-2:])
+            if isinstance(obj, AngleGuide):
+                obj.middleVertex = QtCore.QPointF(*state[10][:2])
+            if not SnapshotPointMatches(obj.firstVertex, state[1], state[2]):
+                obj.firstVertex = QtCore.QPointF(state[1], state[2])
+            if not SnapshotPointMatches(obj.secondVertex, state[3], state[4]):
+                obj.secondVertex = QtCore.QPointF(state[3], state[4])
+        # All opening setters retain their original ordering and normalization,
+        # including fireplaces and values derived from changed parent geometry.
+        self.RestoreOpeningStates(before[3])
+        self.RestoreFurnishingStates(furnishings, restoreList = False)
+        self.RestoreLabelStates(labels, restoreList = False)
+        if prepared[3]:
+            changes.dirtyObjects.clear()
+
+    def PrepareGroupSnapping(self, movingIds, fixedOpenings, modifiers):
+        changes = self.renderChanges
+        baseline = getattr(self, "groupRestoreCache", None)
+        reusable = baseline is not None and baseline[3]
+        definitions = tuple((identity, member.definition["key"], member.definition["width"], member.definition["length"])
+                            for identity, members in changes.definitions.items()
+                            for member in [next(iter(members.values()), None)] if member is not None)
+        key = (id(self.interactionBefore), baseline[4] if reusable else None,
+               changes.topology, changes.visibility, tuple(self.visibility.items()),
+               self.basePixelsPerMillimeter, self.zoom, self.panOffset.x(), self.panOffset.y(),
+               self.vertexSnapEnabled, self.cornerSnapEnabled, self.midpointSnapEnabled,
+               self.connectedEnabled, self.connectedVerticesEnabled, self.connectedObjectsEnabled,
+               tuple((id(obj), index) for obj, index in self.groupEntries), frozenset(movingIds), definitions)
+        revision = changes.geometry + changes.appearance
+        prepared = getattr(self, "groupSnapPreparation", None)
+        journal = changes.snapChanges
+        if (reusable and prepared is not None and prepared[0] == key and journal is not None
+                and revision - prepared[1] == journal["events"]
+                and journal["objects"].keys() <= movingIds):
+            self.groupSnapPreparation = key, revision, prepared[2]
+            journal["objects"].clear()
+            journal["events"] = 0
+            return prepared[2]
+        targets, anchors = [], []
+        if self.snapEnabled != bool(modifiers & QtCore.Qt.KeyboardModifier.AltModifier):
+            for obj in self.walls + self.windows + self.furnishings + self.labels:
+                if not self.IsObjectVisible(obj) or id(obj) in movingIds or isinstance(obj, Window) and id(obj.parentWall) in movingIds:
+                    continue
+                targets.extend(ObjectControlPoints(obj))
+                targets.extend(self.GuideDepthEndpoints(obj))
+            anchors = [vertex for obj, index, vertex in self.groupMovedVertices if not isinstance(obj, AngleGuide)]
+            if any(isinstance(obj, Furnishing) for obj, index in self.groupEntries) or all(isinstance(obj, Wall) and index is None for obj, index in self.groupEntries):
+                targets = self.StairSnapTargets() + list(self.SnapVertices())
+                anchors = [anchor for obj, index in self.groupEntries if not isinstance(obj, AngleGuide)
+                           for anchor in self.ObjectCorners(obj) + [(obj.firstVertex + obj.secondVertex) / 2]]
+                anchors.extend(vertex for obj, index, vertex in self.groupMovedVertices
+                               if isinstance(obj, Wall) and not isinstance(obj, (Pillar, AngleGuide)))
+            for opening, index in fixedOpenings:
+                anchors.extend(((opening.firstVertex, opening.secondVertex, (opening.firstVertex + opening.secondVertex) / 2)
+                                if index is None else (opening.firstVertex if index == 0 else opening.secondVertex,)))
+            anchors.extend(self.groupGuideDepthAnchors)
+        for obj, index in self.groupEntries:
+            if isinstance(obj, AngleGuide):
+                anchors.append(ObjectControlPoints(obj)[2 if index is None or index == 3 else index])
+        if len(self.groupEntries) == 1 and isinstance(self.groupEntries[0][0], AngleGuide):
+            obj, index = self.groupEntries[0]
+            targets = self.StairSnapTargets(obj) + list(self.SnapVertices())
+        numericTargets = self.NumericSnapTargets(targets)
+        if self.midpointSnapEnabled:
+            numericTargets.extend((vertex.x(), vertex.y(), True) for vertex in self.SnapMidpoints())
+        result = targets, anchors, tuple(numericTargets)
+        self.groupSnapPreparation = key, revision, result
+        changes.snapChanges = {"objects": {}, "events": 0}
+        return result
+
     def UpdateGroupDrag(self, position, modifiers):
         if self.controlHeld:
             modifiers |= QtCore.Qt.KeyboardModifier.ControlModifier
@@ -587,20 +764,7 @@ class SceneEditingMixin:
                 movedPoints.setdefault((id(obj), index), (obj, index, QtCore.QPointF(ObjectControlPoints(obj)[index])))
             movementBefore = tuple(movedPoints.values()), self.CaptureOpeningStates()
         before = self.interactionBefore
-        for state in before[0]:
-            obj = state[0]
-            # QPointF equality is fuzzy; restoration must compare exact coordinates.
-            if isinstance(obj, MeasurementGuide):
-                obj.textOffset = QtCore.QPointF(*state[10][-2:])
-            if isinstance(obj, AngleGuide):
-                obj.middleVertex = QtCore.QPointF(*state[10][:2])
-            if not SnapshotPointMatches(obj.firstVertex, state[1], state[2]):
-                obj.firstVertex = QtCore.QPointF(state[1], state[2])
-            if not SnapshotPointMatches(obj.secondVertex, state[3], state[4]):
-                obj.secondVertex = QtCore.QPointF(state[3], state[4])
-        self.RestoreOpeningStates(before[3])
-        self.RestoreFurnishingStates(before[5], restoreList = False)
-        self.RestoreLabelStates(before[8], restoreList = False)
+        self.RestoreGroupBaseline(before)
         connectionKey = (self.connectedEnabled, self.connectedVerticesEnabled, self.connectedObjectsEnabled)
         if not self.dragCopies and connectionKey != self.groupConnectionKey:
             self.StartGroupDrag()
@@ -609,10 +773,11 @@ class SceneEditingMixin:
                 obj for obj, index in self.groupSourceEntries)
         if duplicate != bool(self.dragCopies):
             movementBefore = None  # A changed copy selection has no previous frame to restore.
-            self.walls = [obj for obj in self.walls if not any(obj is copy for copy in self.dragCopies)]
-            self.windows = [obj for obj in self.windows if not any(obj is copy for copy in self.dragCopies)]
-            self.furnishings = [obj for obj in self.furnishings if not any(obj is copy for copy in self.dragCopies)]
-            self.labels = [obj for obj in self.labels if not any(obj is copy for copy in self.dragCopies)]
+            copyIds = {id(obj) for obj in self.dragCopies}
+            self.walls = [obj for obj in self.walls if id(obj) not in copyIds]
+            self.windows = [obj for obj in self.windows if id(obj) not in copyIds]
+            self.furnishings = [obj for obj in self.furnishings if id(obj) not in copyIds]
+            self.labels = [obj for obj in self.labels if id(obj) not in copyIds]
             self.dragCopies = []
             self.objectGroups = list(before[6])
             if duplicate:
@@ -643,30 +808,9 @@ class SceneEditingMixin:
             (parentGeometry[id(opening.parentWall)][0] for opening, index in fixedOpenings))
         delta = QtCore.QPointF(*numericDelta)
         travel = QtCore.QPointF(*numericTravel) if numericTravel is not None else None
-        targets, anchors = [], []
+        targets, anchors, numericTargets = [], [], None
         if self.snapEnabled != bool(modifiers & QtCore.Qt.KeyboardModifier.AltModifier):
-            for obj in self.walls + self.windows + self.furnishings + self.labels:
-                if not self.IsObjectVisible(obj) or id(obj) in movingIds or isinstance(obj, Window) and id(obj.parentWall) in movingIds:
-                    continue
-                targets.extend(ObjectControlPoints(obj))
-                targets.extend(self.GuideDepthEndpoints(obj))
-            anchors = [vertex for obj, index, vertex in self.groupMovedVertices if not isinstance(obj, AngleGuide)]
-            if any(isinstance(obj, Furnishing) for obj, index in self.groupEntries) or all(isinstance(obj, Wall) and index is None for obj, index in self.groupEntries):
-                targets = self.StairSnapTargets() + list(self.SnapVertices())
-                anchors = [anchor for obj, index in self.groupEntries if not isinstance(obj, AngleGuide)
-                           for anchor in self.ObjectCorners(obj) + [(obj.firstVertex + obj.secondVertex) / 2]]
-                anchors.extend(vertex for obj, index, vertex in self.groupMovedVertices
-                               if isinstance(obj, Wall) and not isinstance(obj, (Pillar, AngleGuide)))
-            for opening, index in fixedOpenings:
-                anchors.extend(((opening.firstVertex, opening.secondVertex, (opening.firstVertex + opening.secondVertex) / 2)
-                                if index is None else (opening.firstVertex if index == 0 else opening.secondVertex,)))
-            anchors.extend(self.groupGuideDepthAnchors)
-        for obj, index in self.groupEntries:
-            if isinstance(obj, AngleGuide):
-                anchors.append(ObjectControlPoints(obj)[2 if index is None or index == 3 else index])
-        if len(self.groupEntries) == 1 and isinstance(self.groupEntries[0][0], AngleGuide):
-            obj, index = self.groupEntries[0]
-            targets = self.StairSnapTargets(obj) + list(self.SnapVertices())
+            targets, anchors, numericTargets = self.PrepareGroupSnapping(movingIds, fixedOpenings, modifiers)
         if not travelBlocked:
             if (isinstance(self.selectedWall, AngleGuide) and self.selectedVertex in (0, 1)
                     and modifiers & QtCore.Qt.KeyboardModifier.ControlModifier):
@@ -684,7 +828,7 @@ class SceneEditingMixin:
                 if isinstance(self.selectedWall, AngleGuide) and modifiers & QtCore.Qt.KeyboardModifier.ControlModifier:
                     self.axisConstraintOrigin = QtCore.QPointF(self.selectedWall.middleVertex)
                     self.axisConstraintDirection = None
-        openingStates = {id(state[0]): state for state in self.groupOpeningStates}
+        openingStates = {id(state[0]): state for state in self.groupOpeningStates} if fixedOpenings else {}
         if travel is not None and not travelBlocked:
             # Prepare stationary neighbours once, retaining their scene order.
             # Copies intentionally ignore these intervals until final validation.
@@ -733,8 +877,9 @@ class SceneEditingMixin:
         fitValid = not fixedOpenings or self.GroupOpeningsFit(fixedOpenings)
         if fitValid:
             fixedIds = {id(obj) for obj, index in fixedOpenings}
-            openingBefore = tuple((state[0], state[1], state[0].centerFraction, *state[3:])
+            openingBefore = (tuple((state[0], state[1], state[0].centerFraction, *state[3:])
                                   if id(state[0]) in fixedIds else state for state in before[3])
+                             if fixedIds else before[3])
             # Preview painting validates moving furnishings; release validates the
             # entire scene. Repeating that collision pass here changes no geometry.
             fitValid = self.FitWallOpenings((before[0], before[1], before[2], openingBefore), validateFurnishings = False, validateScene = False)
@@ -760,42 +905,12 @@ class SceneEditingMixin:
         return True
 
     def CaptureOpeningStates(self):
-        return tuple((window, window.parentWall, window.centerFraction, window.length,
-                      window.hingeAtSecond if isinstance(window, (Door, SwingingDoor, SlidingDoor, PocketDoor, CasementWindow)) else None,
-                      window.swingsOutwards if type(window) in (Window, Door, DoubleDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, BarnDoor, BifoldDoor, Fireplace) else
-                      window.panelsFlipped if isinstance(window, SlidingDoor) else None,
-                      window.sillDepth if isinstance(window, SilledWindow) else (window.depth, window.depthOffset, window.material) if isinstance(window, Fireplace) else None,
-                      window.measurementFlipped, window.measurementHidden,
-                      (window.windowWell, window.wellDepth, window.wellDashed)) for window in self.windows)
+        return CaptureOpeningSnapshots(self.windows)
 
     def CaptureState(self):
-        walls = []
-        for wall in self.walls:
-            sizing = ((wall.autosize, wall.manualPostCount) if isinstance(wall, Railing) else
-                      (wall.autosize, wall.manualStepCount) if isinstance(wall, Stair) else None)
-            if isinstance(wall, DashedLine):
-                details = (wall.weightClass, wall.textOffset.x(), wall.textOffset.y())
-            elif isinstance(wall, AngleGuide):
-                details = (wall.middleVertex.x(), wall.middleVertex.y(), wall.textOffset.x(), wall.textOffset.y())
-            elif isinstance(wall, MeasurementGuide):
-                details = ((wall.depth, wall.textOffset.x(), wall.textOffset.y()) if type(wall) is MeasurementGuide else
-                           (wall.textOffset.x(), wall.textOffset.y()))
-            elif isinstance(wall, Arrow):
-                details = (wall.solidTip, wall.tipSize, wall.intensity, wall.directionReversed)
-            else:
-                details = wall.directionReversed if isinstance(wall, Stair) else None
-            walls.append((wall, wall.firstVertex.x(), wall.firstVertex.y(), wall.secondVertex.x(), wall.secondVertex.y(),
-                          wall.width, wall.firstMiter, wall.secondMiter, wall.material, sizing, details, wall.measurementHidden))
-        walls = tuple(walls)
-        windows = SceneEditingMixin.CaptureOpeningStates(self)
-        furnishings = tuple((obj, QtCore.QPointF(obj.firstVertex), QtCore.QPointF(obj.secondVertex), obj.width,
-                            obj.behindCounters, obj.flipHorizontal, obj.flipVertical,
-                            *((obj.intensity,) if isinstance(obj, NorthArrow) else ()), obj.measurementHidden) for obj in self.furnishings)
-        return (walls, self.selectedWall, self.selectedVertex, windows, tuple(self.SelectionEntries()), furnishings,
-                tuple(self.objectGroups), tuple(self.hiddenObjects),
-                tuple((obj, QtCore.QPointF(obj.firstVertex), QtCore.QPointF(obj.secondVertex), obj.width, obj.text, obj.intensity)
-                      + ((obj.unitsOverride,) if hasattr(obj, "unitsOverride") else ())
-                      + (obj.measurementHidden,) for obj in self.labels))
+        return CaptureSceneSnapshot(self.walls, self.windows, self.furnishings, self.labels,
+            self.objectGroups, self.hiddenObjects, self.SelectionEntries(), self.selectedWall, self.selectedVertex,
+            getattr(self, "furnishingRotationObject", None), getattr(self, "rotationPivot", None))
 
     def RecordEdit(self, before, coalesceKey = None):
         self.EnsureObjectIds(before)
@@ -834,10 +949,10 @@ class SceneEditingMixin:
                 totalBytes -= self.undoHistory.pop(0).byteSize
             self.sceneRevision += 1
             self.historyCoalesceRevision = self.sceneRevision
+            self.sceneChanged.emit()
             activity = getattr(self, "activityLog", None)
             if activity is not None:
                 activity.SceneEdited(edit, replacedEdit)
-            self.sceneChanged.emit()
 
     def RestoreState(self, state):
         self.CancelInteraction()
@@ -847,39 +962,17 @@ class SceneEditingMixin:
         self.objectGroups = list(state[6]) if len(state) > 6 else []
         self.hiddenObjects = list(state[7]) if len(state) > 7 else []
         self.hiddenObjectIds = {id(obj) for obj in self.hiddenObjects}
-        self.walls = []
-        for wall, firstX, firstY, secondX, secondY, width, firstMiter, secondMiter, material, stepCount, directionReversed, measurementHidden in walls:
-            wall.measurementHidden = measurementHidden
-            wall.firstVertex = QtCore.QPointF(firstX, firstY)
-            wall.secondVertex = QtCore.QPointF(secondX, secondY)
-            wall.width = width
-            wall.firstMiter = firstMiter
-            wall.secondMiter = secondMiter
-            wall.material = material
-            if isinstance(wall, MeasurementGuide):
-                wall.textOffset = QtCore.QPointF(*directionReversed[-2:])
-                if type(wall) is MeasurementGuide:
-                    wall.depth = directionReversed[0] if len(directionReversed) > 2 else 0
-            if isinstance(wall, DashedLine):
-                wall.weightClass = directionReversed[0]
-            if isinstance(wall, AngleGuide):
-                wall.middleVertex = QtCore.QPointF(*directionReversed[:2])
-            if isinstance(wall, Arrow):
-                wall.solidTip, wall.tipSize, wall.intensity = directionReversed[:3]
-                wall.directionReversed = directionReversed[3] if len(directionReversed) > 3 else False
-            if isinstance(wall, Railing):
-                wall.autosize, wall.manualPostCount = stepCount
-            if isinstance(wall, Stair):
-                wall.directionReversed = directionReversed
-                if isinstance(stepCount, tuple):
-                    wall.autosize, wall.manualStepCount = stepCount
-            self.walls.append(wall)
+        RestoreWallSnapshots(walls)
+        self.walls = [state[0] for state in walls]
         self.RestoreFurnishingStates(state[5] if len(state) > 5 else ())
         self.RestoreLabelStates(state[8] if len(state) > 8 else ())
         self.windows = []
         self.RestoreOpeningStates(windows)
         for openingState in windows:
             self.windows.append(openingState[0])
+        rotationObject, pivot = state[9] if len(state) > 9 else (None, None)
+        self.furnishingRotationObject = (rotationObject if any(obj is rotationObject for obj, index in self.SelectionEntries()) else None)
+        self.rotationPivot = QtCore.QPointF(*pivot) if pivot is not None else None
         if self.exportOverlay.active:
             self.SetSelection([], notify = False)
         restoredIds = {id(obj) for obj in self.walls}
@@ -893,80 +986,24 @@ class SceneEditingMixin:
         self.update()
 
     def RestoreOpeningStates(self, windows):
-        for openingState in windows:
-            window, parentWall, centerFraction, length, hingeAtSecond, swingsOutwards, sillDepth = openingState[:7]
-            # Fireplace setters also normalize stored depth/offset against the
-            # restored parent. Always run those, even when visible values match.
-            if (not isinstance(window, Fireplace) and window.parentWall is parentWall
-                    and centerFraction != 0 and window.centerFraction == centerFraction and window.length == length
-                    and window.measurementFlipped == (openingState[7] if len(openingState) > 7 else False)
-                    and window.measurementHidden == (openingState[8] if len(openingState) > 8 else False)
-                    and (window.windowWell, window.wellDepth, window.wellDashed) == (openingState[9] if len(openingState) > 9 else (False, 600.0, False))
-                    and (not isinstance(window, SilledWindow) or window.sillDepth == sillDepth)
-                    and (not isinstance(window, (Door, SwingingDoor, SlidingDoor, PocketDoor, CasementWindow))
-                         or window.hingeAtSecond == hingeAtSecond)
-                    and (type(window) not in (Window, Door, DoubleDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, BarnDoor, BifoldDoor)
-                         or window.swingsOutwards == swingsOutwards)
-                    and (not isinstance(window, SlidingDoor) or window.panelsFlipped == swingsOutwards)):
-                continue
-            window.measurementFlipped = openingState[7] if len(openingState) > 7 else False
-            window.measurementHidden = openingState[8] if len(openingState) > 8 else False
-            window.windowWell, window.wellDepth, window.wellDashed = openingState[9] if len(openingState) > 9 else (False, 600.0, False)
-            window.parentWall = parentWall
-            window.centerFraction = centerFraction
-            window.length = length
-            if isinstance(window, SilledWindow):
-                window.sillDepth = sillDepth
-            if isinstance(window, Fireplace):
-                window.depth, window.depthOffset, window.material = sillDepth
-            if isinstance(window, (Door, SwingingDoor, SlidingDoor, PocketDoor, CasementWindow)):
-                window.hingeAtSecond = hingeAtSecond
-            if type(window) in (Window, Door, DoubleDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, BarnDoor, BifoldDoor, Fireplace):
-                window.swingsOutwards = swingsOutwards
-            elif isinstance(window, SlidingDoor):
-                window.panelsFlipped = swingsOutwards
+        RestoreOpeningSnapshots(windows)
 
     def RestoreLabelStates(self, states, restoreList = True):
+        states = tuple(states) if restoreList else states
+        RestoreLabelSnapshots(states)
         if restoreList:
-            self.labels = []
-        for state in states:
-            obj, first, second, width, text, intensity = state[:6]
-            measurementHidden = state[-1]
-            if hasattr(obj, "unitsOverride"):
-                obj.unitsOverride = state[6] if len(state) > 7 else None
-            if (not SnapshotPointMatches(obj.firstVertex, first.x(), first.y())
-                    or not SnapshotPointMatches(obj.secondVertex, second.x(), second.y())
-                    or (obj.width, obj.text, obj.intensity, obj.measurementHidden) != (width, text, intensity, measurementHidden)):
-                obj.measurementHidden = measurementHidden
-                obj.firstVertex, obj.secondVertex = QtCore.QPointF(first), QtCore.QPointF(second)
-                obj.width, obj.text = width, text
-                obj.intensity = intensity
-            if restoreList:
-                self.labels.append(obj)
+            self.labels = [state[0] for state in states]
 
     def RestoreFurnishingStates(self, states, restoreList = True):
+        states = tuple(states) if restoreList else states
+        RestoreFurnishingSnapshots(states)
         if restoreList:
-            self.furnishings = []
-        for state in states:
-            obj, first, second, width, behindCounters, flipHorizontal, flipVertical = state[:7]
-            measurementHidden = state[-1]
-            if isinstance(obj, NorthArrow):
-                obj.intensity = state[7] if len(state) > 8 else 1.0
-            if (not SnapshotPointMatches(obj.firstVertex, first.x(), first.y())
-                    or not SnapshotPointMatches(obj.secondVertex, second.x(), second.y())
-                    or (obj.width, obj.behindCounters, obj.flipHorizontal, obj.flipVertical, obj.measurementHidden)
-                    != (width, behindCounters, flipHorizontal, flipVertical, measurementHidden)):
-                obj.behindCounters = behindCounters
-                obj.flipHorizontal = flipHorizontal
-                obj.flipVertical = flipVertical
-                obj.measurementHidden = measurementHidden
-                obj.firstVertex = QtCore.QPointF(first)
-                obj.secondVertex = QtCore.QPointF(second)
-                obj.width = width
-            if restoreList:
-                self.furnishings.append(obj)
+            self.furnishings = [state[0] for state in states]
 
     def Undo(self):
+        main = self.window()
+        if getattr(main, "propertyDragBefore", None) is not None:
+            main.FinishPropertyDrag(True)
         reference = getattr(self, "referenceImage", None)
         if reference is not None and reference.active:
             reference.CancelDrag()
@@ -990,6 +1027,9 @@ class SceneEditingMixin:
                 activity.Travel(edit, False)
 
     def Redo(self):
+        main = self.window()
+        if getattr(main, "propertyDragBefore", None) is not None:
+            main.FinishPropertyDrag(True)
         reference = getattr(self, "referenceImage", None)
         if reference is not None and reference.active:
             reference.CancelDrag()
@@ -1073,6 +1113,13 @@ class SceneEditingMixin:
         replacementIndex = min(index for index, wall in enumerate(self.walls) if id(wall) in wallIds)
         self.walls = [wall for wall in self.walls if id(wall) not in wallIds]
         self.walls.insert(replacementIndex, merged)
+        # Selection callbacks can assign IDs before RecordEdit. Reserve the
+        # removed walls' identities while assigning the replacement its ID.
+        self.EnsureObjectIds(before)
+        if not self.OpeningsValid(before = before):
+            self.RestoreState(before)
+            self.clipboardMessage.emit("Cannot dissolve: the new wall would invalidate an opening or object placement.")
+            return False
         self.objectGroups = [tuple(obj for obj in group if id(obj) not in wallIds) +
                              ((merged,) if any(obj is source for obj in group) else ()) for group in self.objectGroups]
         hidden = all(any(obj is wall for obj in self.hiddenObjects) for wall in walls)
@@ -1135,19 +1182,41 @@ class SceneEditingMixin:
         self.update()
         return True
 
-    def DeleteSelected(self):
+    def DeleteSelected(self, excludedIds = ()):
         self.CancelInteraction()
         if self.selectedWall is not None:
             before = self.CaptureState()
-            removed = {id(wall) for wall, index in self.SelectionEntries()}
+            removed = {id(wall) for wall, index in self.SelectionEntries()} - set(excludedIds)
+            remainingWalls = [wall for wall in self.walls if id(wall) not in removed]
+            if any(type(wall) is Wall and id(wall) in removed for wall in self.walls):
+                remainingWallIds = {id(wall) for wall in remainingWalls}
+                supportBounds = {}
+                for opening in self.windows:
+                    parent = opening.parentWall
+                    if (not isinstance(opening, PocketDoor) or id(opening) in removed
+                            or id(parent) not in remainingWallIds):
+                        continue
+                    # A neighboring wall may provide reserved pocket/barn space
+                    # without being the opening's parent. Validate before mutation.
+                    if id(parent) not in supportBounds:
+                        supportBounds[id(parent)] = (self.ReservedDoorSupport(parent),
+                                                     self.ReservedDoorSupport(parent, remainingWalls))
+                    oldBounds, newBounds = supportBounds[id(parent)]
+                    length = QtCore.QLineF(parent.firstVertex, parent.secondVertex).length()
+                    if (ReservedDoorWithinHost(length, opening.length, opening.centerFraction, opening.hingeAtSecond, oldBounds)
+                            and not ReservedDoorWithinHost(length, opening.length, opening.centerFraction, opening.hingeAtSecond, newBounds)):
+                        self.clipboardMessage.emit("Cannot delete this wall: a pocket or barn door needs its reserved space.")
+                        return False
             self.furnishings = [obj for obj in self.furnishings if id(obj) not in removed]
             self.labels = [obj for obj in self.labels if id(obj) not in removed]
-            self.walls = [wall for wall in self.walls if id(wall) not in removed]
+            self.walls = remainingWalls
             self.windows = [window for window in self.windows
                             if id(window) not in removed and id(window.parentWall) not in removed]
             self.selectedWall = None
             self.selectedVertex = None
             self.selection = []
+            self.furnishingRotationObject = None
+            self.rotationPivot = None
             self.RecordEdit(before)
             self.selectionChanged.emit()
             self.update()
@@ -1158,6 +1227,8 @@ class SceneEditingMixin:
         opening.length = source.length
         for name in openingFields[type(source)]:
             setattr(opening, name, getattr(source, name))
+        if isinstance(source, Fireplace):
+            opening.manualDepth, opening.manualDepthOffset = source.manualDepth, source.manualDepthOffset
         opening.measurementHidden = source.measurementHidden
         opening.geometryIssues = getattr(source, "geometryIssues", ())
         return opening

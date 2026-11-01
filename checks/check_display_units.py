@@ -10,6 +10,7 @@ os.environ["QT_QPA_PLATFORM"] = "offscreen"
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "planner-main"))
 from PySide6 import QtCore, QtGui, QtWidgets
 from planner_app.graphics.text import PathTextPainter
+from planner_app.graphics import retained_dimensions
 from planner import MainWindow
 from planner_app.models import Wall, Stair, Furnishing, SilledWindow, SlidingDoor
 from planner_app.units import unitModes, PropertyUnit, FormatLength
@@ -46,13 +47,20 @@ def Main():
             drawnText.append(arguments[-1])
             return super().drawText(*arguments)
 
+    textPath = retained_dimensions.TextPath
+    def RecordingTextPath(text, *arguments, **keywords):
+        drawnText.append(text)
+        return textPath(text, *arguments, **keywords)
+
     for mode in unitModes[:4]:
         before = v.CaptureState()
         panel.unitsField.setCurrentText(mode)
         assert v.CaptureState()[0] == before[0] and v.CaptureState()[5] == before[5]
         v.hoverPosition = v.WorldToViewport(point(1000, 0))
         drawnText.clear()
-        with patch("planner_app.viewport.rendering.PathTextPainter", RecordingPainter):
+        v.retainedMeasurements = None
+        with patch("planner_app.viewport.rendering.PathTextPainter", RecordingPainter), \
+                patch.object(retained_dimensions, "TextPath", RecordingTextPath):
             v.grab()
         unit, dimension, coordinate = {"Adaptive Metric": ("m", "5", "1.000 m"),
                                        "Meters": ("m", "5", "1.000 m"),

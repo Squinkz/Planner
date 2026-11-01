@@ -77,22 +77,16 @@ def CheckNumeric():
 
 def CheckRaster(actual, expected, caseId):
     from PySide6 import QtGui
+    from image_comparison import ChangedPixels
     assert not actual.isNull() and not expected.isNull(), (caseId, "missing image")
     assert actual.size() == expected.size(), (caseId, "image dimensions changed")
     actualRgba = actual.convertToFormat(QtGui.QImage.Format.Format_RGBA8888)
     expectedRgba = expected.convertToFormat(QtGui.QImage.Format.Format_RGBA8888)
-    actualBytes = bytes(actualRgba.constBits())
-    expectedBytes = bytes(expectedRgba.constBits())
-    differentPixels = 0
-    for offset in range(0, len(actualBytes), 4):
-        actualPixel, expectedPixel = actualBytes[offset:offset + 4], expectedBytes[offset:offset + 4]
-        if actualPixel == expectedPixel:
-            continue
-        differentPixels += 1
-        pixel = offset // 4
+    changed, differences = ChangedPixels(actualRgba, expectedRgba)
+    for changedIndex, pixel in enumerate(int(value) for value in changed):
         position = (pixel % actual.width(), pixel // actual.width())
-        assert all(abs(a - e) <= 1 for a, e in zip(actualPixel, expectedPixel)), (caseId, position, "channel difference exceeds 1")
-        assert differentPixels <= 5, (caseId, "more than 5 pixels differ")
+        assert differences[changedIndex] <= 1, (caseId, position, "channel difference exceeds 1")
+        assert changedIndex < 5, (caseId, "more than 5 pixels differ")
 
 
 def Main():

@@ -34,10 +34,11 @@ def ExampleWindow():
     temporaryRoot = workspace / "tmp"
     temporaryRoot.mkdir(exist_ok = True)
     with tempfile.TemporaryDirectory(prefix = "parity-examples-", dir = temporaryRoot) as folder:
-        names = ("PLANNER_SESSION_PATH", "PLANNER_STARTUP_PATH", "PLANNER_PREFERENCES_PATH")
+        names = ("PLANNER_SESSION_PATH", "PLANNER_STARTUP_PATH", "PLANNER_PREFERENCES_PATH", "PLANNER_SYNCHRONOUS_PREVIEW")
         previous = {name: os.environ.get(name) for name in names}
         for name, filename in zip(names, ("session.json", "startup.plan", "preferences.json")):
             os.environ[name] = str(Path(folder) / filename)
+        os.environ["PLANNER_SYNCHRONOUS_PREVIEW"] = "1"
         main = MainWindow()
         main.viewport.setFixedSize(1000, 800)
         main.resize(1480, 900)

@@ -2,7 +2,8 @@
 
 These instructions are for contributors running Planner from source.
 
-Planner uses Python and PySide6. The pinned development environment uses Python 3.14 and PySide6 6.11.2 on Windows.
+Planner uses Python, PySide6 and NumPy. The pinned development environment uses
+Python 3.14, PySide6 6.11.2 and NumPy 2.4.6 on Windows.
 
 Open PowerShell in the repository root and run:
 
@@ -12,7 +13,11 @@ py -3.14 -m venv .venv
 .\.venv\Scripts\python.exe planner-main/main.py
 ```
 
-For a runtime installation with a compatible PySide6 version, use `planner-main/requirements.txt` in place of `requirements-dev.txt`.
+For compatible runtime dependencies, use `planner-main/requirements.txt` in place of `requirements-dev.txt`.
+NumPy loads lazily for CPU texture lighting and containment filtering in scenes
+with at least 64 eligible walls. Both use `planner_app.numpy_runtime.LoadNumPy`.
+Its unused OpenBLAS pool is limited to one thread before import in the editor and
+preview worker; preserve this initialization order when adding array operations.
 
 ## Command-line export
 
@@ -28,16 +33,18 @@ The argument forms are `PLAN SCALE` and `PLAN SCALE X Y WIDTH LENGTH`. PNG is th
 
 - Scale is pixels per meter, or nominal SVG units per meter. The required argument overrides saved density, scale units and architectural print mode.
 - Bounds use millimeters. X and Y specify the lower-left corner; width extends right and length extends up.
-- Crop width is `ceil(WIDTH × SCALE / 1000)`; height uses LENGTH. The selected border adds its width on both sides.
+- Crop width is `ceil(WIDTH × SCALE / 1000)`; height uses LENGTH. The selected border adds its width on both sides; an enabled title block adds its own extent.
 - Explicit bounds override the saved export crop. Without either, automatic bounds enclose export-visible footprints and add 1000 mm on each side.
 - Border style and size come from saved export settings, including legacy `ruler` settings. Without an override, the default is Ruler + Reference Zones, as in the Export tab.
 - Files are written to `renders/` beside the input project as `<plan>_<scale>p.png` or `.svg`. Repeating an export to the same path replaces that file.
-- The CLI applies saved export theme/color, wall style, solid-object, grid/origin, units, linework, dimension visibility, wall dimension mode/reference, visibility and compositing overrides. Partial option groups inherit from editing settings, as in the Export tab. Canvas precision and split settings follow the project. Texture/vignette affect PNG only. Export display units inherit project units until explicitly overridden. UI themes still come from application preferences.
+- The CLI applies saved export theme/color, wall style, solid-object/room, grid/origin, units, linework, dimension visibility, wall dimension mode/reference, visibility, title-block, scale-bar and compositing overrides. Partial option groups inherit from editing settings, as in the Export tab. Dimension precision and split settings use resolved export overrides. Texture/vignette affect PNG only. Export display units inherit project units until explicitly overridden. UI themes still come from application preferences.
 - Export dimensions are limited to 32,767 units per side. PNG also has a 100-million-pixel allocation limit; SVG has no raster-area limit.
 - Preview sampling is independent of export resolution. Oversized PNG previews retain a bounded overview and capture visible detail after navigation stops. SVG previews retain bounded navigation and viewport rasters. These caches share the viewport raster memory budget; previewing a larger image does not bypass file export limits.
 - Opaque PNG output uses RGB; transparent backgrounds retain RGBA. Qt's working RGB32 image still occupies four bytes per pixel.
 
-The CLI uses PySide6 and an offscreen Qt application. Text uses the selected canvas font and is outlined in SVG.
+The CLI uses PySide6 and an offscreen Qt application. Drawing text uses the selected
+canvas font. Title-block headings use Noto Sans and fields use D-DIN Condensed.
+All SVG text, including rulers, scale bars and title blocks, is outlined.
 
 ## Local application state
 
@@ -53,6 +60,8 @@ to a backup. Open background writers can recreate the session on shutdown.
 This does not remove saved plans, `planner-main/startup.plan`, furnishings, fonts,
 themes, textures or Help resources. New Project loads the startup template;
 Close Project clears the canvas without loading it.
+Startup, recovery and project actions activate Build; saved Export settings do
+not reactivate the Export tab or start its preview worker during a load.
 
 ## Technical references
 

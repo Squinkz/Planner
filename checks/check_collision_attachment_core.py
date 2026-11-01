@@ -109,7 +109,7 @@ def Main():
         first.firstVertex += point(25, 30)
         assert actual.ObjectsOverlap(first, second, tolerance) == reference.ObjectsOverlap(first, second, tolerance), ("edit", case)
 
-    joinedCases = 0
+    joinedCases = refinedBounds = 0
     for case in range(12):
         walls = [Wall(point(-2000, 0), point(0, 0), 240), Wall(point(), point(2000, case * 10 + .001), 340),
                  Wall(point(), point(100 + case, 2000), 180), Column(point(50, -100), point(50, 100), 500),
@@ -121,15 +121,30 @@ def Main():
             view.collisionPassCache = {}
         entries = walls + openings + furnishings
         for first, second in itertools.combinations(entries, 2):
-            assert actual.JoinedObjectBounds(first).getRect() == reference.JoinedObjectBounds(first).getRect()
+            bounds, oldBounds = actual.JoinedObjectBounds(first), reference.JoinedObjectBounds(first)
+            if bounds != oldBounds:
+                # Acute-junction bounds now refine the old enormous radius.
+                # They must still contain the exact collision body and owner
+                # fill; broad-phase equality is no longer the public contract.
+                body = actual.ObjectFootprint(first)[0]
+                owner = actual.CollisionCategoryGeometry(first, frozenset())[1][id(first)]
+                assert bounds.contains(body.united(owner.boundingRect())), (case, type(first), bounds)
+                assert oldBounds.contains(bounds), (case, bounds, oldBounds)
+                refinedBounds += 1
             for excluded in ((), (id(walls[1]),)):
-                assert actual.JoinedObjectsOverlap(first, second, excludedWalls = excluded) == reference.JoinedObjectsOverlap(
-                    first, second, excludedWalls = excluded), ("joined", case)
+                actualOverlap = actual.JoinedObjectsOverlap(first, second, excludedWalls = excluded)
+                if excluded and first is walls[0] and second is walls[2]:
+                    # The remaining unequal-width elbow trims its overlapping
+                    # rectangular caps. The frozen raw-body shortcut ignored that cut.
+                    assert not actualOverlap, ("trimmed elbow", case)
+                else:
+                    assert actualOverlap == reference.JoinedObjectsOverlap(first, second, excludedWalls = excluded), ("joined", case)
                 joinedCases += 1
         assert [id(obj) for obj in actual.ContainedWalls(walls)] == [id(obj) for obj in reference.ContainedWalls(walls)]
         for view in (actual, reference):
             view.collisionPassCache = None
 
+    assert refinedBounds > 0, "Fixture no longer exercises acute-junction refinement"
     attachmentCases = 0
     for case in range(72):
         objects = [Wall(point(), point(1000, 0), 240), Wall(point(1000, 0), point(1000, 1000), 240),
@@ -166,7 +181,10 @@ def Main():
     fittingCases = 0
     for case in range(96):
         wall = Wall(point(1e8, -1e8), point(1e8 + 4000 + case * .37, -1e8 + case * .19), 240)
-        openings = [Door(wall, .1, .25), PocketDoor(wall, .3, .55), Fireplace(wall, .6, .9)]
+        # PocketDoor now preserves its reserved wall-face support rather than
+        # following this frozen generic fit algorithm. Its current behavior is
+        # covered by check_reserved_door_wall_edits.py and junction/core checks.
+        openings = [Door(wall, .1, .25), Window(wall, .3, .55), Fireplace(wall, .6, .9)]
         for view in (actual, reference):
             view.walls, view.windows, view.furnishings = [wall], openings, []
             view.connectedEnabled = bool(case % 2)

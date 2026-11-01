@@ -54,7 +54,11 @@ def Main():
                      "imperial_auto_sizes", "furnishing_sort", "recovery_locate", "errored_asset_clipboard",
                      "window_app_state", "close_project", "help_autoscroll", "session_guide_selection", "parity_layouts", "parity_panel_layouts",
                      "furnishing_asset_consistency", "duplicate_furnishing_export", "pan_preparation", "pan_wall_outline", "pan_wall_patches", "pan_frame_pacing", "render_diagnostics",
-                     "drag_edge_pan", "drag_edge_pan_reference", "project_file_drop", "scene_problems", "potential_issues", "ignored_potential_issues"}
+                     "drag_edge_pan", "drag_edge_pan_reference", "project_file_drop", "scene_problems", "potential_issues", "ignored_potential_issues",
+                     "export_title_block", "export_scale_bar", "export_wheel_scrolling", "project_build_tab",
+                     "print_mode", "print_overlap", "print_physical_density", "architectural_physical_density",
+                     "export_preview_process", "composite_live_preview", "numpy_runtime_budget", "normal_lighting_cache",
+                     "preview_allocation_recovery", "retained_dimensions"}
     assert {"checks/check_" + name + ".py" for name in currentChecks} <= indexedChecks, "Current behavior checks are unindexed"
     for case in scenarios:
         assert case["rule"] in ruleIds, (case["id"], "missing rule heading")

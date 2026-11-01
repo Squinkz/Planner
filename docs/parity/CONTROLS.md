@@ -136,7 +136,7 @@ menu chain. Closing root always clears child and forced-hover state.
 Current controller has a 25 ms pointer watcher, 500 ms child-leave timer and
 80 ms parent timer. These are not a blanket 500 ms hover delay: application
 mouse moves outside parent/child can close the child immediately. Match the
-observed transition cases in `check_stacker_submenu.py` before tuning timers.
+observed transition cases in `check_context_submenu.py` before tuning timers.
 After dismissal, a forced idle state prevents a stale highlighted parent until
 it is entered again.
 
@@ -295,7 +295,7 @@ Export sections look like tab headings, but collapse their own content rather
 than switching pages. They are 40 high, checked when expanded. Current chevron
 is down when expanded, up when collapsed. The whole heading is clickable.
 Their hover/pressed/focus rules are in the resolved stylesheet. Section choices
-survive save/restore. Digital/Architectural are actual mutually exclusive tabs,
+survive save/restore. Digital/Architectural/Print are actual mutually exclusive tabs,
 with no redundant Mode label.
 
 Shared noncollapsible headings put a centered icon/text group between flexible

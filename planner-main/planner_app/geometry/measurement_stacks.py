@@ -5,16 +5,16 @@ from .measurement_stack_layout import StackWall, StackSpan, PlanMeasurementStack
 from .dimension_chains import ComputeStackedDimensionLengths, VisibleDimensionPieces
 
 
-def StackedDimensionLengths(inner, additional, unitsMode, precision):
-    """Sum displayed inner segments in integer ticks, without changing geometry."""
+def StackedDimensionLengths(inner, additional, unitsMode, precision, includeInner = False):
+    """Balance stack labels against the measured overall, without moving points."""
     if not additional:
-        return []
+        return ([None for span in inner], []) if includeInner else []
     innerRecords = [((first.x(), first.y()), (second.x(), second.y()),
                      tuple(id(owner.parentWall if isinstance(owner, Window) else owner) for owner in owners))
                     for first, second, owners in inner]
     additionalRecords = [((first.x(), first.y()), (second.x(), second.y()), tuple(id(owner) for owner in owners), tier)
                          for first, second, owners, tier in additional]
-    return ComputeStackedDimensionLengths(innerRecords, additionalRecords, unitsMode, precision)
+    return ComputeStackedDimensionLengths(innerRecords, additionalRecords, unitsMode, precision, includeInner = includeInner)
 
 
 def VisibleWallDimensionSpans(spans):

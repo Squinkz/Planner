@@ -209,6 +209,8 @@ class InteractionMixin:
         self.update()
 
     def CancelInteraction(self):
+        self.renderChanges.dirtyObjects = None
+        self.__dict__.pop("groupRestoreCache", None)
         self.StopDragPan()
         handleState = self.furnishingHandleDrag
         self.EndPan()
@@ -266,10 +268,11 @@ class InteractionMixin:
         if self.dragCopies:
             if self.interactionBefore is not None:
                 self.objectGroups = list(self.interactionBefore[6])
-            self.walls = [wall for wall in self.walls if not any(wall is copy for copy in self.dragCopies)]
-            self.windows = [opening for opening in self.windows if not any(opening is copy for copy in self.dragCopies)]
-            self.furnishings = [obj for obj in self.furnishings if not any(obj is copy for copy in self.dragCopies)]
-            self.labels = [obj for obj in self.labels if not any(obj is copy for copy in self.dragCopies)]
+            copyIds = {id(obj) for obj in self.dragCopies}
+            self.walls = [wall for wall in self.walls if id(wall) not in copyIds]
+            self.windows = [opening for opening in self.windows if id(opening) not in copyIds]
+            self.furnishings = [obj for obj in self.furnishings if id(obj) not in copyIds]
+            self.labels = [obj for obj in self.labels if id(obj) not in copyIds]
             self.selectedWall = self.dragSource
             self.selectedVertex = self.dragSourceVertex
         if self.groupDrag:
@@ -298,6 +301,8 @@ class InteractionMixin:
         self.boxSelectionRemove = False
         self.pendingShiftSelection = None
         self.groupDrag = False
+        self.renderChanges.snapChanges = None
+        self.__dict__.pop("groupSnapPreparation", None)
         self.groupEntries = []
         self.groupMovedVertices = []
         self.groupMovedOpenings = []
@@ -491,7 +496,11 @@ class InteractionMixin:
                     return
                 # Restore the captured group before applying the latest delta.
                 # Disabling Connected leaves attachments in place.
-                movementBefore = self.CaptureState()
+                # This rollback restores wall coordinates and opening state;
+                # furnishing/label snapshots and wall metadata are unused here.
+                movementBefore = (tuple((wall, wall.firstVertex.x(), wall.firstVertex.y(),
+                                         wall.secondVertex.x(), wall.secondVertex.y()) for wall in self.walls),
+                                  None, None, self.CaptureOpeningStates())
                 if self.interactionBefore is not None:
                     self.RestoreOpeningStates(self.interactionBefore[3])
                 for attachedWall, vertexIndex, originalPosition in self.dragAttachments:
@@ -547,7 +556,7 @@ class InteractionMixin:
                                             validateFurnishings = False, validateScene = False)
                         and not isinstance(self.selectedWall, Stair)
                         and all(QtCore.QLineF(wall.firstVertex, wall.secondVertex).length() >= 1e-8 for wall in self.walls)):
-                    for wall, firstX, firstY, secondX, secondY, width, firstMiter, secondMiter, material, stepCount, directionReversed, measurementHidden in movementBefore[0]:
+                    for wall, firstX, firstY, secondX, secondY in movementBefore[0]:
                         wall.firstVertex = QtCore.QPointF(firstX, firstY)
                         wall.secondVertex = QtCore.QPointF(secondX, secondY)
                     self.RestoreOpeningStates(movementBefore[3])
@@ -943,6 +952,8 @@ class InteractionMixin:
                 self.windows = [opening for opening in self.windows if not any(opening is copy for copy in self.dragCopies)]
                 self.selectedWall = self.dragSource
             self.RecordEdit(self.interactionBefore)
+            self.renderChanges.dirtyObjects = None
+            self.__dict__.pop("groupRestoreCache", None)
             self.interactionBefore = None
             self.dragStart = None
             self.dragVertices = None
@@ -960,6 +971,8 @@ class InteractionMixin:
             self.dragSourceVertices = None
             self.dragCopies = []
             self.groupDrag = False
+            self.renderChanges.snapChanges = None
+            self.__dict__.pop("groupSnapPreparation", None)
             self.groupEntries = []
             self.groupMovedVertices = []
             self.groupMovedOpenings = []
@@ -1073,6 +1086,7 @@ class InteractionMixin:
             event.accept()
             return
         if event.matches(QtGui.QKeySequence.StandardKey.SelectAll):
+            self.CancelInteraction()
             self.SetSelection([(obj, None) for obj in self.walls + self.windows + self.furnishings + self.labels
                                if self.IsObjectVisible(obj)])
             event.accept()

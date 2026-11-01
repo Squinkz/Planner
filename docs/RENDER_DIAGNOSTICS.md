@@ -51,9 +51,13 @@ Reports contain timings, runtime metadata, viewport-local input positions and ca
 
 ## Raster and artwork budgets
 
-Each viewport shares a 128 MiB budget across retained backgrounds, scene/pan buffers, PNG snapshots, SVG navigation/view images and ruler strips.
+Each viewport shares a 128 MiB budget across retained backgrounds, scene/pan buffers,
+PNG snapshots, SVG navigation/view images, title-block/scale-bar rasters, print-page caches
+and ruler strips. The asynchronous preview worker has a separate 768 MiB Windows
+process-memory limit. Its NumPy initializer caps unused BLAS threading before
+import; disk package size and committed process memory are separate measurements.
 
-Oversized editing views use direct drawing. Oversized PNG previews keep a bounded overview and capture visible detail after navigation stops; file export limits remain independent. SVG navigation uses up to a quarter of the budget and four million pixels; stationary previews adapt sampling to available memory. Ruler strips can draw directly.
+Oversized editing views use direct drawing. Oversized PNG previews keep a bounded overview and capture visible detail after navigation stops; file export limits remain independent. SVG navigation uses up to a quarter of the budget and four million pixels; stationary previews adapt sampling to available memory. PNG border and scale-bar cache fallbacks rasterize visible native pixels in temporary tiles below 300 KiB; they never switch to vector viewport drawing. SVG borders remain vector.
 
 Raster counters describe application-owned retained surfaces. Process memory measurements additionally capture Qt backing stores, assets, vector data and export allocations.
 
@@ -67,6 +71,19 @@ python checks/run_checks.py ../tools/icon_cache_probe.py
 ```
 
 The overhead probe measures dispatch costs of disabled diagnostic wrappers. The icon probe repeats artwork across themes and records registry counts. Their generated JSON files contain workload-specific measurements.
+
+The [export audit](EXPORT_PERFORMANCE_AUDIT.md) and [editor audit](EDITOR_PERFORMANCE_AUDIT.md)
+record newer cache and CPU rendering changes. `tools/composite_lighting_probe.py`
+compares four A4 sheets at 300 PPI; `tools/retained_editor_probe.py --integrated --parity`
+compares the retained editor dimension layer with its painter reference. These
+read a supplied project or isolated recovery-scene copy and are developer probes,
+not CI fixtures. Their synchronous frame times do not measure display latency.
+
+`python tools/numpy_geometry_probe.py` measures batched wall-containment filtering
+and image-comparison diagnostics against scalar references. It alternates both
+paths in one process on synthetic inputs, verifies results, and records cache
+timings, cold NumPy import time and tracked allocation peaks. Run it separately
+from the suite or other benchmarks; results go to `diagnostics/numpy-geometry-probe.json`.
 
 Set `PLANNER_VERIFY_RENDER_REVISIONS=1` to compare revision-keyed cache reuse with value-based validation. A mismatch raises an assertion. Scene models and tracked collections report geometry, appearance and topology mutations; edit stored coordinates to notify their owning objects.
 

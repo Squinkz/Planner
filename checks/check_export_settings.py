@@ -24,6 +24,7 @@ def Main():
         app = QtWidgets.QApplication([])
         ApplyApplicationTheme(app)
         main = MainWindow()
+        main.exportPanel.overrides["scaleMode"] = "Digital"
         main.SetThemes(canvasTheme = "Dark Canvas")  # This fixture explicitly exercises Dark Canvas export overrides.
         main.show()
         app.processEvents()
@@ -36,14 +37,15 @@ def Main():
         heading.setChecked(False)
         assert panel.measurementVisibilityItems["all"].text(0) == "Draw dimensions"
         assert not any(button.isChecked() for button in panel.sectionButtons.values())
-        assert [panel.typeField.itemText(index) for index in range(panel.typeField.count())] == ["PNG (raster)", "SVG (vector)", "Optimized PNG (raster)"]
+        assert [panel.typeField.itemText(index) for index in range(panel.typeField.count())] == [
+            "Raster", "PNG (raster)", "Optimized PNG (raster)", "PDF (raster)", "Vector", "SVG (vector)", "PDF (vector)"]
         panel.fileNameField.setText("render.png")
         with patch.object(QtWidgets.QFileDialog, "getExistingDirectory", return_value = str(Path(folder))):
             panel.browseButton.click()
         panel.typeField.setCurrentIndex(panel.typeField.findData("SVG"))
         assert panel.fileNameField.text() == "render" and panel.typeField.currentData() == "SVG"
         assert panel.browseButton.text() == "" and not panel.browseButton.icon().isNull()
-        # Keep this inheritance fixture free of explicit export preferences.
+        # Keep this Digital inheritance fixture free of explicit appearance preferences.
         # File-type persistence has its own round-trip coverage.
         panel.overrides.pop("fileType", None)
         original = copy.deepcopy(main.ProjectSettings())
@@ -51,7 +53,7 @@ def Main():
         # after the fixture has chosen its folder and filename.
         main.MarkProjectClean()
         view = panel.CaptureView()
-        assert "exportSettings" not in original
+        assert original["exportSettings"] == {"scaleMode": "Digital"}
         originalPan = QtCore.QPointF(147, -83)
         main.viewport.panOffset = QtCore.QPointF(originalPan)
         main.sidebarTabs.setCurrentWidget(panel)
@@ -201,7 +203,8 @@ def Main():
         assert not main.viewport.showGrid and palette.activeCanvasTheme == "Light Canvas"
         assert not main.viewport.measurementVisibility["walls"] and not main.viewport.visibility["Doors"]
         saved = main.BuildProjectData()
-        assert {key: value for key, value in saved["settings"].items() if key != "exportSettings"} == original
+        assert {key: value for key, value in saved["settings"].items() if key != "exportSettings"} == {
+            key: value for key, value in original.items() if key != "exportSettings"}
         assert saved["settings"]["exportSettings"]["viewportSettings"] == {"overall": .725}
         assert saved["settings"]["exportSettings"]["visibility"] == {"Doors": False}
         assert saved["settings"]["exportSettings"]["unitsMode"] == "Centimeters"

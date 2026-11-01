@@ -60,7 +60,7 @@ class ActivityLogWindow(QtWidgets.QDialog):
         super().__init__(main)
         self.log = main.activityLog
         self.setWindowTitle("Activity Log")
-        self.setWindowIcon(UiIcon("view_list"))
+        self.setWindowIcon(UiIcon("log"))
         self.setModal(False)
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_DeleteOnClose)
         layout = QtWidgets.QVBoxLayout(self)

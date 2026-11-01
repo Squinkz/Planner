@@ -135,7 +135,7 @@ def Main():
         panel.showGridField.setChecked(not v.showGrid)
         v.setFocus()
         QtTest.QTest.keyClick(v, QtCore.Qt.Key.Key_S, ctrl)
-        assert main.sidebarTabs.currentWidget() is main.buildScrollArea
+        assert main.sidebarTabs.currentWidget() is panel and v.exportOverlay.active
         assert projectPath.is_file() and not main.projectDirty
     print("Export shortcut audit passed")
 

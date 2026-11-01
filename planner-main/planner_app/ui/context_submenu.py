@@ -1,4 +1,4 @@
-"""Submenu behavior copied from Stacker app/gui/widgets.py."""
+"""Pointer-aware context submenus with hover state and delayed closing."""
 
 from PySide6 import QtCore, QtGui, QtWidgets
 

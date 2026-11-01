@@ -32,6 +32,7 @@ uiRoles = tuple(role for role in themeRoles if role not in canvasRoles)
 activeUITheme = "Heather UI"
 activeCanvasTheme = "Magnetite Canvas"
 labelFont = fontFamily
+themeLoadError = None
 
 
 def LoadThemes(directory = None):
@@ -120,7 +121,7 @@ def LoadThemes(directory = None):
         except (ValueError, RecursionError) as error:
             warnings.warn(f"Skipping theme {source['path'].name}: {error}")
     if not definitions:
-        raise ValueError("No valid selectable theme files found in the themes folder")
+        raise ValueError(f"No valid selectable theme files found in {themeDirectory}")
     return definitions
 
 
@@ -141,9 +142,25 @@ def SetThemes(uiTheme = None, canvasTheme = None):
     labelFont = themeDefinitions[activeCanvasTheme]["labelFont"]
 
 
+def InitializeThemes(directory = None):
+    """Validate the complete resource collection before replacing live themes."""
+    global themeLoadError
+    definitions = LoadThemes(directory)
+    for kind in ("ui", "canvas"):
+        if not any(definition["type"] == kind for definition in definitions.values()):
+            raise ValueError(f"No valid selectable {kind} themes found in {directory or themesDirectory}")
+    themeDefinitions.clear()
+    themeDefinitions.update(definitions)
+    SetThemes()
+    themeLoadError = None
 
-themeDefinitions.update(LoadThemes())
-SetThemes()
+
+try:
+    InitializeThemes()
+except (OSError, ValueError, RuntimeError) as error:
+    # Keep data/parsing imports available when an installation is damaged.
+    # The entry point retries under crash reporting and presents the path.
+    themeLoadError = error
 
 # These identify neutral SVG input paints and older furnishing artwork; they
 # are format conventions, not colors to render directly in the application.

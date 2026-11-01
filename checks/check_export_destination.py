@@ -15,6 +15,7 @@ from planner_app.project_recovery import RecoverProject
 
 def Main():
     with ExampleWindow() as (main, folder):
+        main.exportPanel.overrides["scaleMode"] = "Digital"
         v, panel = main.viewport, main.exportPanel
         InstallScene(main, [Wall(QtCore.QPointF(-1000, 0), QtCore.QPointF(1000, 0))])
         main.projectPath = folder / "project.plan"

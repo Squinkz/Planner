@@ -14,6 +14,22 @@ from .drag_wheel import NativeDragWheel
 from planner_app.number_expressions import EvaluateNumberExpression
 
 
+class SectionComboDelegate(QtWidgets.QStyledItemDelegate):
+    def paint(self, painter, option, index):
+        if index.flags() != QtCore.Qt.ItemFlag.NoItemFlags:
+            return super().paint(painter, option, index)
+        # Popup styles otherwise flatten or mute non-selectable headings.
+        painter.save()
+        try:
+            painter.fillRect(option.rect, index.data(QtCore.Qt.ItemDataRole.BackgroundRole))
+            painter.setPen(index.data(QtCore.Qt.ItemDataRole.ForegroundRole).color())
+            painter.setFont(index.data(QtCore.Qt.ItemDataRole.FontRole))
+            painter.drawText(option.rect.adjusted(14, 0, -14, 0), QtCore.Qt.AlignmentFlag.AlignVCenter,
+                             index.data(QtCore.Qt.ItemDataRole.DisplayRole))
+        finally:
+            painter.restore()
+
+
 class SizeLinkButton(QtWidgets.QPushButton):
     def __init__(self, checked = True):
         super().__init__()
@@ -24,7 +40,7 @@ class SizeLinkButton(QtWidgets.QPushButton):
         self.setCheckable(True)
         self.setChecked(checked)
         self.setAccessibleName("Link width and length")
-        self.setToolTip("Link width and length for proportional property edits. Canvas handles are unaffected.")
+        self.setToolTip("Link width and length for proportional property edits.")
         self.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
 
 
@@ -484,7 +500,7 @@ class DownwardComboBox(QtWidgets.QComboBox):
         if popup is None:
             return
 
-        # Stacker anchors the popup below the field, independently of selection.
+        # Anchor the popup below the field, independently of selection.
         globalPosition = self.mapToGlobal(QtCore.QPoint(0, self.height()))
         fieldTop = self.mapToGlobal(QtCore.QPoint()).y()
         available = self.screen().availableGeometry()
@@ -590,16 +606,20 @@ class UnitSpinBox(NumberExpressionMixin, QtWidgets.QDoubleSpinBox):
         super().setSuffix("" if self.feetAndInches else suffix)
 
     def textFromValue(self, value):
+        displayDecimals = getattr(self, "displayDecimals", None)
         if getattr(self, "feetAndInches", False):
-            return FormatLength(value * 304.8, "Feet and Inches", decimals = 3)
+            return FormatLength(value * 304.8, "Feet and Inches", decimals = 3 if displayDecimals is None else displayDecimals)
         if getattr(self, "inchesOnly", False):
-            return self.locale().toString(value, "f", 3)
+            return self.locale().toString(value, "f", 3 if displayDecimals is None else displayDecimals)
+        if displayDecimals is not None:
+            return self.locale().toString(value, "f", displayDecimals)
         return super().textFromValue(value)
 
     def valueFromText(self, text):
         if self.IsExpression(text):
             return super().valueFromText(text)
-        if getattr(self, "feetAndInches", False) or getattr(self, "inchesOnly", False):
+        if (getattr(self, "feetAndInches", False) or getattr(self, "inchesOnly", False)
+                or getattr(self, "displayDecimals", None) is not None):
             currentText = self.textFromValue(self.value())
             # Committing an unchanged rounded readout must retain its stored precision.
             if text.strip() in (currentText, (currentText + self.suffix()).strip()):
@@ -614,6 +634,10 @@ class UnitSpinBox(NumberExpressionMixin, QtWidgets.QDoubleSpinBox):
     def validate(self, text, position):
         if self.IsExpression(text):
             return super().validate(text, position)
+        if getattr(self, "displayDecimals", None) is not None:
+            currentText = self.textFromValue(self.value())
+            if text.strip() in (currentText, (currentText + self.suffix()).strip()):
+                return QtGui.QValidator.State.Acceptable, text, position
         if not getattr(self, "feetAndInches", False):
             return super().validate(text, position)
         try:

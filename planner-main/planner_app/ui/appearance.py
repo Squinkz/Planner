@@ -55,9 +55,13 @@ class AppearanceMixin:
                 if factory:
                     widget.setWindowIcon(factory())
                 if hasattr(widget, "icon") and hasattr(widget, "setIcon"):
-                    factory = iconSources.get(widget.icon().cacheKey())
-                    if factory:
-                        widget.setIcon(factory())
+                    icon = widget.icon()
+                    # Standard Qt message boxes expose an Icon enum here.
+                    # Only QIcons belong to the themed artwork registry.
+                    if isinstance(icon, QtGui.QIcon):
+                        factory = iconSources.get(icon.cacheKey())
+                        if factory:
+                            widget.setIcon(factory())
                 if isinstance(widget, QtWidgets.QLabel):
                     pixmap = widget.pixmap()
                     source = pixmapSources.get(pixmap.cacheKey()) if pixmap and not pixmap.isNull() else None
@@ -112,13 +116,7 @@ class AppearanceMixin:
         self.furnishingList.RefreshIcons()
         quickSearch = getattr(self, "furnishingQuickSearch", None)
         if quickSearch is not None:
-            for row in range(quickSearch.results.count()):
-                item = quickSearch.results.item(row)
-                definition = self.viewport.furnishingDefinitions.get(item.data(QtCore.Qt.ItemDataRole.UserRole))
-                if definition is not None:
-                    icon = self.furnishingThumbnails.Icon(definition)
-                    if item.icon().cacheKey() != icon.cacheKey():
-                        item.setIcon(icon)
+            quickSearch.RefreshIcons()
         self.wallWidthSelector.icons = [WallPresetIcon(index) for index in range(4)]
         self.wallWidthSelector.update()
         self.materialIcons = {material: MaterialIcon(material) for material in wallMaterials}

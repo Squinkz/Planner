@@ -55,10 +55,11 @@ def Main():
         settings.hide()
         export = main.exportPanel
         main.sidebarTabs.setCurrentWidget(export)
-        for name in ("Canvas", "Grid", "Composite"):
+        for name in ("Canvas", "Grid", "Scale Bar", "Title Block", "Composite"):
             export.sectionButtons[name].setChecked(True)
         QtWidgets.QApplication.processEvents()
-        exportChecks = (export.solidObjectsField, export.floorsField, export.showGridField, export.enableVignetteField)
+        exportChecks = (export.solidObjectsField, export.solidRoomsField, export.showGridField,
+                        export.scaleBarEnabled, export.titleBlockEnabled, export.enableVignetteField)
         for field in exportChecks:
             CheckField(field, export)
             before = field.isChecked()

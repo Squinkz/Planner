@@ -5,6 +5,7 @@ from .record_validation import ValidateCoordinates, ValidateNumber
 from .record_schema import ReadArrowTipSize, openingFieldsByType, geometryIssueNames
 from .geometry.sizing import sizingCountLimit
 from .geometry.reserved_doors import ReservedDoorWithinHost
+from .geometry.attachments import OpeningWithinWall
 
 linearKinds = ("Wall", "Pillar", "Column", "Elevator", "Stair", "Counter", "Railing", "Arrow",
                "MeasurementGuide", "BoundaryLine", "DashedLine", "SolidLine", "AngleGuide")
@@ -174,7 +175,7 @@ def PlanProjectOpening(record, parentLength, parentWidth, parentMaterial, materi
     span = length / parentLength
     first, second = center - span / 2, center + span / 2
     withinHost = (ReservedDoorWithinHost(parentLength, length, center, record.get("hingeAtSecond", False), parkingBounds)
-                  if kind in ("BarnDoor", "PocketDoor") else first >= -1e-8 and second <= 1 + 1e-8)
+                  if kind in ("BarnDoor", "PocketDoor") else OpeningWithinWall(parentLength, length, center))
     if validatePlacement and "opening_bounds" not in issues and not withinHost:
         raise ValueError("A door or window extends beyond its parent wall.")
     fields = dict(centerFraction = center, length = length, geometryIssues = tuple(issues))
@@ -204,6 +205,16 @@ def PlanProjectOpening(record, parentLength, parentWidth, parentMaterial, materi
         limit = (effectiveDepth - parentWidth) / 2
         fields["manualDepthOffset"] = ValidateNumber(record["depthOffset"], minimum = -limit if checkBounds else -1e12,
                                                      maximum = limit if checkBounds else 1e12)
+        if "manualDepth" in record or "manualDepthOffset" in record:
+            manualDepth = ValidateNumber(record.get("manualDepth", depth), minimum = 1, maximum = 1e9)
+            manualOffset = ValidateNumber(record.get("manualDepthOffset", record["depthOffset"]))
+            if validatePlacement:
+                projectedDepth = manualDepth if "fireplace_bounds" in issues else max(parentWidth, manualDepth)
+                projectedLimit = max(0, (projectedDepth - parentWidth) / 2)
+                projectedOffset = manualOffset if "fireplace_bounds" in issues else max(-projectedLimit, min(projectedLimit, manualOffset))
+                if projectedDepth != depth or projectedOffset != record["depthOffset"]:
+                    raise ValueError("A fireplace's stored dimensions do not match its effective geometry.")
+            fields.update(manualDepth = manualDepth, manualDepthOffset = manualOffset)
     fields["measurementHidden"] = ConstructionFlag(record, "measurementHidden", False)
     if isinstance(record.get("originalMaterial"), str):
         fields["originalMaterial"] = record["originalMaterial"]

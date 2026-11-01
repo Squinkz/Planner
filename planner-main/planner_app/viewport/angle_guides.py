@@ -1,7 +1,6 @@
 """Free three-point angular annotations, sharing measurement painting and history."""
 from PySide6 import QtCore, QtGui
 from planner_app.graphics.angle_guide import AngleGuideLayout
-from planner_app.graphics.fonts import fontFamily
 from planner_app.graphics.linework import LinePen
 from planner_app.graphics.palette import themeColors
 from planner_app.models import Arrow, Label, MeasurementGuide, NorthArrow, Wall
@@ -10,8 +9,7 @@ from planner_app.models import Arrow, Label, MeasurementGuide, NorthArrow, Wall
 class AngleGuidesMixin:
     def AngleLayout(self, guide, metrics = None, selected = None):
         if metrics is None:
-            font = QtGui.QFont(self.font())
-            font.setFamily(fontFamily)
+            font, labelScale = self.MeasurementFont()
             metrics = QtGui.QFontMetrics(font)
         middle = self.WorldToViewport(guide.middleVertex)
         offset = self.WorldToViewport(guide.middleVertex + guide.textOffset) - middle

@@ -220,6 +220,8 @@ def Main():
     v.SceneRenderKey(("fireplace",))
     main.sidebarTabs.setCurrentWidget(main.exportPanel)
     panel = main.exportPanel
+    panel.SetScaleOption("scaleMode", "Digital")
+    panel.scaleUnitsField.setCurrentText("px/m")
     panel.borderField.setCurrentText("None")
     panel.showGridField.setChecked(False)
     panel.SetOverride("measurementVisibility", {key: False for key in v.measurementVisibility})

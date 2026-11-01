@@ -308,13 +308,14 @@ class FurnishingHandlesMixin:
         targets = self.NumericSnapTargets(self.StairSnapTargets(state.get("fireplace") or state["object"]))
         if self.midpointSnapEnabled:
             targets.extend((vertex.x(), vertex.y(), True) for vertex in self.SnapMidpoints())
+        targets, _, rayTargets = self.SnapTargetPreparation(targets, constrained = True)
         north, center = state["north"], state["center"]
         width, length, self.snapApplied, self.snapPriority, self.alignmentGuides = SnapResize(
             (north.x(), north.y()), (center.x(), center.y()), state["width"], state["length"],
             width, length, *state["handle"][1:3], state.get("centeredResize", False),
             .001 if isinstance(state["object"], Label) else 1, targets,
             self.basePixelsPerMillimeter * self.zoom, self.vertexSnapRange, self.alignmentSnapEnabled,
-            self.GridSteps()[1] if self.gridSnapEnabled else None, MovementSnapDistance)
+            self.GridSteps()[1] if self.gridSnapEnabled else None, MovementSnapDistance, rayTargets = rayTargets)
         return width, length
 
     def TransformFurnishingSelection(self, state):
@@ -401,5 +402,6 @@ class FurnishingHandlesMixin:
             if mode == "resize":
                 angle = math.degrees(math.atan2(outward.y(), outward.x()))
                 painter.rotate(angle + (45 if field == "corner" else 90))
-            handleRenderers[iconPath].render(painter, QtCore.QRectF(-10, -10, 20, 20))
+            size = 28 if mode == "pivot" else 20
+            handleRenderers[iconPath].render(painter, QtCore.QRectF(-size / 2, -size / 2, size, size))
             painter.restore()

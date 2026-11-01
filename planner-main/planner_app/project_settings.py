@@ -175,7 +175,7 @@ def ReadEditorUi(ui, recovery = False, tabCount = None, selectionLimit = None):
     if height is not None and (type(height) is not int or not 1 <= height <= 100000):
         raise ValueError("Invalid properties restore height.")
     sections = ui.get("exportSections", {})
-    if (not isinstance(sections, dict) or set(sections) - {"Canvas", "Border", "Grid", "Line Weight", "Measurements", "Title Block", "Vignette", "Composite", "Visibility"}
+    if (not isinstance(sections, dict) or set(sections) - {"Canvas", "Border", "Grid", "Line Weight", "Measurements", "Scale Bar", "Title Block", "Vignette", "Composite", "Visibility"}
             or any(type(value) is not bool for value in sections.values())):
         raise ValueError("Invalid export section state.")
     if recovery:

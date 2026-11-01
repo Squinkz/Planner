@@ -1,4 +1,4 @@
-"""Stacker section headings and shared material swatches in both dropdowns."""
+"""Collapsible section headings and shared material swatches in both dropdowns."""
 import hashlib
 import os
 import sys

@@ -1,5 +1,6 @@
 """Verify the frozen app without opening windows or using real user state."""
 import json
+from importlib.metadata import distribution, version
 import os
 from pathlib import Path
 import sys
@@ -78,6 +79,9 @@ def RunSmokeTest(reportPath):
             assert viewport.gridOrigin == expected, "Export ruler axis reset failed"
         png, svg = panel.Render("png"), panel.Render("svg")
         assert not png.isNull() and SvgPreviewRenderer(svg).isValid()
+        assert os.environ.get("OPENBLAS_NUM_THREADS") == "1", "Texture runtime started an unused BLAS thread pool"
+        numpyNotices = distribution("numpy").read_text("licenses/LICENSE.txt")
+        assert numpyNotices and "NumPy Developers" in numpyNotices, "Missing NumPy bundled-library notices"
         optimizedData = EncodeOptimizedPng(png)
         optimized = QtGui.QImage.fromData(optimizedData, "PNG")
         assert optimized.size() == png.size(), "QtQml/UPNG export failed"
@@ -85,6 +89,8 @@ def RunSmokeTest(reportPath):
             assert (fontsDirectory / name).is_file(), "Missing font notice: " + name
         assert not callbackErrors, callbackErrors
         report.update({"ok": True, "python": sys.version.split()[0], "qt": QtCore.qVersion(),
+                       "numpy": version("numpy"),
+                       "blasThreads": os.environ["OPENBLAS_NUM_THREADS"],
                        "externalResources": {name: str(path) for name, path in resources.items()},
                        "furnishings": len(viewport.furnishingDefinitions), "themes": len(palette.themeDefinitions),
                        "fonts": len(app.plannerFontIds), "pngSize": [png.width(), png.height()],

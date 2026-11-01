@@ -129,8 +129,19 @@ def Main():
         excluded = {id(walls[case % len(walls)])}
         @CollisionPass
         def Bounds(view):
-            return [tuple(getattr(view.JoinedObjectBounds(wall, excluded), key)() for key in ("x", "y", "width", "height")) for wall in walls]
-        assert Bounds(actual) == Bounds(reference), ("bounds", case)
+            bounds = [view.JoinedObjectBounds(wall, excluded) for wall in walls]
+            if view is actual:
+                geometry = view.CollisionCategoryGeometry(walls[0], frozenset(excluded))
+                for wall, bound in zip(walls, bounds):
+                    body = view.ObjectFootprint(wall)[0]
+                    owner = geometry[1].get(id(wall))
+                    exact = body if owner is None else body.united(owner.boundingRect())
+                    assert bound.contains(exact), ("conservative refined bound", case, wall.objectId)
+            return bounds
+        # Acute junctions now have tighter broad-phase bounds. Preserve exact
+        # geometry containment and the old conservative envelope, not its size.
+        currentBounds, oldBounds = Bounds(actual), Bounds(reference)
+        assert all(old.contains(current) for old, current in zip(oldBounds, currentBounds)), ("bounds", case)
         assert actual.collisionPassCache is None
 
     placementCount = 0
@@ -174,7 +185,23 @@ def Main():
                     exclude = openings[0] if case % 4 else None,
                     modifiers = modifier.AltModifier if case % 7 == 0 else modifier.NoModifier)
                 values.append((Placement(value), view.alignmentGuides))
-            assert values[0] == values[1], ("placement", case, mutation, values)
+            actualPlacement, actualGuides = values[0]
+            expectedPlacement, expectedGuides = values[1]
+            assert actualGuides == expectedGuides, ("placement guides", case, mutation, values)
+            if actualPlacement is None or expectedPlacement is None:
+                assert actualPlacement == expectedPlacement, ("placement", case, mutation, values)
+            else:
+                assert actualPlacement[:2] == expectedPlacement[:2] and actualPlacement[4:] == expectedPlacement[4:], values
+                # Removing duplicate raw-body cutters can change the last few
+                # arithmetic bits without changing the placement or snap policy.
+                parent = next(wall for wall in walls if id(wall) == actualPlacement[1])
+                parentLength = QtCore.QLineF(parent.firstVertex, parent.secondVertex).length()
+                worldTolerance = 8 * max(math.ulp(coordinate) for point in (parent.firstVertex, parent.secondVertex)
+                                         for coordinate in (point.x(), point.y()))
+                for index, (actualValue, expectedValue) in enumerate(zip(actualPlacement[2:4], expectedPlacement[2:4])):
+                    tolerance = max(worldTolerance / parentLength if index == 0 else worldTolerance,
+                                    8 * max(math.ulp(actualValue), math.ulp(expectedValue)))
+                    assert abs(actualValue - expectedValue) <= tolerance, values
             assert actual.collisionPassCache is None
             placementCount += 1
     print(f"PASS: 1200 raw snap/grid cases, 300 collected-target cases, 64 movement cases, 32 native junction scenes, {placementCount} exact placements and cache refreshes")

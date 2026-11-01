@@ -1125,10 +1125,10 @@
           "redo": 0
         },
         "camera": {
-          "zoom": 0.5,
+          "zoom": 0.5905511811023623,
           "pan": [
             -0.0,
-            0.0
+            2.362204724409449
           ],
           "viewport": [
             1000,
@@ -1139,6 +1139,17 @@
         "export": {
           "active": true,
           "overrides": {
+            "scaleMode": "Print",
+            "bounds": [
+              -14850.0,
+              -10480.0,
+              29700,
+              21000
+            ],
+            "pageOrigin": [
+              -14850.0,
+              -10480.0
+            ],
             "showGrid": false
           },
           "undo": 1,
@@ -1296,10 +1307,10 @@
           "redo": 0
         },
         "camera": {
-          "zoom": 0.5,
+          "zoom": 0.5905511811023623,
           "pan": [
             -0.0,
-            0.0
+            2.362204724409449
           ],
           "viewport": [
             1000,
@@ -1309,7 +1320,19 @@
         },
         "export": {
           "active": true,
-          "overrides": {},
+          "overrides": {
+            "scaleMode": "Print",
+            "bounds": [
+              -14850.0,
+              -10480.0,
+              29700,
+              21000
+            ],
+            "pageOrigin": [
+              -14850.0,
+              -10480.0
+            ]
+          },
           "undo": 0,
           "redo": 1
         },
@@ -1465,10 +1488,10 @@
           "redo": 0
         },
         "camera": {
-          "zoom": 0.5,
+          "zoom": 0.5905511811023623,
           "pan": [
             -0.0,
-            0.0
+            2.362204724409449
           ],
           "viewport": [
             1000,
@@ -1479,6 +1502,17 @@
         "export": {
           "active": true,
           "overrides": {
+            "scaleMode": "Print",
+            "bounds": [
+              -14850.0,
+              -10480.0,
+              29700,
+              21000
+            ],
+            "pageOrigin": [
+              -14850.0,
+              -10480.0
+            ],
             "showGrid": false
           },
           "undo": 1,
@@ -1650,6 +1684,17 @@
         "export": {
           "active": false,
           "overrides": {
+            "scaleMode": "Print",
+            "bounds": [
+              -14850.0,
+              -10480.0,
+              29700,
+              21000
+            ],
+            "pageOrigin": [
+              -14850.0,
+              -10480.0
+            ],
             "showGrid": false
           },
           "undo": 1,

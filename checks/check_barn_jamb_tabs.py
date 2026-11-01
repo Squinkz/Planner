@@ -66,7 +66,7 @@ def Main():
                                     door.hingeAtSecond, door.swingsOutwards, color = themeColors["objectOutline"],
                                     wallColor = themeColors["wallOutline"], pixelsPerMillimeter = scale,
                                     lineWidth = view.lineWidths["architectural"], wallLineWidth = view.lineWidths["walls"],
-                                    drawPassageEdges = not tinted)
+                                    drawPassageEdges = True)
                             center = view.WorldToViewport(jamb)
                             for side in (-1, 1):
                                 for depth in (.5, 1.25, 2):
@@ -79,6 +79,7 @@ def Main():
                             cases += 1
         panel = main.exportPanel
         main.sidebarTabs.setCurrentWidget(panel)
+        panel.SetScaleOption("scaleMode", "Digital")
         panel.typeField.setCurrentIndex(panel.typeField.findData("SVG"))
         panel.borderField.setCurrentText("None")
         panel.scaleField.setValue(100)
@@ -92,6 +93,7 @@ def Main():
         fill, canvas = QtGui.QColor(themeColors["roomFill"]), QtGui.QColor(themeColors["canvas"])
         for style in ("Canvas", "Tinted"):
             panel.roomStyleField.setCurrentText(style)
+            panel.drawOpeningOutlinesField.setChecked(style == "Canvas")
             for door in (obj for obj in view.windows if isinstance(obj, BarnDoor)):
                 midpoint = (door.firstVertex + door.secondVertex) / 2
                 openingEnd = door.secondVertex if door.hingeAtSecond else door.firstVertex

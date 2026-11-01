@@ -19,6 +19,7 @@ from planner_app.viewport.rendering import RenderingMixin
 
 def Main():
     with ExampleWindow() as (main, folder):
+        main.exportPanel.overrides["scaleMode"] = "Digital"
         v, export = main.viewport, main.exportPanel
         walls = Rectangle(-2000, -2000, 4000, 4000)
         InstallScene(main, walls + [Door(walls[0], .2, .4), Window(walls[2], .3, .6)])
@@ -28,7 +29,7 @@ def Main():
         projectSplits = dict(v.measurementSettings)
         main.sidebarTabs.setCurrentWidget(export)
         export.sectionButtons["Measurements"].setChecked(True)
-        assert export.precisionField.currentText() == "Low" and not export.overrides
+        assert export.precisionField.currentText() == "Low" and export.overrides == {"scaleMode": "Digital"}
         assert export.measurementSliders["doors"].value() == 1
         export.precisionField.setCurrentText("High")
         assert v.measurementPrecision == "High" and export.projectView["measurementPrecision"] == "Low"
@@ -89,7 +90,7 @@ def Main():
             QtCore.QPoint(0, 120), QtCore.Qt.MouseButton.NoButton, QtCore.Qt.KeyboardModifier.NoModifier,
             QtCore.Qt.ScrollPhase.NoScrollPhase, False)
         QtWidgets.QApplication.sendEvent(label, wheel)
-        assert v.measurementSettings["doors"] == 0
+        assert v.measurementSettings["doors"] == 1, "Export scrolling changed the dimension selector"
         export.measurementVisibilityItems["walls"].setCheckState(0, QtCore.Qt.CheckState.Unchecked)
         assert not export.measurementSplitTabs.isEnabled() and not export.wallMeasurementModeField.isEnabled()
         export.measurementVisibilityItems["walls"].setCheckState(0, QtCore.Qt.CheckState.Checked)
@@ -104,7 +105,7 @@ def Main():
         decoded = DecodeProject(data, v.furnishingDefinitions)[5]
         assert decoded["measurementPrecision"] == "Medium" and decoded["measurementSettings"] == projectSplits
         assert decoded["exportSettings"]["measurementPrecision"] == "High"
-        assert decoded["exportSettings"]["measurementSettings"] == {"doors": 0, "windows": 2}
+        assert decoded["exportSettings"]["measurementSettings"] == {"doors": 1, "windows": 2}
         recovered, repairs = RecoverProject(data, v.furnishingDefinitions, main.defaultProjectData)
         assert not repairs and recovered[5]["exportSettings"] == decoded["exportSettings"]
         assert main.OpenProject(path)
@@ -121,7 +122,7 @@ def Main():
             for outputFormat in ("png", "svg"):
                 assert RenderPlan(path, 100, [-3000, -3000, 6000, 6000], projectData = data,
                                   outputFormat = outputFormat, applyTheme = False, useExportSettings = True)
-        assert observed and all(precision == "High" and splits["doors"] == 0 and splits["windows"] == 2
+        assert observed and all(precision == "High" and splits["doors"] == 1 and splits["windows"] == 2
                                 for precision, splits in observed)
         for name, value in (("measurementPrecision", "Invalid"), ("measurementSettings", {"stairs": 1}),
                             ("measurementSettings", {"doors": True}), ("measurementSettings", {"unknown": 0})):

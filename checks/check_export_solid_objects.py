@@ -18,6 +18,7 @@ def Main():
     messages = []
     oldHandler = QtCore.qInstallMessageHandler(lambda kind, context, message: messages.append(message))
     main = MainWindow()
+    main.exportPanel.overrides["scaleMode"] = "Digital"
     main.show()
     v = main.viewport
     panel = main.exportPanel

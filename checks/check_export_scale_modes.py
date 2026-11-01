@@ -23,6 +23,7 @@ def Main():
         main = MainWindow()
         main.show()
         panel, v = main.exportPanel, main.viewport
+        panel.SetScaleOption("scaleMode", "Digital")
         main.sidebarTabs.setCurrentWidget(panel)
         assert panel.scaleField.value() == 100 and panel.ScalePerMeter() == 100
         assert panel.architecturalScaleField.currentText() == "1:100"
@@ -55,6 +56,9 @@ def Main():
         assert panel.Render("png").size() == QtCore.QSize(1056, 556)
         panel.borderField.setCurrentText("None")
         panel.scaleModeTabs.setCurrentIndex(1)
+        # Architectural now owns its crop; configure the extent used below.
+        v.exportOverlay.bounds = (0, 0, 10000, 5000)
+        panel.SetBounds(v.exportOverlay.bounds)
         assert panel.digitalScaleRow.isHidden() and panel.resolutionRow.isHidden()
         assert not panel.architecturalRow.isHidden() and not panel.dpiRow.isHidden()
         assert abs(panel.ScalePerMeter() - 300 * 1000 / (25.4 * 100)) < .000001
@@ -78,14 +82,15 @@ def Main():
         v.grab()
         assert not v.exportOverlay.previewError, v.exportOverlay.previewError
         assert v.exportOverlay.svgRenderer is not None and v.exportOverlay.svgNavigationImage is not None
-        assert v.exportOverlay.svgRenderer.defaultSize() == QtCore.QSize(math.ceil(float(root.get("viewBox").split()[2])),
-                                                                        math.ceil(float(root.get("viewBox").split()[3])))
+        previewRoot = ElementTree.fromstring(panel.Render("svg", preview = True, previewScene = True))
+        assert v.exportOverlay.svgRenderer.defaultSize() == QtCore.QSize(math.ceil(float(previewRoot.get("viewBox").split()[2])),
+                                                                        math.ceil(float(previewRoot.get("viewBox").split()[3])))
         assert root.get("width").endswith("mm") and root.get("height").endswith("mm")
         unitsWidth = float(root.get("viewBox").split()[2])
         widthMm = float(root.get("width")[:-2])
-        assert abs(widthMm / unitsWidth * density / 1000 - .01) < 1e-10
+        assert abs(widthMm / unitsWidth * panel.PreviewScalePerMeter() / 1000 - .01) < 1e-10
         assert abs(widthMm - 100) < .3
-        panel.scaleModeTabs.setCurrentIndex(0)
+        panel.scaleModeTabs.setCurrentIndex(2)
         assert not panel.digitalScaleRow.isHidden() and panel.resolutionRow.isHidden()
         assert panel.ScalePerMeter() == 100
         panel.typeField.setCurrentIndex(panel.typeField.findData("PNG"))

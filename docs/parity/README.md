@@ -1,7 +1,8 @@
 # Planner parity specification
 
 This is the framework-independent reference for reproducing Planner's desktop
-behavior, appearance and project interchange. Original capture baseline: 17 October 2026. Current contracts reviewed 26 October 2026 for Alpha 0.1.1.
+behavior, appearance and project interchange. Original capture baseline: 17 October 2026.
+Current contracts include the Alpha 0.1.4 changes reviewed on 30 October 2026.
 It describes the implemented product, rather than a proposed redesign.
 
 Start here:

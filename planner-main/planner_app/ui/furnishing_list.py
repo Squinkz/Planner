@@ -1,7 +1,7 @@
 """Categorized furnishing rows sharing quick-search painting and catalog drags."""
 from PySide6 import QtCore, QtGui, QtWidgets
 from planner_app.graphics.palette import themeColors
-from .furnishing_quick_search import FurnishingResultDelegate
+from .furnishing_quick_search import FurnishingResultDelegate, FurnishingResultItem
 from .widgets import StartFurnishingDrag
 
 
@@ -70,7 +70,7 @@ class FurnishingCatalogList(QtWidgets.QListWidget):
                 for key in keys:
                     definition = main.viewport.furnishingDefinitions[key]
                     dimensions = main.furnishingDimensions[key]
-                    item = QtWidgets.QListWidgetItem(main.furnishingThumbnails.Icon(definition), definition["name"].strip())
+                    item = FurnishingResultItem(main, definition)
                     item.setData(QtCore.Qt.ItemDataRole.UserRole, key)
                     item.setData(QtCore.Qt.ItemDataRole.UserRole + 1, dimensions)
                     item.setSizeHint(QtCore.QSize(0, 40))
@@ -97,9 +97,7 @@ class FurnishingCatalogList(QtWidgets.QListWidget):
             key = item.data(QtCore.Qt.ItemDataRole.UserRole)
             definition = self.mainWindow.viewport.furnishingDefinitions.get(key)
             if definition is not None:
-                icon = self.mainWindow.furnishingThumbnails.Icon(definition)
-                if item.icon().cacheKey() != icon.cacheKey():
-                    item.setIcon(icon)
+                item.RefreshThumbnail(definition)
                 dimensionWidth = max(dimensionWidth, metrics.horizontalAdvance(item.data(QtCore.Qt.ItemDataRole.UserRole + 1)))
         self.resultDelegate.dimensionWidth = min(144, dimensionWidth)
         self.viewport().update()

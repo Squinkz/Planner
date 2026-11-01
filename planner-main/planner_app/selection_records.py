@@ -3,6 +3,7 @@ import math
 from .record_schema import openingFieldsByType, ReadArrowTipSize, selectionObjectLimit
 from .furnishing_assets import FurnishingAssetProblems
 from .geometry.sizing import sizingCountLimit
+from .geometry.reserved_doors import ReservedDoorSupportBounds, ReservedDoorWithinHost
 
 
 def ValidateSelectionPayload(payload, definitions, materials, unitModes, lineWeightClasses):
@@ -27,6 +28,7 @@ def ValidateSelectionPayload(payload, definitions, materials, unitModes, lineWei
             grouped.update(group)
         points = [payload["center"]]
         checkedAssets = set()
+        parkingBounds = {}
         for record in records:
             if not isinstance(record["selected"], bool):
                 return None
@@ -134,7 +136,14 @@ def ValidateSelectionPayload(payload, definitions, materials, unitModes, lineWei
             elif record["parent"] is not None:
                 parent = records[record["parent"]]
                 length = math.hypot(parent["second"][0] - parent["first"][0], parent["second"][1] - parent["first"][1])
-                if length < record["length"] or not 0 <= record["fraction"] <= 1:
+                if record["type"] in ("PocketDoor", "BarnDoor"):
+                    parentIndex = record["parent"]
+                    if parentIndex not in parkingBounds:
+                        parkingBounds[parentIndex] = ReservedDoorSupportBounds(parent["first"], parent["second"],
+                            ((wall["first"], wall["second"]) for wall in records if wall["type"] == "Wall"))
+                    if not ReservedDoorWithinHost(length, record["length"], record["fraction"], record["hingeAtSecond"], parkingBounds[parentIndex]):
+                        return None
+                elif length < record["length"] or not 0 <= record["fraction"] <= 1:
                     return None
         return payload if any(record["selected"] for record in records) else None
     except (ValueError, TypeError, KeyError, OverflowError, RecursionError, IndexError):

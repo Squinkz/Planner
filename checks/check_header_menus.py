@@ -1,4 +1,4 @@
-"""Header menu ordering, dummy actions, history actions and Stacker presentation."""
+"""Header menu ordering, placeholder actions, history actions and themed presentation."""
 import os
 import sys
 from pathlib import Path

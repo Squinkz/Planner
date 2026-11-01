@@ -54,3 +54,11 @@ class BoundsIndex:
                     and boundTop < entryBottom and boundBottom > entryTop):
                 result.append(value)
         return result
+
+    def PointCandidates(self, point):
+        """Ordered broad phase; the caller retains its exact point predicate."""
+        cell = math.floor(point[0] / self.cellSize), math.floor(point[1] / self.cellSize)
+        candidates = self.buckets.get(cell, ())
+        if self.largeEntries:
+            candidates = sorted([*candidates, *self.largeEntries])
+        return [self.entries[index][1] for index in candidates]

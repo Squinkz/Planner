@@ -67,7 +67,7 @@ def Main():
     assert image.pixelColor(120, 70).alpha() > 0
     assert all(image.pixelColor(x, y).alpha() == 0 for x in range(30, 210) for y in range(32, 68))
     # The actual wall cut reveals precisely the same grid as an empty viewport.
-    # Canvas rooms retain thin passage edges; tinted rooms hide them.
+    # Editor rooms retain thin passage edges regardless of room tint.
     viewport.floors = False
     viewport.walls = []
     viewport.windows = []

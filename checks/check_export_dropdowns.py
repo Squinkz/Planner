@@ -61,8 +61,8 @@ def Main():
 
         for formatName in ("PNG", "SVG"):
             panel.typeField.setCurrentIndex(panel.typeField.findData(formatName))
-            for mode in range(2):
-                panel.scaleModeTabs.setCurrentIndex(mode)
+            for mode in ("Print", "Architectural", "Digital"):
+                panel.SetScaleOption("scaleMode", mode)
                 app.processEvents()
                 CheckControls(panel, f"Export {formatName} mode {mode}")
                 scroll = panel.scrollArea.horizontalScrollBar()
@@ -102,7 +102,7 @@ def Main():
         main.sidebarTabs.setCurrentWidget(panel)
         directory = Path(__file__).resolve().parent.parent / "diagnostics"
         (directory / "export-dropdown-sizes.json").write_text(json.dumps(report, indent = 2), encoding = "utf-8")
-        panel.scaleModeTabs.setCurrentIndex(0)
+        panel.SetScaleOption("scaleMode", "Digital")
         app.processEvents()
         panel.grab().save(str(directory / "export-dropdown-preview.png"))
         main.close()

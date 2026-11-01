@@ -16,8 +16,7 @@ These bundled font files are unmodified copies.
 
 D-DIN Condensed
 ---------------
-File: D-DINCondensed.ttf
-Version: 1.00
+Files: D-DINCondensed.ttf (Version 1.00), D-DINCondensed-Bold.ttf (Version 1.10)
 Copyright (c) 2017, Datto Inc. (fonts@datto.com)
 Designer identified by the font: Charles Nix
 Original project: https://www.datto.com/fonts/d-din

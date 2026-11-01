@@ -18,7 +18,7 @@ and reserved-graphics terms:
 | Bundled files | Origin | Complete notice |
 | --- | --- | --- |
 | NotoSans-Regular.ttf, NotoSans-SemiBold.ttf, NotoSans-Bold.ttf | Unmodified Noto Sans 2.015, copyright 2022 The Noto Project Authors | [OFL.txt](../../planner-main/assets/fonts/OFL.txt) |
-| D-DINCondensed.ttf | D-DIN Condensed 1.00, copyright 2017 Datto Inc., designer Charles Nix; Reserved Font Name D-DIN Condensed | [OFL-D-DIN.txt](../../planner-main/assets/fonts/OFL-D-DIN.txt) |
+| D-DINCondensed.ttf, D-DINCondensed-Bold.ttf | D-DIN Condensed Regular 1.00 and Bold 1.10, copyright 2017 Datto Inc., designer Charles Nix; Reserved Font Name D-DIN Condensed | [OFL-D-DIN.txt](../../planner-main/assets/fonts/OFL-D-DIN.txt) |
 | DraftingSmallCaps-Regular.ttf | Modified small-caps version of Architects Daughter, originally copyright 2010 Kimberly Geswein | [OFL-DraftingSmallCaps.txt](../../planner-main/assets/fonts/OFL-DraftingSmallCaps.txt) |
 
 [FONTLOG.txt](../../planner-main/assets/fonts/FONTLOG.txt) records sources and the

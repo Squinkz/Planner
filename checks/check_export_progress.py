@@ -15,6 +15,7 @@ from planner_app.export_plan import RenderPlan
 
 def Main():
     with ExampleWindow() as (main, folder):
+        main.exportPanel.overrides["scaleMode"] = "Digital"
         v = main.viewport
         InstallScene(main, [Wall(QtCore.QPointF(-900, 0), QtCore.QPointF(900, 0), 200),
                             Furnishing(v.furnishingDefinitions["desk"], QtCore.QPointF(0, 600))])
@@ -129,7 +130,7 @@ def Main():
         import main as entry
         with patch.object(sys, "argv", ["Planner.exe", "--export-worker", "job.json"]), \
                 patch("planner_app.export_worker.RunExportWorker", return_value = 0) as worker, \
-                patch.object(entry, "AcquireSessionLock", side_effect = AssertionError("Export must not acquire a session lock")):
+                patch("planner_app.ui.session.AcquireSessionLock", side_effect = AssertionError("Export must not acquire a session lock")):
             assert entry.Main() == 0
             worker.assert_called_once_with("job.json")
 

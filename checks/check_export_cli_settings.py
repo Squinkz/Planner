@@ -13,6 +13,7 @@ from PySide6 import QtCore, QtGui
 from fixtures.parity_examples import ExampleWindow, InstallScene
 from planner_app.models import Furnishing, Label, NorthArrow, Wall
 from planner_app.export_plan import RenderPlan
+from planner_app.export_settings import BorderSize
 from planner_app.project_codec import DecodeProject
 from planner_app.graphics import palette
 
@@ -112,7 +113,8 @@ def Main():
         assert result.returncode == 0 and "Automatic bounds" in result.stdout, result.stderr
         noBorder = RenderPlan(planPath, 100)
         defaultImage = QtGui.QImage(str(outputPath.with_suffix(".png")))
-        assert defaultImage.size() == noBorder.size() + QtCore.QSize(112, 112), "Missing settings lost the default reference-zone border"
+        defaultBorder = BorderSize("Ruler + Reference Zones")
+        assert defaultImage.size() == noBorder.size() + QtCore.QSize(2 * defaultBorder, 2 * defaultBorder), "Missing settings lost the default reference-zone border"
         # Missing unit overrides inherit the saved project units in both the UI
         # and CLI/API path, including imperial dimension and ruler formatting.
         data["settings"]["exportSettings"] = {"bounds": [0, 0, 6000, 4500], "border": "Ruler", "showGrid": True,

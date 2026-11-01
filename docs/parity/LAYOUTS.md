@@ -180,8 +180,8 @@ Angle and North. Wrapping and horizontal overflow retain readable widget minima.
 ## EXPORT-UI-01: Export panel composition
 
 The Export tab is divided into three independently sized regions. Heading,
-path/browse, Type, separator and Digital/Architectural tabs stay above the scroll
-area. Canvas, Border, Grid, Line Weight, Dimensions, Composite and Visibility
+path/browse, Type, separator and Digital/Architectural/Print tabs stay above the scroll
+area. Canvas, Border, Grid, Line Weight, Dimensions, Scale Bar, Title Block, Composite and Visibility
 scroll together in that order. The 48 px Export action stays below the sidebar
 splitter, outside this scroll area, with margins 14/8/14/14 and 28 px artwork.
 Object Properties is hidden while Export is active. Returning to another tab
@@ -208,6 +208,10 @@ it for PNG, then a resolution readout on the next row. SVG uses units/m in
 Digital, omits both resolution rows and PPI, and removes the entire Composite
 section. Optimized PNG uses the PNG layout. See EXPORT-01/03 for conversion,
 defaults, encoding and bounded-preview rules.
+The mode tabs fit the active page's contents. Print adds paper categories,
+orientation icon buttons and paired overlap fields/reset. Paper dimensions
+appear right-aligned in the dropdown and follow orientation. SVG hides PPI and
+pixel-resolution labels while retaining selected-page count.
 
 Numeric widths below are the requested widths. The shared theme's readable
 minimum takes precedence when larger: under the current theme, the nominal
@@ -216,12 +220,14 @@ forcing an input below the shared widget contract.
 
 | Section | Internal composition and dependent states |
 | --- | --- |
-| Canvas | Content-sized right-aligned labels, 8 px horizontal and 12 px vertical gaps. Theme, Background, Walls, Lines, then Solid Objects and Floors in a separate full-width checkbox grid with a shared content-sized label column and a 24 px gap. Floors is directly below Solid Objects, uses the same row height and remains independently enabled. Color rows contain an expanding swatch button, 8 px gap and 32 px reset. Theme inheritance and explicit color overrides are distinct states. |
+| Canvas | Content-sized right-aligned labels, 8 px horizontal and 12 px vertical gaps. Theme, Background, Walls, Lines, Room Style, then Solid Rooms and Solid Objects in a full-width checkbox grid with a shared content-sized label column and a 24 px gap. Color rows contain an expanding swatch button, 8 px gap and 32 px reset. Theme inheritance and explicit color overrides are distinct states. |
 | Border | Full-width style dropdown without a redundant label, then Color and Border Size. Size caption sits above slider plus 72 px number field. Range 1–128, initial 28, expressed in output pixels/SVG units. None disables color/size dependents. |
 | Grid | Show Grid caption with a right-hand checkbox, Color row, then caption-above-control amount rows. Each row is expanding slider, 80 px number, 34 px reset with 8 px gaps. Overall intensity is 0–2, others 0–1, three decimals. An extra 8 px separates Overall from Major/Minor/Origin. Show Grid off disables dependent groups. |
 | Line Weight | Caption-above-control rows for Base width, Walls, Architectural objects, Furnishings and Dimensions. Slider, number, reset with 8 px gaps. Base width is 1–4 px with 104 px field; other fields are 0–2 multipliers with 88 px fields. Resets are 34 px. |
 | Dimensions | Units and Precision rows use expanding 32 px dropdowns in one aligned form with 16 px horizontal/12 px vertical gaps. A centered Measure heading precedes the checkbox tree. Draw dimensions is the collapsible, initially expanded root with Walls/Stairs/Counters/Railings children. Rows are 32 px with 24 px indentation and no selection highlight; height fits 160 px expanded or 32 px collapsed. The shared Walls controls follow, using the same wall icon, 8 px spacing, Mode, conditional Wall reference, category tabs, slider/label/reset controls and active-page height as Options. Exterior uses binary split controls, All retains facing-side choices, and stacked hides the tabs. Wall controls disable when export wall dimensions are off. Every setting writes an independent export override. |
 | Composite | Shared centered Vignette and Texture subheadings. Enable Vignette caption with a right-hand checkbox, then Strength caption and slider/80 px field/32 px reset. Texture dropdown follows its heading, then Scale, Angle, Strength, Highlights, Midtones, Shadows. Captions sit 4 px above rows, row gaps are 8 px. Texture None disables all amount groups, stretch textures also disable Scale. Vignette off disables Strength. |
+| Scale Bar | Draw Scale Bar checkbox, four exclusive Position icon buttons, Divisions dropdown (Progressive, Equal, Subdivided) and Style dropdown (Alternating, Checker, Stepped). Position uses align_corner_bl rotated to each corner, with the same 32 px buttons and 24 px icons as Title Block. Length and clean distance marks are automatic. The checkbox disables the buttons and both dropdowns. Appears immediately before Title Block. |
+| Title Block | Draw Title Block checkbox disables dependent controls. Position uses Right/Bottom icon buttons; Logo and Date share rows with their controls. Date has a Today reset. Only Custom logo shows the file field/browser. Text fields follow, with multiline address/notes. Appears immediately before Composite. |
 | Visibility | Scene hierarchy cloned from World, without reference-image controls. World contains Walls plus collapsible Objects and Annotations checkbox parents. Group checkboxes toggle descendants and display partial states. Categories retain their checkboxes and counts. No selection highlight, 24 px indentation, 32 px rows; height fits currently expanded rows, including the two parents. Preserve tree scroll position when rebuilding. |
 
 File exports use a themed, window-modal Exporting dialog with the Export window
@@ -231,8 +237,8 @@ standard dialog button box contains Cancel. Closing or Escape also cancels;
 the dialog remains open with Cancelling status until its worker exits.
 
 Slider and number fields stay synchronized. Resets use the relevant factory or
-texture-derived default, not a universal zero. Texture selection exposes its
-filename in the tooltip. Export number fields use settings-style arrow buttons,
+texture-derived default, not a universal zero. Texture selection shows readable
+names without filename metadata tooltips. Export number fields use settings-style arrow buttons,
 not the arrowless property scrub appearance. Color pickers preview changes,
 preserve explicit versus inherited colors and support cancellation. Export has
 its own undo/redo and camera/crop state. Presentation overrides must not leak

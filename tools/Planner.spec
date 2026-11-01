@@ -12,7 +12,7 @@ data += [(str(app / "vendor"), "vendor"), (str(app / "startup.plan"), ".")]
 data += [(str(app / "furnishings" / name), "furnishings/" + name) for name in ("definitions", "images")]
 licenseFiles = ("LICENSES.txt", "COPYING", "ASSET_LICENSE.txt", "BRANDING_LICENSE.txt")
 data += [(str(app / name), ".") for name in licenseFiles]
-for package in ("PySide6", "PySide6_Essentials", "PySide6_Addons", "shiboken6"):
+for package in ("PySide6", "PySide6_Essentials", "PySide6_Addons", "shiboken6", "numpy"):
     data += copy_metadata(package)
 
 analysis = Analysis([str(root / "tools/windows_entry.py")],

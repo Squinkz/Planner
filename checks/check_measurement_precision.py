@@ -9,6 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "planner-main"))
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 from PySide6 import QtCore, QtGui, QtWidgets
 from planner_app.graphics.text import PathTextPainter
+from planner_app.graphics import retained_dimensions
 from planner import MainWindow, Wall
 from planner_app.project_codec import DecodeProject
 from planner_app.units import FormatLength, GridUnit, measurementPrecisions, unitModes
@@ -36,6 +37,11 @@ def Main():
             drawn.append(arguments[-1])
             return super().drawText(*arguments)
 
+    textPath = retained_dimensions.TextPath
+    def RecordingTextPath(text, *arguments, **keywords):
+        drawn.append(text)
+        return textPath(text, *arguments, **keywords)
+
     for precision, rounded in (("High", 1235), ("Medium", 1235), ("Low", 1240)):
         propertyValues = {name: field.value() for name, field in main.propertyFields.items()}
         panel.precisionField.setCurrentText(precision)
@@ -44,7 +50,8 @@ def Main():
         for mode in unitModes[:4]:
             panel.unitsField.setCurrentText(mode)
             drawn.clear()
-            with patch("planner_app.viewport.rendering.PathTextPainter", RecordingPainter):
+            with patch("planner_app.viewport.rendering.PathTextPainter", RecordingPainter), \
+                    patch.object(retained_dimensions, "TextPath", RecordingTextPath):
                 v.grab()
             expected = FormatLength(rounded, mode, includeUnit = False)
             assert expected in drawn, (precision, mode, drawn)
@@ -61,18 +68,22 @@ def Main():
     observedUnits = set()
     for majorStep in (1000, 50, 5):
         v.zoom = 100 / (majorStep * v.basePixelsPerMillimeter)
-        v.panOffset = QtCore.QPointF()
+        # Keep a measured wall face visible at very high zoom; zoom painting
+        # intentionally omits annotations outside the viewport.
+        v.panOffset = QtCore.QPointF(0, wall.width / 2 * v.zoom * v.basePixelsPerMillimeter)
         divisor, unit = GridUnit(v.GridSteps()[0], v.unitsMode)
         observedUnits.add(unit)
         drawn.clear()
-        with patch("planner_app.viewport.rendering.PathTextPainter", RecordingPainter):
+        with patch("planner_app.viewport.rendering.PathTextPainter", RecordingPainter), \
+                patch.object(retained_dimensions, "TextPath", RecordingTextPath):
             v.grab()
         expected = FormatLength(1234.6, v.unitsMode, adaptive = unit, precision = "Medium", includeUnit = False)
         assert expected in drawn and unit in drawn, (unit, drawn)
         # Explicit units do not change with zoom.
         panel.unitsField.setCurrentText("Meters")
         drawn.clear()
-        with patch("planner_app.viewport.rendering.PathTextPainter", RecordingPainter):
+        with patch("planner_app.viewport.rendering.PathTextPainter", RecordingPainter), \
+                patch.object(retained_dimensions, "TextPath", RecordingTextPath):
             v.grab()
         assert "1.235" in drawn
         panel.unitsField.setCurrentText("Adaptive Metric")

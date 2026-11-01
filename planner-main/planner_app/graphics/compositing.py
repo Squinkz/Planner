@@ -6,6 +6,7 @@ from functools import lru_cache
 from pathlib import Path
 from PySide6 import QtCore, QtGui
 from planner_app.paths import texturesDirectory
+from planner_app.numpy_runtime import LoadNumPy
 
 vignetteNoise = None
 
@@ -78,36 +79,45 @@ def LoadNormalTexture(path, stamp):
 
 
 @lru_cache(maxsize = 1)
-def NormalLightingTile(path, stamp, angle, highlights = 1, midtones = 1, shadows = 1):
+def NormalTextureLookup(path, stamp):
+    # Import on first textured render, so ordinary editor/SVG startup does not
+    # load the numerical runtime. Cached arrays own their data independently
+    # of the QImage, which can be evicted when reading an AO companion.
+    np = LoadNumPy()
     normal = LoadNormalTexture(path, stamp)
-    source = normal.constBits()
-    pixels = bytearray(normal.width() * normal.height() * 4)
+    source = np.frombuffer(normal.constBits(), dtype = np.uint8).reshape(normal.height(), normal.width(), 4)
+    lookup = source[:, :, 0].astype(np.uint16) | (source[:, :, 1].astype(np.uint16) << 8)
+    keys = np.unique(lookup)
+    normalX = (keys & 255).astype(np.float64) / 127.5 - 1
+    normalY = (keys >> 8).astype(np.float64) / 127.5 - 1
+    return normal.width(), normal.height(), lookup, keys, normalX, normalY
+
+
+@lru_cache(maxsize = 1)
+def NormalLightingTile(path, stamp, angle, highlights = 1, midtones = 1, shadows = 1):
+    np = LoadNumPy()
+    width, height, lookup, keys, normalX, normalY = NormalTextureLookup(path, stamp)
     cosine, sine = math.cos(math.radians(angle)), math.sin(math.radians(angle))
-    colors = {}
-    for offset in range(0, len(pixels), 4):
-        red, green = source[offset], source[offset + 1]
-        key = red * 256 + green
-        color = colors.get(key)
-        if color is None:
-            nx, ny = red / 127.5 - 1, green / 127.5 - 1
-            rotatedX = nx * cosine - ny * sine
-            rotatedY = nx * sine + ny * cosine
-            up, down = min(1, max(0, -rotatedY)), min(1, max(0, rotatedY))
-            side = min(1, abs(rotatedX))
-            up *= highlights
-            down *= shadows
-            midtone = 1 - .5 * side * midtones
-            # Black multiply, white screen, then half-gray multiply. Fuse
-            # C' = C * factor + highlight into one source-over
-            # tile; no full-render masks or per-frame pixel loops are needed.
-            factor = (1 - down) * (1 - up) * midtone
-            highlight = up * midtone
-            alpha = 1 - factor
-            value = round(255 * highlight / alpha) if alpha > 0 else 0
-            color = bytes((value, value, value, round(255 * alpha)))
-            colors[key] = color
-        pixels[offset:offset + 4] = color
-    return QtGui.QImage(bytes(pixels), normal.width(), normal.height(), normal.width() * 4,
+    # Keep Python's double precision, operation order and ties-to-even rounding.
+    # Separate array operations avoid fused arithmetic changing edge pixels.
+    rotatedX = normalX * cosine - normalY * sine
+    rotatedY = normalX * sine + normalY * cosine
+    up = np.minimum(1, np.maximum(0, -rotatedY)) * highlights
+    down = np.minimum(1, np.maximum(0, rotatedY)) * shadows
+    midtone = 1 - .5 * np.minimum(1, np.abs(rotatedX)) * midtones
+    factor = (1 - down) * (1 - up) * midtone
+    highlight = up * midtone
+    alpha = 1 - factor
+    value = np.zeros_like(alpha)
+    np.divide(255 * highlight, alpha, out = value, where = alpha > 0)
+    gray = np.rint(value).astype(np.uint32)
+    opacity = np.rint(255 * alpha).astype(np.uint32)
+    # Explicit little-endian words produce RGBA bytes on every host. Only keys
+    # present in this texture are read; the palette is never retained.
+    colors = np.empty(65536, dtype = "<u4")
+    colors[keys] = gray | (gray << 8) | (gray << 16) | (opacity << 24)
+    pixels = colors[lookup].tobytes()
+    return QtGui.QImage(pixels, width, height, width * 4,
                        QtGui.QImage.Format.Format_RGBA8888).copy()
 
 

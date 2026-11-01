@@ -1,6 +1,9 @@
 """Attachment selection, lazy connected traversal and wall-mounted opening fitting."""
 import math
 
+# Physical clearance, independent of the supporting wall's length.
+openingTolerance = .01
+
 
 def AttachedVertexIndices(first, second, width, vertices, anchor = None):
     deltaX, deltaY = second[0] - first[0], second[1] - first[1]
@@ -20,18 +23,41 @@ def AttachedVertexIndices(first, second, width, vertices, anchor = None):
     return attached
 
 
-def ConnectedAttachments(seed, candidates, intersects = None):
+def ConnectedAttachments(seed, candidates, intersects = None, nearby = None):
     """Ordered breadth-first discovery with a lazy optional shape-contact backend.
 
     Seed and candidates are (opaque key, first point, second point). Without a backend,
     connections use coincident endpoints. The callback accepts two opaque keys;
     traversal preserves query order and never materializes a full adjacency graph.
+    An optional read-only ordered broad phase supplies candidate keys for each parent.
     """
     objects = {entry[0]: entry for entry in candidates}
     objects[seed[0]] = seed
+    endpointBuckets = None
+    if nearby is None and intersects is None and isinstance(candidates, (list, tuple)) and len(candidates) >= 32:
+        endpoints = [point for key, first, second in candidates for point in (first, second)]
+        if all(math.isfinite(value) for point in endpoints for value in point):
+            # Whole-unit cells conservatively cover .01 contacts without
+            # magnifying coordinate-division error far from the origin.
+            endpointBuckets = {}
+            for index, (x, y) in enumerate(endpoints):
+                endpointBuckets.setdefault((math.floor(x), math.floor(y)), []).append(index // 2)
     pending, visited = [seed[0]], {seed[0]}
     for parent in pending:
-        for key, first, second in candidates:
+        if (intersects is None or nearby is not None) and len(visited) == len(objects):
+            break
+        members = candidates
+        if nearby is not None:
+            members = (objects[key] for key in nearby(parent))
+        elif endpointBuckets is not None and all(math.isfinite(value) for point in objects[parent][1:] for value in point):
+            indices = set()
+            for x, y in objects[parent][1:]:
+                cellX, cellY = math.floor(x), math.floor(y)
+                for bucketX in range(cellX - 1, cellX + 2):
+                    for bucketY in range(cellY - 1, cellY + 2):
+                        indices.update(endpointBuckets.get((bucketX, bucketY), ()))
+            members = (candidates[index] for index in sorted(indices))
+        for key, first, second in members:
             if key in visited:
                 continue
             if intersects is not None:
@@ -84,9 +110,11 @@ def FitOpeningCenters(first, second, parentLength, openings, remainingLength,
 def OpeningWithinWall(parentLength, length, center):
     if parentLength < 1 or length < 1:
         return False
-    halfSpan = length / (2 * parentLength)
-    return not (center - halfSpan < -1e-8 or center + halfSpan > 1 + 1e-8)
+    distance = center * parentLength
+    return distance - length / 2 >= -openingTolerance and distance + length / 2 <= parentLength + openingTolerance
 
 
-def OpeningIntervalsOverlap(firstStart, firstEnd, secondStart, secondEnd):
-    return min(firstEnd, secondEnd) - max(firstStart, secondStart) > 1e-8
+def OpeningIntervalsOverlap(firstStart, firstEnd, secondStart, secondEnd, parentLength = 1.0):
+    """Compare fractional intervals using a physical millimeter clearance."""
+    overlap = min(firstEnd, secondEnd) - max(firstStart, secondStart)
+    return overlap * parentLength > openingTolerance

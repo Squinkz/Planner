@@ -86,6 +86,7 @@ def Exports():
         InstallScene(main, Rectangle(-2000, -2000, 4000, 4000) + [divider, Door(divider, .35, .65)])
         view.showGrid = view.showMeasurements = view.showTips = view.floors = False
         main.sidebarTabs.setCurrentWidget(panel)
+        panel.SetScaleOption("scaleMode", "Digital")
         panel.roomStyleField.setCurrentText("Canvas")
         panel.borderField.setCurrentText("None")
         panel.scaleField.setValue(200)

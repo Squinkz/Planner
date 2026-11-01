@@ -3,6 +3,8 @@ from planner_app.geometry.compound_furnishings import CompoundAuthoredBounds
 
 import math
 import re
+import base64
+import weakref
 from collections import OrderedDict
 from copy import deepcopy
 import xml.etree.ElementTree as ElementTree
@@ -68,8 +70,8 @@ def ApplyFurnishingBounds(root):
 
 def FurnishingArtworkBounds(furnishing, renderer):
     """World-space paint bounds, separate from the model's physical footprint."""
-    viewBox = renderer.viewBoxF()
-    artworkBounds = getattr(renderer, "artworkBounds", viewBox)
+    viewBox = renderer if isinstance(renderer, QtCore.QRectF) else renderer.viewBoxF()
+    artworkBounds = viewBox if isinstance(renderer, QtCore.QRectF) else getattr(renderer, "artworkBounds", viewBox)
     if viewBox.isEmpty():
         return QtCore.QRectF()
     center = (furnishing.firstVertex + furnishing.secondVertex) / 2
@@ -227,7 +229,10 @@ class FurnishingSvgRenderer(QtSvg.QSvgRenderer):
             self.fixedElements = list(fixedElements)
             self.letteringRoot = root if lettering or fixedElements else None
             self.letteringVariants = OrderedDict()
-            super().__init__(ElementTree.tostring(root))
+            svgData = ElementTree.tostring(root)
+            self.nativeSourceBytes = len(svgData)
+            self.nativeBaseBytes = len(svgData) * 4 + 4096
+            super().__init__(svgData)
             self.artworkBounds = self.boundsOnElement("").united(self.viewBoxF()) if customBounds else self.viewBoxF()
             return
         # Qt resolves image links even in hidden Inkscape tracing layers. Omit
@@ -248,7 +253,10 @@ class FurnishingSvgRenderer(QtSvg.QSvgRenderer):
         self.lettering = []
         self.fixedElements = []
         if not any(element.tag.rsplit("}", 1)[-1] == "text" for element in root.iter()):
-            super().__init__(ElementTree.tostring(root))
+            svgData = ElementTree.tostring(root)
+            self.nativeSourceBytes = len(svgData)
+            self.nativeBaseBytes = len(svgData) * 4 + 4096
+            super().__init__(svgData)
             self.artworkBounds = self.boundsOnElement("").united(self.viewBoxF()) if customBounds else self.viewBoxF()
             self.PrepareFixedElements(root)
             return
@@ -304,7 +312,10 @@ class FurnishingSvgRenderer(QtSvg.QSvgRenderer):
                 textElements.append((textId, scopeId, scopeBounds, scopeSize, transformId))
             else:
                 stack.extend((child, scopeId, scopeBounds, scopeSize) for child in reversed(list(element)))
-        super().__init__(ElementTree.tostring(root))
+        svgData = ElementTree.tostring(root)
+        self.nativeSourceBytes = len(svgData)
+        self.nativeBaseBytes = len(svgData) * 4 + 4096
+        super().__init__(svgData)
         self.artworkBounds = self.boundsOnElement("").united(self.viewBoxF()) if customBounds else self.viewBoxF()
         for textId, scopeId, scopeBounds, scopeSize, transformId in textElements:
             textBounds = self.boundsOnElement(textId)
@@ -343,7 +354,10 @@ class FurnishingSvgRenderer(QtSvg.QSvgRenderer):
                 element.set("font-family", self.letteringFont)
                 style = re.sub(r"(?:^|;)\s*(?:font-family|-inkscape-font-specification)\s*:[^;]*", "", element.get("style", ""))
                 element.set("style", style.rstrip(";") + f';font-family:"{family}"')
-        self.load(ElementTree.tostring(root))
+        svgData = ElementTree.tostring(root)
+        self.nativeSourceBytes = len(svgData)
+        self.nativeBaseBytes = len(svgData) * 4 + 4096
+        self.load(svgData)
         self.lettering = [(textId, self.LetteringBounds(textId, ownTransform.inverted()[0]), parentTransform,
                           scopeTransform, scopeBounds, ownTransform, ownScale, anchor)
                          for textId, textBounds, parentTransform, scopeTransform, scopeBounds, ownTransform, ownScale, anchor in self.lettering]
@@ -412,6 +426,32 @@ class FurnishingSvgRenderer(QtSvg.QSvgRenderer):
                 inkBounds = inkBounds.united((transform * ownInverse).map(path).boundingRect())
         return inkBounds if not inkBounds.isEmpty() else ownInverse.mapRect(textBounds)
 
+    def PrepareLetteringTemplate(self):
+        """Retain serialized artwork with slots for whole transform attributes."""
+        root = deepcopy(self.letteringRoot)
+        elements = {element.get("id"): element for element in root.iter() if element.get("id")}
+        marker = "plannerSvgTransformSlot"
+        while any(marker in value for element in root.iter()
+                  for value in (*element.attrib.values(), element.text or "", element.tail or "")):
+            marker += "_"
+        identifiers = list(dict.fromkeys([entry[0] for entry in self.fixedElements] + [entry[0] for entry in self.lettering]))
+        defaults = {}
+        for index, identifier in enumerate(identifiers):
+            element = elements[identifier]
+            original = element.get("transform")
+            # Match ElementTree's escaping and attribute order, including the
+            # absent attribute when a degenerate physical size skips correction.
+            defaults[identifier] = (ElementTree.tostring(ElementTree.Element("g", {"transform": original}))[2:-3]
+                                    if original is not None else b"")
+            element.set("transform", marker + str(index) + "_")
+        source = ElementTree.tostring(root)
+        parts, position = [], 0
+        for match in re.finditer(rb' transform="' + marker.encode("ascii") + rb'(\d+)_"', source):
+            parts.extend((source[position:match.start()], identifiers[int(match[1])]))
+            position = match.end()
+        parts.append(source[position:])
+        self.letteringTemplate = tuple(parts), defaults
+
     def render(self, painter, *arguments, worldSize = None):
         if isinstance(painter.device(), QtSvg.QSvgGenerator):
             # Keep fixed stroke widths while rendering at the chosen export scale,
@@ -445,10 +485,15 @@ class FurnishingSvgRenderer(QtSvg.QSvgRenderer):
             return super().render(painter, *arguments)
         key = (bounds.width(), bounds.height(), world.m11(), world.m12(), world.m21(), world.m22(),
                tuple(worldSize) if worldSize is not None else None)
+        if not self.lettering:
+            # Fixed-detail corrections depend only on physical dimensions.
+            # The SVG renderer still applies the current bounds/camera itself.
+            key = tuple(worldSize)
         variant = self.letteringVariants.get(key)
         if variant is None:
-            root = deepcopy(self.letteringRoot)
-            elements = {element.get("id"): element for element in root.iter() if element.get("id")}
+            if "letteringTemplate" not in self.__dict__:
+                self.PrepareLetteringTemplate()
+            corrections = {}
             scale = QtGui.QTransform.fromScale(bounds.width() / viewBox.width(), bounds.height() / viewBox.height())
             if worldSize is not None:
                 physicalScale = QtGui.QTransform.fromScale(worldSize[0] / viewBox.width(), worldSize[1] / viewBox.height())
@@ -474,8 +519,8 @@ class FurnishingSvgRenderer(QtSvg.QSvgRenderer):
                     desired = QtGui.QTransform(desired.m11(), desired.m12(), desired.m21(), desired.m22(),
                                               desired.dx() + offset.x(), desired.dy() + offset.y())
                     correction = desired * parentInverse
-                    elements[wrapperId].set("transform",
-                        f"matrix({correction.m11()} {correction.m12()} {correction.m21()} {correction.m22()} {correction.dx()} {correction.dy()})")
+                    corrections[wrapperId] = (f' transform="matrix({correction.m11()} {correction.m12()} {correction.m21()} '
+                        f'{correction.m22()} {correction.dx()} {correction.dy()})"').encode("ascii")
             for textId, textBounds, parentTransform, scopeTransform, scopeBounds, ownTransform, ownScale, anchor in self.lettering:
                 parentTotal = parentTransform * scale
                 scopeTotal = scopeTransform * scale
@@ -509,13 +554,26 @@ class FurnishingSvgRenderer(QtSvg.QSvgRenderer):
                 offset = targetCenter - uniform.map(textBounds.center())
                 uniform = QtGui.QTransform(uniform.m11(), uniform.m12(), uniform.m21(), uniform.m22(), offset.x(), offset.y())
                 correction = uniform * parentInverse
-                element = elements[textId]
-                element.set("transform",
-                    f"matrix({correction.m11()} {correction.m12()} {correction.m21()} {correction.m22()} {correction.dx()} {correction.dy()})")
-            variant = QtSvg.QSvgRenderer(ElementTree.tostring(root))
+                corrections[textId] = (f' transform="matrix({correction.m11()} {correction.m12()} {correction.m21()} '
+                    f'{correction.m22()} {correction.dx()} {correction.dy()})"').encode("ascii")
+            parts, defaults = self.letteringTemplate
+            source = b"".join(part if isinstance(part, bytes) else corrections.get(part, defaults[part]) for part in parts)
+            variant = QtSvg.QSvgRenderer(source)
             self.letteringVariants[key] = variant
+            costs = self.__dict__.setdefault("letteringVariantCosts", {})
+            costs[key] = max(getattr(self, "nativeBaseBytes", 4096), len(source) * 4 + 4096
+                             + getattr(self, "embeddedImageBytes", 0))
             while len(self.letteringVariants) > 16:
-                self.letteringVariants.popitem(last = False)
+                retired, discarded = self.letteringVariants.popitem(last = False)
+                costs.pop(retired, None)
+            self.retainedByteEstimate = FurnishingRetainedBytes(self)
+            entries = []
+            for cacheReference, cacheKey, rootReference in self.__dict__.get("cacheEntries", ()):
+                cache, rootRenderer = cacheReference(), rootReference()
+                if cache is not None and rootRenderer is not None and dict.get(cache, cacheKey) is rootRenderer:
+                    cache.RefreshCost(cacheKey, rootRenderer)
+                    entries.append((cacheReference, cacheKey, rootReference))
+            self.cacheEntries = entries
         else:
             self.letteringVariants.move_to_end(key)
         return variant.render(painter, bounds)
@@ -587,7 +645,12 @@ def FurnishingRenderer(imagePath, selectionColor = None, palette = None, lineWid
         return QtSvg.QSvgRenderer(b"")
     lineWidth = defaultLineWidths["furnishings"] if lineWidth is None else lineWidth
     cacheKey = (source, canvasPalette.labelFont, tuple(nominalSize) if nominalSize is not None else None, lineWidth)
-    cached = preparedFurnishingCache.pop(cacheKey, None)
+    baseKey = cacheKey[:3] + (None,)
+    cached = preparedFurnishingCache.pop(baseKey, None)
+    if cached is not None:
+        cacheKey = baseKey
+    else:
+        cached = preparedFurnishingCache.pop(cacheKey, None)
     if cached is None:
         try:
             root = ValidateFurnishingSvg(source)
@@ -607,11 +670,20 @@ def FurnishingRenderer(imagePath, selectionColor = None, palette = None, lineWid
                     element.set("data-theme-outline", "missing")
         if nominalSize is not None:
             root.set("data-furnishing-size", f"{nominalSize[0]} {nominalSize[1]}")
+        # Width-independent artwork can share font/bounds preparation across
+        # native pages and differently sampled context previews. Dash lengths
+        # depend on width, so retain their existing separate preparation.
+        hasDashes = any("stroke-dash" in name.lower() or "stroke-dash" in value.lower()
+                       for element in root.iter() for name, value in element.attrib.items())
+        hasDashes = hasDashes or any(element.tag.rsplit("}", 1)[-1] == "style" and "stroke-dash" in (element.text or "").lower()
+                                    for element in root.iter())
+        if not hasDashes:
+            cacheKey = baseKey
         NormalizeFurnishingDashes(root, lineWidth)
         template = FurnishingSvgRenderer(root)
         prepared = (tuple(template.lettering), template.letteringFont if template.lettering else canvasPalette.labelFont,
                     any(element.get("data-planner-bounds") == "true" for element in root.iter()), tuple(template.fixedElements))
-        cached = (root, prepared)
+        cached = (root, prepared, QtCore.QRectF(template.viewBoxF()))
     preparedFurnishingCache[cacheKey] = cached
     # Retain parsed artwork and font measurements, never unbounded color variants.
     while len(preparedFurnishingCache) > 128 or sum(len(key[0]) for key in preparedFurnishingCache) > 8 * 1024 * 1024:
@@ -679,6 +751,22 @@ def FurnishingRenderer(imagePath, selectionColor = None, palette = None, lineWid
     root.set("color", root.get("color", foreground))
     root.set("stroke-width", strokeWidth)
     renderer = FurnishingSvgRenderer(root, prepared = prepared)
+    # Native SVG storage is larger than its source, especially embedded PNGs.
+    # Include capacity for the renderer's bounded lettering/fixed-size variants.
+    retainedBytes = max(len(source), renderer.nativeSourceBytes) * 4 + 4096
+    imageBytes = 0
+    for element in root.iter():
+        if element.tag.rsplit("}", 1)[-1] == "image":
+            for attribute, value in element.attrib.items():
+                prefix = "data:image/png;base64,"
+                if attribute.rsplit("}", 1)[-1] == "href" and value.lower().startswith(prefix):
+                    headerMatch = re.compile(r"(?:\s*[A-Za-z0-9+/=]){32}").match(value, len(prefix))
+                    header = base64.b64decode(headerMatch[0]) if headerMatch is not None else b""
+                    if header.startswith(b"\x89PNG\r\n\x1a\n") and len(header) >= 24:
+                        imageBytes += int.from_bytes(header[16:20], "big") * int.from_bytes(header[20:24], "big") * 8
+    renderer.embeddedImageBytes = imageBytes
+    renderer.nativeBaseBytes = retainedBytes + imageBytes
+    renderer.retainedByteEstimate = renderer.nativeBaseBytes
     if not solidBackground:
         # Capture the original background shapes, including curves and SVG
         # transforms. Bounding rectangles would incorrectly hide nearby ink.
@@ -686,10 +774,172 @@ def FurnishingRenderer(imagePath, selectionColor = None, palette = None, lineWid
         maskPalette = {"outline": "#000000", "background": "#ffffff", "missing": "#000000"}
         maskRenderer = FurnishingRenderer(imagePath, palette = maskPalette, lineWidth = 0, nominalSize = nominalSize, excludeErrors = excludeErrors)
         renderer.backgroundPath = FurnishingBackgroundPath(maskRenderer)
+        renderer.retainedByteEstimate += getattr(renderer.solidRenderer, "retainedByteEstimate", 4096) + renderer.backgroundPath.elementCount() * 32
     return renderer
 
 
-class FurnishingRendererMap(SceneDict):
+def FurnishingRetainedBytes(renderer):
+    """Estimate allocated native artwork/variants, including borrowed solids."""
+    if not hasattr(renderer, "nativeBaseBytes"):
+        return getattr(renderer, "retainedByteEstimate", 4096)
+    costs = renderer.__dict__.get("letteringVariantCosts", {})
+    size = renderer.nativeBaseBytes + sum(costs.get(key, renderer.nativeBaseBytes)
+                                         for key in getattr(renderer, "letteringVariants", ()))
+    solid = getattr(renderer, "solidRenderer", None)
+    if solid is not None:
+        size += FurnishingRetainedBytes(solid)
+    background = getattr(renderer, "backgroundPath", None)
+    if background is not None:
+        size += background.elementCount() * 32
+    return size
+
+
+def TrimFurnishingVariant(renderer):
+    """Release one old scale variant while retaining reusable base artwork."""
+    variants = getattr(renderer, "letteringVariants", None)
+    if variants:
+        retired, discarded = variants.popitem(last = False)
+        renderer.__dict__.get("letteringVariantCosts", {}).pop(retired, None)
+        renderer.retainedByteEstimate = FurnishingRetainedBytes(renderer)
+        return True
+    solid = getattr(renderer, "solidRenderer", None)
+    if solid is not None and TrimFurnishingVariant(solid):
+        renderer.retainedByteEstimate = FurnishingRetainedBytes(renderer)
+        return True
+    return False
+
+
+class FurnishingRendererCache(SceneDict):
+    """Bound native artwork independently from the parsed source/template cache."""
+    def __init__(self, values = (), changed = None):
+        super().__init__({}, changed or (lambda: None))
+        self.entryLimit = 128
+        self.byteLimit = 16 * 1024 * 1024
+        self.costs = OrderedDict()
+        self.byteCount = 0
+        self.revision = 0
+        self.identities = {}
+        for key, renderer in dict(values).items():
+            self.Store(key, renderer)
+
+    def __getitem__(self, key):
+        renderer = dict.__getitem__(self, key)
+        if key in self.costs:
+            self.costs.move_to_end(key)
+            self.RefreshCost(key, renderer)
+        return renderer
+
+    def RenderToken(self, key):
+        """Track authored map edits without realizing or retaining native SVGs."""
+        renderer = dict.get(self, key)
+        identity = id(renderer) if renderer is not None else None
+        external = identity if identity != self.identities.get(key) else None
+        return id(self), self.revision, key, external
+
+    def Store(self, key, renderer):
+        previous = self.costs.pop(key, 0)
+        self.byteCount -= previous
+        dict.pop(self, key, None)
+        self.identities.pop(key, None)
+        size = FurnishingRetainedBytes(renderer)
+        while size > self.byteLimit and TrimFurnishingVariant(renderer):
+            size = FurnishingRetainedBytes(renderer)
+        if size > self.byteLimit or self.entryLimit <= 0:
+            return
+        dict.__setitem__(self, key, renderer)
+        self.identities[key] = id(renderer)
+        self.costs[key] = size
+        self.byteCount += size
+        pending = [renderer]
+        while pending:
+            entry = pending.pop()
+            if isinstance(entry, FurnishingSvgRenderer):
+                entries = []
+                for owner, name, root in entry.__dict__.get("cacheEntries", ()):
+                    ownerCache, rootRenderer = owner(), root()
+                    if ownerCache is not None and rootRenderer is not None and dict.get(ownerCache, name) is rootRenderer:
+                        entries.append((owner, name, root))
+                if not any(owner() is self and name == key for owner, name, root in entries):
+                    entries.append((weakref.ref(self), key, weakref.ref(renderer)))
+                entry.cacheEntries = entries
+                solid = getattr(entry, "solidRenderer", None)
+                if solid is not None:
+                    pending.append(solid)
+        self.EnforceBudget()
+
+    def RefreshCost(self, key, renderer):
+        if dict.get(self, key) is renderer and key in self.costs:
+            size = FurnishingRetainedBytes(renderer)
+            self.byteCount += size - self.costs[key]
+            self.costs[key] = size
+            renderer.retainedByteEstimate = size
+            self.EnforceBudget()
+
+    def EnforceBudget(self):
+        while self.costs and len(self.costs) > self.entryLimit:
+            retired, size = self.costs.popitem(last = False)
+            dict.__delitem__(self, retired)
+            self.identities.pop(retired, None)
+            self.byteCount -= size
+        while self.costs and self.byteCount > self.byteLimit:
+            for key in self.costs:
+                renderer = dict.__getitem__(self, key)
+                if TrimFurnishingVariant(renderer):
+                    size = FurnishingRetainedBytes(renderer)
+                    self.byteCount += size - self.costs[key]
+                    self.costs[key] = size
+                    break
+            else:
+                retired, size = self.costs.popitem(last = False)
+                dict.__delitem__(self, retired)
+                self.identities.pop(retired, None)
+                self.byteCount -= size
+
+    def __setitem__(self, key, renderer):
+        self.Store(key, renderer)
+        self.revision += 1
+        self.changed()
+
+    def get(self, key, default = None):
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
+    def clear(self):
+        self.costs.clear()
+        self.identities.clear()
+        self.byteCount = 0
+        self.revision += 1
+        super().clear()
+
+    def pop(self, key, *default):
+        value = dict.pop(self, key, *default)
+        self.byteCount -= self.costs.pop(key, 0)
+        self.identities.pop(key, None)
+        self.revision += 1
+        self.changed()
+        return value
+
+    def __delitem__(self, key):
+        self.pop(key)
+
+    def popitem(self):
+        key, value = dict.popitem(self)
+        self.byteCount -= self.costs.pop(key, 0)
+        self.identities.pop(key, None)
+        self.revision += 1
+        self.changed()
+        return key, value
+
+    def update(self, *args, **kwargs):
+        for key, renderer in dict(*args, **kwargs).items():
+            self.Store(key, renderer)
+        self.revision += 1
+        self.changed()
+
+
+class FurnishingRendererMap(FurnishingRendererCache):
     """Realize scene artwork on demand, without parsing the unused catalog."""
     def __init__(self, definitions, selected = False, lineWidth = None, solidBackground = True, colors = None, selectionColor = None, excludeErrors = False):
         super().__init__({}, lambda: None)
@@ -702,13 +952,59 @@ class FurnishingRendererMap(SceneDict):
             "outline": themeColors["objectOutline"], "background": themeColors["canvas"], "missing": themeColors["missing"]}
         self.selectionColor = selectionColor if selectionColor is not None else themeColors["selectionOutline"] if selected else None
 
+    def RenderToken(self, key):
+        definition = self.definitions[key]
+        return (super().RenderToken(key), self.lineWidth, self.solidBackground, self.excludeErrors,
+                tuple(self.colors.items()), self.selectionColor, definition.get("graphicData"),
+                definition.get("imagePath"), definition["width"], definition["length"])
+
+    def ArtworkGeometry(self, key):
+        renderer = dict.get(self, key)
+        if renderer is not None:
+            if key in self.costs:
+                self.costs.move_to_end(key)
+            return renderer
+        definition = self.definitions[key]
+        try:
+            source = definition.get("graphicData") or Path(definition["imagePath"]).read_bytes()
+        except OSError:
+            return self[key]
+        width = defaultLineWidths["furnishings"] if self.lineWidth is None else self.lineWidth
+        keyPrefix = (source, canvasPalette.labelFont, (definition["width"], definition["length"]))
+        cached = preparedFurnishingCache.get(keyPrefix + (None,)) or preparedFurnishingCache.get(keyPrefix + (width,))
+        if cached is not None and not cached[1][2]:
+            # Ordinary artwork uses its viewBox as its exact culling bounds.
+            # No native/color/stroke renderer is needed just to reject an
+            # off-page object. Authored bounds may protrude and stay native.
+            return QtCore.QRectF(cached[2])
+        return self[key]
+
     def __missing__(self, key):
+        source = getattr(self, "solidSource", None)
+        if source is not None:
+            variants = getattr(source, "solidVariants", None)
+            if variants is None:
+                variants = source.solidVariants = FurnishingRendererCache()
+                variants.entryLimit, variants.byteLimit = source.entryLimit, source.byteLimit
+            renderer = variants.get(key)
+            if renderer is None:
+                original = dict.get(source, key)
+                if original is not None:
+                    renderer = getattr(original, "solidRenderer", original)
+                else:
+                    definition = self.definitions[key]
+                    renderer = FurnishingRenderer(definition.get("graphicData") or definition["imagePath"],
+                        selectionColor = self.selectionColor, palette = self.colors, lineWidth = self.lineWidth,
+                        solidBackground = True, nominalSize = (definition["width"], definition["length"]), excludeErrors = self.excludeErrors)
+                variants[key] = renderer
+            self.Store(key, renderer)
+            return renderer
         definition = self.definitions[key]
         renderer = FurnishingRenderer(definition.get("graphicData") or definition["imagePath"],
             selectionColor = self.selectionColor, palette = self.colors, lineWidth = self.lineWidth,
             solidBackground = self.solidBackground, nominalSize = (definition["width"], definition["length"]), excludeErrors = self.excludeErrors)
         # Populating a render cache does not change scene appearance or revisions.
-        dict.__setitem__(self, key, renderer)
+        self.Store(key, renderer)
         return renderer
 
     def get(self, key, default = None):
@@ -722,15 +1018,25 @@ class FurnishingRendererMap(SceneDict):
         exclude = self.excludeErrors if excludeErrors is None else excludeErrors
         result = FurnishingRendererMap(self.definitions, selected = self.selected, lineWidth = self.lineWidth,
             solidBackground = solid, colors = self.colors, selectionColor = self.selectionColor, excludeErrors = exclude)
+        result.entryLimit, result.byteLimit = self.entryLimit, self.byteLimit
         if changed is not None:
             result.changed = changed
+        if solid and not self.solidBackground and exclude == self.excludeErrors:
+            # Transparent-object capture borrows solid silhouettes. Realize
+            # them through the retained map so a temporary copy does not parse
+            # the same SVG catalog entries again on every preview refresh.
+            result.solidSource = self
+        elif solid == self.solidBackground and exclude == self.excludeErrors and hasattr(self, "solidSource"):
+            result.solidSource = self.solidSource
+        if solid == self.solidBackground and exclude == self.excludeErrors and hasattr(self, "solidVariants"):
+            result.solidVariants = self.solidVariants
         for key, renderer in self.items():
             if exclude != self.excludeErrors:
                 continue
             if solid == self.solidBackground:
-                dict.__setitem__(result, key, renderer)
+                result.Store(key, renderer)
             elif solid:
-                dict.__setitem__(result, key, getattr(renderer, "solidRenderer", renderer))
+                result.Store(key, getattr(renderer, "solidRenderer", renderer))
         return result
 
 

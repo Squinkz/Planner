@@ -16,10 +16,9 @@ from planner_app.graphics.north_arrow import DrawNorthArrow
 from planner_app.graphics.fireplace import FireplacePath
 from planner_app.graphics.object_composite import ObjectPaintDevice
 from planner_app.graphics.palette import themeColors
-from planner_app.graphics.fonts import fontFamily
 from planner_app.graphics import palette
 from planner_app.graphics.linework import LinePen
-from planner_app.graphics.furnishings import DrawFurnishing, SelectedFurnishingRenderer, FurnishingArtworkBounds, FurnishingRenderer
+from planner_app.graphics.furnishings import DrawFurnishing, SelectedFurnishingRenderer, FurnishingArtworkBounds, FurnishingRenderer, FurnishingRendererCache
 from planner_app.paths import furnishingsDirectory
 from planner_app.graphics.symbols import DrawOpeningSymbol, DrawStairSymbol, DrawStairArrows, WallOpeningPolygons
 from planner_app.geometry.stair_annotations import StairArrowRuns, StairEndpointNeighbors
@@ -27,11 +26,14 @@ from planner_app.graphics.arrows import ArrowPaths, ConnectedArrowDirections, Co
 from planner_app.models import OpenDoorway, Door, SwingingDoor, DoubleDoor, Furnishing, PocketDoor, BarnDoor, BifoldDoor, SilledWindow, CasementWindow, AwningWindow, DoubleCasementWindow, SlidingDoor, MeasurementGuide, BoundaryLine, DashedLine, SolidLine, Arrow, Counter, Railing, Stair, Wall, Pillar, Column, Label, Window, NorthArrow, Fireplace
 from planner_app.units import MetricUnit, FormatLength, PropertyUnit, GridUnit, imperialModes
 from planner_app.graphics.measurement_text import MeasurementTextPath
+from planner_app.graphics.retained_dimensions import RetainedDimensions
 from planner_app.geometry.measurement_stacks import BuildMeasurementStacks, VisibleWallDimensionSpans, StackedDimensionLengths
 from planner_app.geometry.measurements import GuideDepthOffset
 from .geometry import CollisionPass
+from .spatial_index import BoundsIndex
 from .diagnostics import MeasurePaint
 from .edit_cache import EditPaintCacheMixin
+from .paint_candidates import PaintCandidatesMixin
 from .polygon_clipping import SubtractConvexPolygon
 
 toolTipRows = {
@@ -68,7 +70,7 @@ toolTipRows = {
 }
 
 
-class RenderingMixin(EditPaintCacheMixin):
+class RenderingMixin(EditPaintCacheMixin, PaintCandidatesMixin):
     @MeasurePaint
     @CollisionPass
     def paintEvent(self, event):
@@ -90,7 +92,13 @@ class RenderingMixin(EditPaintCacheMixin):
                 self.renderSamples.append((renderStart, (perf_counter() - renderStart) * 1000.0))
                 return
 
-            stableScene = (bool(self.walls or self.windows or self.furnishings or self.labels)
+            hasScene = bool(self.walls or self.windows or self.furnishings or self.labels)
+            hitScene = getattr(self, "hitTestScene", None)
+            if hitScene is not None and hitScene[0][2] != self.renderChanges.topology:
+                self.hitTestScene = None
+            if not hasScene:
+                self.retainedMeasurements = None
+            stableScene = (hasScene
                            and self.dragStart is None and not self.isDragging and self.pendingWall is None and not self.pendingShapeWalls
                            and self.furnishingHandleDrag is None and not self.guiDragActive
                            and all(preview is None for preview in (self.furnishingPreview, self.windowDropPreview,
@@ -726,8 +734,9 @@ class RenderingMixin(EditPaintCacheMixin):
                changes.DefinitionKeys(),
                tuple(self.lineWidths.items()), tuple((id(obj), index) for obj, index in selection),
                changes.visibility, tuple(self.visibility.items()), self.showMeasurements, self.measurementPrecision,
+               self.measurementTextSize, self.measurementPixelsPerMillimeter,
                tuple(self.measurementVisibility.items()), tuple(self.measurementSettings.items()), self.wallMeasurementMode, self.wallMeasurementReference,
-               tuple(self.collisionSettings.items()), getattr(self, "exportRender", False))
+               tuple(self.collisionSettings.items()), self.drawOpeningOutlines, getattr(self, "exportRender", False))
         if self.verifyRenderRevisions:
             reference = self.SceneRenderValueKey(backgroundKey)
             previous = self.renderRevisionReference
@@ -746,9 +755,12 @@ class RenderingMixin(EditPaintCacheMixin):
         # Capture mutable properties as values: settings/property tools and
         # history can edit objects in place without changing sceneRevision.
         objectKeys = []
+        normalToken = getattr(self.furnishingRenderers, "RenderToken", None)
+        selectedToken = getattr(self.selectedFurnishingRenderers, "RenderToken", None)
         for obj in self.walls + self.windows + self.furnishings + self.labels:
             first, second = obj.firstVertex, obj.secondVertex
-            key = (id(obj), type(obj), first.x(), first.y(), second.x(), second.y(), obj.width, obj.measurementHidden)
+            key = (id(obj), type(obj), first.x(), first.y(), second.x(), second.y(), obj.width, obj.measurementHidden,
+                   tuple(getattr(obj, "geometryIssues", ())))
             if isinstance(obj, MeasurementGuide):
                 key += (obj.textOffset.x(), obj.textOffset.y())
                 if type(obj) is MeasurementGuide:
@@ -758,20 +770,21 @@ class RenderingMixin(EditPaintCacheMixin):
             if isinstance(obj, AngleGuide):
                 key += (obj.middleVertex.x(), obj.middleVertex.y())
             if isinstance(obj, Window):
-                key += (id(obj.parentWall), obj.measurementFlipped,
+                key += (id(obj.parentWall), obj.centerFraction, obj.length, obj.measurementFlipped,
                         getattr(obj, "hingeAtSecond", None), getattr(obj, "swingsOutwards", None),
                         getattr(obj, "panelsFlipped", None), getattr(obj, "sillDepth", None),
                         getattr(obj, "windowWell", False), getattr(obj, "wellDepth", 600.0), getattr(obj, "wellDashed", False))
                 if isinstance(obj, Fireplace):
-                    key += (obj.depth, obj.depthOffset, obj.material)
+                    key += (obj.depth, obj.depthOffset, obj.manualDepth, obj.manualDepthOffset, obj.material)
             elif isinstance(obj, Label):
-                key += (obj.text, obj.intensity)
+                key += (obj.text, obj.intensity, getattr(obj, "unitsOverride", None))
             elif isinstance(obj, NorthArrow):
                 key += (obj.intensity,)
             elif isinstance(obj, Furnishing):
                 definitionKey = obj.definition["key"]
-                key += (definitionKey, id(self.furnishingRenderers[definitionKey]),
-                        id(self.selectedFurnishingRenderers[definitionKey]), obj.flipHorizontal, obj.flipVertical)
+                key += (definitionKey, normalToken(definitionKey) if normalToken is not None else id(self.furnishingRenderers[definitionKey]),
+                         selectedToken(definitionKey) if selectedToken is not None else id(self.selectedFurnishingRenderers[definitionKey]),
+                         obj.flipHorizontal, obj.flipVertical, obj.behindCounters)
             else:
                 key += (obj.material, obj.firstMiter, obj.secondMiter)
                 if isinstance(obj, Stair):
@@ -779,14 +792,15 @@ class RenderingMixin(EditPaintCacheMixin):
                 elif isinstance(obj, Railing):
                     key += (obj.autosize, obj.manualPostCount, obj.spacingBounds)
                 elif isinstance(obj, Arrow):
-                    key += (obj.solidTip, obj.tipSize, obj.intensity)
+                    key += (obj.solidTip, obj.tipSize, obj.intensity, obj.directionReversed)
             objectKeys.append(key)
         selection = self.pendingShiftSelection[0] if self.pendingShiftSelection is not None else self.SelectionEntries()
         key = (backgroundKey, palette.labelFont, tuple(self.lineWidths.items()), tuple(objectKeys), tuple((id(obj), index) for obj, index in selection),
                 tuple(tuple(id(obj) for obj in group) for group in self.objectGroups),
                 frozenset(self.hiddenObjectIds), tuple(self.visibility.items()), self.showMeasurements, self.measurementPrecision,
+                self.measurementTextSize, self.measurementPixelsPerMillimeter,
                 tuple(self.measurementVisibility.items()), tuple(self.measurementSettings.items()), self.wallMeasurementMode, self.wallMeasurementReference,
-                tuple(self.collisionSettings.items()), getattr(self, "exportRender", False))
+                tuple(self.collisionSettings.items()), self.drawOpeningOutlines, getattr(self, "exportRender", False))
         if diagnostics is not None:
             diagnostics.RecordPhase("scene-key", started)
         return key
@@ -824,31 +838,76 @@ class RenderingMixin(EditPaintCacheMixin):
             if invertible:
                 passageClearance = math.hypot(inverseDevice.m11(), inverseDevice.m12(), inverseDevice.m21(), inverseDevice.m22())
         if not self.solidObjects:
+            return self.DrawTransparentScene(painter, drawingRect, origin, pixelsPerMillimeter, dirtyRects,
+                drawAnnotations, retainAnnotations, bakePassageClips, passageClearance)
+        return self.DrawOpaqueScene(painter, drawingRect, origin, pixelsPerMillimeter, dirtyRects,
+            drawAnnotations, retainAnnotations, bakePassageClips, passageClearance)
+
+    def DrawTransparentScene(self, painter, drawingRect, origin, pixelsPerMillimeter, dirtyRects,
+                             drawAnnotations, retainAnnotations, bakePassageClips, passageClearance):
+        retainCapture = getattr(self, "retainExportCapture", False) and isinstance(painter.device(), QtGui.QImage)
+        captures = getattr(self, "exportObjectCaptures", [])
+        captureKey = None
+        retained = None
+        if retainCapture:
+            captureKey = self.SceneRenderKey((self.zoom, self.basePixelsPerMillimeter,
+                self.width(), self.height(), drawingRect.x(), drawingRect.y(), drawingRect.width(), drawingRect.height(),
+                origin.x(), origin.y(), pixelsPerMillimeter, bakePassageClips, passageClearance,
+                self.floors, self.wallStyle, self.font().toString(), painter.font().toString(),
+                painter.renderHints().value, painter.device().logicalDpiX(), painter.device().logicalDpiY(),
+                tuple(themeColors.items())))
+            for index, capture in enumerate(captures):
+                if capture[0] == captureKey:
+                    retained = capture
+                    captures.append(captures.pop(index))
+                    break
+        if retained is not None:
+            device, sceneState = retained[1:3]
+        else:
             device = ObjectPaintDevice(self.size(), themeColors["canvas"])
             sourcePainter = PathTextPainter(device)
-            originalRenderers = (self.furnishingRenderers, self.selectedFurnishingRenderers, self.groupedFurnishingRenderers)
             try:
                 sourcePainter.setFont(painter.font())
                 sourcePainter.setRenderHints(painter.renderHints())
                 sourcePainter.setClipRect(drawingRect)
-                self.solidObjects = True
-                self.objectCaptureEngine = device.engine
-                self.furnishingRenderers, self.selectedFurnishingRenderers, self.groupedFurnishingRenderers = (
-                    (renderers.Copy(solidBackground = True) if hasattr(renderers, "Copy") else
-                     {key: getattr(renderer, "solidRenderer", renderer) for key, renderer in renderers.items()})
-                    for renderers in originalRenderers)
-                sceneState = self.DrawScene(sourcePainter, drawingRect, origin, pixelsPerMillimeter,
-                                            dirtyRects, drawAnnotations = False, bakePassageClips = bakePassageClips,
-                                            passageClearance = passageClearance)
+                captureRenderers = tuple(
+                    renderers.Copy(solidBackground = True) if hasattr(renderers, "Copy") else
+                    {key: getattr(renderer, "solidRenderer", renderer) for key, renderer in renderers.items()}
+                    for renderers in (self.furnishingRenderers, self.selectedFurnishingRenderers, self.groupedFurnishingRenderers))
+                sceneState = self.DrawOpaqueScene(sourcePainter, drawingRect, origin, pixelsPerMillimeter,
+                    dirtyRects, drawAnnotations = False, bakePassageClips = bakePassageClips,
+                    passageClearance = passageClearance, rendererMaps = captureRenderers, captureEngine = device.engine)
             finally:
                 sourcePainter.end()
-                self.solidObjects = False
-                self.objectCaptureEngine = None
-                self.furnishingRenderers, self.selectedFurnishingRenderers, self.groupedFurnishingRenderers = originalRenderers
-            device.engine.Replay(painter, drawingRect, clipCache = self.objectClipCache)
-            if drawAnnotations:
-                self.DrawSceneMeasurements(painter, drawingRect, sceneState, dirtyRects, retainCommands = retainAnnotations)
-            return sceneState
+            if retainCapture:
+                elements = imageBytes = 0
+                seenClips = set()
+                for path, pen, brush, transform, opacity, clip, mask, hints, brushOrigin in device.engine.commands:
+                    if isinstance(path, tuple):
+                        imageBytes += path[1].sizeInBytes()
+                    else:
+                        elements += path.elementCount()
+                    elements += mask.elementCount()
+                    if clip is not None and id(clip) not in seenClips:
+                        seenClips.add(id(clip))
+                        elements += clip.elementCount()
+                captures.append((captureKey, device, sceneState, elements, imageBytes))
+                # Retain original Qt commands, not a serialized or scaled
+                # picture. Bound both native geometry and embedded images.
+                while captures and (len(captures) > 4 or sum(len(item[1].engine.commands) for item in captures) > 8192
+                        or sum(item[3] for item in captures) > 262144 or sum(item[4] for item in captures) > 16 * 1024 * 1024):
+                    captures.pop(0)
+                self.exportObjectCaptures = captures
+        device.engine.Replay(painter, drawingRect, clipCache = self.objectClipCache)
+        if drawAnnotations:
+            self.DrawSceneMeasurements(painter, drawingRect, sceneState, dirtyRects, retainCommands = retainAnnotations)
+        return sceneState
+
+    def DrawOpaqueScene(self, painter, drawingRect, origin, pixelsPerMillimeter, dirtyRects = None,
+                        drawAnnotations = True, retainAnnotations = False, bakePassageClips = False,
+                        passageClearance = 0, rendererMaps = None, captureEngine = None):
+        normalRenderers, selectedRenderers, groupedRenderers = (rendererMaps if rendererMaps is not None else
+            (self.furnishingRenderers, self.selectedFurnishingRenderers, self.groupedFurnishingRenderers))
         stablePreparation = (self.dragStart is None and not self.isDragging and self.pendingWall is None
                              and not self.pendingShapeWalls and self.furnishingHandleDrag is None and not self.guiDragActive
                              and all(preview is None for preview in (self.furnishingPreview, self.windowDropPreview,
@@ -864,21 +923,21 @@ class RenderingMixin(EditPaintCacheMixin):
                 self.scenePreparation = (preparationKey, prepared)
         else:
             prepared = preparation[1]
+        visible = self.VisibleSceneObjects()
         containedObjects = prepared.get("containedObjects")
         if containedObjects is None:
             containedObjects = prepared["containedObjects"] = ([] if getattr(self, "exportRender", False) else
-                self.ContainedWalls([obj for obj in self.walls if self.IsObjectVisible(obj)]))
+                self.ContainedWalls(visible["walls"]))
         advisoryIds = prepared.get("architecturalAdvisories")
+        coincidentGroups = prepared.get("coincidentGroups")
+        if coincidentGroups is None:
+            coincidentGroups = prepared["coincidentGroups"] = self.CoincidentObjectGroups()
         if advisoryIds is None:
-            advisoryIds = prepared["architecturalAdvisories"] = ({id(obj) for obj in containedObjects + self.DuplicateArchitecturalObjects()}
+            advisoryIds = prepared["architecturalAdvisories"] = ({id(obj) for obj in containedObjects + self.DuplicateArchitecturalObjects(groups = coincidentGroups)}
                 if not getattr(self, "exportRender", False) else set())
         invalidArchitecture = prepared.get("invalidArchitecture")
         if invalidArchitecture is None:
-            invalidArchitecture = prepared["invalidArchitecture"] = {
-                id(obj) for obj in self.walls + self.windows
-                if not getattr(self, "exportRender", False) and self.IsObjectVisible(obj)
-                and (isinstance(obj, Window) or type(obj) in (Wall, Pillar, Column, Counter, Stair, Railing, Elevator))
-                and not self.ArchitecturalPlacementFits(obj)}
+            invalidArchitecture = prepared["invalidArchitecture"] = self.InvalidArchitecturalObjects()
         highlightedWall = (self.windowDropPreview if self.windowDropPreview is not None else
                            self.counterPreview if self.counterPreview is not None else
                            self.pendingWall if self.pendingWall is not None else
@@ -916,10 +975,10 @@ class RenderingMixin(EditPaintCacheMixin):
         selectedVertexKeys = {(id(obj), index) for obj, index in renderedSelection if index is not None}
         visibleCounters = prepared.get("counters")
         if visibleCounters is None:
-            visibleCounters = [counter for counter in self.walls if isinstance(counter, Counter)]
-            if self.counterPreview is not None:
+            visibleCounters = [counter for counter in visible["walls"] if isinstance(counter, Counter)]
+            if self.counterPreview is not None and self.IsObjectVisible(self.counterPreview):
                 visibleCounters.append(self.counterPreview)
-            visibleCounters = prepared["counters"] = [counter for counter in visibleCounters if self.IsObjectVisible(counter)]
+            prepared["counters"] = visibleCounters
         self.preparedCounterMembers = visibleCounters if stablePreparation else None
         validationKey = prepared.get("blockers")
         if validationKey is None:
@@ -935,18 +994,21 @@ class RenderingMixin(EditPaintCacheMixin):
         duplicateIds = prepared.get("duplicateFurnishings")
         if duplicateIds is None:
             duplicateIds = prepared["duplicateFurnishings"] = {id(obj) for obj in self.DuplicateFurnishings()}
-        furnishingLayers = prepared.get("furnishingLayers")
+        exportRender = getattr(self, "exportRender", False)
+        furnishingLayers = prepared.get("furnishingLayers") if exportRender else None
         if furnishingLayers is None:
             furnishingLayers = {True: [], False: []}
-            for obj in self.furnishings + ([self.furnishingPreview] if self.furnishingPreview is not None else []):
+            candidates, labels = self.PaintObjectCandidates(drawingRect, pixelsPerMillimeter, dirtyRects)
+            for obj in candidates + ([self.furnishingPreview] if self.furnishingPreview is not None else []):
                 if not isinstance(obj, NorthArrow) and self.IsObjectVisible(obj):
                     furnishingLayers[obj.behindCounters].append(obj)
-            prepared["furnishingLayers"] = furnishingLayers
+            if exportRender:
+                prepared["furnishingLayers"] = furnishingLayers
         furnishingBounds = prepared.setdefault("furnishingBounds", {})
         occludedFurnishings = prepared.get("occludedFurnishings")
         if occludedFurnishings is None:
             occludedFurnishings = prepared["occludedFurnishings"] = {
-                id(obj) for group in self.CoincidentObjectGroups() if type(group[0]) is Furnishing for obj in group[:-1]}
+                id(obj) for group in coincidentGroups if type(group[0]) is Furnishing for obj in group[:-1]}
         def DrawFurnishings(behindCounters):
             for obj in furnishingLayers[behindCounters]:
                 # Exact rear copies cannot contribute visible artwork. Painting
@@ -955,7 +1017,10 @@ class RenderingMixin(EditPaintCacheMixin):
                     continue
                 bounds = furnishingBounds.get(id(obj))
                 if bounds is None:
-                    bounds = self.ObjectFootprint(obj)[0].united(FurnishingArtworkBounds(obj, self.furnishingRenderers[obj.definition["key"]]))
+                    renderers = normalRenderers
+                    artwork = (renderers.ArtworkGeometry(obj.definition["key"]) if hasattr(renderers, "ArtworkGeometry")
+                               else renderers[obj.definition["key"]])
+                    bounds = self.ObjectFootprint(obj)[0].united(FurnishingArtworkBounds(obj, artwork))
                     furnishingBounds[id(obj)] = bounds
                 screenBounds = QtCore.QRectF(self.WorldToViewport(bounds.topLeft()), self.WorldToViewport(bounds.bottomRight())).normalized()
                 if not screenBounds.adjusted(-2, -2, 2, 2).intersects(drawingRect):
@@ -963,35 +1028,45 @@ class RenderingMixin(EditPaintCacheMixin):
                 padding = self.lineWidths["furnishings"] + 2
                 if dirtyRects is not None and not any(screenBounds.adjusted(-padding, -padding, padding, padding).intersects(rect) for rect in dirtyRects):
                     continue
-                self.ObjectFootprint(obj)
-                key = obj.footprintCache[0]
-                cached = self.furnishingValidationCache.get(id(obj))
-                if self.dragStart is not None and obj is not self.furnishingPreview and id(obj) not in movingFurnishingIds:
+                if exportRender:
+                    # Export preparation already removed invalid furnishings.
+                    # Drawing the retained scene needs no placement validation.
                     invalid = False
-                    # Suppression is not a validated result. Keep this entry
-                    # absent so release/cancel performs the real check.
-                    validationCache.pop(id(obj), None)
                 else:
-                    invalid = cached[1] if cached is not None and cached[0] == key else not self.FurnishingFits(obj)
-                    validationCache[id(obj)] = (key, invalid)
+                    self.ObjectFootprint(obj)
+                    key = obj.footprintCache[0]
+                    cached = self.furnishingValidationCache.get(id(obj))
+                    if self.dragStart is not None and obj is not self.furnishingPreview and id(obj) not in movingFurnishingIds:
+                        invalid = False
+                        # Suppression is not a validated result. Keep this entry
+                        # absent so release/cancel performs the real check.
+                        validationCache.pop(id(obj), None)
+                    else:
+                        invalid = cached[1] if cached is not None and cached[0] == key else not self.FurnishingFits(obj)
+                        validationCache[id(obj)] = (key, invalid)
                 if id(obj) in handleMemberIds and invalidHandleGroup:
                     invalid = True
-                renderers = self.selectedFurnishingRenderers if id(obj) in highlightedIds and not invalid else self.furnishingRenderers
+                renderers = selectedRenderers if id(obj) in highlightedIds and not invalid else normalRenderers
                 if id(obj) in highlightedIds and id(obj) in groupedIds and not invalid:
                     key = obj.definition["key"]
-                    if key not in self.groupedFurnishingRenderers:
-                        self.groupedFurnishingRenderers[key] = SelectedFurnishingRenderer(obj.definition.get("graphicData") or obj.definition["imagePath"], self.SelectionColor(obj),
+                    renderer = groupedRenderers.get(key)
+                    if renderer is None:
+                        renderer = SelectedFurnishingRenderer(obj.definition.get("graphicData") or obj.definition["imagePath"], self.SelectionColor(obj),
                             lineWidth = self.lineWidths["furnishings"], nominalSize = (obj.definition["width"], obj.definition["length"]))
-                    renderers = self.groupedFurnishingRenderers
+                        groupedRenderers[key] = renderer
+                    # Oversized artwork is usable for this draw without admission.
+                    renderers = {key: renderer}
                 duplicate = id(obj) in duplicateIds
                 if duplicate and not invalid:
-                    warningRenderers = prepared.setdefault("duplicateRenderers", {})
+                    warningRenderers = prepared.setdefault("duplicateRenderers", FurnishingRendererCache())
                     key = obj.definition["key"]
-                    if key not in warningRenderers:
-                        warningRenderers[key] = FurnishingRenderer(obj.definition.get("graphicData") or obj.definition["imagePath"],
+                    renderer = warningRenderers.get(key)
+                    if renderer is None:
+                        renderer = FurnishingRenderer(obj.definition.get("graphicData") or obj.definition["imagePath"],
                             selectionColor = themeColors["warningOutline"], lineWidth = self.lineWidths["furnishings"],
                             nominalSize = (obj.definition["width"], obj.definition["length"]))
-                    renderers = warningRenderers
+                        warningRenderers[key] = renderer
+                    renderers = {key: renderer}
                 painter.save()
                 try:
                     DrawFurnishing(painter, obj, self.WorldToViewport(obj.firstVertex), self.WorldToViewport(obj.secondVertex),
@@ -1055,13 +1130,15 @@ class RenderingMixin(EditPaintCacheMixin):
         previewWalls = self.pendingShapeWalls or ([self.pendingWall] if self.pendingWall is not None else [])
         visibleWalls = prepared.get("walls")
         if visibleWalls is None:
-            visibleWalls = [wall for wall in self.walls if type(wall) in (Wall, Pillar, Column)] + previewWalls
+            visibleWalls = [wall for wall in visible["walls"] if type(wall) in (Wall, Pillar, Column)]
+            visibleWalls += [wall for wall in previewWalls if self.IsObjectVisible(wall)]
         if isinstance(self.arrowPreview, Pillar) and not isinstance(self.arrowPreview, Elevator):
-            visibleWalls.append(self.arrowPreview)
+            if self.IsObjectVisible(self.arrowPreview):
+                visibleWalls.append(self.arrowPreview)
             if not self.WallFits(self.arrowPreview):
                 invalidWalls[id(self.arrowPreview)] = self.arrowPreview
         if "walls" not in prepared:
-            visibleWalls = prepared["walls"] = [wall for wall in visibleWalls if self.IsObjectVisible(wall)]
+            prepared["walls"] = visibleWalls
         containedWalls = prepared.get("contained")
         if containedWalls is None:
             containedWalls = prepared["contained"] = [obj for obj in containedObjects if type(obj) in (Wall, Pillar, Column)]
@@ -1080,10 +1157,11 @@ class RenderingMixin(EditPaintCacheMixin):
         # Share one pattern origin so hatching continues across wall junctions.
         painter.setBrushOrigin(origin)
         detachedIds = {id(obj) for obj, index in self.groupEntries} if self.groupOpeningPreviews else {id(self.selectedWall)}
-        visibleWindows = [opening for opening in self.windows
+        visibleWindows = [opening for opening in visible["windows"]
                           if not (self.inactiveOpeningPreview is not None and self.dragStart is not None
-                                  and id(opening) in detachedIds)] + ([self.windowDropPreview] if isinstance(self.windowDropPreview, Window) else [])
-        visibleWindows = [opening for opening in visibleWindows if self.IsObjectVisible(opening)]
+                                  and id(opening) in detachedIds)]
+        if isinstance(self.windowDropPreview, Window) and self.IsObjectVisible(self.windowDropPreview):
+            visibleWindows.append(self.windowDropPreview)
         # Parent projection/fraction clamping is scene geometry, not camera work.
         # Keep detached world endpoints under the existing revision key, then
         # transform them at the exact current camera position for native pixels.
@@ -1103,6 +1181,8 @@ class RenderingMixin(EditPaintCacheMixin):
         openingPaintRects = ([rect.adjusted(-2, -2, 2, 2) for rect in dirtyRects]
                              if self.isPanning and dirtyRects is not None else (openingClipRect,))
         jambNeighbors = prepared.setdefault("openingJambNeighbors", {})
+        jambIndex = prepared.get("openingJambIndex")
+        jambWork = 0
         openingCuts = []
         openingCutPolygons = []
         for opening in visibleWindows:
@@ -1138,12 +1218,37 @@ class RenderingMixin(EditPaintCacheMixin):
                                 fraction = QtCore.QPointF.dotProduct(endpoint - firstPoint, run) / max(runSquared, 1e-20)
                                 position = worldFirst + (worldSecond - worldFirst) * fraction
                                 jambPoints = (position, position + worldNormal, position - worldNormal)
+                                # Amortize setup only after linear probes have
+                                # shown enough work; early nearby matches stay cheap.
+                                if (jambIndex is None and len(visibleWalls) >= 32 and len(visibleWindows) >= 4
+                                        and jambWork >= len(visibleWalls)):
+                                    wallIndex, wallFootprints, fallback = BoundsIndex(2000), [], []
+                                    for wallIndexPosition, wall in enumerate(visibleWalls):
+                                        bounds, corners, _ = self.ObjectFootprint(wall)
+                                        expanded = bounds.adjusted(-jambTolerance, -jambTolerance, jambTolerance, jambTolerance)
+                                        wallFootprints.append((expanded, corners))
+                                        if all(math.isfinite(value) for value in expanded.getCoords()):
+                                            wallIndex.Insert(expanded.normalized(), wallIndexPosition)
+                                        else:
+                                            fallback.append(wallIndexPosition)
+                                    jambIndex = prepared["openingJambIndex"] = wallIndex, wallFootprints, fallback
+                                if jambIndex is not None and all(math.isfinite(value) for point in jambPoints for value in (point.x(), point.y())):
+                                    wallIndex, wallFootprints, fallback = jambIndex
+                                    wallCandidates = sorted(set(fallback).union(*(wallIndex.PointCandidates((point.x(), point.y())) for point in jambPoints)))
+                                else:
+                                    wallCandidates = range(len(visibleWalls))
                                 touchesWall = False
-                                for wall in visibleWalls:
+                                for wallIndexPosition in wallCandidates:
+                                    jambWork += 1
+                                    wall = visibleWalls[wallIndexPosition]
                                     if wall is opening.parentWall:
                                         continue
-                                    bounds, corners, _ = self.ObjectFootprint(wall)
-                                    if not any(bounds.adjusted(-jambTolerance, -jambTolerance, jambTolerance, jambTolerance).contains(jambPoint) for jambPoint in jambPoints):
+                                    if jambIndex is None:
+                                        bounds, corners, _ = self.ObjectFootprint(wall)
+                                        expanded = bounds.adjusted(-jambTolerance, -jambTolerance, jambTolerance, jambTolerance)
+                                    else:
+                                        expanded, corners = jambIndex[1][wallIndexPosition]
+                                    if not any(expanded.contains(jambPoint) for jambPoint in jambPoints):
                                         continue
                                     footprint = QtGui.QPolygonF(corners)
                                     if any(footprint.containsPoint(jambPoint + offset, QtCore.Qt.FillRule.OddEvenFill)
@@ -1228,7 +1333,6 @@ class RenderingMixin(EditPaintCacheMixin):
                                           if wallId in self.wallMaterialPaths}
             self.materialGeometryKey = materialKey
         viewTransform = QtGui.QTransform().translate(origin.x(), origin.y()).scale(self.zoom, self.zoom)
-        captureEngine = getattr(self, "objectCaptureEngine", None)
         if captureEngine is not None:
             captureEngine.captureBackground = False
         if self.wallStyle != "Outline":
@@ -1302,9 +1406,10 @@ class RenderingMixin(EditPaintCacheMixin):
             painter.fillPath(selectionPath, brush)
             painter.restore()
         painter.save()
-        lumberClipSet = not self.isPanning
-        if lumberClipSet:
-            painter.setClipPath(combinedPath, QtCore.Qt.ClipOperation.IntersectClip)
+        # Installing a building-sized clip can dominate SVG rendering even
+        # when there are no lumber cross-lines to draw. Submit it lazily for
+        # the first visible lumber wall, just as during panning.
+        lumberClipSet = False
         for wall in visibleWalls:
             if wall.material == "Lumber":
                 polygon = self.WallPolygon(wall)
@@ -1459,14 +1564,14 @@ class RenderingMixin(EditPaintCacheMixin):
             positions = openingPositions.get(id(opening))
             firstPoint, secondPoint = (positions if positions is not None else
                                        (self.WorldToViewport(opening.firstVertex), self.WorldToViewport(opening.secondVertex)))
-            if dirtyRects is not None or self.isPanning:
+            if dirtyRects is not None or self.isPanning or not getattr(self, "exportRender", False):
                 bounds = QtCore.QRectF(firstPoint, secondPoint).normalized()
                 # Swing tips extend a full leaf length from a hinge on the wall
                 # face, not its centerline. Include that offset when a door
                 # re-enters a newly exposed pan strip.
                 reach = max(opening.length, opening.depth + abs(opening.depthOffset) if isinstance(opening, Fireplace) else 60)
                 padding = (reach + opening.width / 2 + getattr(opening, "sillDepth", 0)
-                           + (opening.wellDepth + 150 if opening.windowWell else 0)) * pixelsPerMillimeter + max(self.lineWidths.values()) + 2
+                           + (opening.wellDepth + 150 if opening.windowWell else 0)) * pixelsPerMillimeter + max(self.lineWidths.values()) + 24
                 if not any(bounds.adjusted(-padding, -padding, padding, padding).intersects(rect)
                            for rect in (dirtyRects if dirtyRects is not None else (drawingRect,))):
                     continue
@@ -1502,7 +1607,7 @@ class RenderingMixin(EditPaintCacheMixin):
                               wallColor = themeColors["warningOutline"] if warning else
                               themeColors["invalidOutline"] if id(opening) in invalidArchitecture or id(opening.parentWall) in invalidWalls else themeColors["wallOutline"],
                               windowWell = opening.windowWell, wellDepth = opening.wellDepth, wellDashed = opening.wellDashed,
-                              drawPassageEdges = not self.floors)
+                              drawPassageEdges = self.drawOpeningOutlines if exportRender or self.exportOverlay.active else True)
         visibleStairs = [wall for wall in self.walls if isinstance(wall, Stair)]
         invalidStairs = []
         movingStairs = ([self.selectedWall] if isinstance(self.selectedWall, Stair) else []) + [
@@ -1739,6 +1844,14 @@ class RenderingMixin(EditPaintCacheMixin):
                            pixelsPerMillimeter, elevatorRenderers[key], selected, invalid and not warning, selectionColor = color, drawBounds = False)
         if captureEngine is not None:
             captureEngine.captureBackground = False
+        visibleArrows, visibleGuides = self.DrawAnnotationObjects(painter, pixelsPerMillimeter, highlightedIds)
+        sceneState = (highlightedObjects, highlightedIds, selectedVertexKeys, invalidWalls, invalidCounterIds, invalidStairs,
+                      visibleWalls, visibleCounters, visibleWindows, visibleStairs, visibleRailings, visibleArrows, visibleGuides)
+        if drawAnnotations:
+            self.DrawSceneMeasurements(painter, drawingRect, sceneState, dirtyRects, retainCommands = retainAnnotations)
+        return sceneState
+
+    def DrawAnnotationObjects(self, painter, pixelsPerMillimeter, highlightedIds):
         visibleArrows = [obj for obj in self.walls if isinstance(obj, Arrow) and self.IsObjectVisible(obj)]
         if isinstance(self.arrowPreview, Arrow) and self.IsObjectVisible(self.arrowPreview):
             visibleArrows.append(self.arrowPreview)
@@ -1790,11 +1903,7 @@ class RenderingMixin(EditPaintCacheMixin):
                 painter.setPen(pen)
                 painter.drawLine(QtCore.QLineF(self.WorldToViewport(guide.firstVertex), self.WorldToViewport(guide.secondVertex)))
             painter.restore()
-        sceneState = (highlightedObjects, highlightedIds, selectedVertexKeys, invalidWalls, invalidCounterIds, invalidStairs,
-                      visibleWalls, visibleCounters, visibleWindows, visibleStairs, visibleRailings, visibleArrows, visibleGuides)
-        if drawAnnotations:
-            self.DrawSceneMeasurements(painter, drawingRect, sceneState, dirtyRects, retainCommands = retainAnnotations)
-        return sceneState
+        return visibleArrows, visibleGuides
 
     def DrawSceneMeasurements(self, painter, drawingRect, sceneState, dirtyRects = None, retainCommands = False):
         """Retain world-space spans across camera movement and restore annotations on release."""
@@ -1807,18 +1916,22 @@ class RenderingMixin(EditPaintCacheMixin):
         if not drawMeasurements and not measurementSelectedIds and not visibleGuides:
             self.sceneMeasurements = (None, [], [])
             self.selectionMeasurements = []
+            self.retainedMeasurements = None
             return
         stableMeasurements = (self.dragStart is None and not self.isDragging and self.pendingWall is None and not self.pendingShapeWalls
                               and self.furnishingHandleDrag is None and not self.guiDragActive
                               and all(preview is None for preview in (self.furnishingPreview, self.windowDropPreview,
                                       self.inactiveOpeningPreview, self.counterPreview, self.arrowPreview, self.labelPreview)))
-        measurementKey = self.SceneRenderKey((self.zoom, self.basePixelsPerMillimeter, drawMeasurements)) if stableMeasurements else None
+        # Spans/stack ownership are world geometry. Zoom changes only their
+        # presentation, including text thresholds and screen-space offsets.
+        measurementKey = self.SceneRenderKey((self.basePixelsPerMillimeter, drawMeasurements)) if stableMeasurements else None
         origin = self.WorldToViewport(QtCore.QPointF())
-        measurementFont = QtGui.QFont(painter.font())
-        measurementFont.setFamily(fontFamily)
-        pictureKey = (measurementKey, self.unitsMode, measurementFont.toString(), painter.renderHints(), tuple(themeColors.items()),
+        measurementFont, labelScale = self.MeasurementFont(painter.font(), painter.device())
+        pictureKey = (measurementKey, self.zoom, self.unitsMode, measurementFont.toString(), painter.renderHints(), tuple(themeColors.items()),
                       painter.device().logicalDpiX(), painter.device().logicalDpiY())
         pictures = getattr(self, "measurementPictures", ())
+        zoomChanged = self.zoom != getattr(self, "measurementPaintZoom", self.zoom) and not self.isPanning
+        self.measurementPaintZoom = self.zoom
         if stableMeasurements and retainCommands:
             for key, picture, pictureOrigin in pictures:
                 if key == pictureKey:
@@ -1917,7 +2030,25 @@ class RenderingMixin(EditPaintCacheMixin):
             self.sceneMeasurements = (measurementKey, dimensions, stackedDimensions) if stableMeasurements else None
         targetPainter = painter
         unusedDivisor, measurementUnit = GridUnit(self.GridSteps()[0], self.unitsMode)
-        stackedLengths = StackedDimensionLengths(dimensions, stackedDimensions, self.unitsMode, self.measurementPrecision)
+        layout = getattr(self, "measurementLabelRecords", None)
+        if (measurementKey is None or layout is None or layout[0] is not self.sceneMeasurements
+                or layout[1] is not selectionDimensions or layout[2:4] != (self.unitsMode, self.measurementPrecision)):
+            innerLengths, stackedLengths = StackedDimensionLengths(dimensions, stackedDimensions, self.unitsMode,
+                                                                   self.measurementPrecision, includeInner = True)
+            records = []
+            for first, second, owners, tier, overlay, length in chain(
+                    ((first, second, owners, 0, False, length) for (first, second, owners), length in zip(dimensions, innerLengths)),
+                    ((first, second, owners, tier, False, length) for (first, second, owners, tier), length in zip(stackedDimensions, stackedLengths)),
+                    ((first, second, owners, 0, True, None) for first, second, owners in selectionDimensions)):
+                records.append((first, second, owners, tier, overlay, length))
+            layout = (self.sceneMeasurements, selectionDimensions, self.unitsMode, self.measurementPrecision, records, {})
+            if measurementKey is not None:
+                # Keep world-length preparation and lazily formatted labels.
+                # Offscreen spans never need text layout or font metrics.
+                self.measurementLabelRecords = layout
+        records, labels = layout[4:]
+        if stableMeasurements and retainCommands and self.DrawRetainedMeasurements(painter, drawingRect, layout, measurementFont, sceneState, zoomChanged):
+            return
         picture = None
         candidate = QtGui.QPicture() if stableMeasurements and retainCommands else None
         with ExitStack() as painterScope:
@@ -1933,19 +2064,20 @@ class RenderingMixin(EditPaintCacheMixin):
             for guide in visibleGuides:
                 if isinstance(guide, AngleGuide) and (not guide.measurementHidden or id(guide) in measurementSelectedIds):
                     self.DrawAngleGuide(painter, guide, id(guide) in highlightedIds)
-            for firstVertex, secondVertex, owners, tier, overlay, displayLength in chain(
-                    ((first, second, owners, 0, False, None) for first, second, owners in dimensions),
-                    ((first, second, owners, tier, False, length) for (first, second, owners, tier), length in zip(stackedDimensions, stackedLengths)),
-                    ((first, second, owners, 0, True, None) for first, second, owners in selectionDimensions)):
+            labelStyle = (painter.font().toString(), painter.device().logicalDpiX(),
+                          painter.device().logicalDpiY(), painter.device().devicePixelRatioF())
+            for position, (firstVertex, secondVertex, owners, tier, overlay, displayLength) in enumerate(records):
                 isSelected = (overlay or all(isinstance(obj, MeasurementGuide) for obj in owners)) and any(
                     id(obj) in highlightedIds and id(obj) not in invalidWalls and id(obj) not in invalidCounterIds for obj in owners)
                 selectedColor = next((self.SelectionColor(wall) for wall in owners
                                       if id(wall) in highlightedIds and id(wall) not in invalidWalls and id(wall) not in invalidCounterIds), themeColors["selectionOutline"])
                 firstPoint = self.WorldToViewport(firstVertex)
                 secondPoint = self.WorldToViewport(secondVertex)
-                direction = secondPoint - firstPoint
-                screenLength = math.hypot(direction.x(), direction.y())
-                margin = max(80, 40 + 30 * tier)
+                firstX, firstY = firstPoint.toTuple()
+                secondX, secondY = secondPoint.toTuple()
+                directionX, directionY = secondX - firstX, secondY - firstY
+                screenLength = math.hypot(directionX, directionY)
+                margin = max(80, 40 + 30 * tier) * labelScale
                 bounds = QtCore.QRectF(firstPoint, secondPoint).normalized().adjusted(-margin, -margin, margin, margin)
                 manualGuide = owners[0] if len(owners) == 1 and type(owners[0]) in (MeasurementGuide, BoundaryLine, DashedLine, SolidLine) else None
                 boundary = isinstance(manualGuide, BoundaryLine)
@@ -1956,42 +2088,56 @@ class RenderingMixin(EditPaintCacheMixin):
                         depthX, depthY = GuideDepthOffset((firstVertex.x(), firstVertex.y()), (secondVertex.x(), secondVertex.y()), manualGuide.depth)
                         guideExtension = QtCore.QPointF(depthX, -depthY) * (self.basePixelsPerMillimeter * self.zoom)
                         bounds = bounds.united(QtCore.QRectF(firstPoint + guideExtension, secondPoint + guideExtension).normalized().adjusted(-4, -4, 4, 4))
-                if picture is None and not bounds.intersects(drawingRect):
+                if (picture is None or zoomChanged) and not bounds.intersects(drawingRect):
                     continue
                 if screenLength >= 24 - 1e-6 or ((isSelected or isinstance(owners[0], MeasurementGuide)) and screenLength > 1e-8):
-                    angle = math.degrees(math.atan2(direction.y(), direction.x()))
+                    angle = math.degrees(math.atan2(directionY, directionX))
                     if angle > 90:
                         angle -= 180
                     elif angle < -90:
                         angle += 180
                     # Traced contours have wall fill on their left. Place dimensions
                     # to their right, into the empty room or exterior space.
-                    normal = QtCore.QPointF(direction.y(), -direction.x()) / screenLength
-                    offset = 0 if isinstance(owners[0], MeasurementGuide) and len(owners) == 1 else 20 + 30 * tier
-                    dimensionStart = firstPoint + normal * offset
-                    dimensionEnd = secondPoint + normal * offset
-                    labelPosition = (dimensionStart + dimensionEnd) / 2
-                    label = FormatLength(QtCore.QLineF(firstVertex, secondVertex).length() if displayLength is None else displayLength, self.unitsMode,
-                                         adaptive = measurementUnit, includeUnit = False, precision = self.measurementPrecision)
-                    labelPath = (MeasurementTextPath(label, painter.font().toString(), painter.device().logicalDpiY())
-                                 if self.unitsMode in imperialModes else None)
-                    labelWidth = (labelPath.boundingRect().width() if labelPath is not None else painter.fontMetrics().horizontalAdvance(label)) + 12
-                    labelRect = QtCore.QRectF(-labelWidth / 2, -10, labelWidth, 20)
+                    normalX, normalY = directionY / screenLength, -directionX / screenLength
+                    offset = 0 if isinstance(owners[0], MeasurementGuide) and len(owners) == 1 else (20 + 30 * tier) * labelScale
+                    startX, startY = firstX + normalX * offset, firstY + normalY * offset
+                    endX, endY = secondX + normalX * offset, secondY + normalY * offset
+                    midpointX, midpointY = (startX + endX) / 2, (startY + endY) / 2
+                    labelPosition = QtCore.QPointF(midpointX, midpointY)
+                    labelKey = (position, measurementUnit, labelStyle)
+                    cachedLabel = labels.get(labelKey)
+                    label = (cachedLabel[0] if cachedLabel is not None else
+                             FormatLength(QtCore.QLineF(firstVertex, secondVertex).length() if displayLength is None else displayLength,
+                                          self.unitsMode, adaptive = measurementUnit, includeUnit = False, precision = self.measurementPrecision))
+                    labelPath = MeasurementTextPath(label, labelStyle[0], labelStyle[2]) if self.unitsMode in imperialModes else None
+                    if cachedLabel is None:
+                        labelWidth = (labelPath.boundingRect().width() if labelPath is not None else painter.fontMetrics().horizontalAdvance(label)) + 12 * labelScale
+                        if len(labels) < 4096:
+                            labels[labelKey] = (label, labelWidth)
+                    else:
+                        labelWidth = cachedLabel[1]
+                    labelRect = QtCore.QRectF(-labelWidth / 2, -10 * labelScale, labelWidth, 20 * labelScale)
                     if manualGuide is not None:
                         labelPosition, angle, labelRect, labelHitPath = self.MeasurementLabelLayout(
                             manualGuide, painter.fontMetrics(), label, labelPath)
                     painter.setPen(LinePen(selectedColor if isSelected else themeColors["measurementLine"], self.lineWidths["dimensions"]))
+                    lines = [] if picture is not None else None
+                    emitLine = lines.append if lines is not None else painter.drawLine
                     if not boundary:
-                        painter.drawLine(QtCore.QLineF(dimensionStart, dimensionEnd))
+                        emitLine(QtCore.QLineF(startX, startY, endX, endY))
                     if manualGuide is not None and not manualGuide.textOffset.isNull():
-                        painter.drawLine(QtCore.QLineF((dimensionStart + dimensionEnd) / 2, labelPosition))
-                    for endpoint, dimensionPoint in (() if boundary else ((firstPoint, dimensionStart), (secondPoint, dimensionEnd))):
+                        emitLine(QtCore.QLineF(QtCore.QPointF(midpointX, midpointY), labelPosition))
+                    normalPadX, normalPadY = normalX * 4, normalY * 4
+                    tickX = (directionX / screenLength + normalX) * 3
+                    tickY = (directionY / screenLength + normalY) * 3
+                    for x, y, dimensionX, dimensionY in (() if boundary else ((firstX, firstY, startX, startY), (secondX, secondY, endX, endY))):
                         if guideExtension is None:
-                            painter.drawLine(QtCore.QLineF(endpoint + normal * 4, dimensionPoint + normal * 4))
+                            emitLine(QtCore.QLineF(x + normalPadX, y + normalPadY, dimensionX + normalPadX, dimensionY + normalPadY))
                         else:
-                            painter.drawLine(QtCore.QLineF(dimensionPoint, dimensionPoint + guideExtension))
-                        tick = (direction / screenLength + normal) * 3
-                        painter.drawLine(QtCore.QLineF(dimensionPoint - tick, dimensionPoint + tick))
+                            emitLine(QtCore.QLineF(dimensionX, dimensionY, dimensionX + guideExtension.x(), dimensionY + guideExtension.y()))
+                        emitLine(QtCore.QLineF(dimensionX - tickX, dimensionY - tickY, dimensionX + tickX, dimensionY + tickY))
+                    if lines:
+                        painter.drawLines(lines)
                     painter.save()
                     painter.translate(labelPosition)
                     painter.rotate(angle)
@@ -2005,15 +2151,34 @@ class RenderingMixin(EditPaintCacheMixin):
                     painter.restore()
 
         if picture is not None:
-            # Retain two annotation modes, with a bounded vector payload. The
-            # recording covers offscreen spans so camera movement needs no
-            # Python geometry/text preparation; the target painter clips it.
-            if picture.size() <= 4 * 1024 * 1024:
+            # Complete recordings can follow panning. A zoom frame records
+            # only visible spans and must not enter that reusable picture cache.
+            if not zoomChanged and picture.size() <= 4 * 1024 * 1024:
                 previous = [(key, cached, position) for key, cached, position in pictures if key != pictureKey]
                 self.measurementPictures = [(pictureKey, picture, QtCore.QPointF(origin))] + previous[:1]
             targetPainter.save()
             targetPainter.drawPicture(QtCore.QPointF(), picture)
             targetPainter.restore()
+
+    def DrawRetainedMeasurements(self, painter, drawingRect, layout, font, sceneState, cull):
+        """Keep ordinary editor dimensions native; guides/edits/export retain their original painter."""
+        device = painter.device()
+        if (getattr(self, "exportRender", False) or self.measurementTextSize or self.isPanning or sceneState[-1]
+                or not isinstance(device, QtGui.QPixmap) or len(layout[4]) > 2048):
+            self.retainedMeasurements = None
+            return False
+        picture = QtGui.QPicture()
+        if picture.logicalDpiX() != device.logicalDpiX() or picture.logicalDpiY() != device.logicalDpiY():
+            self.retainedMeasurements = None
+            return False
+        style = (font.toString(), painter.renderHints(), tuple(themeColors.items()), device.logicalDpiX(),
+                 device.logicalDpiY(), device.devicePixelRatioF())
+        retained = getattr(self, "retainedMeasurements", None)
+        if retained is None or retained.layout is not layout or retained.style != style:
+            retained = RetainedDimensions(self, layout, style, font, picture, sceneState)
+            self.retainedMeasurements = retained
+        retained.Paint(self, painter, drawingRect, cull)
+        return True
 
     def DrawLabels(self, painter, pixelsPerMillimeter, highlightedIds = (), hoveredWall = None,
                    drawText = True, drawOutlines = True, drawingRect = None, dirtyRects = None, commandKey = None):
@@ -2041,7 +2206,8 @@ class RenderingMixin(EditPaintCacheMixin):
                 painter.restore()
                 return
         drawingRect = self.DrawingRect() if drawingRect is None else drawingRect
-        for label in self.labels + ([self.labelPreview] if self.labelPreview is not None else []):
+        furnishings, labels = self.PaintObjectCandidates(drawingRect, pixelsPerMillimeter, None if drawOutlines else dirtyRects)
+        for label in labels + ([self.labelPreview] if self.labelPreview is not None else []):
             if not self.IsObjectVisible(label):
                 continue
             isOutlined = drawOutlines and (id(label) in highlightedIds or label is hoveredWall)
@@ -2073,7 +2239,7 @@ class RenderingMixin(EditPaintCacheMixin):
                 painter.drawPolygon(self.WallPolygon(label))
 
         if drawText:
-            for obj in self.furnishings + ([self.furnishingPreview] if isinstance(self.furnishingPreview, NorthArrow) else []):
+            for obj in furnishings + ([self.furnishingPreview] if isinstance(self.furnishingPreview, NorthArrow) else []):
                 if not isinstance(obj, NorthArrow) or not self.IsObjectVisible(obj):
                     continue
                 center = self.WorldToViewport((obj.firstVertex + obj.secondVertex) / 2)
@@ -2104,11 +2270,20 @@ class RenderingMixin(EditPaintCacheMixin):
             painter.drawLine(QtCore.QLineF(right, 0, right, self.height()))
         painter.setPen(QtGui.QColor(themeColors["rulerText"]))
         if drawUnits:
+            if getattr(self, "exportRender", False):
+                painter.setFont(self.MeasurementFont(device = painter.device(), textSize = self.borderTextSize)[0])
             for cornerRect in cornerRects:
                 painter.drawText(cornerRect, QtCore.Qt.AlignmentFlag.AlignCenter, rulerUnit)
 
         painter.setPen(QtGui.QPen(QtGui.QColor(themeColors["border"]), 1.0))
-        painter.drawRect(self.rect().adjusted(0, 0, -1, -1))
+        # Opening artwork can leave a solid canvas brush active. This frame is
+        # an outline; inheriting that brush would paint over the whole plan.
+        painter.save()
+        try:
+            painter.setBrush(QtCore.Qt.BrushStyle.NoBrush)
+            painter.drawRect(self.rect().adjusted(0, 0, -1, -1))
+        finally:
+            painter.restore()
 
     def DrawGridBackground(self, painter, drawingRect, origin, pixelsPerMillimeter, gridOnly = False, drawGrid = True,
                            allEdges = False, markingsOnly = False):
@@ -2145,12 +2320,18 @@ class RenderingMixin(EditPaintCacheMixin):
                                  QtGui.QColor(themeColors["rulerBackground"]))
                 painter.fillRect(QtCore.QRectF(self.width() - self.rulerSize, 0, self.rulerSize, self.height()),
                                  QtGui.QColor(themeColors["rulerBackground"]))
-        rulerFont = QtGui.QFont(self.font())
-        rulerFont.setPointSizeF(8.0)
+        exportRulers = getattr(self, "exportRender", False)
+        if exportRulers:
+            rulerFont = self.MeasurementFont(device = painter.device(), textSize = self.borderTextSize)[0]
+        else:
+            rulerFont = QtGui.QFont(self.font())
+            rulerFont.setPointSizeF(8.0)
         painter.setFont(rulerFont)
-        # Keep the ordinary 28-pixel label/tick band against the canvas edge;
-        # additional border width extends outward beyond the ruler labels.
-        labelOffset = max(0, self.rulerSize - 28)
+        rulerMetrics = QtGui.QFontMetricsF(rulerFont) if exportRulers else None
+        labelHeight = math.ceil(rulerMetrics.height()) + 2 if exportRulers else 18
+        labelBand = max(28, labelHeight + 10) if exportRulers else 28
+        # Extra border width extends outward; labels stay beside the ticks.
+        labelOffset = max(0, self.rulerSize - labelBand)
         ratio = painter.device().devicePixelRatioF()
         drawGridLines = self.showGrid and drawGrid and self.gridIntensities["overall"] > 0
         if gridOnly and not drawGridLines:
@@ -2196,7 +2377,10 @@ class RenderingMixin(EditPaintCacheMixin):
                         gridLines[gridKind].append(QtCore.QLineF(drawingRect.left(), position, drawingRect.right(), position))
                     if not gridOnly:
                         tickLines[isMajor].append(QtCore.QLineF(self.rulerSize - tickLength, position, self.rulerSize, position))
-                if isMajor and not gridOnly and not markingsOnly:
+                # Export labels use every second major tick, anchored at zero.
+                # Tick marks and the editor's ordinary ruler remain unchanged.
+                if (isMajor and not gridOnly and not markingsOnly
+                        and (not exportRulers or gridIndex % (majorEvery * 2) == 0)):
                     if self.unitsMode in imperialModes:
                         label = FormatLength(abs(gridIndex * minorStep), self.unitsMode, decimals = 4)
                     else:
@@ -2205,6 +2389,25 @@ class RenderingMixin(EditPaintCacheMixin):
                         if decimalPlaces:
                             label = label.rstrip("0").rstrip(".")
                     majorLabels.append((position, label))
+
+            if exportRulers and majorLabels:
+                # Keep the grid intervals unchanged. Omit ruler labels that
+                # would collide at larger sizes, retaining the origin label.
+                visibleLabels = []
+                lastEnd = -math.inf
+                for position, label in majorLabels:
+                    halfWidth = (rulerMetrics.horizontalAdvance(label) + 8) / 2
+                    start = drawingRect.left() if axis == 0 else drawingRect.top()
+                    if position - halfWidth < start or position + halfWidth > extent:
+                        continue
+                    if position - halfWidth < lastEnd:
+                        if label != "0":
+                            continue
+                        while visibleLabels and visibleLabels[-1][0] + visibleLabels[-1][2] > position - halfWidth:
+                            visibleLabels.pop()
+                    visibleLabels.append((position, label, halfWidth))
+                    lastEnd = position + halfWidth
+                majorLabels = [(position, label) for position, label, halfWidth in visibleLabels]
 
             # Batch each pen/clip combination instead of resetting painter state
             # for every line. Grid pan cost then scales mainly with line drawing.
@@ -2246,13 +2449,14 @@ class RenderingMixin(EditPaintCacheMixin):
                     painter.drawLines(lines)
             painter.setPen(QtGui.QColor(themeColors["rulerText"]))
             for position, label in (() if markingsOnly else majorLabels):
+                labelWidth = rulerMetrics.horizontalAdvance(label) + 8 if exportRulers else 84
                 if axis == 0:
-                    painter.drawText(QtCore.QRectF(position - 42, labelOffset, 84, 18), QtCore.Qt.AlignmentFlag.AlignCenter, label)
+                    painter.drawText(QtCore.QRectF(position - labelWidth / 2, labelOffset, labelWidth, labelHeight), QtCore.Qt.AlignmentFlag.AlignCenter, label)
                 else:
                     painter.save()
                     painter.translate(labelOffset, position)
                     painter.rotate(-90)
-                    painter.drawText(QtCore.QRectF(-42, 0, 84, 18), QtCore.Qt.AlignmentFlag.AlignCenter, label)
+                    painter.drawText(QtCore.QRectF(-labelWidth / 2, 0, labelWidth, labelHeight), QtCore.Qt.AlignmentFlag.AlignCenter, label)
                     painter.restore()
             painter.restore()
 
@@ -2273,14 +2477,15 @@ class RenderingMixin(EditPaintCacheMixin):
                         painter.drawLines(oppositeLines)
                 painter.setPen(QtGui.QColor(themeColors["rulerText"]))
                 for position, label in (() if markingsOnly else majorLabels):
+                    labelWidth = rulerMetrics.horizontalAdvance(label) + 8 if exportRulers else 84
                     if axis == 0:
-                        painter.drawText(QtCore.QRectF(position - 42, self.height() - 18 - labelOffset, 84, 18),
+                        painter.drawText(QtCore.QRectF(position - labelWidth / 2, self.height() - labelHeight - labelOffset, labelWidth, labelHeight),
                                          QtCore.Qt.AlignmentFlag.AlignCenter, label)
                     else:
                         painter.save()
-                        painter.translate(self.width() - 18 - labelOffset, position)
+                        painter.translate(self.width() - labelHeight - labelOffset, position)
                         painter.rotate(-90)
-                        painter.drawText(QtCore.QRectF(-42, 0, 84, 18), QtCore.Qt.AlignmentFlag.AlignCenter, label)
+                        painter.drawText(QtCore.QRectF(-labelWidth / 2, 0, labelWidth, labelHeight), QtCore.Qt.AlignmentFlag.AlignCenter, label)
                         painter.restore()
                 painter.restore()
 

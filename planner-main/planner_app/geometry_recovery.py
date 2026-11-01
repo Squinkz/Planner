@@ -4,6 +4,7 @@ import math
 from PySide6 import QtCore
 from .models import Wall, Window, Fireplace, PocketDoor
 from .geometry.reserved_doors import ReservedDoorWithinHost, ReservedDoorSupportBounds
+from .geometry.attachments import OpeningWithinWall, OpeningIntervalsOverlap
 from .object_schema import openingClasses, openingFields
 from .record_validation import Finite
 from .record_schema import geometryIssueNames
@@ -83,7 +84,7 @@ def OpeningProblem(index, data, ignored = (), prepared = None):
             (((wall.firstVertex.x(), wall.firstVertex.y()), (wall.secondVertex.x(), wall.secondVertex.y())) for wall in supportWalls))
         withinHost = ReservedDoorWithinHost(wallLength, record["length"], record["center"], record.get("hingeAtSecond", False), bounds)
     else:
-        withinHost = record["center"] - half >= -1e-8 and record["center"] + half <= 1 + 1e-8
+        withinHost = OpeningWithinWall(wallLength, record["length"], record["center"])
     if "opening_bounds" not in ignored and not withinHost:
         return "opening_bounds", "The opening extends beyond its parent wall."
     sameParent = enumerate(records)
@@ -97,7 +98,8 @@ def OpeningProblem(index, data, ignored = (), prepared = None):
         if not Finite(other.get("center")) or not Finite(other.get("length"), 1, 1e9):
             continue
         otherHalf = other["length"] / (2 * wallLength)
-        if "opening_overlap" not in ignored and min(record["center"] + half, other["center"] + otherHalf) - max(record["center"] - half, other["center"] - otherHalf) > 1e-8:
+        if "opening_overlap" not in ignored and OpeningIntervalsOverlap(record["center"] - half, record["center"] + half,
+                other["center"] - otherHalf, other["center"] + otherHalf, wallLength):
             return "opening_overlap", f"The opening overlaps {other['type']} #{other.get('id', otherIndex + 1)} on the same wall."
     geometry = FootprintGeometry(1.0)
     geometry.collisionSettings = data["settings"]["collisionSettings"]
@@ -168,7 +170,9 @@ def FindGeometryIssue(index, data, definitions, prepared = None):
         return issue
     if kind in openingClasses:
         parentIndex = record.get("parent")
-        parent = RecordWall(records[parentIndex]) if type(parentIndex) is int and 0 <= parentIndex < len(records) else None
+        parent = None
+        if type(parentIndex) is int and 0 <= parentIndex < len(records):
+            parent = prepared[0].get(parentIndex) if prepared is not None else RecordWall(records[parentIndex])
         if parent is None:
             issue.update(code = "attachment", description = "The opening has no usable parent wall. Its original position cannot be determined, so Highlight and Repair are unavailable.")
             return issue
@@ -240,9 +244,8 @@ def ActiveGeometryIssues(obj, viewport):
     active = []
     if isinstance(obj, Window):
         length = QtCore.QLineF(obj.parentWall.firstVertex, obj.parentWall.secondVertex).length()
-        half = obj.length / (2 * max(length, 1e-8))
         withinHost = (ReservedDoorWithinHost(length, obj.length, obj.centerFraction, obj.hingeAtSecond, viewport.ReservedDoorSupport(obj.parentWall))
-                      if isinstance(obj, PocketDoor) else obj.centerFraction - half >= -1e-8 and obj.centerFraction + half <= 1 + 1e-8)
+                      if isinstance(obj, PocketDoor) else OpeningWithinWall(length, obj.length, obj.centerFraction))
         if "opening_bounds" in issues and not withinHost:
             active.append("opening_bounds")
         if "opening_overlap" in issues and any(other is not obj and other.parentWall is obj.parentWall and viewport.OpeningsOverlap(obj, other) for other in viewport.windows):

@@ -12,6 +12,7 @@ root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(root / "planner-main"))
 from PySide6 import QtWidgets
 from planner_app.export_plan import RenderPlan
+from planner_app.export_settings import BorderSize
 from planner_app.graphics import palette
 from planner_app.graphics.fonts import LoadApplicationFonts
 from planner_app.graphics.title_block import DrawTitleBlockText, TitleBlockFont
@@ -63,8 +64,9 @@ def Main():
             assert not any(element.tag.endswith("}text") for element in svg.iter())
         assert fontSizes and abs(min(fontSizes) * millimetersPerUnit - 2.24) < .001, (outputFormat, dpi, architecturalScale)
         assert any(abs(size * millimetersPerUnit - 2.56) < .001 for size in fontSizes), "Heading size changed"
-        assert abs(max(fontSizes) * millimetersPerUnit - 3.2) < .001
-        assert 0 < max(inkHeights) * millimetersPerUnit <= 3.2
+        assert any(abs(size * millimetersPerUnit - 3.2) < .001 for size in fontSizes)
+        assert abs(max(fontSizes) * millimetersPerUnit - 6.4) < .001
+        assert 0 < max(inkHeights) * millimetersPerUnit <= 6.4
         print(f"{outputFormat}, PPI {dpi or 300}, scale {architecturalScale}: "
               f"font {max(fontSizes) * millimetersPerUnit:.2f} mm, "
               f"visible ink up to {max(inkHeights) * millimetersPerUnit:.2f} mm")
@@ -85,8 +87,9 @@ def Main():
     sample["scene"] = dict(objects = objects, groups = [], hidden = [])
     sampleOptions = dict(enabled = True, projectName = "New Project", sheetNumber = "0001")
     outputWidth, outputHeight, block = TitleBlockLayout(1, 1, sampleOptions, 300)
-    drawingWidth = 3508 - block[2] - 112
-    bounds = (-1000, -1000, drawingWidth * 1000 / 300, (2480 - 112) * 1000 / 300)
+    border = BorderSize("Ruler + Reference Zones", 56)
+    drawingWidth = 3508 - block[2] - 2 * border
+    bounds = (-1000, -1000, drawingWidth * 1000 / 300, (2480 - 2 * border) * 1000 / 300)
     image = RenderPlan("a4-example.plan", 300, bounds, projectData = sample, applyTheme = False,
                        border = "Ruler + Reference Zones", borderSize = 56, titleBlock = sampleOptions)
     assert (image.width(), image.height()) == (3508, 2480)

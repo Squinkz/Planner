@@ -92,7 +92,7 @@ def Main():
     v.grab()
     assert overlay.snapshot is not None and overlay.snapshot.width() == 40
     assert overlay.snapshot.height() == 40 and not overlay.previewError
-    # Reserve no room for strips: the ruler uses the direct path, keeping the snapshot.
+    # Reserve no room for strips: temporary raster tiles keep the snapshot.
     overlay.drawRuler = True
     v.viewportRasterByteLimit = overlay.snapshot.sizeInBytes()
     v.grab()

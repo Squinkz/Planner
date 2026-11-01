@@ -50,7 +50,7 @@
       "when": "Enter parent; move into child; leave to another root row; reopen and click outside",
       "then": "Immediate open; parent remains checked over child; child closes without root; outside dismisses chain",
       "checks": [
-        "checks/check_stacker_submenu.py",
+        "checks/check_context_submenu.py",
         "checks/check_header_menus.py"
       ],
       "coverage": "Existing checks cover parts of this scenario; see manual gates in VERIFICATION.md."
@@ -1116,10 +1116,11 @@
       "name": "Export dimension overrides and project ownership",
       "given": "Export active with project dimension settings and sparse export overrides",
       "when": "Edit mode/reference/units/tree in Export, edit corresponding settings and grid/splits in Options, save and reopen",
-      "then": "Export uses Units, Measure tree, Walls and Mode/reference with no precision/splits; Options always edits project settings; explicit export overrides win; removing them restores inheritance",
+      "then": "Export units, precision, split groups and visibility use sparse overrides; Options edits project settings after leaving Export; G/M and scene/reference shortcuts stay disabled in Export",
       "checks": [
         "checks/check_export_dimension_settings.py",
-        "checks/check_export_measurement_shortcuts.py",
+        "checks/check_export_dimension_overrides.py",
+        "checks/check_export_shortcuts.py",
         "checks/check_export_cli_settings.py"
       ],
       "coverage": "Current desktop regression coverage for the named behavior; historical screenshots and browser acceptance are separate evidence."
@@ -1260,7 +1261,118 @@
         "checks/check_activity_events.py"
       ],
       "coverage": "Desktop restoration, expiry/branch handling, settings and issue transitions, recovery/session persistence and safe decoding."
+    },
+    {
+      "id": "PARITY-092",
+      "rule": "EXPORT-01",
+      "name": "Export-only title blocks",
+      "given": "PNG/SVG and both block positions, with optional logos and empty fields",
+      "when": "Change fields, theme and logo mode; render preview/file",
+      "then": "Retain fixed side width/bottom height, writing space, outlined typography and exact raster parity",
+      "checks": [
+        "checks/check_export_title_block.py",
+        "checks/check_title_block_print_size.py",
+        "checks/check_title_block_native_raster.py",
+        "checks/check_title_block_themes.py",
+        "checks/check_title_block_compositing.py",
+        "checks/check_print_title_block_fit.py"
+      ],
+      "coverage": "Current executable desktop regressions; dated screenshots retain their original capture context."
+    },
+    {
+      "id": "PARITY-093",
+      "rule": "EXPORT-01",
+      "name": "Export scale bar",
+      "given": "Digital, Architectural and Print output",
+      "when": "Enable the bar; change position, width, divisions, crop and scale",
+      "then": "Show actual scale labels at snapped width, repeat per page, preserve preview/file pixels and SVG paths",
+      "checks": [
+        "checks/check_export_scale_bar.py"
+      ],
+      "coverage": "Current executable desktop regressions; dated screenshots retain their original capture context."
+    },
+    {
+      "id": "PARITY-094",
+      "rule": "EXPORT-02",
+      "name": "Physical paper and fixed-spacing overlap",
+      "given": "A/ARCH/US paper sizes with border/title block",
+      "when": "Change paper, orientation, PPI, scale, crop/page offset and overlap",
+      "then": "Select complete cells, preserve page count/center and physical sizing, shift drawing coverage without moving paper spacing",
+      "checks": [
+        "checks/check_print_mode.py",
+        "checks/check_print_overlap.py",
+        "checks/check_print_physical_density.py",
+        "checks/check_print_selection_resize.py",
+        "checks/check_print_crop_push.py",
+        "checks/check_print_guide_colors.py",
+        "checks/check_architectural_physical_density.py",
+        "checks/check_architectural_scale_centre.py"
+      ],
+      "coverage": "Current executable desktop regressions; dated screenshots retain their original capture context."
+    },
+    {
+      "id": "PARITY-095",
+      "rule": "EXPORT-03",
+      "name": "Asynchronous preview and live effects",
+      "given": "Real preview worker with PNG/SVG and texture effects",
+      "when": "Continuously drag Composite sliders; supersede jobs and inject allocation failures",
+      "then": "Update effects before release, reject stale results, reuse preparations, bound recovery/memory and retain exact output",
+      "checks": [
+        "checks/check_export_preview_process.py",
+        "checks/check_export_preview_cache_roles.py",
+        "checks/check_composite_live_preview.py",
+        "checks/check_preview_allocation_recovery.py",
+        "checks/check_numpy_runtime_budget.py",
+        "checks/check_normal_lighting_cache.py",
+        "checks/check_raster_material_sampling.py",
+        "checks/check_raster_capture_reuse.py"
+      ],
+      "coverage": "Current executable desktop regressions; dated screenshots retain their original capture context."
+    },
+    {
+      "id": "PARITY-096",
+      "rule": "FILE-02",
+      "name": "Project and startup Build policy",
+      "given": "Export active or a checkpoint saved on Export",
+      "when": "Start/recover or invoke New/Open/Revert/Close, including cancelled and failed actions",
+      "then": "Select Build, preserve saved export settings and stop the old preview worker without briefly activating Export during recovery",
+      "checks": [
+        "checks/check_project_build_tab.py",
+        "checks/check_project_action_tabs.py",
+        "checks/check_session_recovery.py",
+        "checks/check_close_project.py"
+      ],
+      "coverage": "Current executable desktop regressions; dated screenshots retain their original capture context."
+    },
+    {
+      "id": "PARITY-097",
+      "rule": "EXPORT-UI-01",
+      "name": "Export panel input and compact layout",
+      "given": "All modes/formats and an overflowing settings panel",
+      "when": "Scroll over focused sliders, fields and dropdowns; open a dropdown and use keys",
+      "then": "Scroll the panel without value edits, retain keyboard/popup behavior and fit active mode controls at the top",
+      "checks": [
+        "checks/check_export_wheel_scrolling.py",
+        "checks/check_checkbox_layouts.py",
+        "checks/check_parity_panel_layouts.py",
+        "checks/check_export_dropdowns.py"
+      ],
+      "coverage": "Current executable desktop regressions; dated screenshots retain their original capture context."
+    },
+    {
+      "id": "PARITY-098",
+      "rule": "ART-01",
+      "name": "Retained editor dimension parity",
+      "given": "Stable editing scene with different fonts, units and display scales",
+      "when": "Zoom, select, edit geometry, pan and enter Export",
+      "then": "Match painter pixels, invalidate on relevant changes and retain the painter fallback for unsupported interactions",
+      "checks": [
+        "checks/check_retained_dimensions.py",
+        "checks/check_editor_cpu_submission.py",
+        "checks/check_editor_zoom_measurements.py"
+      ],
+      "coverage": "Current executable desktop regressions; dated screenshots retain their original capture context."
     }
   ],
-  "reviewed": "2026-10-26"
+  "reviewed": "2026-10-30"
 }

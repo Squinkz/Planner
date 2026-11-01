@@ -1,4 +1,4 @@
-"""Standalone Stacker-style About, footer actions and help-link routing."""
+"""Standalone About dialog, footer actions and help-link routing."""
 import os
 import sys
 from pathlib import Path
@@ -32,7 +32,6 @@ def Main():
         labels = [widget.text() for widget in about.findChildren(QtWidgets.QLabel)]
         assert displayVersion in labels and "2026 Dieter Stassen" in labels
         assert "Build your dream,\ndesign your space.\n\nMake your house a Home." in labels
-        assert not any("Stacker" in text for text in labels)
         assert about.grab().save(str(captures / "about-dark.png"))
         main.ShowAbout()
         assert main.aboutDialog is about
@@ -73,6 +72,7 @@ def Main():
         assert "Photopea" in text and "SIL OPEN FONT LICENSE" in text and "Planner" in text
         assert "GNU GENERAL PUBLIC LICENSE" in text and "GPL-3.0-only" in text
         assert "Planner Original Graphics License" in text and "Planner Branding License" in text
+        assert "NumPy" in text and "NumPy Developers" in text
         assert "D-DIN Condensed" in text and "Datto Inc." in text
         assert "Drafting Small Caps" in text and "Architects Daughter" in text and "Kimberly Geswein" in text
         for name in ("OFL.txt", "OFL-D-DIN.txt", "OFL-DraftingSmallCaps.txt", "FONTLOG.txt"):

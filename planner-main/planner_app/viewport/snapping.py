@@ -3,7 +3,7 @@ from planner_app.geometry.endpoint_snapping import NearestRunControlTarget
 from planner_app.models import AngleGuide, ObjectControlPoints
 
 import math
-from planner_app.geometry.snapping import GridIntervals, SnapPoint
+from planner_app.geometry.snapping import GridIntervals, SnapPoint, PrepareTargetIndex, PrepareRayTargets
 from planner_app.geometry.measurements import GuideDepthOffset
 from planner_app.geometry.movement_snapping import (MovementAxes, ConstraintAxes, ConstrainedAngle,
     ConstrainMovement, SnapMovement)
@@ -26,6 +26,17 @@ def MovementSnapDistance(x, y):
 
 
 class SnappingMixin:
+    def VisibleSnapObjects(self):
+        """Share ordered visibility filtering across the snapping collectors."""
+        changes = self.renderChanges
+        key = changes.topology, changes.visibility, tuple(self.visibility.items())
+        prepared = getattr(self, "visibleSnapObjects", None)
+        if prepared is None or prepared[0] != key:
+            objects = self.walls + self.windows + self.furnishings + self.labels
+            prepared = key, tuple(obj for obj in objects if self.IsObjectVisible(obj))
+            self.visibleSnapObjects = prepared
+        return prepared[1]
+
     def GuideDepthEndpoints(self, guide, vertices = None):
         if type(guide) is not MeasurementGuide or guide.depth == 0:
             return ()
@@ -44,8 +55,8 @@ class SnappingMixin:
         # A carried footprint moves as one object; endpoint targets can still
         # exclude only the individual vertices being stretched.
         movingIds = {objectId for objectId, vertexIndex in movingVertices}
-        for wall in self.walls + self.windows + self.furnishings + self.labels:
-            if not self.IsObjectVisible(wall) or isinstance(wall, AngleGuide) and (wall is self.selectedWall and self.dragStart is not None or id(wall) in movingIds):
+        for wall in self.VisibleSnapObjects():
+            if isinstance(wall, AngleGuide) and (wall is self.selectedWall and self.dragStart is not None or id(wall) in movingIds):
                 continue
             if self.dragStart is not None and isinstance(wall, Window):
                 if (wall.parentWall is self.selectedWall
@@ -73,8 +84,8 @@ class SnappingMixin:
         if self.furnishingHandleDrag is not None:
             movingWalls.add(id(self.furnishingHandleDrag["object"]))
             movingWalls.update(id(state[0]) for state in self.furnishingHandleDrag["members"])
-        objects = [obj for obj in self.walls + self.windows + self.furnishings + self.labels
-                   if self.IsObjectVisible(obj) and obj is not source and id(obj) not in movingWalls
+        objects = [obj for obj in self.VisibleSnapObjects()
+                   if obj is not source and id(obj) not in movingWalls
                    and not (isinstance(obj, Window) and (obj.parentWall is source or id(obj.parentWall) in movingWalls))]
         cacheKey = (self.basePixelsPerMillimeter, tuple((id(obj), obj.firstVertex.x(), obj.firstVertex.y(),
                     obj.secondVertex.x(), obj.secondVertex.y(), obj.width, getattr(obj, "firstMiter", 0),
@@ -164,11 +175,19 @@ class SnappingMixin:
                 self.snapApplied = True
                 self.snapPriority = 0
                 return QtCore.QPointF(controlTargets[nearest[0]])
+        # These queries all see the same unmodified scene. Prepare their shared
+        # midpoint coordinates once, keeping target order and duplicates intact.
+        midpoints = ([(vertex.x(), vertex.y(), True) for vertex in self.SnapMidpoints()]
+                     if self.midpointSnapEnabled else [])
+        cornerTargets = None
         alignmentCandidates = []
         if self.alignmentSnapEnabled:
+            controlNumeric = self.NumericSnapTargets(controlTargets)
+            if self.vertexSnapEnabled:
+                controlNumeric.append((opposite.x(), opposite.y(), False))
+            controlNumeric.extend(midpoints)
             aligned = self.SnapPosition(position, modifiers, constraintOrigin if angleLocked else None,
-                                        direction if angleLocked else None, snapTargets = controlTargets,
-                                        alignmentTargets = [opposite])
+                                        direction if angleLocked else None, numericTargets = controlNumeric)
             if self.alignmentGuides:
                 if not angleLocked:
                     # Grid rounding on the other axis can push an attached stair
@@ -190,10 +209,11 @@ class SnappingMixin:
                         if runLength > 1e-10:
                             run /= runLength
                             edgeOffset = QtCore.QPointF(-run.y(), run.x()) * (stair.width / 2)
+                            cornerTargets = self.NumericSnapTargets(snapTargets) + midpoints
                             for offset in (edgeOffset, -edgeOffset):
                                 corner = alignmentOnly + offset
                                 snapped = self.SnapPosition(corner, modifiers, opposite + offset, run,
-                                                            snapTargets = snapTargets)
+                                                            numericTargets = cornerTargets)
                                 if self.snapApplied and self.alignmentGuides:
                                     target = snapped - offset
                                     candidates.append((QtCore.QLineF(corner, snapped).length(), (target.x(), target.y()),
@@ -237,11 +257,13 @@ class SnappingMixin:
             if walls:
                 for polygon in Paths.Contours(self.ConnectedWallPath(walls)):
                     footprintTargets.extend(CornerSnapPoint(self.ViewportToWorld(vertex)) for vertex in polygon)
+        footprintNumeric = (cornerTargets if footprintTargets is snapTargets and cornerTargets is not None
+                            else self.NumericSnapTargets(footprintTargets) + midpoints)
         candidates = []
         for offset in (normal, -normal):
             corner = position + offset
             snapped = self.SnapPosition(corner, modifiers, constraintOrigin + offset if angleLocked else None,
-                                        direction if angleLocked else None, snapTargets = footprintTargets)
+                                        direction if angleLocked else None, numericTargets = footprintNumeric)
             if not self.snapApplied or self.snapPriority == 2:
                 continue
             target = CapEndpoint((snapped.x(), snapped.y()), (opposite.x(), opposite.y()),
@@ -266,8 +288,8 @@ class SnappingMixin:
         if self.furnishingHandleDrag is not None:
             movingWalls.add(id(self.furnishingHandleDrag["object"]))
             movingWalls.update(id(state[0]) for state in self.furnishingHandleDrag["members"])
-        for wall in self.walls + self.windows + self.furnishings + self.labels:
-            if not self.IsObjectVisible(wall) or isinstance(wall, AngleGuide):
+        for wall in self.VisibleSnapObjects():
+            if isinstance(wall, AngleGuide):
                 continue
             if self.groupDrag and any(wall is obj for obj, index in self.groupMovedOpenings):
                 continue
@@ -284,6 +306,19 @@ class SnappingMixin:
             targets = self.SnapVertices()
         return [(target.x(), target.y(), True) for target in targets
                 if (self.cornerSnapEnabled if isinstance(target, CornerSnapPoint) else self.vertexSnapEnabled)]
+
+    def SnapTargetPreparation(self, targets, constrained = False):
+        """Retain one ordered numeric snapshot and lazily prepare its lookups."""
+        values = tuple(targets)
+        prepared = getattr(self, "numericSnapPreparation", None)
+        if prepared is None or prepared["targets"] is not values and prepared["targets"] != values:
+            self.numericSnapPreparation = prepared = {"targets": values}
+        if len(values) > 32:
+            if "rayTargets" not in prepared:
+                prepared["rayTargets"] = PrepareRayTargets(values)
+            if not constrained and "targetIndex" not in prepared:
+                prepared["targetIndex"] = PrepareTargetIndex(values)
+        return prepared["targets"], prepared.get("targetIndex"), prepared.get("rayTargets")
 
     def SnapPosition(self, worldPosition, modifiers, angleAnchor = None, angleDirection = None, snapTargets = None,
                      alignmentTargets = None, preparedTargets = None, preparedTargetIndex = None, numericTargets = None, rayTargets = None):
@@ -329,14 +364,22 @@ class SnappingMixin:
             delta, self.snapApplied, self.snapPriority, self.alignmentGuides = SnapMovement(
                 (), delta, (), 1, 0, False, None, direction)
             return QtCore.QPointF(*delta)
-        numericTargets = self.NumericSnapTargets(snapTargets)
-        if self.midpointSnapEnabled:
-            numericTargets.extend((vertex.x(), vertex.y(), True) for vertex in self.SnapMidpoints())
+        groupPreparation = getattr(self, "groupSnapPreparation", None)
+        numericTargets = (groupPreparation[2][2] if self.groupDrag and groupPreparation is not None
+                          and snapTargets is groupPreparation[2][0] else None)
+        if numericTargets is None:
+            numericTargets = self.NumericSnapTargets(snapTargets)
+            if self.midpointSnapEnabled:
+                numericTargets.extend((vertex.x(), vertex.y(), True) for vertex in self.SnapMidpoints())
+        targetIndex, rayTargets = None, None
+        if direction is None or len(anchors) >= 3:
+            numericTargets, targetIndex, rayTargets = self.SnapTargetPreparation(numericTargets, constrained = direction is not None)
         gridStep = self.GridSteps()[1] if self.gridSnapEnabled and anchors else None
         delta, self.snapApplied, self.snapPriority, self.alignmentGuides = SnapMovement(
             [(anchor.x(), anchor.y()) for anchor in anchors], delta, numericTargets,
             self.basePixelsPerMillimeter * self.zoom, self.vertexSnapRange,
-            self.alignmentSnapEnabled, gridStep, direction, MovementSnapDistance)
+            self.alignmentSnapEnabled, gridStep, direction, MovementSnapDistance,
+            targetIndex = targetIndex, rayTargets = rayTargets)
         return QtCore.QPointF(*delta)
 
     def TranslationAxes(self):

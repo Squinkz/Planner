@@ -61,8 +61,10 @@ def Main():
     assert popup.resultDelegate.dimensionStyle.font().pointSizeF() < popup.results.font().pointSizeF()
     searchPanel = popup.findChild(QtWidgets.QFrame, "furnishingQuickSearchField")
     pixels = popup.grab().toImage()
-    assert pixels.pixelColor(searchPanel.x() + 5, searchPanel.y() + 5).name() == palette.themeColors["fieldBackground"]
-    assert pixels.pixelColor(2, 2).name() == palette.themeColors["windowBackground"]
+    # Widget geometry is logical; QImage samples use physical pixel coordinates.
+    ratio = pixels.devicePixelRatio()
+    assert pixels.pixelColor(round((searchPanel.x() + 5) * ratio), round((searchPanel.y() + 5) * ratio)).name() == palette.themeColors["fieldBackground"]
+    assert pixels.pixelColor(round(2 * ratio), round(2 * ratio)).name() == palette.themeColors["windowBackground"]
     QtTest.QTest.keyClick(popup.searchField, QtCore.Qt.Key.Key_Up)
     assert popup.results.currentRow() == popup.results.count() - 1 and popup.searchField.hasFocus(), (popup.results.currentRow(), popup.results.count(), popup.searchField.hasFocus())
     lastItem = popup.results.currentItem()
@@ -138,6 +140,10 @@ def Main():
     # Failed placement stays in the search, with feedback and no history edit.
     center = v.ViewportToWorld(position)
     v.walls = [Wall(center - QtCore.QPointF(10000, 0), center + QtCore.QPointF(10000, 0), 20000)]
+    # Match a committed scene edit before event processing can run the issue
+    # observer. A synthetic wall with no ID made this check timing-dependent.
+    v.EnsureObjectIds()
+    main.activityLog.RecheckIssues()
     count = len(v.undoHistory)
     popup = OpenSearch(main, position)
     popup.searchField.setText("desk")

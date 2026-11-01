@@ -43,6 +43,7 @@ def Main():
     assert max(shades) - min(shades) <= 2
 
     main = MainWindow()
+    main.exportPanel.overrides["scaleMode"] = "Digital"
     main.show()
     panel = main.exportPanel
     v = main.viewport

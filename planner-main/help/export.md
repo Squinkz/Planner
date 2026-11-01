@@ -102,24 +102,6 @@ Configure the appearance of the grid and linework on the exported image.
 
 Hide or show measurements and entire classes of objects from the exported image.
 
-### Title Block
-
-Enable **Draw Title Block** to append a bordered strip to the **Right** or **Bottom** of the exported drawing.
-This option is off by default and appears in the export preview and exported file, not on the normal editor canvas.
-The strip extends the export bounds without changing the drawing's scale or crop.
-Small exports receive enough additional space to fit the block.
-
-The project name defaults to the project's filename, without its extension, and can be edited.
-Enter the drawing title, address, prepared by, and comments or reference information.
-Enable **Logo** to choose an image to include. Cancelling the file picker leaves it disabled if no image is selected.
-The cell fits the image's proportions and the image is saved with the project.
-Disable **Logo** to remove its cell; the selected image is retained so it can be enabled again.
-Text uses the canvas font. Cell sizes follow the content, with a compact bottom layout and no cell for empty comments.
-The sheet number defaults to **0001** and can be edited; revision is optional.
-**Date** defaults to today. Use its dropdown calendar to choose a different date, or its refresh button to reset to today.
-Scale is filled automatically.
-The sheet-number cell stays at the bottom for the right layout and at the right for the bottom layout.
-
 ### Composite effects
 
 If you have chosen to export in a raster format like **PNG**, you can add compositing

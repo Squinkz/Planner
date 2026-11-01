@@ -247,7 +247,7 @@
       "then": "Match MENU-01; no click-toggle close after hover-open, stale highlight or detached child",
       "qtObservations": [],
       "desktopChecks": [
-        "checks/check_stacker_submenu.py"
+        "checks/check_context_submenu.py"
       ],
       "status": "requires-browser-run"
     },
@@ -419,7 +419,7 @@
       "then": "Exact transient text and ownership retained; no extra permanent paragraph or stale parent highlight; tooltip timing/appearance measured rather than assumed from HTML title",
       "qtObservations": [],
       "desktopChecks": [
-        "checks/check_stacker_submenu.py"
+        "checks/check_context_submenu.py"
       ],
       "status": "requires-browser-run"
     },

@@ -11,11 +11,16 @@ from planner_app.viewport.scene import SceneEditingMixin
 from planner_app.project_codec import EncodeScene, DecodeProject
 from planner_app.history_edits import SceneEdit
 from planner_app.project_history import EncodeEdit
+from planner_app.scene_changes import SceneChanges
+from planner_app.viewport.clipboard import ClipboardMixin
 
 
-class EditingViewport(GeometryViewport, SceneEditingMixin):
+class EditingViewport(GeometryViewport, SceneEditingMixin, ClipboardMixin):
     def __init__(self, walls):
         super().__init__(walls)
+        self.renderChanges = SceneChanges()
+        for wall in walls:
+            self.renderChanges.Watch(wall)
         self.entries = []
         self.connectedVerticesEnabled = True
         self.controlHeld = self.groupDrag = False

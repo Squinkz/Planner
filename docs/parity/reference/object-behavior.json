@@ -61,7 +61,7 @@
           "sizeLink": {
             "label": "Link width and length",
             "enabled": true,
-            "tooltip": "Link width and length for proportional property edits. Canvas handles are unaffected.",
+            "tooltip": "Link width and length for proportional property edits.",
             "widget": "SizeLinkButton",
             "checked": false
           },
@@ -145,7 +145,7 @@
           "sizeLink": {
             "label": "Link width and length",
             "enabled": true,
-            "tooltip": "Link width and length for proportional property edits. Canvas handles are unaffected.",
+            "tooltip": "Link width and length for proportional property edits.",
             "widget": "SizeLinkButton",
             "checked": false
           },
@@ -229,7 +229,7 @@
           "sizeLink": {
             "label": "Link width and length",
             "enabled": true,
-            "tooltip": "Link width and length for proportional property edits. Canvas handles are unaffected.",
+            "tooltip": "Link width and length for proportional property edits.",
             "widget": "SizeLinkButton",
             "checked": false
           },
@@ -348,7 +348,7 @@
           "sizeLink": {
             "label": "Link width and length",
             "enabled": true,
-            "tooltip": "Link width and length for proportional property edits. Canvas handles are unaffected.",
+            "tooltip": "Link width and length for proportional property edits.",
             "widget": "SizeLinkButton",
             "checked": false
           }
@@ -413,7 +413,7 @@
           "sizeLink": {
             "label": "Link width and length",
             "enabled": true,
-            "tooltip": "Link width and length for proportional property edits. Canvas handles are unaffected.",
+            "tooltip": "Link width and length for proportional property edits.",
             "widget": "SizeLinkButton",
             "checked": false
           }
@@ -478,7 +478,7 @@
           "sizeLink": {
             "label": "Link width and length",
             "enabled": true,
-            "tooltip": "Link width and length for proportional property edits. Canvas handles are unaffected.",
+            "tooltip": "Link width and length for proportional property edits.",
             "widget": "SizeLinkButton",
             "checked": false
           }
@@ -578,7 +578,7 @@
           "sizeLink": {
             "label": "Link width and length",
             "enabled": true,
-            "tooltip": "Link width and length for proportional property edits. Canvas handles are unaffected.",
+            "tooltip": "Link width and length for proportional property edits.",
             "widget": "SizeLinkButton",
             "checked": false
           },
@@ -650,7 +650,7 @@
           "sizeLink": {
             "label": "Link width and length",
             "enabled": true,
-            "tooltip": "Link width and length for proportional property edits. Canvas handles are unaffected.",
+            "tooltip": "Link width and length for proportional property edits.",
             "widget": "SizeLinkButton",
             "checked": false
           },
@@ -722,7 +722,7 @@
           "sizeLink": {
             "label": "Link width and length",
             "enabled": true,
-            "tooltip": "Link width and length for proportional property edits. Canvas handles are unaffected.",
+            "tooltip": "Link width and length for proportional property edits.",
             "widget": "SizeLinkButton",
             "checked": false
           },
@@ -840,7 +840,7 @@
           "sizeLink": {
             "label": "Link width and length",
             "enabled": true,
-            "tooltip": "Link width and length for proportional property edits. Canvas handles are unaffected.",
+            "tooltip": "Link width and length for proportional property edits.",
             "widget": "SizeLinkButton",
             "checked": false
           },
@@ -919,7 +919,7 @@
           "sizeLink": {
             "label": "Link width and length",
             "enabled": true,
-            "tooltip": "Link width and length for proportional property edits. Canvas handles are unaffected.",
+            "tooltip": "Link width and length for proportional property edits.",
             "widget": "SizeLinkButton",
             "checked": false
           },
@@ -998,7 +998,7 @@
           "sizeLink": {
             "label": "Link width and length",
             "enabled": true,
-            "tooltip": "Link width and length for proportional property edits. Canvas handles are unaffected.",
+            "tooltip": "Link width and length for proportional property edits.",
             "widget": "SizeLinkButton",
             "checked": false
           },
@@ -1164,7 +1164,7 @@
           "sizeLink": {
             "label": "Link width and length",
             "enabled": true,
-            "tooltip": "Link width and length for proportional property edits. Canvas handles are unaffected.",
+            "tooltip": "Link width and length for proportional property edits.",
             "widget": "SizeLinkButton",
             "checked": true
           },
@@ -1325,7 +1325,7 @@
           "sizeLink": {
             "label": "Link width and length",
             "enabled": true,
-            "tooltip": "Link width and length for proportional property edits. Canvas handles are unaffected.",
+            "tooltip": "Link width and length for proportional property edits.",
             "widget": "SizeLinkButton",
             "checked": true
           },
@@ -1486,7 +1486,7 @@
           "sizeLink": {
             "label": "Link width and length",
             "enabled": true,
-            "tooltip": "Link width and length for proportional property edits. Canvas handles are unaffected.",
+            "tooltip": "Link width and length for proportional property edits.",
             "widget": "SizeLinkButton",
             "checked": true
           }
@@ -4573,7 +4573,7 @@
           "sizeLink": {
             "label": "Link width and length",
             "enabled": true,
-            "tooltip": "Link width and length for proportional property edits. Canvas handles are unaffected.",
+            "tooltip": "Link width and length for proportional property edits.",
             "widget": "SizeLinkButton",
             "checked": true
           },
@@ -4731,7 +4731,7 @@
           "sizeLink": {
             "label": "Link width and length",
             "enabled": true,
-            "tooltip": "Link width and length for proportional property edits. Canvas handles are unaffected.",
+            "tooltip": "Link width and length for proportional property edits.",
             "widget": "SizeLinkButton",
             "checked": true
           },
@@ -5204,7 +5204,7 @@
           "sizeLink": {
             "label": "Link width and length",
             "enabled": true,
-            "tooltip": "Link width and length for proportional property edits. Canvas handles are unaffected.",
+            "tooltip": "Link width and length for proportional property edits.",
             "widget": "SizeLinkButton",
             "checked": true
           }
@@ -5610,6 +5610,20 @@
             "suffix": " mm",
             "readOnly": false,
             "keyboardTracking": false
+          },
+          "arrow:depth": {
+            "label": "Depth",
+            "enabled": true,
+            "tooltip": "Extend perpendicular lines from both ticks. Positive extends below the guide; negative extends above. Zero hides the lines.",
+            "widget": "DragSpinBox",
+            "value": 0.0,
+            "minimum": -1000000000.0,
+            "maximum": 1000000000.0,
+            "decimals": 0,
+            "singleStep": 10.0,
+            "suffix": " mm",
+            "readOnly": false,
+            "keyboardTracking": false
           }
         },
         "firstVertex": {
@@ -5648,6 +5662,20 @@
             "widget": "DragSpinBox",
             "value": 2000.0,
             "minimum": 1.0,
+            "maximum": 1000000000.0,
+            "decimals": 0,
+            "singleStep": 10.0,
+            "suffix": " mm",
+            "readOnly": false,
+            "keyboardTracking": false
+          },
+          "arrow:depth": {
+            "label": "Depth",
+            "enabled": true,
+            "tooltip": "Extend perpendicular lines from both ticks. Positive extends below the guide; negative extends above. Zero hides the lines.",
+            "widget": "DragSpinBox",
+            "value": 0.0,
+            "minimum": -1000000000.0,
             "maximum": 1000000000.0,
             "decimals": 0,
             "singleStep": 10.0,
@@ -5698,6 +5726,20 @@
             "suffix": " mm",
             "readOnly": false,
             "keyboardTracking": false
+          },
+          "arrow:depth": {
+            "label": "Depth",
+            "enabled": true,
+            "tooltip": "Extend perpendicular lines from both ticks. Positive extends below the guide; negative extends above. Zero hides the lines.",
+            "widget": "DragSpinBox",
+            "value": 0.0,
+            "minimum": -1000000000.0,
+            "maximum": 1000000000.0,
+            "decimals": 0,
+            "singleStep": 10.0,
+            "suffix": " mm",
+            "readOnly": false,
+            "keyboardTracking": false
           }
         },
         "label": {
@@ -5708,6 +5750,20 @@
             "widget": "DragSpinBox",
             "value": 2000.0,
             "minimum": 1.0,
+            "maximum": 1000000000.0,
+            "decimals": 0,
+            "singleStep": 10.0,
+            "suffix": " mm",
+            "readOnly": false,
+            "keyboardTracking": false
+          },
+          "arrow:depth": {
+            "label": "Depth",
+            "enabled": true,
+            "tooltip": "Extend perpendicular lines from both ticks. Positive extends below the guide; negative extends above. Zero hides the lines.",
+            "widget": "DragSpinBox",
+            "value": 0.0,
+            "minimum": -1000000000.0,
             "maximum": 1000000000.0,
             "decimals": 0,
             "singleStep": 10.0,
@@ -6476,7 +6532,7 @@
           "angle": {
             "label": "Angle",
             "enabled": true,
-            "tooltip": "Equalize both arms to the shorter length, then rotate the arm farther from north (+Y). Ties rotate the last arm.",
+            "tooltip": "Drag left or right to adjust. Hold Alt for finer control. Click to type a value.",
             "widget": "DragSpinBox",
             "value": 90.0,
             "minimum": 0.0,
@@ -6548,7 +6604,7 @@
           "angle": {
             "label": "Angle",
             "enabled": true,
-            "tooltip": "Equalize both arms to the shorter length, then rotate the arm farther from north (+Y). Ties rotate the last arm.",
+            "tooltip": "Drag left or right to adjust. Hold Alt for finer control. Click to type a value.",
             "widget": "DragSpinBox",
             "value": 90.0,
             "minimum": 0.0,
@@ -6620,7 +6676,7 @@
           "angle": {
             "label": "Angle",
             "enabled": true,
-            "tooltip": "Equalize both arms to the shorter length, then rotate the arm farther from north (+Y). Ties rotate the last arm.",
+            "tooltip": "Drag left or right to adjust. Hold Alt for finer control. Click to type a value.",
             "widget": "DragSpinBox",
             "value": 90.0,
             "minimum": 0.0,
@@ -6664,7 +6720,7 @@
           "angle": {
             "label": "Angle",
             "enabled": true,
-            "tooltip": "Equalize both arms to the shorter length, then rotate the arm farther from north (+Y). Ties rotate the last arm.",
+            "tooltip": "Drag left or right to adjust. Hold Alt for finer control. Click to type a value.",
             "widget": "DragSpinBox",
             "value": 90.0,
             "minimum": 0.0,
@@ -6708,7 +6764,7 @@
           "angle": {
             "label": "Angle",
             "enabled": true,
-            "tooltip": "Equalize both arms to the shorter length, then rotate the arm farther from north (+Y). Ties rotate the last arm.",
+            "tooltip": "Drag left or right to adjust. Hold Alt for finer control. Click to type a value.",
             "widget": "DragSpinBox",
             "value": 90.0,
             "minimum": 0.0,

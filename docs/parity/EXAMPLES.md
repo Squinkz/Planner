@@ -96,6 +96,24 @@ The object-render gallery explicitly disables floor shading to retain its frozen
 geometry/text comparisons. Export floor inheritance, shading and persistence are
 covered separately by `check_export_floors.py`.
 
+On 30 October 2026, 28 of the 42 rendered images were reviewed and updated for
+the current outlined glyphs, wall-jamb draw order and 300-PPI physical SVG
+coordinates. Their original project inputs were retained; the remaining images
+were unchanged. The render manifest records Qt 6.11.2 and all six bundled fonts.
+The object matrix separately adds the existing dimension-guide Depth control.
+Workflow checkpoints change only their three Export camera offsets per workflow
+to follow the current automatic footprint bounds; scene/history assertions remain.
+
+On 2 November 2026, 25 of the 42 images and the window-well SVG were reviewed
+side by side and refreshed for the existing physical measurement-text sizing
+(the default export size is 2 mm at 300 PPI). Dimensions retain their values;
+larger text also moves their dimension lines outward. All 42 original scene
+inputs, crops, fonts and Qt version remain unchanged, and the other 17 images
+still match exactly. The two workflow records now capture the existing Print
+default's page bounds, origin and export camera. Their scene, selection, dirty
+state and history assertions are unchanged. See the
+[test suite audit](../TEST_SUITE_AUDIT.md) for validation and scope.
+
 ## Replay, comparison and updating references
 
 ```

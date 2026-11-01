@@ -41,7 +41,8 @@ redo remains available. A new edit after restoration discards the old redo branc
 as usual, but the abandoned branch's activity descriptions remain readable.
 
 Normal undo retention remains 200 edits and 16 MiB of retained scene payload.
-Export history retains its existing independent 100-entry limit. Log entries do
+Export history retains an independent 100-entry and 16 MiB retained-payload limit.
+Shared immutable logo strings count once across adjacent snapshots. Log entries do
 not retain model objects, image data or scene snapshots and do not extend those
 limits. Expired descriptions remain in the log.
 
@@ -70,6 +71,33 @@ project-file limit also applies. Recovery can discard damaged activity metadata
 without modifying scene geometry and records that action in the incoming log.
 Log content is displayed as plain text and is never executed or parsed as HTML.
 
+The decoded log keeps up to 512 recent/accessed rows and approximately 1 MiB in
+memory. Older rows live in a private temporary SQLite archive with a small page
+cache; the complete sequence remains available for browsing and saving. One
+unusually large current row can exceed the decoded-cache byte target. Coalesced
+row changes and history anchors are written before eviction or serialization.
+Encoding streams rows through compression without building a full JSON text
+copy. Archived compression is retained as a reusable prefix; regular checkpoints
+process only newly archived rows and the current mutable tail. Cached rows are
+compared with their stored JSON before prefix reuse, so browsing archived rows
+does not rewrite storage or invalidate compression. Changed rows invalidate the
+affected prefix before it is reused. Checkpoint
+capture freezes tail bytes and metadata on the GUI thread, then the recovery
+writer compresses and base64-encodes the complete result without accessing the
+database or live rows. Explicit project saves retain synchronous encoding.
+
+Archive spill and serialization failures reject the row operation, preserving the
+existing bounded sequence. Activity storage errors use an independent diagnostic
+warning, never a canvas notification that would recursively enter the log.
+Scene notification, dirty tracking and undo/redo remain independent of logging.
+Recovery/save errors keep their existing files and remain reportable.
+
+Project replacement, Clear Log and window destruction close and remove the
+archive. It is temporary working storage; saved projects and recovery checkpoints
+remain the durable copies. The existing 64 MiB decoded transport limit still
+applies, and an oversized checkpoint reports failure while keeping its previous
+file intact.
+
 Clear Log asks for confirmation, clears descriptions and issue tracking, and
 leaves undo/redo intact. An explicitly empty log remains empty on reopening
 instead of importing old journal entries again. Future actions start a new log.
@@ -82,9 +110,17 @@ snapshots exclude the log.
 
 - `planner_app/activity_log.py`: compact descriptions, notifications, issue
   transitions, persistence, retained-journal links and restoration.
+- `planner_app/activity_storage.py`: bounded decoded rows and private temporary
+  storage for older descriptions.
 - `planner_app/ui/activity_log.py`: virtualized table model, search, details and
   restore/clear controls, using the existing application theme.
 - `check_activity_log.py`: scene/reference/Export restoration, reload links,
   branch invalidation, undo expiry, coalescence, Clear Log and older projects.
 - `check_activity_events.py`: settings, issue detection/resolution/ignore/repair,
   recovery events, session checkpoints, safe decoding and plain-text display.
+- `check_activity_storage.py`: archive eviction, mutation, full-log persistence,
+  history restoration, checkpoint size failures and resource cleanup.
+- `check_activity_incremental_encoding.py`: reusable prefixes, bounded tail work,
+  archived mutations, complete transport and cached-prefix size guards.
+- `check_architecture_edit_reliability.py`: temporary/SQLite storage failures,
+  dirty tracking, undo/redo, frozen checkpoints and background encoding.

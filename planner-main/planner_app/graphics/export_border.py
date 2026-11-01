@@ -2,6 +2,8 @@
 import math
 from PySide6 import QtCore, QtGui
 from planner_app.graphics.palette import themeColors
+from planner_app.graphics.measurement_text import MeasurementFontStyle
+from planner_app.export_settings import measurementDefaultTextSize
 
 
 def DrawRulerZones(painter, crop, size, source, origin, pixelsPerMillimeter):
@@ -26,16 +28,14 @@ def DrawRulerZones(painter, crop, size, source, origin, pixelsPerMillimeter):
         source.resize(previousSize)
     painter.save()
     try:
-        font = QtGui.QFont(source.font())
-        font.setPointSizeF(8)
-        painter.setFont(font)
         DrawExportBorder(painter, crop.adjusted(-rulerSize, -rulerSize, rulerSize, rulerSize), zonesSize, "Reference Zones",
-                         backgroundColor = QtGui.QColor(themeColors["rulerBackground"]).darker(110))
+                         backgroundColor = QtGui.QColor(themeColors["rulerBackground"]).darker(110),
+                         borderTextSize = source.borderTextSize)
     finally:
         painter.restore()
 
 
-def DrawExportBorder(painter, crop, size, style, backgroundColor = None):
+def DrawExportBorder(painter, crop, size, style, backgroundColor = None, borderTextSize = measurementDefaultTextSize):
     outer = crop.adjusted(-size, -size, size, size)
     painter.save()
     try:
@@ -50,6 +50,10 @@ def DrawExportBorder(painter, crop, size, style, backgroundColor = None):
         painter.setBrush(QtCore.Qt.BrushStyle.NoBrush)
         painter.setPen(QtGui.QPen(QtGui.QColor(themeColors["rulerMajorTick"]), 1))
         frame = crop.adjusted(-size / 2, -size / 2, size / 2, size / 2)
+        # A one-pixel stroke needs half-pixel centres. Otherwise even border
+        # widths split its ink across two pixels while odd widths stay sharp.
+        frame = QtCore.QRectF(QtCore.QPointF(math.floor(frame.left()) + .5, math.floor(frame.top()) + .5),
+                              QtCore.QPointF(math.floor(frame.right()) + .5, math.floor(frame.bottom()) + .5))
         if style == "Frame":
             painter.drawRect(frame)
         elif style == "Corner Marks":
@@ -60,6 +64,10 @@ def DrawExportBorder(painter, crop, size, style, backgroundColor = None):
                 painter.drawLine(corner, corner + QtCore.QPointF(directionX * arm, 0))
                 painter.drawLine(corner, corner + QtCore.QPointF(0, directionY * arm))
         elif style == "Reference Zones":
+            font = QtGui.QFont(painter.font())
+            font.fromString(MeasurementFontStyle(font.toString(), painter.device().logicalDpiY(),
+                borderTextSize * 300 / 25.4, "D-DIN Condensed")[0])
+            painter.setFont(font)
             painter.drawRect(outer.adjusted(1, 1, -1, -1))
             painter.drawRect(crop)
             for x, outerX in ((crop.left(), outer.left()), (crop.right(), outer.right())):

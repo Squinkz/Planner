@@ -120,6 +120,41 @@ def FindRaySnaps(position, targets, scale, vertexRange, alignmentEnabled, anchor
     return nearest, alignments
 
 
+def FindPointSnaps(position, targets, scale, vertexRange, alignmentEnabled, prepared):
+    """Separate direct point lookup from nearest one-dimensional alignments."""
+    nearest, nearestDistance = None, vertexRange
+    pointIndex, pointSources = prepared[0]
+    if vertexRange > 0 and pointSources:
+        margin = vertexRange / scale
+        margin += 8 * (math.ulp(position[0]) + math.ulp(position[1]) + math.ulp(margin))
+        for candidate in NearbyPointIndices(position, margin, pointIndex):
+            x, y, direct = targets[pointSources[candidate]]
+            distance = math.hypot(position[0] - x, position[1] - y) * scale
+            if distance < nearestDistance:
+                nearest, nearestDistance = (x, y), distance
+    alignments = {}
+    if nearest is not None or not alignmentEnabled:
+        return nearest, alignments
+    for axis in (0, 1):
+        coordinates, sources = prepared[axis + 1]
+        split = bisect_left(coordinates, position[axis])
+        neighbors = [index for index in (split - 1, split) if 0 <= index < len(coordinates)]
+        closest = min((abs(position[axis] - coordinates[index]) * scale for index in neighbors), default = 20.0)
+        if closest >= 20.0:
+            continue
+        source, coordinate = len(targets), None
+        # Walk all rounded-distance ties, including rare large-coordinate
+        # plateaus. The earliest original target retains the winning coordinate.
+        for start, step in ((split - 1, -1), (split, 1)):
+            index = start
+            while 0 <= index < len(coordinates) and abs(position[axis] - coordinates[index]) * scale <= closest:
+                if sources[index] < source:
+                    source, coordinate = sources[index], coordinates[index]
+                index += step
+        alignments[axis] = (coordinate, closest, None)
+    return nearest, alignments
+
+
 def SnapPoint(position, targets, scale, vertexRange, alignmentEnabled, gridStep,
               angleAnchor = None, angleDirection = None, targetIndex = None, rayTargets = None):
     """Return (point, applied, priority, guides); targets are (x, y, direct)."""
@@ -128,13 +163,17 @@ def SnapPoint(position, targets, scale, vertexRange, alignmentEnabled, gridStep,
     alignments = {}
     alignmentRange = 20.0
     indices = range(len(targets))
-    if targetIndex is not None and angleAnchor is None:
+    usePointIndex = (rayTargets is not None and angleAnchor is None and scale > 0 and math.isfinite(scale)
+                     and all(math.isfinite(value) for value in position))
+    if targetIndex is not None and angleAnchor is None and not usePointIndex:
         indices = NearbyTargetIndices(position, max(vertexRange, alignmentRange) / scale,
                                       targetIndex, alignmentEnabled)
     useRayIndex = (rayTargets is not None and angleAnchor is not None and scale > 0 and math.isfinite(scale)
                    and all(math.isfinite(value) for value in (*position, *angleAnchor, *angleDirection))
                    and abs(math.hypot(*angleDirection) - 1.0) <= 1e-9)
-    if useRayIndex:
+    if usePointIndex:
+        nearestVertex, alignments = FindPointSnaps(position, targets, scale, vertexRange, alignmentEnabled, rayTargets)
+    elif useRayIndex:
         nearestVertex, alignments = FindRaySnaps(position, targets, scale, vertexRange,
                                                alignmentEnabled, angleAnchor, angleDirection, rayTargets)
     else:

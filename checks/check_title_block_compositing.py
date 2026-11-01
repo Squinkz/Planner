@@ -16,6 +16,7 @@ from fixtures.parity_examples import ExampleWindow
 
 def Main():
     with ExampleWindow() as (main, folder):
+        main.exportPanel.overrides["scaleMode"] = "Digital"
         normal = QtGui.QImage(8, 8, QtGui.QImage.Format.Format_RGB32)
         normal.fill(QtGui.QColor(255, 128, 255))
         assert normal.save(str(folder / "test_s.png"))

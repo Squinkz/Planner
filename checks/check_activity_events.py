@@ -97,7 +97,7 @@ def Main():
         assert DecodeActivityLog(data["activityLog"])["entries"] == log.entries
         decoded = DecodeProject(data, v.furnishingDefinitions)
         assert decoded[5]["activityLog"]["entries"] == log.entries
-        assert len(json.dumps(data["activityLog"])) < len(json.dumps(log.entries))
+        assert len(json.dumps(data["activityLog"])) < len(json.dumps(list(log.entries)))
         malformed = [dict(version = 1, encoding = "zlib-base64", data = "not base64!"),
                      dict(version = True, encoding = "zlib-base64", data = data["activityLog"]["data"]),
                      dict(version = 2, encoding = "zlib-base64", data = data["activityLog"]["data"])]

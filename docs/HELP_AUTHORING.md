@@ -87,7 +87,7 @@ the help folder. Do not make Help depend on an Internet connection.
 - Missing or out-of-guide local links show an inline notice and retain the current
   page. Home remains usable. Only explicit HTTP/HTTPS links open an external browser.
 - Help navigation and text focus must not trigger canvas editing shortcuts.
-- About is a standalone frameless dialog matching Stacker's About layout:
+- About is a standalone frameless dialog with the following layout:
   minimum width 600, margins 24/24/24/18, 300-pixel logo, centered version,
   copyright and wrapped description, followed by Github, Report Issue and
   Licenses links. A click elsewhere dismisses it; Escape also closes it.

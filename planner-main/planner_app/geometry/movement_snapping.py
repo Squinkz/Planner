@@ -47,20 +47,24 @@ def ConstrainMovement(delta, direction = None, constrain = False, axes = None):
 
 
 def SnapMovement(anchors, delta, targets, scale, vertexRange, alignmentEnabled, gridStep,
-                 direction = None, distance = math.hypot):
+                 direction = None, distance = math.hypot, targetIndex = None, rayTargets = None):
     """Return travel, applied, priority and guides with stable anchor ties.
 
     Targets are prepared once per movement, retaining the existing thresholds
     for indexed point and ray lookup. The input collections are read-only.
     A backend may supply its distance primitive to retain its floating-point
     tie behavior; all selection policy remains here.
+    Optional lookup data must match the supplied ordered targets.
     """
-    targetIndex, rayTargets = None, None
     if len(targets) > 32:
         if direction is None:
-            targetIndex = PrepareTargetIndex(targets)
+            if len(anchors) >= 3 and rayTargets is None:
+                rayTargets = PrepareRayTargets(targets)
+            if targetIndex is None:
+                targetIndex = PrepareTargetIndex(targets)
         elif len(anchors) >= 3:
-            rayTargets = PrepareRayTargets(targets)
+            if rayTargets is None:
+                rayTargets = PrepareRayTargets(targets)
     bestKey, guides, priority = None, [], 3
     result = delta
     for anchor in anchors:

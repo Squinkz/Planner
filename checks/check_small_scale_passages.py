@@ -1,4 +1,4 @@
-"""Low-scale tinted passages have no short wall-stroke remnants near jambs."""
+"""Low-scale tinted exports have no short wall-stroke remnants near jambs."""
 import os
 from pathlib import Path
 import sys
@@ -26,6 +26,8 @@ def Main():
     view.windows = [Door(divider, .35, .65)]
     view.showGrid = view.showMeasurements = view.showTips = False
     view.floors = True
+    view.exportRender = True
+    view.drawOpeningOutlines = False
     view.show()
     app.processEvents()
     view.performanceLabel.hide()

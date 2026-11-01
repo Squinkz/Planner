@@ -206,7 +206,7 @@ class HeaderMixin:
             if option in ("showGrid", "showMeasurements", "referenceImage"):
                 self.editorShortcuts.append(shortcut)
         self.viewMenu.addSeparator()
-        self.activityLogButton = AddMenuButton(self.viewMenu, "Activity Log", iconName = UiIcon("view_list"))
+        self.activityLogButton = AddMenuButton(self.viewMenu, "Activity Log", iconName = UiIcon("log"))
         self.activityLogButton.clicked.connect(lambda checked = False: self.activityLog.Show())
         self.menuButtons["Activity Log"] = self.activityLogButton
         self.referenceImageEditShortcut = QtGui.QShortcut(QtGui.QKeySequence("Alt+B"), self)

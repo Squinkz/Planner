@@ -136,9 +136,10 @@ class EditPaintCacheMixin:
                self.wallStyle, tuple(self.collisionSettings.items()),
                self.connectedVerticesEnabled, self.connectedObjectsEnabled,
                tuple((id(wall), index) for wall, index, position in self.ActiveAttachments()))
-        objects = {id(obj): obj for obj in self.walls + self.windows + self.furnishings + self.labels}
+        visible = self.VisibleSceneObjects()
+        objects = {id(obj): obj for members in visible.values() for obj in members}
         objectKeys = {entry[0]: entry for entry in values[3]}
-        walls = [obj for obj in self.walls if type(obj) in (Wall, Pillar, Column) and self.IsObjectVisible(obj)]
+        walls = [obj for obj in visible["walls"] if type(obj) in (Wall, Pillar, Column)]
         self.ConnectedWallPath(walls)
         contained = {id(wall) for wall in self.ContainedWalls(walls)}
         duplicates = {id(obj) for obj in self.DuplicateFurnishings()}
@@ -151,8 +152,6 @@ class EditPaintCacheMixin:
         previous = self.viewportEditSnapshot if key == self.viewportEditKey and self.viewportEditSnapshot is not None else {}
         padding = 4 * max(self.lineWidths.values()) + 3
         for identity, obj in objects.items():
-            if not self.IsObjectVisible(obj):
-                continue
             objectKey = objectKeys[identity]
             if isinstance(obj, Window):
                 # A parent's extension can change an opening's error color even
@@ -169,7 +168,10 @@ class EditPaintCacheMixin:
                 continue
             bounds = self.ObjectFootprint(obj)[0]
             if isinstance(obj, Furnishing) and not isinstance(obj, (Label, NorthArrow)):
-                bounds = bounds.united(FurnishingArtworkBounds(obj, self.furnishingRenderers[obj.definition["key"]]))
+                renderers = self.furnishingRenderers
+                artwork = (renderers.ArtworkGeometry(obj.definition["key"]) if hasattr(renderers, "ArtworkGeometry")
+                           else renderers[obj.definition["key"]])
+                bounds = bounds.united(FurnishingArtworkBounds(obj, artwork))
             screenBounds = QtCore.QRectF(self.WorldToViewport(bounds.topLeft()), self.WorldToViewport(bounds.bottomRight())).normalized()
             if isinstance(obj, Window):
                 if not isinstance(obj, Fireplace):

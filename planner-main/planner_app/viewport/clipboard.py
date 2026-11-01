@@ -38,8 +38,11 @@ class ClipboardMixin:
             for obj in objects if type(obj) is Furnishing)
 
     def CanCopySelection(self):
-        entries = self.SelectionEntries()
-        return bool(entries) and not self.ObjectsHaveAssetErrors(obj for obj, index in entries)
+        return bool(self.CopyableSelectionEntries())
+
+    def CopyableSelectionEntries(self):
+        return [(obj, index) for obj, index in self.SelectionEntries()
+                if not self.ObjectsHaveAssetErrors((obj,))]
 
     def ShowClipboardError(self, message, isError = True):
         self.clipboardError = message
@@ -123,13 +126,12 @@ class ClipboardMixin:
 
     def CopySelection(self):
         self.CancelInteraction()
-        if not self.CanCopySelection():
+        entries = self.CopyableSelectionEntries()
+        if not entries:
             if self.SelectionEntries():
-                self.ShowClipboardError("Cannot copy or cut a selection containing missing or errored furnishings.")
+                self.ShowClipboardError("Cannot copy or cut: the selection contains only missing or errored furnishings.")
             return False
-        selected = {id(obj) for obj, index in self.SelectionEntries()}
-        if not selected:
-            return False
+        selected = {id(obj) for obj, index in entries}
         objects, wallIndices = SelectionCopyObjects(selected, self.walls,
             ((obj, obj.parentWall) for obj in self.windows), self.furnishings, self.labels)
         if len(objects) > selectionObjectLimit:
@@ -157,7 +159,9 @@ class ClipboardMixin:
 
     def CutSelection(self):
         if self.CopySelection():
-            self.DeleteSelected()
+            copied = {id(obj) for obj, index in self.CopyableSelectionEntries()}
+            excluded = {id(obj) for obj, index in self.SelectionEntries()} - copied
+            self.DeleteSelected(excludedIds = excluded)
             return True
         return False
 

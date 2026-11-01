@@ -11,18 +11,21 @@ from planner_app.models import Wall, Stair, Counter, Railing, Furnishing, Door, 
 from planner_app.graphics.palette import themeColors
 from planner_app.graphics.svg_preview import SvgPreviewRenderer
 from planner_app.export_plan import RenderPlan
+from planner_app.numpy_runtime import LoadNumPy
+from image_comparison import ImageChannels
 
 
 def CheckInk(reference, actual, rect, context):
     rect = rect.intersected(reference.rect()).intersected(actual.rect())
     reference = reference.copy(rect).convertToFormat(QtGui.QImage.Format.Format_RGB32)
     actual = actual.copy(rect).convertToFormat(QtGui.QImage.Format.Format_RGB32)
-    expected = bytes(reference.constBits())[0::4]
-    observed = bytes(actual.constBits())[0::4]
-    ink = [index for index, value in enumerate(expected) if value < 32]
-    assert len(ink) > 10, (context, "Reference must contain visible object ink", len(ink))
-    missing = sum(observed[index] >= 100 for index in ink)
-    assert missing == 0, (context, "Mask removed interior ink", missing, len(ink))
+    np = LoadNumPy()
+    expected, observed = ImageChannels(reference)[:, :, 0], ImageChannels(actual)[:, :, 0]
+    ink = expected < 32
+    inkCount = int(np.count_nonzero(ink))
+    assert inkCount > 10, (context, "Reference must contain visible object ink", inkCount)
+    missing = int(np.count_nonzero(ink & (observed >= 100)))
+    assert missing == 0, (context, "Mask removed interior ink", missing, inkCount)
 
 
 def ExportImage(main, folder, scale, output, bounds, solid):

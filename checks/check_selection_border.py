@@ -9,6 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "planner-main"))
 from PySide6 import QtCore, QtGui, QtTest, QtWidgets
 from planner import MainWindow, Wall, Label
 from theme import BuildStyle
+from planner_app.graphics.text import PathTextPainter
 
 
 def Main():
@@ -30,13 +31,13 @@ def Main():
                             point(max(corner.x() for corner in corners), max(corner.y() for corner in corners)))
     rectangles = []
 
-    class BorderPainter(QtGui.QPainter):
+    class BorderPainter(PathTextPainter):
         def drawRect(self, *args):
             if self.pen().style() == QtCore.Qt.PenStyle.DashLine:
                 rectangles.append(QtCore.QRectF(args[0]))
             super().drawRect(*args)
 
-    with patch.object(QtGui, "QPainter", BorderPainter):
+    with patch("planner_app.viewport.rendering.PathTextPainter", BorderPainter):
         image = v.grab()
     assert rectangles == [expected]
     image.save(str(Path(__file__).resolve().parent.parent / "screenshots" / "selection-border.png"))
@@ -48,7 +49,7 @@ def Main():
     assert not v.SelectionEntries() and v.selectedWall is None and main.selectionLabel.text() == "No selection"
     assert len(v.undoHistory) == history
     rectangles.clear()
-    with patch.object(QtGui, "QPainter", BorderPainter):
+    with patch("planner_app.viewport.rendering.PathTextPainter", BorderPainter):
         v.grab()
     assert not rectangles
     QtTest.QTest.keyClick(v, QtCore.Qt.Key.Key_A, ctrl)

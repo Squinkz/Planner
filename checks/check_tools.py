@@ -32,9 +32,11 @@ def Main():
     assert viewport.mode == "Select"
     buttons = [button for button in window.sidebarTabs.widget(0).findChildren(QtWidgets.QPushButton)
                if button.objectName() == "openingIconButton"]
-    assert [button.accessibleName() for button in buttons] == ["Door", "Double Door", "Swinging Door", "Sliding Door", "Pocket Door", "Barn Door", "Bifold Door", "Open Doorway", "Window", "Silled Window", "Casement Window", "Awning Window", "Double Casement Window", "Stair", "Counter", "Railing", "Pillar", "Column", "Fireplace", "Elevator", "Label", "Room Label", "Arrow", "Measurement Guide", "Boundary Line", "Dashed Line", "Solid Line", "Angle Guide", "North Marker"]
+    assert [button.accessibleName() for button in buttons] == ["Door", "Double Door", "Swinging Door", "Sliding Door", "Pocket Door", "Barn Door", "Bifold Door", "Open Doorway", "Window", "Silled Window", "Casement Window", "Awning Window", "Double Casement Window", "Stair", "Counter", "Railing", "Pillar", "Column", "Fireplace", "Elevator", "Label", "Room Label", "Arrow", "Dimension", "Boundary Line", "Dashed Line", "Solid Line", "Angle Guide", "North Marker"]
     assert all(not button.text() and not button.icon().isNull() for button in buttons)
-    assert all(button.toolTip() == button.accessibleName().capitalize() for button in buttons if button is not window.angleGuideButton)
+    assert all(button.toolTip() == button.accessibleName().capitalize() for button in buttons
+               if button not in (window.angleGuideButton, window.measurementGuideButton))
+    assert window.measurementGuideButton.toolTip() == "Dimension guide"
     assert "Angle Guide" in window.angleGuideButton.toolTip()
     assert not window.snapButton.text() and window.snapButton.accessibleName() == "Snap"
     assert not window.snapButton.icon().isNull()

@@ -3,6 +3,27 @@ import copy
 import math
 import base64
 from .record_validation import ValidateNumber, ValidateFlags
+from .print_layout import printPaperSizes, UpgradePrintOverlap
+
+
+scaleBarDivisions = ("Progressive", "Equal", "Subdivided")
+scaleBarStyles = ("Alternating", "Checker", "Stepped")
+scaleBarDefaultDivisions = "Subdivided"
+scaleBarDefaultStyle = "Stepped"
+measurementTextSizes = {"Small": 1.5, "Medium": 2.0, "Large": 2.5}
+measurementDefaultTextSize = measurementTextSizes["Medium"]
+exportRenderFormats = {"PNG": "png", "PNG_OPTIMIZED": "png", "PDF_RASTER": "png", "SVG": "svg", "PDF_VECTOR": "svg"}
+exportFileExtensions = {"PNG": ".png", "PNG_OPTIMIZED": ".png", "PDF_RASTER": ".pdf", "SVG": ".svg", "PDF_VECTOR": ".pdf"}
+pdfFileTypes = ("PDF_RASTER", "PDF_VECTOR")
+
+
+def ValidateExportBounds(bounds):
+    if not isinstance(bounds, list) or len(bounds) != 4:
+        raise ValueError("Invalid export bounds.")
+    bounds = [ValidateNumber(entry) for entry in bounds]
+    if bounds[2] <= 0 or bounds[3] <= 0:
+        raise ValueError("Export bounds must have positive dimensions.")
+    return bounds
 
 
 def NormalizeExportSettings(export, baseSettings, unitModes, measurementPrecisions, measurementDefaults):
@@ -19,15 +40,18 @@ def NormalizeExportSettings(export, baseSettings, unitModes, measurementPrecisio
         export.setdefault("roomStyle", "Tinted" if legacyFloors else "Canvas")
         del export["floors"]
     allowedExport = {"gridOrigin", "solidObjects", "roomStyle", "solidRooms", "wallStyle", "canvasTheme", "canvasColor", "linesColor", "borderColor", "gridColor", "texture", "textureAngle", "textureScale", "textureStrength", "textureHighlights", "textureMidtones", "textureShadows", "vignetteEnabled", "vignetteStrength", "showGrid", "viewportSettings", "lineworkSettings", "measurementVisibility", "visibility", "bounds", "scale", "scaleUnits", "scaleMode", "architecturalScale", "dpi", "ruler", "border", "borderSize", "unitsMode"}
-    allowedExport.update(("wallMeasurementMode", "wallMeasurementReference", "fileType", "measurementPrecision", "measurementSettings", "titleBlock"))
+    allowedExport.update(("wallMeasurementMode", "wallMeasurementReference", "fileType", "measurementPrecision", "measurementTextSize", "borderTextSize", "borderWidth", "measurementSettings", "titleBlock"))
+    allowedExport.update(("pageSize", "pageOrientation", "pageOrigin", "pageOverlap", "pageOverlapOffset", "scaleBar", "cropRegions", "modeScales", "drawOpeningOutlines"))
     if not isinstance(export, dict) or set(export) - allowedExport:
         raise ValueError("Invalid export settings.")
     normalized = {}
     for name, value in export.items():
         if name == "titleBlock":
             normalized[name] = NormalizeTitleBlock(value)
+        elif name == "scaleBar":
+            normalized[name] = NormalizeScaleBar(value)
         elif name == "fileType":
-            if value not in ("PNG", "SVG", "PNG_OPTIMIZED"):
+            if value not in exportRenderFormats:
                 raise ValueError("Invalid export file type.")
             normalized[name] = value
         elif name == "scale":
@@ -45,7 +69,7 @@ def NormalizeExportSettings(export, baseSettings, unitModes, measurementPrecisio
         elif name == "vignetteStrength":
             normalized[name] = ValidateNumber(value, minimum = 0, maximum = 2)
         elif name == "scaleMode":
-            if value not in ("Digital", "Architectural"):
+            if value not in ("Digital", "Architectural", "Print"):
                 raise ValueError("Invalid export scale mode.")
             normalized[name] = value
         elif name == "architecturalScale":
@@ -54,16 +78,36 @@ def NormalizeExportSettings(export, baseSettings, unitModes, measurementPrecisio
             if type(value) is not int or not 1 <= value <= 2400:
                 raise ValueError("Invalid export DPI.")
             normalized[name] = value
-        elif name == "gridOrigin":
+        elif name in ("gridOrigin", "pageOrigin", "pageOverlap", "pageOverlapOffset"):
             if not isinstance(value, list) or len(value) != 2:
                 raise ValueError("Invalid export grid origin.")
             normalized[name] = [ValidateNumber(entry) for entry in value]
+        elif name in ("pageSize", "pageOrientation"):
+            if value not in (printPaperSizes if name == "pageSize" else ("Landscape", "Portrait")):
+                raise ValueError("Invalid print page option.")
+            normalized[name] = value
         elif name == "bounds":
-            if not isinstance(value, list) or len(value) != 4:
-                raise ValueError("Invalid export bounds.")
-            normalized[name] = [ValidateNumber(entry) for entry in value]
-            if value[2] <= 0 or value[3] <= 0:
-                raise ValueError("Export bounds must have positive dimensions.")
+            normalized[name] = ValidateExportBounds(value)
+        elif name == "cropRegions":
+            if not isinstance(value, dict) or set(value) - {"Digital", "Architectural", "Print"}:
+                raise ValueError("Invalid export crop regions.")
+            normalized[name] = {mode: ValidateExportBounds(bounds) for mode, bounds in value.items()}
+        elif name == "modeScales":
+            if not isinstance(value, dict) or set(value) - {"Architectural", "Print"}:
+                raise ValueError("Invalid export mode scales.")
+            modes = {}
+            for mode, settings in value.items():
+                if not isinstance(settings, dict) or set(settings) - {"architecturalScale", "dpi"}:
+                    raise ValueError("Invalid export mode scale settings.")
+                modes[mode] = {}
+                if "architecturalScale" in settings:
+                    modes[mode]["architecturalScale"] = ValidateNumber(settings["architecturalScale"], minimum = 1, maximum = 100000)
+                if "dpi" in settings:
+                    dpi = settings["dpi"]
+                    if type(dpi) is not int or not 1 <= dpi <= 2400:
+                        raise ValueError("Invalid export mode DPI.")
+                    modes[mode]["dpi"] = dpi
+            normalized[name] = modes
         elif name == "unitsMode":
             if value not in unitModes:
                 raise ValueError("Invalid export display unit.")
@@ -71,6 +115,19 @@ def NormalizeExportSettings(export, baseSettings, unitModes, measurementPrecisio
         elif name == "measurementPrecision":
             if not isinstance(value, str) or value not in measurementPrecisions:
                 raise ValueError("Invalid export dimension precision.")
+            normalized[name] = value
+        elif name == "borderTextSize":
+            if type(value) not in (int, float) or value not in measurementTextSizes.values():
+                raise ValueError("Invalid export border text size.")
+            normalized[name] = value
+        elif name == "measurementTextSize":
+            if type(value) not in (int, float) or value not in (*measurementTextSizes.values(), 0, 3.5):
+                raise ValueError("Invalid export dimension text size.")
+            # Preserve the earlier Small/Large choices at their updated sizes.
+            if value == 0:
+                value = measurementTextSizes["Small"]
+            elif value == 3.5:
+                value = measurementTextSizes["Large"]
             normalized[name] = value
         elif name == "measurementSettings":
             if not isinstance(value, dict) or set(value) - set(measurementDefaults):
@@ -100,6 +157,8 @@ def NormalizeExportSettings(export, baseSettings, unitModes, measurementPrecisio
             if type(value) is not int or not 1 <= value <= 128:
                 raise ValueError("Invalid export border size.")
             normalized[name] = value
+        elif name == "borderWidth":
+            normalized[name] = ValidateNumber(value, minimum = .001, maximum = 1e12)
         elif name in ("canvasColor", "linesColor", "borderColor", "gridColor"):
             # An explicit Theme choice stays tied to the captured canvas theme.
             if value is not None and not isinstance(value, str):
@@ -113,7 +172,7 @@ def NormalizeExportSettings(export, baseSettings, unitModes, measurementPrecisio
             if value not in ("Canvas", "Tinted"):
                 raise ValueError("Invalid export room style.")
             normalized[name] = value
-        elif name in ("showGrid", "ruler", "vignetteEnabled", "solidObjects", "solidRooms"):
+        elif name in ("showGrid", "ruler", "vignetteEnabled", "solidObjects", "solidRooms", "drawOpeningOutlines"):
             normalized.update(ValidateFlags(export, (name,)))
         else:
             keys = set(baseSettings[name])
@@ -130,20 +189,41 @@ def NormalizeExportSettings(export, baseSettings, unitModes, measurementPrecisio
                     key: ValidateNumber(entry, minimum = 1 if name == "lineworkSettings" and key == "baseWidth" else 0,
                                         maximum = (4 if key == "baseWidth" else 2) if name == "lineworkSettings" else (2 if key == "overall" else 1))
                     for key, entry in value.items()}
-    return normalized
+    if normalized.get("fileType") in pdfFileTypes:
+        if normalized.get("scaleMode", "Print") != "Print":
+            raise ValueError("PDF export requires Print mode.")
+        normalized["scaleMode"] = "Print"
+    return UpgradePrintOverlap(normalized)
 
 
-def BorderSize(style, requested = 28):
-    # Nine-pixel major ticks need clearance; labels and unit corners need more.
-    minimum = {"None": 0, "Plain": 1, "Frame": 4, "Corner Marks": 4, "Reference Zones": 28, "Marked": 12, "Ruler": 28, "Ruler + Reference Zones": 56}[style]
+def BorderSize(style, requested = 28, borderTextSize = measurementDefaultTextSize):
+    # D-DIN's line height and two-letter unit corners need more space than
+    # the visible digit height. Leave room for major ticks and label padding.
+    textBand = max(28, math.ceil((borderTextSize or measurementTextSizes["Small"]) * 300 / 25.4 * 1.6) + 12)
+    minimum = {"None": 0, "Plain": 1, "Frame": 4, "Corner Marks": 4, "Reference Zones": textBand, "Marked": 12, "Ruler": textBand, "Ruler + Reference Zones": 2 * textBand}[style]
     return max(minimum, requested) if style != "None" else 0
+
+
+def ExportBorderSize(options, style = None):
+    if style is None:
+        style = options.get("border", "Ruler + Reference Zones" if "ruler" not in options else "Ruler" if options["ruler"] else "None")
+    requested = options.get("borderSize", 28)
+    if options.get("scaleMode") in ("Architectural", "Print"):
+        scale = 300 * 1000 / (25.4 * options.get("architecturalScale", 100))
+        requested = max(1, round(options.get("borderWidth", 200) * scale / 1000))
+    return BorderSize(style, requested, options.get("borderTextSize", measurementDefaultTextSize))
 
 
 def ResolveExportView(baseView, overrides):
     view = copy.deepcopy(baseView)
+    view.setdefault("measurementTextSize", measurementDefaultTextSize)
+    view.setdefault("borderTextSize", measurementDefaultTextSize)
+    view.setdefault("drawOpeningOutlines", True)
     view["autoSizingUnitsMode"] = view["unitsMode"]
     for name, value in overrides.items():
-        if name == "titleBlock":
+        if name in ("cropRegions", "modeScales"):
+            continue
+        elif name in ("titleBlock", "scaleBar"):
             view[name] = copy.deepcopy(value)
         elif isinstance(value, dict):
             if name == "measurementVisibility":
@@ -155,12 +235,14 @@ def ResolveExportView(baseView, overrides):
         view["showMeasurements"] = any(view["measurementVisibility"].values())
     if "visibility" in overrides:
         view["visibility"]["World"] = any(value for key, value in view["visibility"].items() if key != "World")
+    if view["measurementTextSize"] == 0:
+        view["measurementTextSize"] = measurementTextSizes["Small"]
     return view
 
 
 def ExportScalePerMeter(overrides, fileType):
-    if overrides.get("scaleMode", "Digital") == "Architectural":
-        dpi = overrides.get("dpi", 300) if fileType != "SVG" else 96
+    if overrides.get("scaleMode", "Digital") in ("Architectural", "Print"):
+        dpi = overrides.get("dpi", 300) if exportRenderFormats.get(fileType) != "svg" or overrides.get("scaleMode") == "Print" else 96
         return dpi * 1000 / (25.4 * overrides.get("architecturalScale", 100))
     return overrides.get("scale", 100)
 
@@ -180,6 +262,37 @@ def TitleBlockLogoMode(options):
     if options.get("logoEnabled") is False:
         return "None"
     return "Custom" if options.get("logo") else "Planner"
+
+
+def NormalizeScaleBar(options):
+    if not isinstance(options, dict) or set(options) - {"enabled", "position", "divisionMode", "style", "widthMM", "widthPixels", "divisions"}:
+        raise ValueError("Invalid scale bar settings.")
+    result = dict(options)
+    # Earlier projects stored the division mode under style, before the bar's
+    # appearance and divisions became independent choices.
+    legacyDivisions = {"Progressive": "Progressive", "Equal divisions": "Equal", "Subdivided end": "Subdivided"}
+    legacyStyle = result.get("style")
+    if isinstance(legacyStyle, str) and legacyStyle in legacyDivisions:
+        result.setdefault("divisionMode", legacyDivisions[legacyStyle])
+        result["style"] = "Alternating"
+    if "enabled" in result:
+        ValidateFlags(result, ("enabled",))
+    if result.get("position", "Bottom left") not in ("Bottom left", "Bottom right", "Top left", "Top right"):
+        raise ValueError("Invalid scale bar position.")
+    if result.get("style", scaleBarDefaultStyle) not in scaleBarStyles:
+        raise ValueError("Invalid scale bar style.")
+    if result.get("divisionMode", scaleBarDefaultDivisions) not in scaleBarDivisions:
+        raise ValueError("Invalid scale bar divisions.")
+    for name, minimum, maximum in (("widthMM", 5, 100), ("widthPixels", 10, 1000)):
+        if name in result:
+            result[name] = ValidateNumber(result[name], minimum = minimum, maximum = maximum)
+    if "divisions" in result and (type(result["divisions"]) is not int or not 1 <= result["divisions"] <= 10):
+        raise ValueError("Invalid scale bar divisions.")
+    # Accept saved manual sizing from older projects, then discard it so every
+    # preview and export uses automatic distance selection and subdivisions.
+    for name in ("widthMM", "widthPixels", "divisions"):
+        result.pop(name, None)
+    return result
 
 
 def NormalizeTitleBlock(options):

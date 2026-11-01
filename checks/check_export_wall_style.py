@@ -16,6 +16,7 @@ def Main():
     app = QtWidgets.QApplication([])
     ApplyApplicationTheme(app)
     main = MainWindow()
+    main.exportPanel.overrides["scaleMode"] = "Digital"
     main.show()
     v = main.viewport
     v.walls = [Wall(QtCore.QPointF(-1000, 0), QtCore.QPointF(1000, 0), 400, material = "Brick")]

@@ -1,4 +1,4 @@
-"""Missing assets cannot enter the clipboard or be cut from mixed selections."""
+"""Mixed selections copy valid objects while skipping missing or errored assets."""
 import json
 import os
 import sys
@@ -31,8 +31,12 @@ def Main():
         v.SetSelection(entries)
         before = v.CaptureState()
         history = len(v.undoHistory)
-        assert not v.CanCopySelection()
-        assert not v.CopySelection() and not v.CutSelection()
+        if len(entries) == 1:
+            assert not v.CanCopySelection()
+            assert not v.CopySelection() and not v.CutSelection()
+        else:
+            assert v.CanCopySelection() and v.CopySelection()
+            assert len(v.ReadClipboardSelection()["objects"]) == 1
         assert bytes(app.clipboard().mimeData().data(clipboardMimeType)) == original
         assert v.CaptureState() == before and len(v.undoHistory) == history
         assert v.DuplicateSelectionObjects([obj for obj, index in entries], []) == {}
@@ -77,6 +81,31 @@ def Main():
     v.furnishingDefinitions["Damaged SVG"] = definition
     assert v.FurnishingAssetHasErrors("Damaged SVG")
     assert v.FurnishingAssetHasErrors("null")
+    damaged = Furnishing(v.furnishingDefinitions["Damaged SVG"], QtCore.QPointF(4000, 0))
+    v.furnishings.append(damaged)
+    v.objectGroups = [(valid, missing, damaged)]
+    v.EnsureObjectIds()
+    v.SetSelection([(valid, None)])
+    before = v.CaptureState()
+    history = len(v.undoHistory)
+    assert len(v.SelectionEntries()) == 3 and v.CanCopySelection()
+    assert v.CopySelection()
+    payload = v.ReadClipboardSelection()
+    assert [record["definition"] for record in payload["objects"]] == ["desk"]
+    assert payload["groups"] == []
+    assert v.CaptureState() == before and len(v.undoHistory) == history
+    main.ShowHeaderMenu("Edit")
+    assert main.menuButtons["Copy"].isEnabled() and main.menuButtons["Cut"].isEnabled()
+    main.headerMenus["Edit"].hide()
+    assert v.CutSelection()
+    assert v.furnishings == [missing, damaged], "Cut deleted skipped error objects"
+    assert len(v.undoHistory) == history + 1
+    v.Undo()
+    assert v.CaptureState() == before
+    v.Redo()
+    assert v.furnishings == [missing, damaged]
+    v.Undo()
+    v.objectGroups = []
     v.SetSelection([(valid, None)])
     assert v.CopySelection() and v.ReadClipboardSelection() is not None
     del v.furnishingDefinitions["Broken Compound"]

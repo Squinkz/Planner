@@ -97,7 +97,7 @@ def Main():
             assert all(field.itemText(index) == "Pattern" for index in range(1, field.count()))
             for index in range(1, field.count()):
                 field.setCurrentIndex(index)
-                assert field.itemData(index) in field.toolTip()
+                assert not field.toolTip()
                 label, mode, scale = compositing.TextureMapping(field.itemData(index))
                 assert main.exportPanel.textureScaleSlider.value() == round(scale * 1000)
                 assert main.exportPanel.textureScaleSlider.isEnabled() == (mode == "tile")
@@ -151,7 +151,7 @@ def Main():
             field.setCurrentIndex(field.findData("Pattern_t.png"))
             assert panel.TextureSettings() == {"strength": .5, "highlights": 1, "midtones": 1, "shadows": 1, "scaleOverride": None}
             main.close()
-    print("PASS: stretch, default tiling, fractional/integer densities, short names and identifying tooltips")
+    print("PASS: stretch, default tiling, fractional/integer densities, short names and reset controls")
 
 
 if __name__ == "__main__":

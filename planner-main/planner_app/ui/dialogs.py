@@ -1,9 +1,13 @@
-"""Stacker's themed message boxes, using its status icons and tint colors."""
+"""Themed message boxes using status icons and palette colors."""
 from PySide6 import QtCore, QtWidgets
 from planner_app.graphics.icons import UiIcon, uiIconColors
 
 
 class AppMessageBox(QtWidgets.QMessageBox):
+    def __init__(self, parent = None):
+        super().__init__(parent)
+        self.setWindowModality(QtCore.Qt.WindowModality.ApplicationModal)
+
     def showEvent(self, event):
         super().showEvent(event)
         available = self.screen().availableGeometry()
@@ -142,6 +146,7 @@ class DialogsMixin:
             def Locate(item, column = 0):
                 objects = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
                 self.LocateRecoveryObjects(objects)
+                tree.setFocus(QtCore.Qt.FocusReason.OtherFocusReason)
 
             tree.itemClicked.connect(Locate)
             tree.itemActivated.connect(Locate)
@@ -169,7 +174,6 @@ class DialogsMixin:
                 previous.close()
             self.recoveryWindow = message
             message.setAttribute(QtCore.Qt.WidgetAttribute.WA_DeleteOnClose)
-            message.setWindowModality(QtCore.Qt.WindowModality.NonModal)
             message.refreshTimer = QtCore.QTimer(message)
             message.refreshTimer.setSingleShot(True)
             message.refreshTimer.timeout.connect(message.RefreshObjects)

@@ -87,9 +87,12 @@ def Main():
         main.sidebarTabs.setCurrentWidget(export)
         assert not v.showMeasurements and export.projectView["measurementVisibility"] == original
         main.SetViewOption("showMeasurements")
+        assert not v.showMeasurements, "View menu command bypassed Export's shortcut guard"
+        export.measurementVisibilityItems["all"].setCheckState(0, QtCore.Qt.CheckState.Checked)
         assert v.showMeasurements and all(v.measurementVisibility.values())
         main.ShowViewMenu()
         assert main.viewOptions["showMeasurements"].textLabel.text() == "Toggle dimensions"
+        assert not main.viewOptions["showMeasurements"].isEnabled()
         main.viewMenu.hide()
         export.measurementVisibilityItems["all"].setCheckState(0, QtCore.Qt.CheckState.Unchecked)
         assert not v.showMeasurements and not any(v.measurementVisibility.values())

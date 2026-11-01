@@ -187,7 +187,11 @@ class ReferenceRestorationFitting:
             if isinstance(window, SilledWindow):
                 window.sillDepth = sillDepth
             if isinstance(window, Fireplace):
-                window.depth, window.depthOffset, window.material = sillDepth
+                # Current snapshots retain stored values hidden by wall clamping;
+                # legacy three-field payloads still restore through the setters.
+                window.depth, window.depthOffset, window.material = sillDepth[:3]
+                if len(sillDepth) > 3:
+                    window.manualDepth, window.manualDepthOffset = sillDepth[3:]
             if isinstance(window, (Door, SlidingDoor, PocketDoor, CasementWindow)):
                 window.hingeAtSecond = hingeAtSecond
             if type(window) in (Window, Door, SilledWindow, CasementWindow, BarnDoor, BifoldDoor, Fireplace):

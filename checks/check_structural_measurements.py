@@ -145,6 +145,7 @@ def Main():
             QtTest.QTest.keyClick(panel.measurementVisibilityTree, QtCore.Qt.Key.Key_Space)
     # Capture the actual rendered dimension text, including each class gate.
     from planner_app.viewport import rendering
+    from planner_app.graphics import retained_dimensions
     originalFormat = rendering.FormatLength
     renderedLengths = []
 
@@ -152,7 +153,7 @@ def Main():
         renderedLengths.append(round(length))
         return originalFormat(length, *args, **kwargs)
 
-    rendering.FormatLength = RecordLength
+    rendering.FormatLength = retained_dimensions.FormatLength = RecordLength
     v.walls = [Wall(point(), point(4000, 0), 240),
                Stair(point(0, 2000), point(2000, 2000), 600),
                Counter(point(0, -2000), point(3000, -2000), 600),
@@ -162,6 +163,8 @@ def Main():
     assert not v.measurementVisibility["railings"]
     assert items["railings"].checkState(0) == QtCore.Qt.CheckState.Unchecked
     v.measurementPictures = ()  # Observe formatting on a cold annotation build.
+    v.retainedMeasurements = None
+    v.measurementLabelRecords = None
     renderedLengths.clear()
     v.grab()
     assert 2500 not in renderedLengths
@@ -170,12 +173,16 @@ def Main():
     assert DecodeProject(main.BuildProjectData(), v.furnishingDefinitions)[5]["measurementVisibility"]["railings"]
     panel.SetMeasurementVisibility("walls", False)
     v.measurementPictures = ()  # Observe formatting on a cold annotation build.
+    v.retainedMeasurements = None
+    v.measurementLabelRecords = None
     renderedLengths.clear()
     v.grab()
     assert 2500 in renderedLengths and 4000 not in renderedLengths
     panel.SetMeasurementVisibility("walls", True)
     Toggle("railings")
     v.measurementPictures = ()  # Observe formatting on a cold annotation build.
+    v.retainedMeasurements = None
+    v.measurementLabelRecords = None
     renderedLengths.clear()
     v.grab()
     assert 2500 not in renderedLengths and 4000 in renderedLengths
@@ -185,17 +192,21 @@ def Main():
     assert DecodeProject(legacy, v.furnishingDefinitions)[5]["measurementVisibility"] == expectedVisibility
     for key, length in (("walls", 4000), ("stairs", 2000), ("counters", 3000)):
         v.measurementPictures = ()  # Observe formatting on a cold annotation build.
+        v.retainedMeasurements = None
+        v.measurementLabelRecords = None
         renderedLengths.clear()
         v.viewportSceneKey = None
         v.grab()
         assert length in renderedLengths, (key, renderedLengths)
         Toggle(key)
         v.measurementPictures = ()  # Observe formatting on a cold annotation build.
+        v.retainedMeasurements = None
+        v.measurementLabelRecords = None
         renderedLengths.clear()
         v.grab()
         assert length not in renderedLengths, (key, renderedLengths)
         Toggle(key)
-    rendering.FormatLength = originalFormat
+    rendering.FormatLength = retained_dimensions.FormatLength = originalFormat
     Toggle("stairs")
     assert not v.measurementVisibility["stairs"]
     assert v.showMeasurements and "all" not in items

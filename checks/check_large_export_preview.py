@@ -21,6 +21,7 @@ def Main():
     v.walls = [Wall(QtCore.QPointF(-2000, 0), QtCore.QPointF(2000, 0), 240)]
     v.EnsureObjectIds()
     v.sceneRevision += 1
+    main.exportPanel.overrides["scaleMode"] = "Digital"
     main.sidebarTabs.setCurrentWidget(main.exportPanel)
     overlay = v.exportOverlay
     overlay.bounds = (-6000, -6000, 12000, 12000)

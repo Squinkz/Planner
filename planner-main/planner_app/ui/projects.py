@@ -4,14 +4,19 @@ import copy
 import json
 import os
 import uuid
+import pickle
+import sqlite3
 from pathlib import Path
 from PySide6 import QtCore, QtWidgets
-from planner_app.project_codec import DecodeProject, EncodeScene, EncodeUsedFurnishings, projectFileLimit, ReadProjectBytes
+from planner_app.project_codec import DecodeProject, EncodeScene, EncodeUsedFurnishings, ValidateProjectSettings, projectFileLimit, ReadProjectBytes
+from planner_app.activity_records import DecodeActivityLog
 from planner_app.project_history import EncodeEdit
 from planner_app.paths import appDirectory
 from planner_app.geometry_recovery import GeometryLoadCancelled
 from planner_app.models import Furnishing, RoomLabel
 from planner_app.furnishing_assets import FurnishingAssetProblems
+from planner_app.scene_changes import SceneObject
+from planner_app.view_settings import CaptureViewportView, ApplyViewportView
 
 
 class ProjectsMixin:
@@ -40,28 +45,27 @@ class ProjectsMixin:
     def ProjectSettings(self):
         v = self.viewport
         snap = {name: button.isChecked() for name, button in self.snapOptions.items()}
-        settings = {"wallWidth": v.newWallWidth, "wallMaterial": v.newWallMaterial, "wallShape": v.wallShape,
-                "doorType": v.openingPlacementTypes["Door"][v.openingPlacementIndices["Door"]].__name__,
-                "windowType": v.openingPlacementTypes["Window"][v.openingPlacementIndices["Window"]].__name__,
-                "snapEnabled": v.snapEnabled and any(snap.values()), "snap": snap,
-                "connectedVertices": v.connectedVerticesEnabled, "connectedObjects": v.connectedObjectsEnabled,
-                "groupMode": v.groupModeEnabled, "localTransforms": v.localTransforms, "visibility": dict(v.visibility),
-                "ignoredPotentialIssues": list(v.ignoredPotentialIssues),
-                "showGrid": v.showGrid, "roomStyle": "Tinted" if v.floors else "Canvas", "solidRooms": v.solidRooms, "showMeasurements": v.showMeasurements, "measurementPrecision": v.measurementPrecision,
-                "buildSettings": {"wallWidths": list(v.wallPresetWidths), "openingSizes": dict(v.openingDefaultSizes),
-                                  "miscSizes": dict(v.miscDefaultSizes),
-                                  **({"imperialSizes": dict(v.imperialDefaultSizes)} if v.imperialDefaultSizes else {})},
-                "viewportSettings": dict(v.gridIntensities), "lineworkSettings": dict(v.lineworkSettings), "measurementSettings": dict(v.measurementSettings),
-                "measurementVisibility": dict(v.measurementVisibility),
-                "collisionSettings": dict(v.collisionSettings),
-                "railingSpacings": dict(v.railingSpacings), "stairStepSizes": dict(v.stairStepSizes), "unitsMode": v.unitsMode}
+        settings = {
+            "wallWidth": v.newWallWidth, "wallMaterial": v.newWallMaterial, "wallShape": v.wallShape,
+            "doorType": v.openingPlacementTypes["Door"][v.openingPlacementIndices["Door"]].__name__,
+            "windowType": v.openingPlacementTypes["Window"][v.openingPlacementIndices["Window"]].__name__,
+            "snapEnabled": v.snapEnabled and any(snap.values()), "snap": snap,
+            "connectedVertices": v.connectedVerticesEnabled, "connectedObjects": v.connectedObjectsEnabled,
+            "groupMode": v.groupModeEnabled, "localTransforms": v.localTransforms,
+            "ignoredPotentialIssues": list(v.ignoredPotentialIssues),
+            "buildSettings": {"wallWidths": list(v.wallPresetWidths), "openingSizes": dict(v.openingDefaultSizes),
+                              "miscSizes": dict(v.miscDefaultSizes),
+                              **({"imperialSizes": dict(v.imperialDefaultSizes)} if v.imperialDefaultSizes else {})},
+            "collisionSettings": dict(v.collisionSettings), "railingSpacings": dict(v.railingSpacings),
+            "stairStepSizes": dict(v.stairStepSizes),
+        }
         if self.referenceImage.state is not None:
             settings["referenceImage"] = self.referenceImage.Snapshot()
         if v.imperialAutoSizes:
             settings["imperialAutoSizes"] = {kind: dict(values) for kind, values in v.imperialAutoSizes.items()}
-        if self.exportPanel.projectView is not None:
-            settings.update(copy.deepcopy(self.exportPanel.projectView))
-            settings.pop("canvasTheme", None)
+        view = self.exportPanel.projectView
+        settings.update(copy.deepcopy(view) if view is not None else CaptureViewportView(v))
+        settings.pop("canvasTheme", None)
         if self.exportPanel.overrides:
             settings["exportSettings"] = copy.deepcopy(self.exportPanel.overrides)
         if self.exportPanel.exportFolder:
@@ -97,11 +101,42 @@ class ProjectsMixin:
             self.encodedHistoryKey = key
         return self.encodedHistory
 
-    def BuildProjectData(self, includeHistory = True, includeActivity = True):
+    def BuildProjectData(self, includeHistory = True, includeActivity = True, reuseScene = False):
         if includeActivity and self.activityLog.settingsTimer.isActive():
             self.activityLog.FlushSettings()
         pan = self.exportPanel.projectPanOffset if self.exportPanel.projectPanOffset is not None else self.viewport.panOffset
-        data = {"format": "Planner Project", "version": 1, "scene": EncodeScene(self.viewport),
+        v = self.viewport
+        scene = None
+        if reuseScene and not includeHistory:
+            changes = v.renderChanges
+            # Definitions are ordinary nested dictionaries, so compare their
+            # complete values rather than assuming in-place edits notify us.
+            definitions = pickle.dumps(tuple(obj.definition for obj in v.furnishings), protocol = pickle.HIGHEST_PROTOCOL)
+            extras, trackedModels = [], True
+            for collection in (v.walls, v.windows, v.furnishings, v.labels):
+                for obj in collection:
+                    trackedModels = trackedModels and isinstance(obj, SceneObject)
+                    values = obj.__dict__
+                    if "definitionKey" in values or "originalMaterial" in values or "geometryIssues" in values:
+                        extras.append((id(obj), values.get("definitionKey"), values.get("originalMaterial"),
+                                       tuple(values.get("geometryIssues", ()))))
+            key = (changes.geometry, changes.appearance, changes.topology, changes.visibility, changes.metadata,
+                   tuple(id(obj) for obj in v.hiddenObjects), tuple(extras))
+            cached = self.__dict__.get("previewSceneSnapshot")
+            tracked = trackedModels and all(getattr(getattr(v, name), "changes", None) is changes
+                          for name in ("walls", "windows", "furnishings", "labels", "objectGroups"))
+            if tracked and cached is not None and cached[0] == key and cached[1] == definitions:
+                # Fresh containers protect the cache from callers that alter
+                # render arguments. Retain bytes, never live model references.
+                scene = pickle.loads(cached[2])
+            else:
+                scene = EncodeScene(v)
+                payload = pickle.dumps(scene, protocol = pickle.HIGHEST_PROTOCOL)
+                if tracked and len(payload) + len(definitions) <= 8 * 1024 * 1024:
+                    self.previewSceneSnapshot = key, definitions, payload
+                else:
+                    self.__dict__.pop("previewSceneSnapshot", None)
+        data = {"format": "Planner Project", "version": 1, "scene": EncodeScene(v) if scene is None else scene,
                 "settings": self.ProjectSettings(),
                 "view": {"zoom": self.exportPanel.projectZoom if self.exportPanel.projectZoom is not None else self.viewport.zoom,
                          "pan": [pan.x(), pan.y()]},
@@ -213,8 +248,8 @@ class ProjectsMixin:
         focused = QtWidgets.QApplication.focusWidget()
         propertyFields = list(self.propertyFields.values()) + list(self.referenceImage.fields.values())
         propertyFields += [self.exportPanel.folderField, self.exportPanel.fileNameField]
-        if focused is not None and any(field is focused or field.isAncestorOf(focused)
-                                       for field in propertyFields):
+        if focused is not None and (self.exportPanel.isAncestorOf(focused) or
+                                    any(field is focused or field.isAncestorOf(focused) for field in propertyFields)):
             # Focus loss commits text even when keyboard tracking is disabled.
             focused.clearFocus()
         self.referenceImage.FinishPropertyDrag(True)
@@ -227,7 +262,6 @@ class ProjectsMixin:
         self.viewport.CancelInteraction()
 
     def ConfirmProjectReplacement(self):
-        self.sidebarTabs.setCurrentWidget(self.buildScrollArea)
         self.FinishProjectInteraction()
         self.RefreshProjectDirty()
         if not self.projectDirty:
@@ -242,6 +276,7 @@ class ProjectsMixin:
         return choice == QtWidgets.QMessageBox.StandardButton.Discard
 
     def NewProject(self):
+        self.sidebarTabs.setCurrentWidget(self.buildScrollArea)
         if not self.ConfirmProjectReplacement():
             return False
         self.exportPanel.EndExportGesture()
@@ -268,6 +303,7 @@ class ProjectsMixin:
         return False
 
     def CloseProject(self):
+        self.sidebarTabs.setCurrentWidget(self.buildScrollArea)
         if not self.ConfirmProjectReplacement():
             return False
         settings = self.ProjectSettings()
@@ -371,7 +407,6 @@ class ProjectsMixin:
         v.setFocus()
 
     def OpenProject(self, path = None):
-        self.sidebarTabs.setCurrentWidget(self.buildScrollArea)
         if path is None:
             filename, chosenFilter = QtWidgets.QFileDialog.getOpenFileName(self, "Open Project", str(self.BrowseDirectory()),
                                                                           "Planner Projects (*.plan);;All Files (*)")
@@ -391,12 +426,26 @@ class ProjectsMixin:
         previousRecovery = self.recoverySourcePath, self.recoveryBackupPath
         previousActivityGeneration, previousActivityNext = self.activityLog.generation, self.activityLog.nextId
         definitions = self.viewport.localFurnishingDefinitions if self.viewport.projectFurnishingDefinitions else self.viewport.furnishingDefinitions
+        v = self.viewport
+        previousExportView = ((v.zoom, QtCore.QPointF(v.panOffset))
+                              if self.sidebarTabs.currentWidget() is self.exportPanel else None)
+        previousState = v.CaptureState()
+        # Rollback retains live identities and journals, including editable
+        # recovery scenes that cannot pass strict import placement validation.
+        previousSettings = ValidateProjectSettings(previousData["settings"])
+        previousSettings.update(history = {"undo": list(v.undoHistory), "redo": list(v.redoHistory)},
+            editorUi = previousData["ui"], embeddedFurnishings = dict(v.projectFurnishingDefinitions),
+            activityLog = DecodeActivityLog(previousData.get("activityLog")))
+        previousDecoded = (list(v.walls), list(v.windows), list(v.furnishings), list(v.objectGroups),
+            list(v.hiddenObjects), previousSettings,
+            {"zoom": previousData["view"]["zoom"], "pan": QtCore.QPointF(*previousData["view"]["pan"])}, list(v.labels))
 
         def RestorePreviousProject():
             attemptEntries = [entry for entry in self.activityLog.entries
                               if self.activityLog.generation != previousActivityGeneration or entry["id"] >= previousActivityNext]
             try:
-                self.ApplyProject(DecodeProject(previousData, definitions), previousPath)
+                self.ApplyProject(previousDecoded, previousPath)
+                v.RestoreState(previousState)
                 self.exportPanel.exportUndoHistory, self.exportPanel.exportRedoHistory = previousExport[:2]
                 self.exportPanel.RestoreExportHistory(previousExport[2])
                 self.activityLog.exportLinks = previousExport[3]
@@ -406,20 +455,18 @@ class ProjectsMixin:
                         self.activityLog.Add(entry["kind"], entry["summary"], entry["details"])
                 self.savedSceneSignature, self.savedSettingsSignature = previousSaved
                 self.recoverySourcePath, self.recoveryBackupPath = previousRecovery
+                if previousExportView is not None:
+                    self.exportPanel.exportZoom, self.exportPanel.exportPanOffset = previousExportView
+                    self.sidebarTabs.setCurrentWidget(self.exportPanel)
+                    # Re-entry can recenter an offscreen crop. A failed open
+                    # must preserve the user's exact previous navigation.
+                    v.zoom, v.panOffset = previousExportView[0], QtCore.QPointF(previousExportView[1])
+                    v.update()
                 self.RefreshProjectDirty()
             except Exception as restoreError:
                 self.ShowAppMessage("Project Restore Failed", "The previous project could not be restored.", "error",
                                     informativeText = str(restoreError))
 
-        try:
-            emptyProject = DecodeProject(self.defaultProjectData, definitions)
-            emptyProject[5].pop("editorUi", None)
-            self.ApplyProject(emptyProject, None)
-        except Exception as error:
-            self.ShowAppMessage("Cannot Open Project", "Could not close the current project before opening the new one.", "error",
-                                informativeText = str(error))
-            RestorePreviousProject()
-            return False
         try:
             originalBytes = ReadProjectBytes(path)
             data = json.loads(originalBytes.decode("utf-8-sig"))
@@ -428,11 +475,9 @@ class ProjectsMixin:
             if originalBytes.startswith(b"\xef\xbb\xbf"):
                 repairs.insert(0, "Accepted UTF-8 text containing a byte-order mark.")
         except GeometryLoadCancelled:
-            RestorePreviousProject()
             return False
         except (OSError, ValueError, KeyError, TypeError, IndexError, OverflowError, RecursionError) as error:
             self.ShowAppMessage("Cannot Open Project", f"Could not open {path.name}.", "error", informativeText = str(error))
-            RestorePreviousProject()
             return False
         backupPath = None
         if repairs:
@@ -440,13 +485,12 @@ class ProjectsMixin:
                 backupPath = self.BackupProjectForRecovery(path, originalBytes)
             except OSError as error:
                 self.ShowAppMessage("Cannot Preserve Project", "The original project could not be backed up.", "error", informativeText = str(error))
-                RestorePreviousProject()
                 return False
         try:
             self.ApplyProject(decoded, None if repairs else path)
         except Exception as error:
-            self.ShowAppMessage("Cannot Open Project", f"Could not apply {path.name}. The previous project will be restored.", "error", informativeText = str(error))
             RestorePreviousProject()
+            self.ShowAppMessage("Cannot Open Project", f"Could not apply {path.name}.", "error", informativeText = str(error))
             return False
         if repairs:
             self.ReportRecoveredProject(path, backupPath, repairs)
@@ -463,11 +507,11 @@ class ProjectsMixin:
         return self.OpenProject(self.projectPath)
 
     def SaveProject(self, path = None):
-        self.sidebarTabs.setCurrentWidget(self.buildScrollArea)
         if path is None and self.projectPath is None:
             return self.SaveProjectAs()
         path = Path(path).resolve() if path is not None else self.projectPath
         self.FinishProjectInteraction()
+        self.exportPanel.EndExportGesture()
         try:
             self.viewport.EnsureObjectIds()
             data = json.dumps(self.BuildProjectData(), ensure_ascii = False, separators = (",", ":"), allow_nan = False).encode("utf-8")
@@ -482,7 +526,7 @@ class ProjectsMixin:
                 raise OSError(message)
             if not file.commit():
                 raise OSError(file.errorString())
-        except (OSError, ValueError, KeyError, TypeError) as error:
+        except (OSError, sqlite3.Error, ValueError, KeyError, TypeError) as error:
             self.ShowAppMessage("Cannot Save Project", f"Could not save {path.name}.", "error", informativeText = str(error))
             return False
         self.projectPath = path
@@ -494,7 +538,6 @@ class ProjectsMixin:
         return True
 
     def SaveProjectAs(self, path = None):
-        self.sidebarTabs.setCurrentWidget(self.buildScrollArea)
         if path is None:
             suggestedName = self.projectPath.name if self.projectPath is not None else "New Project.plan"
             suggested = self.BrowseDirectory() / suggestedName
@@ -517,6 +560,9 @@ class ProjectsMixin:
             recoveryWindow.close()
         if getattr(self, "furnishingQuickSearch", None) is not None:
             self.furnishingQuickSearch.hide()
+            blocker = QtCore.QSignalBlocker(self.furnishingQuickSearch.results)
+            self.furnishingQuickSearch.results.clear()
+            del blocker
         walls, windows, furnishings, groups, hidden, settings, view, labels = decoded
         self.projectLoading = True
         self.recoverySourcePath = self.recoveryBackupPath = None
@@ -535,11 +581,15 @@ class ProjectsMixin:
                 v.furnishingDefinitions = {**v.localFurnishingDefinitions, **v.projectFurnishingDefinitions}
                 self.RefreshFurnishingRenderers()
                 self.BuildFurnishTab(refresh = True)
+            else:
+                self.RefreshFurnishingRenderers()
             v.walls, v.windows, v.furnishings = walls, windows, furnishings
             v.ignoredPotentialIssues = list(settings["ignoredPotentialIssues"])
             v.labels = labels
             v.objectGroups, v.hiddenObjects = groups, hidden
             v.hiddenObjectIds = {id(obj) for obj in hidden}
+            v.ClearGeometryCaches()
+            self.__dict__.pop("previewSceneSnapshot", None)
             v.undoHistory.clear()
             v.redoHistory.clear()
             v.lastInteractionPosition = v.hoverPosition = None
@@ -552,19 +602,14 @@ class ProjectsMixin:
             v.openingDefaultSizes = dict(settings["buildSettings"]["openingSizes"])
             v.miscDefaultSizes = dict(settings["buildSettings"]["miscSizes"])
             v.imperialDefaultSizes = dict(settings["buildSettings"].get("imperialSizes", {}))
+            ApplyViewportView(v, settings)
             self.SetLinework(settings["lineworkSettings"], notify = False)
-            v.gridIntensities = dict(settings["viewportSettings"])
-            v.measurementSettings = dict(settings["measurementSettings"])
-            v.wallMeasurementMode = settings["wallMeasurementMode"]
-            v.wallMeasurementReference = settings["wallMeasurementReference"]
             v.collisionSettings = dict(settings["collisionSettings"])
             v.stairStepSizes = dict(settings["stairStepSizes"])
             v.railingSpacings = dict(settings["railingSpacings"])
             v.imperialAutoSizes = {kind: dict(values) for kind, values in settings["imperialAutoSizes"].items()}
             v.autoSizingUnitsMode = None
-            v.unitsMode = settings["unitsMode"]
             self.referenceImage.Restore(settings.get("referenceImage"))
-            v.measurementPrecision = settings["measurementPrecision"]
             self.UpdateFurnishingSearch()
             self.wallWidthSelector.unitsMode = v.unitsMode
             v.EnsureObjectIds()
@@ -585,10 +630,6 @@ class ProjectsMixin:
                 del blocker
                 # Field synchronization can update the active preset; preserve the project's exact width.
                 v.newWallWidth = settings["wallWidth"]
-            v.showGrid, v.showMeasurements = settings["showGrid"], settings["showMeasurements"]
-            v.floors = settings["floors"]
-            v.solidRooms = settings["solidRooms"]
-            v.measurementVisibility = dict(settings["measurementVisibility"])
             if self.settingsWindow is not None:
                 self.settingsWindow.RefreshMeasurementVisibility()
             self.altHeld = False
@@ -662,4 +703,7 @@ class ProjectsMixin:
             return
         if self.sessionExecutor is not None:
             self.sessionExecutor.shutdown(wait = True)
+        preview = getattr(self.viewport.exportOverlay, "previewProcess", None)
+        if preview is not None:
+            preview.Close()
         event.accept()

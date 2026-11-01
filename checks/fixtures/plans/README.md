@@ -9,3 +9,9 @@ These plans are generated test data, not user projects or demos.
 
 The fixtures contain no personal floor plans, reference images or saved history.
 The current bundled furnishing definitions remain authoritative.
+
+`../editor_interactions.py` loads `dense_furnishings.plan` for frozen/current
+dragging, snapping and rendering comparisons. It adds an independently authored
+isolated oblique wall and centers the selected endpoint before each gesture.
+The shared matrices cover collision switches and modifier combinations without
+using personal project data or local diagnostic outputs.

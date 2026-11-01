@@ -1,7 +1,7 @@
 """UPNG palette encoding through Qt's bundled JavaScript engine."""
 import zlib
 from PySide6 import QtCore, QtGui
-from PySide6.QtQml import QJSEngine
+from PySide6.QtQml import QJSEngine, QJSValue
 
 from planner_app.paths import appDirectory
 
@@ -12,11 +12,7 @@ class PngCompressionBridge(QtCore.QObject):
         return QtCore.QByteArray(zlib.compress(bytes(data), level))
 
 
-def EncodeOptimizedPng(image):
-    if image.isNull():
-        raise ValueError("Cannot encode an empty image.")
-    # RGBA8888 has byte-ordered channels, independent of the host's endianness.
-    rgba = image.convertToFormat(QtGui.QImage.Format.Format_RGBA8888)
+def CreatePngEngine():
     engine = QJSEngine()
     compression = PngCompressionBridge()
     engine.globalObject().setProperty("plannerCompression", engine.newQObject(compression))
@@ -25,6 +21,44 @@ def EncodeOptimizedPng(image):
         result = engine.evaluate((vendorPath / filename).read_text(encoding = "utf-8"), filename)
         if result.isError():
             raise RuntimeError(f"Could not initialize optimized PNG export: {result.toString()}")
+    return engine, compression
+
+
+class OptimizedPngEncoder:
+    """One engine per export job; release each image's pixels before the next."""
+    def __init__(self):
+        self.engine, self.compression = CreatePngEngine()
+
+    def Encode(self, image):
+        if image.isNull():
+            raise ValueError("Cannot encode an empty image.")
+        engine = self.engine
+        if engine is None:
+            raise RuntimeError("The optimized PNG encoder is closed.")
+        if QtCore.QThread.currentThread() != engine.thread():
+            raise RuntimeError("Optimized PNG encoding must run on its owning thread.")
+        try:
+            return EncodeOptimizedPng(image, preparedEngine = engine)
+        finally:
+            engine.globalObject().setProperty("plannerRgba", QJSValue(QJSValue.SpecialValue.NullValue))
+            engine.collectGarbage()
+
+    def Close(self):
+        if self.engine is not None and QtCore.QThread.currentThread() != self.engine.thread():
+            raise RuntimeError("Optimized PNG cleanup must run on its owning thread.")
+        self.engine = None
+        self.compression = None
+
+
+def EncodeOptimizedPng(image, preparedEngine = None):
+    if image.isNull():
+        raise ValueError("Cannot encode an empty image.")
+    # RGBA8888 has byte-ordered channels, independent of the host's endianness.
+    rgba = image.convertToFormat(QtGui.QImage.Format.Format_RGBA8888)
+    if preparedEngine is None:
+        engine, compression = CreatePngEngine()
+    else:
+        engine = preparedEngine
     result = engine.globalObject().property("BeginPngPixels").call([rgba.sizeInBytes()])
     if result.isError():
         raise RuntimeError(f"Could not initialize optimized PNG pixels: {result.toString()}")

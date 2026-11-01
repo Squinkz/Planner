@@ -1,5 +1,6 @@
 """Collision policy and numeric predicates; native path intersection is a backend."""
 import math
+from .polygons import PolygonTwiceArea
 
 # Callers classify their model types once. These flags carry no model references.
 northFlag = 1
@@ -34,6 +35,8 @@ def ExcludesFootprintCollision(first, second):
 
 def FootprintsOverlap(firstCorners, firstAxes, secondCorners, secondAxes, tolerance):
     # Bounds and empty-geometry rejection happen before the caller prepares data.
+    if not firstCorners or not secondCorners or not firstAxes or not secondAxes:
+        return False
     polygons = (firstCorners, secondCorners)
     for axisX, axisY in firstAxes + secondAxes:
         projections = [[x * axisX + y * axisY for x, y in polygon] for polygon in polygons]
@@ -57,9 +60,9 @@ def FootprintContainment(corners, otherCorners, otherAxes, tolerance):
 
 def SignificantPathOverlap(polygons, tolerance):
     for polygon in polygons:
-        area = abs(sum(polygon[index][0] * polygon[(index + 1) % len(polygon)][1]
-                       - polygon[(index + 1) % len(polygon)][0] * polygon[index][1]
-                       for index in range(len(polygon)))) / 2
+        if not polygon:
+            continue
+        area = abs(PolygonTwiceArea(polygon)) / 2
         perimeter = sum(math.hypot(polygon[index][0] - polygon[(index + 1) % len(polygon)][0],
                                    polygon[index][1] - polygon[(index + 1) % len(polygon)][1])
                         for index in range(len(polygon)))

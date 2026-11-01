@@ -38,7 +38,7 @@ class ProblemsWindow(QtWidgets.QDialog):
         self.repairButton = QtWidgets.QPushButton("Auto-Repair")
         self.deleteButton = QtWidgets.QPushButton("Delete")
         self.ignoreButton = QtWidgets.QPushButton("Ignore")
-        self.ignoreButton.setToolTip("Ignore the selected potential issues for their current geometry. Saved with this plan.")
+        self.ignoreButton.setToolTip("Ignore the selected potential issues")
         self.restoreIgnoredButton = QtWidgets.QPushButton("Restore ignored")
         self.restoreIgnoredButton.setToolTip("Restore all ignored potential issues in this plan")
         self.recheckButton = QtWidgets.QPushButton("Recheck")

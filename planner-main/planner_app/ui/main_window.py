@@ -254,7 +254,7 @@ class MainWindow(AppPreferencesMixin, AppearanceMixin, FurnishingCatalogMixin, D
             if (isinstance(watched, QtWidgets.QWidget)
                     and (watched is self.viewport or self.exportPanel.isAncestorOf(watched))):
                 if eventType == QtCore.QEvent.Type.MouseButtonPress and event.button() == QtCore.Qt.MouseButton.LeftButton:
-                    self.exportPanel.BeginExportGesture()
+                    self.exportPanel.BeginExportGesture(watched)
                 elif eventType == QtCore.QEvent.Type.MouseButtonRelease and event.button() == QtCore.Qt.MouseButton.LeftButton:
                     QtCore.QTimer.singleShot(0, self.exportPanel.EndExportGesture)
         if (self.viewport.exportOverlay.active

@@ -1,4 +1,4 @@
-"""Exercise Stacker's copied submenu controller through real pointer events."""
+"""Exercise the context submenu controller through real pointer events."""
 import os, sys
 from pathlib import Path
 os.environ["QT_QPA_PLATFORM"] = "offscreen"

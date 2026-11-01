@@ -14,10 +14,12 @@ jobs:
     timeout-minutes: 45
     env:
       QT_QPA_PLATFORM: offscreen
+      QT_SCALE_FACTOR: '1'
       PYTHONUTF8: '1'
+      OPENBLAS_NUM_THREADS: '1'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.14'
           cache: pip
@@ -26,17 +28,59 @@ jobs:
             planner-main/requirements.txt
       - name: Install development dependencies
         run: python -m pip install -r requirements-dev.txt
-      - name: Run checks in isolated processes
+      - name: Run checks in parallel isolated processes
         shell: pwsh
         run: |
-          python checks/run_checks.py > check-results.txt 2>&1
+          python checks/run_checks.py --report diagnostics/check-results.json > check-results.txt 2>&1
           $checkExitCode = $LASTEXITCODE
           Get-Content check-results.txt
           exit $checkExitCode
       - name: Upload check results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: windows-check-results
-          path: check-results.txt
+          path: |
+            check-results.txt
+            diagnostics/check-results.json
+            diagnostics/check-runs/
+          if-no-files-found: ignore
+
+  scaled-editor:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        scale: ['1.25', '2']
+    env:
+      QT_QPA_PLATFORM: offscreen
+      QT_SCALE_FACTOR: ${{ matrix.scale }}
+      PYTHONUTF8: '1'
+      OPENBLAS_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Install development dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - name: Check scaled editor rendering and gestures
+        shell: pwsh
+        run: |
+          python checks/run_checks.py check_edit_scene_cache.py check_pan_dirty_regions.py check_flat_interactions.py check_flat_next.py check_local_paint.py check_retained_paint.py check_wall_boundary.py check_snap_preparation.py check_snap_local.py --jobs 2 --report diagnostics/scaled-check-results.json > scaled-check-results.txt 2>&1
+          $checkExitCode = $LASTEXITCODE
+          Get-Content scaled-check-results.txt
+          exit $checkExitCode
+      - name: Upload scaled check results
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: windows-editor-scale-${{ matrix.scale }}
+          path: |
+            scaled-check-results.txt
+            diagnostics/scaled-check-results.json
+            diagnostics/check-runs/
           if-no-files-found: ignore

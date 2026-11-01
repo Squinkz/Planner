@@ -17,6 +17,7 @@ from planner_app.graphics.theme import ApplyApplicationTheme
 from planner_app.project_codec import DecodeProject
 from planner_app.ui.color_picker import ColorPickerDialog
 from planner_app.export_plan import RenderPlan
+from planner_app.export_settings import BorderSize
 
 
 def Main():
@@ -27,6 +28,7 @@ def Main():
         app = QtWidgets.QApplication([])
         ApplyApplicationTheme(app)
         main = MainWindow()
+        main.exportPanel.overrides["scaleMode"] = "Digital"
         main.show()
         v = main.viewport
         v.walls = [Wall(QtCore.QPointF(-1000, 0), QtCore.QPointF(1000, 0), 240)]
@@ -70,7 +72,8 @@ def Main():
         data["settings"].update(view)
         expected = RenderPlan(main.projectPath, 100, v.exportOverlay.bounds, ruler = True,
                               projectData = data, applyTheme = False)
-        assert expected.pixelColor(v.rulerSize + 5, v.rulerSize + 5).name() == "#123456"
+        border = BorderSize("Ruler")
+        assert expected.pixelColor(border + 5, border + 5).name() == "#123456"
         outputPath = panel.OutputPath()
         main.exportButton.click()
         assert outputPath.exists() and QtGui.QImage(str(outputPath)) == expected
@@ -130,7 +133,7 @@ def Main():
         with patch.object(main, "ShowAppMessage", return_value = QtWidgets.QMessageBox.StandardButton.No) as question:
             main.exportButton.click()
             question.assert_called_once()
-            assert question.call_args.args == ("Replace Export", "Replace the existing file?", "warning")
+            assert question.call_args.args == ("Replace Export", "Replace the existing file(s)?", "warning")
             assert question.call_args.kwargs["informativeText"] == str(svgPath)
             assert question.call_args.kwargs["defaultButton"] == QtWidgets.QMessageBox.StandardButton.No
         assert svgPath.read_bytes() == contents
@@ -150,12 +153,14 @@ def Main():
         assert v.exportOverlay.drawRuler and v.exportOverlay.borderStyle == "Plain"
         assert DecodeProject(main.BuildProjectData(), v.furnishingDefinitions)[5]["exportSettings"]["border"] == "Plain"
         plain = panel.Render("png")
-        assert plain.size() == expected.size()
+        plainBorder = BorderSize("Plain")
+        assert plain.width() == expected.width() - 2 * (border - plainBorder)
+        assert plain.height() == expected.height() - 2 * (border - plainBorder)
         background = QtGui.QColor(palette.themeColors["rulerBackground"]).rgba()
         for row in range(plain.height()):
             for column in range(plain.width()):
-                if (row < v.rulerSize or row >= plain.height() - v.rulerSize
-                        or column < v.rulerSize or column >= plain.width() - v.rulerSize):
+                if (row < plainBorder or row >= plain.height() - plainBorder
+                        or column < plainBorder or column >= plain.width() - plainBorder):
                     assert plain.pixelColor(column, row).rgba() == background
         plainSvg = panel.Render("svg")
         plainRenderer = QtSvg.QSvgRenderer(plainSvg)

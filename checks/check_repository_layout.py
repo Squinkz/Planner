@@ -1,5 +1,6 @@
 """A source checkout contains the app, developer references and no private plans."""
 from pathlib import Path
+import re
 
 
 def Main():
@@ -10,8 +11,17 @@ def Main():
     assert (root / "docs/parity/cases.json").is_file()
     assert (root / "demos/.gitkeep").is_file()
     assert not (app / "requirements-dev.txt").exists()
-    assert {path.name for path in (app / "docs").iterdir()} == {"help"}
+    assert (app / "help/README.md").is_file() and not (app / "docs").exists()
     assert not (app / "checks").exists() and not (app / "tools").exists()
+    # These verified first-party releases use Node 24. Retired action runtimes
+    # can fail before Python or any application regression check is launched.
+    minimumVersions = {"actions/checkout": 6, "actions/setup-python": 6, "actions/upload-artifact": 6}
+    for name in ("checks.yml", "windows-build.yml"):
+        workflow = (root / ".github/workflows" / name).read_text(encoding = "utf-8")
+        actions = re.findall(r"uses:\s*(actions/[\w-]+)@v(\d+)", workflow)
+        for action, minimum in minimumVersions.items():
+            versions = [int(version) for used, version in actions if used == action]
+            assert versions and all(version >= minimum for version in versions), (name, action, versions)
     for name in ("rectangular_rooms", "angled_rooms", "dense_furnishings"):
         assert (root / "checks/fixtures/plans" / (name + ".plan")).is_file()
     assert (app / "main.py").is_file() and (app / "requirements.txt").is_file()
