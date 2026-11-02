@@ -145,6 +145,9 @@ def TitleBlockFields(options, scale, architecturalScale = None, outputFormat = "
                  f"{scale:g} {'px/m' if outputFormat == 'png' else 'units/m'}")
     fields = []
     vertical = options.get("position", "Right") == "Right"
+    sheetIndex = options.get("sheetIndex", 1)
+    # The sequence is 01..99, 101..199, 201...; each new hundred skips 00.
+    sheetNumber = options.get("sheetNumber", "A-1") + f"{sheetIndex + (sheetIndex - 1) // 99:02d}"
     for name, label, value, preferredWidth in (
             ("projectName", "PROJECT NAME", options.get("projectName", ""), 115),
             ("drawingTitle", "SHEET TITLE", options.get("drawingTitle", "Ground Floor Plan"), 110),
@@ -154,7 +157,7 @@ def TitleBlockFields(options, scale, architecturalScale = None, outputFormat = "
             ("preparedBy", "PREPARED BY", options.get("preparedBy", ""), 110),
             ("comments", "NOTES", options.get("comments", ""), 120),
             ("revision", "REVISION", options.get("revision", ""), 65),
-            ("sheetNumber", "SHEET NUMBER", options.get("sheetNumber", "A-101"), 130)):
+            ("sheetNumber", "SHEET NUMBER", sheetNumber, 130)):
         minimumLines = {"address": 3, "comments": 4}.get(name, 1)
         metrics = QtGui.QFontMetricsF(TitleBlockFont(name))
         labelWidth = QtGui.QFontMetricsF(TitleBlockFont(name, heading = True)).horizontalAdvance(label) + 12

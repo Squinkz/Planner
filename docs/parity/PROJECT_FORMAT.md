@@ -467,11 +467,17 @@ false; `position` is `Right` (default) or `Bottom`. `logoMode` is `None`,
 `Planner` (default) or `Custom`; legacy `logoEnabled` is still accepted. Custom
 `logo` is base64 image data and `logoName` retains its source filename. Text
 fields are `projectName`, `drawingTitle` (displayed as Sheet title), `address`,
-`date`, `preparedBy`, `comments` (displayed as Notes), `sheetNumber` and `revision`. Text values are
+`date`, `preparedBy`, `comments` (displayed as Notes), `sheetNumber` (displayed as Sheet prefix) and `revision`. Text values are
 limited to 10,000 characters; encoded logo data to 8,000,000 characters.
 The GUI defaults project name to the current project stem or `New Project`,
-sheet title to `Ground Floor Plan` and sheet number to `A-101`. Explicit empty
-text is preserved. Scale is derived from export settings rather than a saved
+sheet title to `Ground Floor Plan` and sheet prefix to `A-1`. The `sheetNumber`
+value stores the literal prefix; the rendered SHEET NUMBER appends an automatic
+sequence, starting at `01`. Print pages run left to right, top to bottom within
+the complete selected pages. The sequence is `01`–`99`, then `101`–`199`, then
+`201` onwards, skipping each `00` ending. Digital/Architectural output uses `01`.
+The one-based render argument `sheetIndex` selects a page's sequence without
+changing the saved prefix. Explicit empty prefixes produce just the sequence.
+Other explicit empty text is preserved. Scale is derived from export settings rather than a saved
 text field. A blank date uses today; the picker and Today reset write the date.
 The title block is absent from editor/scene-only artwork, appended after the
 border in free-crop modes, and repeated inside each Print page. Its section

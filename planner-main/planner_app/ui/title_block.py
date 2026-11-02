@@ -51,9 +51,8 @@ class TitleBlockControlsMixin:
         self.titleBlockLogoMode.addItems(("None", "Planner", "Custom"))
         self.titleBlockLogoMode.setAccessibleName("Title block logo")
         logoLabel.setBuddy(self.titleBlockLogoMode)
-        inlineLabelWidth = max(positionLabel.sizeHint().width(), logoLabel.sizeHint().width())
+        inlineLabels = [positionLabel, logoLabel]
         for label, field in ((positionLabel, self.titleBlockPosition), (logoLabel, self.titleBlockLogoMode)):
-            label.setFixedWidth(inlineLabelWidth)
             row = QtWidgets.QHBoxLayout()
             row.setSpacing(24)
             row.addWidget(label)
@@ -89,7 +88,7 @@ class TitleBlockControlsMixin:
                 ("preparedBy", "Prepared by", False),
                 ("comments", "Notes", True),
                 ("revision", "Revision", False),
-                ("sheetNumber", "Sheet number", False)):
+                ("sheetNumber", "Sheet prefix", False)):
             label = QtWidgets.QLabel(text)
             label.setObjectName("exportControlLabel")
             field = (QtWidgets.QDateEdit() if name == "date" else
@@ -113,6 +112,8 @@ class TitleBlockControlsMixin:
                 field.setMaxLength(10000)
                 field.textEdited.connect(lambda value, name = name: self.SetTitleBlockOption(name, value))
             label.setBuddy(field)
+            if name in ("date", "revision", "sheetNumber"):
+                inlineLabels.append(label)
             if name == "date":
                 dateRow = QtWidgets.QHBoxLayout()
                 dateRow.setSpacing(8)
@@ -125,16 +126,25 @@ class TitleBlockControlsMixin:
                     "date", QtCore.QDate.currentDate().toString(QtCore.Qt.DateFormat.ISODate)))
                 dateRow.addWidget(field, 1)
                 dateRow.addWidget(self.titleBlockDateReset)
-                label.setFixedWidth(inlineLabelWidth)
                 dateForm = QtWidgets.QHBoxLayout()
                 dateForm.setSpacing(24)
                 dateForm.addWidget(label)
                 dateForm.addLayout(dateRow, 1)
                 optionsLayout.addLayout(dateForm)
+            elif name in ("revision", "sheetNumber"):
+                row = QtWidgets.QHBoxLayout()
+                row.setSpacing(24)
+                row.addWidget(label)
+                row.addWidget(field, 1)
+                optionsLayout.addLayout(row)
             else:
                 optionsLayout.addWidget(label)
                 optionsLayout.addWidget(field)
             self.titleBlockFields[name] = field
+
+        inlineLabelWidth = max(label.sizeHint().width() for label in inlineLabels)
+        for label in inlineLabels:
+            label.setFixedWidth(inlineLabelWidth)
 
         self.titleBlockEnabled.toggled.connect(lambda enabled: self.SetTitleBlockOption("enabled", enabled))
         self.titleBlockLogoButton.clicked.connect(self.ChooseTitleBlockLogo)
@@ -154,7 +164,7 @@ class TitleBlockControlsMixin:
         path = self.mainWindow.projectPath
         options.setdefault("projectName", Path(path).stem if path else "New Project")
         options.setdefault("drawingTitle", "Ground Floor Plan")
-        options.setdefault("sheetNumber", "A-101")
+        options.setdefault("sheetNumber", "A-1")
         options["logoMode"] = TitleBlockLogoMode(options)
         if options["logoMode"] == "Custom" and not options.get("logo"):
             options["logoMode"] = "Planner"
@@ -166,6 +176,10 @@ class TitleBlockControlsMixin:
     def SetTitleBlockOption(self, name, value):
         if self.applying:
             return
+        # Multiline editors have no setMaxLength; keep pasted notes/address
+        # within the same saved-text limit as the single-line fields.
+        if name in ("address", "comments"):
+            value = value[:10000]
         options = dict(self.overrides.get("titleBlock", {}))
         options[name] = value
         self.SetOverride("titleBlock", options)
@@ -209,7 +223,7 @@ class TitleBlockControlsMixin:
             self, "Choose Title Block Logo", str(self.mainWindow.BrowseDirectory()),
             "Images (*.png *.jpg *.jpeg *.bmp *.webp *.svg)")
         if not path:
-            self.SetTitleBlockOption("logoMode", "Planner")
+            self.RefreshTitleBlockControls()
             return
         reader = QtGui.QImageReader(path)
         reader.setAutoTransform(True)
@@ -219,7 +233,7 @@ class TitleBlockControlsMixin:
             reader.setScaledSize(size)
         image = reader.read()
         if image.isNull():
-            self.SetTitleBlockOption("logoMode", "Planner")
+            self.RefreshTitleBlockControls()
             self.mainWindow.ShowAppMessage("Title Block Logo", "Could not open this image.", "warning")
             return
         if max(image.width(), image.height()) > 1600:
@@ -228,7 +242,7 @@ class TitleBlockControlsMixin:
         buffer = QtCore.QBuffer()
         buffer.open(QtCore.QIODevice.OpenModeFlag.WriteOnly)
         if not image.save(buffer, "PNG") or buffer.size() > 6_000_000:
-            self.SetTitleBlockOption("logoMode", "Planner")
+            self.RefreshTitleBlockControls()
             self.mainWindow.ShowAppMessage("Title Block Logo", "Choose a smaller logo image.", "warning")
             return
         options = dict(self.overrides.get("titleBlock", {}))

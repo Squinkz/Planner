@@ -453,11 +453,15 @@ class DownwardComboBox(QtWidgets.QComboBox):
 
     def __init__(self, parent = None):
         super().__init__(parent)
+        # PySide can reuse a stale QStandardItem wrapper for Qt's implicit model
+        # after another dropdown is destroyed. Register and retain our own model.
+        self.itemModel = QtGui.QStandardItemModel(self)
+        self.setModel(self.itemModel)
         # Qt's menu delegate bypasses styled item padding and selection shapes.
         self.setItemDelegate(QtWidgets.QStyledItemDelegate(self))
         self.setSizeAdjustPolicy(QtWidgets.QComboBox.SizeAdjustPolicy.AdjustToContents)
         self.currentTextChanged.connect(self.UpdateContentWidth)
-        for signal in (self.model().rowsInserted, self.model().rowsRemoved, self.model().dataChanged, self.model().modelReset):
+        for signal in (self.itemModel.rowsInserted, self.itemModel.rowsRemoved, self.itemModel.dataChanged, self.itemModel.modelReset):
             signal.connect(self.UpdateContentWidth)
 
     def sizeHint(self):

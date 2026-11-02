@@ -897,7 +897,13 @@ Side width and bottom height are fixed for a given paper size; side notes absorb
 bottom notes absorb spare width. Revision precedes the larger, right-aligned
 sheet number; these stack in bottom mode. Headings use Noto Sans and fields
 D-DIN Condensed, with theme canvas/ink/rule colors. The wire key `drawingTitle`
-is displayed as Sheet title. See the project-format contract for stored defaults.
+is displayed as Sheet title. Sheet prefix (wire key `sheetNumber`) defaults to
+`A-1`; both Sheet prefix and Revision use inline labels and text entries.
+Every sheet appends a sequence starting at `01`, with Print pages numbered left
+to right, top to bottom across the full crop selection, including offscreen pages.
+The sequence continues `99` → `101` and `199` → `201`. Preview and export use
+the same numbers; crop edits invalidate only pages whose numbers change,
+retaining shared model artwork. See the project-format contract for stored defaults.
 In Print, the block scales uniformly with the paper's shorter edge: side width
 is 40 mm at A4, 50 mm at A3, then grows gently to a 60 mm cap at A0. Bottom
 height grows from 20.48 mm at A4 to 25.6 mm at A3 and 30.72 mm at A0. Both

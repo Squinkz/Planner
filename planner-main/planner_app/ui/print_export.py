@@ -323,7 +323,7 @@ class PrintExportMixin:
             raise ValueError("Enclose at least one complete page with the crop guides.")
         return [(path if pdf else path.with_name(f"{path.stem}_{index:03d}{path.suffix}"),
                  dict(render, bounds = PrintDrawingBounds(bounds, layout, self.overrides.get("pageOrigin", (0, 0))),
-                      pageSize = layout["paper"])) for index, bounds in enumerate(pages, 1)]
+                      pageSize = layout["paper"], sheetIndex = index)) for index, bounds in enumerate(pages, 1)]
 
     def RenderPrintScene(self, bounds):
         from planner_app.export_plan import ExportSceneCache, RenderPlan
@@ -355,13 +355,15 @@ class PrintExportMixin:
             overlay.printRenderArguments["projectData"]["settings"].pop("referenceImage", None)
         render = dict(overlay.printRenderArguments)
         layout = overlay.PrintLayout()
+        pages = SelectedPrintPages(overlay.bounds, layout["paperTile"], overlay.pageOrigin, stride = layout["paperStride"])
+        sheetIndex = pages.index(bounds) + 1
         render.update(bounds = PrintDrawingBounds(bounds, layout, self.overrides.get("pageOrigin", (0, 0))),
-                      pageSize = layout["paper"], rasterSampling = sampling)
+                      pageSize = layout["paper"], rasterSampling = sampling, sheetIndex = sheetIndex)
         if not decorationsOnly:
             from planner_app.export_preview import PreviewProcess
             worker = PreviewProcess(overlay)
             if worker is not None:
-                key = (overlay.printRenderKey, tuple(bounds), sampling, tuple(self.overrides.get("pageOrigin", (0, 0))))
+                key = (overlay.printRenderKey, tuple(bounds), sampling, tuple(self.overrides.get("pageOrigin", (0, 0))), sheetIndex)
                 return worker.Request(("page", tuple(bounds)), key, lambda: render, outputFormat)
         if decorationsOnly:
             data = dict(render["projectData"])

@@ -45,7 +45,8 @@ def Main():
         sections = list(panel.sectionButtons)
         assert sections.index("Title Block") + 1 == sections.index("Composite")
         assert not panel.titleBlockEnabled.isChecked() and not panel.titleBlockOptions.isEnabled()
-        assert panel.titleBlockFields["sheetNumber"].text() == "A-101"
+        assert panel.titleBlockFields["sheetNumber"].text() == "A-1"
+        assert panel.titleBlockFields["sheetNumber"].accessibleName() == "Title block sheet prefix"
         assert panel.titleBlockFields["drawingTitle"].text() == "Ground Floor Plan"
         assert panel.titleBlockFields["comments"].accessibleName() == "Title block notes"
         assert "scale" not in panel.titleBlockFields

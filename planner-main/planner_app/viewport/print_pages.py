@@ -375,10 +375,11 @@ class PrintPagesMixin:
                         elif self.borderStyle != "None":
                             DrawExportBorder(framePainter, plot, border, self.borderStyle, borderTextSize = source.borderTextSize)
                         if self.titleBlock.get("enabled", False):
+                            titleBlock = dict(self.titleBlock, sheetIndex = self.printPageNumbers[page])
                             fitWidth = self.titleBlock.get("position", "Right") == "Bottom"
-                            width, height, block = TitleBlockLayout(source.width(), source.height(), self.titleBlock,
+                            width, height, block = TitleBlockLayout(source.width(), source.height(), titleBlock,
                                 self.scale, self.architecturalScale, "svg", 300, fitWidth = fitWidth, pageSize = layout["paper"])
-                            DrawTitleBlock(framePainter, block, self.titleBlock, self.scale,
+                            DrawTitleBlock(framePainter, block, titleBlock, self.scale,
                                            self.architecturalScale, "svg", 300, fitWidth = fitWidth, pageSize = layout["paper"])
                         DrawScaleBar(framePainter, plot, self.scaleBar, self.scale, source.unitsMode,
                                      bounds = drawing, gridOrigin = source.gridOrigin, measurementTextSize = source.measurementTextSize)
@@ -561,6 +562,18 @@ class PrintPagesMixin:
             painter.setClipRect(drawingRect)
             layout = self.PrintLayout()
             selected = SelectedPrintPages(self.bounds, layout["paperTile"], self.pageOrigin, stride = layout["paperStride"])
+            pageNumbers = {page: index for index, page in enumerate(selected, 1)}
+            renumbered = [page for page, index in pageNumbers.items()
+                          if page in self.printPageNumbers and self.printPageNumbers[page] != index]
+            if self.titleBlock.get("enabled", False) and renumbered:
+                # Cropping can renumber an existing page without changing its
+                # drawing coverage. Retain pages whose identifiers still match.
+                for page in renumbered:
+                    if page in self.printPageCache:
+                        self.DropPrintPage(page)
+                self.printDragKey = None
+                self.svgViewImage = self.svgViewKey = None
+            self.printPageNumbers.update(pageNumbers)
             pages = [page for page in selected if self.PrintPageRect(page).intersects(drawingRect)]
             colors = tuple((role, themeColors[role]) for role in palette.canvasRoles)
             settings = repr({name: value for name, value in self.printSettings.items()

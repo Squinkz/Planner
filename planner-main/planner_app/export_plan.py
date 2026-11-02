@@ -79,7 +79,7 @@ def PreviewPaintRoles(render):
 
 @PreviewPaintRoles
 def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "png", projectData = None, applyTheme = True, border = None,
-               dpi = None, architecturalScale = None, borderSize = 28, vignetteStrength = 0, texture = None, textureAngle = 0, textureSettings = None, wallStyle = "Material", solidObjects = True, gridOrigin = (0.0, 0.0), preview = False, previewScene = False, clipCache = None, furnishingDefinitions = None, useExportSettings = False, floors = None, roomStyle = None, solidRooms = None, titleBlock = None, pageSize = None, rasterSampling = 1, transparentScene = False, sceneCache = None, scaleBar = None, previewDocument = False, measurementTextSize = None, drawOpeningOutlines = True, borderTextSize = None, borderWidth = None):
+               dpi = None, architecturalScale = None, borderSize = 28, vignetteStrength = 0, texture = None, textureAngle = 0, textureSettings = None, wallStyle = "Material", solidObjects = True, gridOrigin = (0.0, 0.0), preview = False, previewScene = False, clipCache = None, furnishingDefinitions = None, useExportSettings = False, floors = None, roomStyle = None, solidRooms = None, titleBlock = None, pageSize = None, rasterSampling = 1, transparentScene = False, sceneCache = None, scaleBar = None, previewDocument = False, measurementTextSize = None, drawOpeningOutlines = True, borderTextSize = None, borderWidth = None, sheetIndex = 1):
     """Return a QImage or SVG bytes, using identical layout and scene drawing.
 
     projectData accepts an unsaved scene instead of reading planPath. GUI callers
@@ -99,6 +99,8 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
     avoiding redundant serialization/parsing. File exports always return bytes.
     """
     border = border if border is not None else "Ruler" if ruler else "None"
+    if type(sheetIndex) is not int or sheetIndex < 1:
+        raise ValueError("Sheet index must be a positive integer.")
     if border not in ("None", "Plain", "Frame", "Corner Marks", "Reference Zones", "Marked", "Ruler", "Ruler + Reference Zones"):
         raise ValueError("Invalid export border.")
     if type(solidObjects) is not bool:
@@ -226,6 +228,7 @@ def RenderPlan(planPath, scale, bounds = None, ruler = False, outputFormat = "pn
         titleBlock = export.get("titleBlock")
         scaleBar = export.get("scaleBar")
     titleBlock = NormalizeTitleBlock(titleBlock) if titleBlock is not None else {}
+    titleBlock["sheetIndex"] = sheetIndex
     scaleBar = NormalizeScaleBar(scaleBar) if scaleBar is not None else {}
     titleBlock.setdefault("projectName", Path(planPath).stem)
     if previewScene:

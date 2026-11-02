@@ -92,6 +92,7 @@ class ExportBoundsOverlay(PrintPagesMixin, QtCore.QObject):
         self.compositeGesture = False
         self.pageDragOffset = 0
         self.printPageCache = {}
+        self.printPageNumbers = {}
         self.printPageSampling = {}
         self.printPageDataBytes = {}
         self.printPageImages = {}
