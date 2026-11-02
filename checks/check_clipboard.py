@@ -2,7 +2,9 @@
 import os
 import sys
 import json
+import tempfile
 from pathlib import Path
+from unittest.mock import patch
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "planner-main"))
 from PySide6 import QtCore, QtGui, QtTest, QtWidgets
@@ -158,14 +160,23 @@ def Main():
         # The system payload can be pasted into another Planner window.
         v.SetSelection([(first, None)])
         assert v.CopySelection()
-        other = MainWindow()
-        other.show()
-        app.processEvents()
-        other.viewport.snapEnabled = False
-        assert other.viewport.PasteSelection(other.viewport.WorldToViewport(point()))
-        assert len(other.viewport.furnishings) == 1
-        assert abs(other.viewport.furnishings[0].angle - first.angle) < .01
-        other.close()
+        # Autosave may already have persisted this scene on a slower worker.
+        # Force that condition, then give the destination its own recovery file.
+        main.WriteSession(wait = True)
+        assert main.sessionPath.is_file(), main.sessionError
+        with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, {
+                "PLANNER_SESSION_PATH": str(Path(directory) / "destination-session.json")}):
+            other = MainWindow()
+            try:
+                other.show()
+                app.processEvents()
+                assert not other.sessionRestored and not other.viewport.furnishings
+                other.viewport.snapEnabled = False
+                assert other.viewport.PasteSelection(other.viewport.WorldToViewport(point()))
+                assert len(other.viewport.furnishings) == 1
+                assert abs(other.viewport.furnishings[0].angle - first.angle) < .01
+            finally:
+                other.close()
         # Empty-grid menu paste uses the clicked location, not a stale hover.
         v.setFocus()
         pastePoint = v.WorldToViewport(point(-900, 700))
